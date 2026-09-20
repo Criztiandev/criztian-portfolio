@@ -4,7 +4,7 @@ import { motion } from "motion/react"
 import { useRef } from "react"
 
 import { useDotField } from "@/features/portfolio/hooks/use-dot-field.hook"
-import { readRichTextPlainText } from "@/features/site-content/site-content.rules"
+import { renderRichTextHtml } from "@/features/site-content/services/rich-text-renderer.service"
 import { cn } from "@/lib/utils"
 import type { SiteContent } from "@/types/site-content.type"
 
@@ -50,7 +50,7 @@ export function Hero({
     dotColor: content.theme.heroDot,
   })
 
-  const tagline = readRichTextPlainText(content.hero.tagline).trim()
+  const taglineHtml = renderRichTextHtml(content.hero.tagline)
 
   return (
     <section
@@ -90,12 +90,11 @@ export function Hero({
           />
         </div>
 
-        <motion.p
+        <motion.div
           variants={ITEM_VARIANTS}
-          className="mt-16 max-w-md px-6 text-center text-base text-white/80"
-        >
-          {tagline}
-        </motion.p>
+          dangerouslySetInnerHTML={{ __html: taglineHtml }}
+          className="mt-16 max-w-md px-6 text-center text-base text-balance text-white/80"
+        />
       </motion.div>
 
       <motion.div

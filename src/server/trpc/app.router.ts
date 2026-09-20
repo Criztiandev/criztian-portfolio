@@ -1,5 +1,6 @@
 import { authRouter } from "@/features/auth/server/auth.router"
 import { contactRouter } from "@/features/contact/server/contact.router"
+import { siteContentRouter } from "@/features/site-content/server/site-content.router"
 
 import { baseProcedure, createTRPCRouter } from "./trpc.init"
 
@@ -9,6 +10,7 @@ export const appRouter = createTRPCRouter({
   }),
   auth: authRouter,
   contact: contactRouter,
+  siteContent: siteContentRouter,
 })
 
 export type AppRouter = typeof appRouter

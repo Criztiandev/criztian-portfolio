@@ -366,39 +366,39 @@ The cost is cross-document messaging, which is ~30 lines for a same-origin ifram
 
 **Prereqs:** Part A complete.
 
-- [ ] `src/features/site-content/server/site-content.router.ts` following the `contact.router.ts` shape exactly — the router is a **translation layer only**: `.input(schema)`, try/catch, `TRPCError` construction with `cause` always set. No business logic, no database access, no logging (that lives in the service and the central `onError`).
-- [ ] **`ownerProcedure` already exists** in `trpc.init.ts` and narrows `ctx.claims` from `OwnerClaims | null` to `OwnerClaims`. Use it — do not add a second gate. All three procedures are `ownerProcedure`:
+- [x] `src/features/site-content/server/site-content.router.ts` following the `contact.router.ts` shape exactly — the router is a **translation layer only**: `.input(schema)`, try/catch, `TRPCError` construction with `cause` always set. No business logic, no database access, no logging (that lives in the service and the central `onError`).
+- [x] **`ownerProcedure` already exists** in `trpc.init.ts` and narrows `ctx.claims` from `OwnerClaims | null` to `OwnerClaims`. Use it — do not add a second gate. All three procedures are `ownerProcedure`:
   - `getDraft`
   - `saveDraft` — validates the full document, writes `draft` and `draft_updated_at`
   - `publish` — copies `draft` into `published`, sets `published_at`, then `revalidatePath("/")`. `cacheComponents` is off, so the legacy caching model applies and `revalidatePath` is the correct lever.
-- [ ] **Writes go through the admin client inside the service**, matching the contact precedent, with `ownerProcedure` as the authorization gate at the router. Named function expressions for resolvers (`async function saveDraft({ ctx, input })`), never arrows. Pass `ctx.requestId` to the service **as an explicit argument** — services never import the context.
-- [ ] Every user-facing message string goes in `src/data/site-content.data.ts`, not inline.
-- [ ] Register under a `siteContent` key in `app.router.ts`.
-- [ ] Note on owner identity: there is **no allowlist or role claim** — any authenticated user is the owner, and single-owner is enforced by `enable_signup = false` in `supabase/config.toml`. That is the established model and `plans/handoff.md` explicitly rejects an `owner_accounts` table. If you want this feature tightened, the in-convention option is one line in `requireOwner` comparing `ctx.claims.email` to `serverEnv.OWNER_EMAIL`. Optional, not required.
-- [ ] **Gate:** unit tests cover `site-content.rules.ts` (defaults merging, publish-state comparison) with no `server-only` import.
+- [x] **Writes go through the admin client inside the service**, matching the contact precedent, with `ownerProcedure` as the authorization gate at the router. Named function expressions for resolvers (`async function saveDraft({ ctx, input })`), never arrows. Pass `ctx.requestId` to the service **as an explicit argument** — services never import the context.
+- [x] Every user-facing message string goes in `src/data/site-content.data.ts`, not inline.
+- [x] Register under a `siteContent` key in `app.router.ts`.
+- [x] Note on owner identity: there is **no allowlist or role claim** — any authenticated user is the owner, and single-owner is enforced by `enable_signup = false` in `supabase/config.toml`. That is the established model and `plans/handoff.md` explicitly rejects an `owner_accounts` table. If you want this feature tightened, the in-convention option is one line in `requireOwner` comparing `ctx.claims.email` to `serverEnv.OWNER_EMAIL`. Optional, not required.
+- [x] **Gate:** unit tests cover `site-content.rules.ts` (defaults merging, publish-state comparison) with no `server-only` import.
 
 ## Phase 12 — Preview route
 
 **Prereqs:** 11.
 
-- [ ] **Put the preview at `/dashboard/editor/preview`, not `/preview`.** Protection comes from two independent layers and both are path-based: the proxy checks `isProtectedPath`, which is driven by `PROTECTED_PATH_PREFIXES = ["/dashboard"]`, and `(owner)/dashboard/layout.tsx` does a second `getClaims()` check. A route at `/preview` would be covered by **neither** — it would serve unpublished content to anyone. Living under `/dashboard/` inherits both for free and needs no new entry in `auth.data.ts`.
-- [ ] **One small refactor makes this work:** `dashboard/layout.tsx` currently wraps children in `<div className="mx-auto max-w-4xl px-4 py-12">`, which would crush a full-bleed preview. Move that container out of the layout and into `dashboard/page.tsx`, leaving the layout as a pure auth gate. Both the editor and the preview then render full-bleed while keeping the gate. This is cheaper and less fragile than escaping a parent layout, which App Router does not support.
-- [ ] The route reads the draft server-side via `caller.siteContent.getDraft()`, then renders a thin client wrapper around `<SitePage />` that holds content in state and overrides it from `postMessage`. Reading the draft on load means the route also works standalone, not only when driven by the editor.
-- [ ] **Message handling, both directions, with explicit origins.** Post with `window.location.origin`, never `"*"`, and validate `event.origin === window.location.origin` on receive before touching the payload. Messages: `{ type: "content", payload }` and `{ type: "scroll", sectionId }`.
-- [ ] **Non-interactive, but not inert.** Rather than covering the iframe with a blocking overlay, the preview route applies `pointer-events: none` to `a, button, input, textarea, select` only. Links can't navigate and forms can't be submitted, but **the hero canvas still receives the pointer, so the vortex works in preview** — which is exactly the thing you want to watch while editing. An overlay would kill it.
-- [ ] **Gate:** visiting `/preview` logged in shows the site with draft content; logged out redirects.
+- [x] **Put the preview at `/dashboard/editor/preview`, not `/preview`.** Protection comes from two independent layers and both are path-based: the proxy checks `isProtectedPath`, which is driven by `PROTECTED_PATH_PREFIXES = ["/dashboard"]`, and `(owner)/dashboard/layout.tsx` does a second `getClaims()` check. A route at `/preview` would be covered by **neither** — it would serve unpublished content to anyone. Living under `/dashboard/` inherits both for free and needs no new entry in `auth.data.ts`.
+- [x] **One small refactor makes this work:** `dashboard/layout.tsx` currently wraps children in `<div className="mx-auto max-w-4xl px-4 py-12">`, which would crush a full-bleed preview. Move that container out of the layout and into `dashboard/page.tsx`, leaving the layout as a pure auth gate. Both the editor and the preview then render full-bleed while keeping the gate. This is cheaper and less fragile than escaping a parent layout, which App Router does not support.
+- [x] The route reads the draft server-side via `caller.siteContent.getDraft()`, then renders a thin client wrapper around `<SitePage />` that holds content in state and overrides it from `postMessage`. Reading the draft on load means the route also works standalone, not only when driven by the editor.
+- [x] **Message handling, both directions, with explicit origins.** Post with `window.location.origin`, never `"*"`, and validate `event.origin === window.location.origin` on receive before touching the payload. Messages: `{ type: "content", payload }` and `{ type: "scroll", sectionId }`.
+- [x] **Non-interactive, but not inert.** Rather than covering the iframe with a blocking overlay, the preview route applies `pointer-events: none` to `a, button, input, textarea, select` only. Links can't navigate and forms can't be submitted, but **the hero canvas still receives the pointer, so the vortex works in preview** — which is exactly the thing you want to watch while editing. An overlay would kill it.
+- [x] **Gate:** visiting `/preview` logged in shows the site with draft content; logged out redirects.
 
 ## Phase 13 — Editor shell
 
 **Prereqs:** 12.
 
-- [ ] `src/app/(owner)/dashboard/editor/page.tsx` — server component. **Read the draft with `caller.siteContent.getDraft()` and pass it as a prop**, matching the one existing server-side read in `dashboard/page.tsx`. The `trpc` options proxy and `getQueryClient` are wired up for `prefetchQuery` + `HydrationBoundary`, but there is **not a single `useQuery` or `HydrationBoundary` anywhere in the repo** — using them here means being the first, and validating that path. The `caller` + props route is the established one and is sufficient, since saves are mutations and `useMutation` is already used in `login.form.tsx`.
-- [ ] Three panes: left `w-60` section list, centre `flex-1` iframe, right `w-80` config panel. Full height, the editor itself does not scroll — each pane scrolls independently.
-- [ ] Left pane is driven by data, not hardcoded markup: an array of `{ id, label }` entries in `src/data/site-content.data.ts`. With hero-only scope that is `Hero` and `Theme`, but **adding a section later is a data change, not a component change**.
-- [ ] Editor UI state in a TanStack Store factory scoped to a provider, matching `portfolio-ui.store.ts` exactly — no module singleton. State: `selectedEntry`, `previewWidth`, `saveState` (`"idle" | "saving" | "saved" | "error"`).
-- [ ] Viewport toggle sets the iframe's CSS width (`100%` / `768px` / `390px`), centred, with a transition. Free responsive preview.
-- [ ] Selecting an entry posts `{ type: "scroll", sectionId }` to the iframe.
-- [ ] **Gate:** the three panes render, the iframe loads the site, the viewport toggle reflows it.
+- [x] `src/app/(owner)/dashboard/editor/page.tsx` — server component. **Read the draft with `caller.siteContent.getDraft()` and pass it as a prop**, matching the one existing server-side read in `dashboard/page.tsx`. The `trpc` options proxy and `getQueryClient` are wired up for `prefetchQuery` + `HydrationBoundary`, but there is **not a single `useQuery` or `HydrationBoundary` anywhere in the repo** — using them here means being the first, and validating that path. The `caller` + props route is the established one and is sufficient, since saves are mutations and `useMutation` is already used in `login.form.tsx`.
+- [x] Three panes: left `w-60` section list, centre `flex-1` iframe, right `w-80` config panel. Full height, the editor itself does not scroll — each pane scrolls independently.
+- [x] Left pane is driven by data, not hardcoded markup: an array of `{ id, label }` entries in `src/data/site-content.data.ts`. With hero-only scope that is `Hero` and `Theme`, but **adding a section later is a data change, not a component change**.
+- [x] Editor UI state in a TanStack Store factory scoped to a provider, matching `portfolio-ui.store.ts` exactly — no module singleton. State: `selectedEntry`, `previewWidth`, `saveState` (`"idle" | "saving" | "saved" | "error"`).
+- [x] Viewport toggle sets the iframe's CSS width (`100%` / `768px` / `390px`), centred, with a transition. Free responsive preview.
+- [x] Selecting an entry posts `{ type: "scroll", sectionId }` to the iframe.
+- [x] **Gate:** the three panes render, the iframe loads the site, the viewport toggle reflows it.
 
 ## Phase 14 — Config panel and live updates
 

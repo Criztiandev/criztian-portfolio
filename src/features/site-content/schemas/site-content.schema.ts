@@ -17,6 +17,8 @@ import {
   HERO_MAX_DISCIPLINES,
   HERO_NAME_MAX_LENGTH,
   HEX_COLOR_PATTERN,
+  RICH_TEXT_MARK_TYPES,
+  RICH_TEXT_NODE_TYPES,
 } from "@/data/site-content.data"
 
 function collapseWhitespace(value: string): string {
@@ -28,11 +30,11 @@ function normalizeHexColor(value: string): string {
 }
 
 const richTextMarkSchema = z.object({
-  type: z.string().min(1).max(40),
+  type: z.enum(RICH_TEXT_MARK_TYPES),
 })
 
 const richTextNodeSchema = z.object({
-  type: z.string().min(1).max(40),
+  type: z.enum(RICH_TEXT_NODE_TYPES),
   text: z.string().optional(),
   marks: z.array(richTextMarkSchema).optional(),
   get content() {
@@ -81,13 +83,27 @@ export const heroContentSchema = z.object({
   scrollLabel: heroLabelSchema.default(DEFAULT_HERO_SCROLL_LABEL),
   worksLabel: heroLabelSchema.default(DEFAULT_HERO_WORKS_LABEL),
   disciplines: z
-    .array(
+    .array(z.string())
+    .transform(function dropBlankDisciplines(values) {
+      const disciplines: string[] = []
+
+      for (const value of values) {
+        const collapsed = collapseWhitespace(value)
+
+        if (collapsed.length === 0) {
+          continue
+        }
+
+        disciplines.push(collapsed)
+      }
+
+      return disciplines
+    })
+    .pipe(
       z
-        .string()
-        .transform(collapseWhitespace)
-        .pipe(z.string().min(1).max(HERO_DISCIPLINE_MAX_LENGTH))
+        .array(z.string().max(HERO_DISCIPLINE_MAX_LENGTH))
+        .max(HERO_MAX_DISCIPLINES)
     )
-    .max(HERO_MAX_DISCIPLINES)
     .default(DEFAULT_HERO_DISCIPLINES),
 })
 

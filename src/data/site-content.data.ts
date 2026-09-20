@@ -1,6 +1,11 @@
 import type {
+  EditorPreviewWidthOption,
+  EditorSaveState,
+  EditorUiState,
+  HeroTextField,
   RichTextDocument,
   SiteContentEntry,
+  ThemeColorField,
 } from "@/types/site-content.type"
 
 export const HERO_NAME_MAX_LENGTH = 40
@@ -10,6 +15,15 @@ export const HERO_LABEL_MAX_LENGTH = 60
 export const HERO_DISCIPLINE_MAX_LENGTH = 60
 
 export const HERO_MAX_DISCIPLINES = 4
+
+export const RICH_TEXT_NODE_TYPES = [
+  "doc",
+  "paragraph",
+  "text",
+  "hardBreak",
+] as const
+
+export const RICH_TEXT_MARK_TYPES = ["bold", "italic"] as const
 
 export const RICH_TEXT_MAX_DEPTH = 6
 
@@ -73,3 +87,59 @@ export const SITE_CONTENT_SAVE_FAILED_MESSAGE =
 
 export const SITE_CONTENT_PUBLISH_FAILED_MESSAGE =
   "Could not publish. Please try again."
+
+export const SITE_CONTENT_READ_FAILED_MESSAGE =
+  "Could not load your draft. Please reload the page."
+
+export const SITE_CONTENT_PUBLIC_PATH = "/"
+
+export const EDITOR_PATH = "/dashboard/editor"
+
+export const EDITOR_PREVIEW_PATH = "/dashboard/editor/preview"
+
+export const PREVIEW_CONTENT_MESSAGE = "content"
+
+export const PREVIEW_SCROLL_MESSAGE = "scroll"
+
+export const PREVIEW_CONTENT_DEBOUNCE_MS = 80
+
+export const DRAFT_SAVE_DEBOUNCE_MS = 800
+
+export const FULL_PREVIEW_WIDTH = "100%"
+
+export const PREVIEW_WIDTHS: EditorPreviewWidthOption[] = [
+  { id: "desktop", label: "Desktop", width: FULL_PREVIEW_WIDTH },
+  { id: "tablet", label: "Tablet", width: "768px" },
+  { id: "mobile", label: "Mobile", width: "390px" },
+]
+
+export const INITIAL_EDITOR_UI_STATE: EditorUiState = {
+  selectedEntry: "hero",
+  previewWidth: "desktop",
+  saveState: "idle",
+}
+
+export const HERO_TEXT_FIELDS: HeroTextField[] = [
+  { key: "name", label: "Name" },
+  { key: "scrollLabel", label: "Scroll label" },
+  { key: "worksLabel", label: "Selected works label" },
+]
+
+export const THEME_COLOR_FIELDS: ThemeColorField[] = [
+  { key: "pageBackground", label: "Page background" },
+  { key: "bodyText", label: "Body text" },
+  { key: "mutedText", label: "Muted text" },
+  { key: "accent", label: "Accent" },
+  { key: "border", label: "Border" },
+  { key: "heroDot", label: "Hero dots" },
+]
+
+export const SITE_CONTENT_PUBLISH_CONFIRMATION =
+  "Publish these changes to the live site?"
+
+export const SAVE_STATE_LABELS: Record<EditorSaveState, string> = {
+  idle: "",
+  saving: "Saving…",
+  saved: "Saved",
+  error: "Not saved",
+}
