@@ -7,8 +7,6 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  // Guards the reuseExistingServer case below: against a running `next dev`,
-  // parallel workers force concurrent cold compiles that race on .next manifests.
   workers: 1,
   reporter: "list",
   use: {
@@ -22,9 +20,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    // `next dev` rewrites .next manifests as it compiles each route, which on
-    // this machine loses a rename race with the virus scanner and serves a 500.
-    // A production build writes .next once, before any test runs.
+    // Deliberately a production build, not `pnpm dev`: it writes .next once,
+    // before any test runs, so the suite cannot inherit dev-server bundler bugs.
     command: "pnpm build && pnpm start",
     url: APP_URL,
     reuseExistingServer: !process.env.CI,
