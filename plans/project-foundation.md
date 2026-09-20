@@ -113,7 +113,7 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Not an agent action.** Docker is absent on this machine. Phases 6–9 are hard-blocked on it, so start the install at the same time as Phase 0 and it will be ready when you get there.
 
-- [ ] Install Docker Desktop with the WSL2 backend and start the engine. Record any required restart or BIOS/Windows feature change in the README.
+- [x] Install Docker Desktop with the WSL2 backend and start the engine. Record any required restart or BIOS/Windows feature change in the README.
 - **Gate:** `docker info` exits 0.
 
 ---
@@ -196,7 +196,7 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 - [x] Disable public signup in `supabase/config.toml` (confirm the exact key against the generated file — historically `[auth] enable_signup = false`).
 - [x] Add a `contact_messages` migration: id, normalised name/email/message, `created_at`, `notified_at timestamptz`, `notify_error text`, and a hashed-IP column for the rate check.
 - [x] Enable RLS. `INSERT` allowed to `anon`; `SELECT`/`UPDATE`/`DELETE` require `authenticated`. There is no owner table — signup is disabled, so `authenticated` is the owner.
-- [ ] Create the single owner account through the CLI/Studio admin path. Do not commit a password.
+- [x] Create the single owner account through the CLI/Studio admin path. Do not commit a password.
 - [x] Generate `src/types/database.type.ts` from the local schema. Add a `db:reset` and a `db:types` script.
 - **Gate:** `pnpm exec supabase db reset` replays cleanly, then as `anon` a `select` on `contact_messages` returns 0 rows while an `insert` succeeds.
 
