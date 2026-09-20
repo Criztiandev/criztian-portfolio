@@ -31,10 +31,10 @@ describe("portfolio UI store", () => {
   })
 
   it("gives each instance independent state", () => {
-    const a = createPortfolioUiStore()
-    const b = createPortfolioUiStore()
-    a.actions.openMobileNav()
-    expect(b.state.isMobileNavOpen).toBe(false)
+    const firstStore = createPortfolioUiStore()
+    const secondStore = createPortfolioUiStore()
+    firstStore.actions.openMobileNav()
+    expect(secondStore.state.isMobileNavOpen).toBe(false)
   })
 
   it("notifies subscribers synchronously, with no network round trip", () => {

@@ -14,15 +14,15 @@ export const createTRPCContext = cache(async function createContext() {
 
 export type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>>
 
-const t = initTRPC.context<TRPCContext>().create()
+const trpc = initTRPC.context<TRPCContext>().create()
 
-export const createTRPCRouter = t.router
+export const createTRPCRouter = trpc.router
 
-export const createCallerFactory = t.createCallerFactory
+export const createCallerFactory = trpc.createCallerFactory
 
-export const baseProcedure = t.procedure
+export const baseProcedure = trpc.procedure
 
-const requireOwner = t.middleware(async function ownerGuard({ ctx, next }) {
+const requireOwner = trpc.middleware(async function ownerGuard({ ctx, next }) {
   if (ctx.claims === null) {
     throw new TRPCError({ code: "UNAUTHORIZED" })
   }
