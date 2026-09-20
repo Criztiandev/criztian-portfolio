@@ -16,38 +16,39 @@ Deployment is out of scope. Local only.
 
 ### Decisions confirmed
 
-| Decision | Effect |
-| --- | --- |
-| **Defer TanStack Table, Charts, Markdown, Highlight** | The entire "Tables, charts, and blog-rendering foundation" section is removed. See [Deferred](#deferred-to-later-plans). |
-| **Downgrade ESLint 10 → 9** | `eslint-config-next@16.3.4` depends on `eslint-plugin-import` and `eslint-plugin-jsx-a11y`, and **both cap their eslint peer at `^9`**. ESLint 10 is not cleanly supported. Pin `eslint@^9`. |
-| **shadcn output is vendored** | `components/ui/*`, `lib/utils.ts` and the `components.json` aliases are left exactly as the CLI generates them. No `.ui.tsx` renames, no moving `lib/utils.ts`. `shadcn add` keeps working untouched. |
-| **One document, ordered phases with gates** | Phases 0–11 below. Each has hard prerequisites and one concrete verification command. |
+| Decision                                              | Effect                                                                                                                                                                                                                                                                                   |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Defer TanStack Table, Charts, Markdown, Highlight** | The entire "Tables, charts, and blog-rendering foundation" section is removed. See [Deferred](#deferred-to-later-plans).                                                                                                                                                                 |
+| **Downgrade ESLint 10 → 9**                           | `eslint-config-next@16.3.4` depends on `eslint-plugin-import` and `eslint-plugin-jsx-a11y`, and **both cap their eslint peer at `^9`**. ESLint 10 is not cleanly supported. Pin `eslint@^9`.                                                                                             |
+| **shadcn output is vendored**                         | `src/components/ui/*`, `src/lib/utils.ts` and the `components.json` aliases are left exactly as the CLI generates them. No `.ui.tsx` renames, no moving `src/lib/utils.ts`. `shadcn add` keeps working untouched.                                                                        |
+| **One document, ordered phases with gates**           | Phases 0–11 below. Each has hard prerequisites and one concrete verification command.                                                                                                                                                                                                    |
+| **`src/` is the application root** (added mid-build)  | `app/`, `components/`, `lib/` and `hooks/` moved to `src/`. `tsconfig.json` maps `@/*` → `./src/*`; `components.json` and `.prettierrc` point at `src/app/globals.css`. Per the Next docs, `public/`, `.env.*` and config files stay at the root, and `proxy.ts` goes **inside** `src/`. |
 
 ### Factual corrections to the old plan
 
-- **`tsc --noEmit` is not a valid typecheck.** Next 16 generates route types and `next-env.d.ts` only during `dev`/`build`/`typegen`. The docs are explicit: *"running `tsc --noEmit` directly wouldn't validate your route types… `next typegen && tsc --noEmit`"* (`next/dist/docs/01-app/03-api-reference/06-cli/next.md`). Neither file exists in this repo right now, so today's `typecheck` script is false-green.
-- **`/#contact` will not scroll smoothly.** Next 16 *"will no longer override your `scroll-behavior` setting during navigation"*; you must add `data-scroll-behavior="smooth"` to `<html>` (`.../02-guides/upgrading/version-16.md:971-978`). The old plan built a one-page anchor-nav site and never mentioned this.
+- **`tsc --noEmit` is not a valid typecheck.** Next 16 generates route types and `next-env.d.ts` only during `dev`/`build`/`typegen`. The docs are explicit: _"running `tsc --noEmit` directly wouldn't validate your route types… `next typegen && tsc --noEmit`"_ (`next/dist/docs/01-app/03-api-reference/06-cli/next.md`). Neither file exists in this repo right now, so today's `typecheck` script is false-green.
+- **`/#contact` will not scroll smoothly.** Next 16 _"will no longer override your `scroll-behavior` setting during navigation"_; you must add `data-scroll-behavior="smooth"` to `<html>` (`.../02-guides/upgrading/version-16.md:971-978`). The old plan built a one-page anchor-nav site and never mentioned this.
 - **`.gitignore` swallows `.env.example`.** It contains a bare `.env*` with no negation, so the one env file that must be committed is silently ignored.
-- **Moving `lib/utils.ts` accomplishes nothing and breaks the CLI.** It is one line — `export { cn } from "cn"` — and `components/ui/button.tsx` already bypasses it by importing `from "cn"` directly. Moving it desyncs the `components.json` utils alias.
+- **Moving `src/lib/utils.ts` accomplishes nothing and breaks the CLI.** It is one line — `export { cn } from "cn"` — and `src/components/ui/button.tsx` already bypasses it by importing `from "cn"` directly. Moving it desyncs the `components.json` utils alias.
 - **`@types/node` is `^20` but Node here is v24.21.0.** Test tooling peers on `>=22`.
 - **`useStore` is deprecated** in `@tanstack/react-store@0.11.1`; `useSelector` is current. The old plan hedged; this is settled.
-- **`@supabase/supabase-js` is a *peer* of `@supabase/ssr`**, not a dependency. Under pnpm's strict `node_modules` you must install both explicitly.
+- **`@supabase/supabase-js` is a _peer_ of `@supabase/ssr`**, not a dependency. Under pnpm's strict `node_modules` you must install both explicitly.
 
 ### Cut list — restore any of these on request
 
 Each is a multi-tenant-SaaS pattern applied to a system with exactly one user and maybe a dozen messages a year.
 
-| Cut | Why |
-| --- | --- |
-| `owner_accounts` table + singleton constraint | Public signup is disabled and there is exactly one row in `auth.users`, so `authenticated` **is** the owner by construction. A second identity table must be kept in sync with `auth.users` and defends against a case signup-disabled already prevents. Net increase in failure modes. |
-| Rate-limit table + atomic RPC | An atomic RPC exists to resolve concurrent-increment races that a personal contact form will not have. Replaced by a honeypot, a minimum time-to-submit check, and a `count(*)` over the last hour by hashed IP — ~15 lines, no migration, and it stops more real spam. |
+| Cut                                                                    | Why                                                                                                                                                                                                                                                                                                                                                           |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `owner_accounts` table + singleton constraint                          | Public signup is disabled and there is exactly one row in `auth.users`, so `authenticated` **is** the owner by construction. A second identity table must be kept in sync with `auth.users` and defends against a case signup-disabled already prevents. Net increase in failure modes.                                                                       |
+| Rate-limit table + atomic RPC                                          | An atomic RPC exists to resolve concurrent-increment races that a personal contact form will not have. Replaced by a honeypot, a minimum time-to-submit check, and a `count(*)` over the last hour by hashed IP — ~15 lines, no migration, and it stops more real spam.                                                                                       |
 | Idempotency keys + notification state machine + operator-recovery docs | Replaced by two nullable columns, `notified_at` and `notify_error`. Persist-then-notify, best effort. If `notified_at IS NULL` the message is still in the database and visible in the dashboard — that is the whole recovery story, and it is more reliable than a state machine that never gets exercised. Double-submit is solved by disabling the button. |
-| `docs/architecture.md` + `development.md` + `deployment.md` | Folded into `README.md`, which is still the unmodified template and needs rewriting anyway. Three docs for a solo project guarantees two go stale and start misleading you. |
-| Integration test tier | Kept unit (Vitest, fast, no Docker, runs in the hook) and e2e (Playwright, two specs). Dropped the middle tier: procedure tests against live local Supabase need Docker up, need a DB reset per test for isolation, are flaky on Windows, and duplicate the e2e coverage. |
-| Mocked Resend adapter | Testing a mock tests the mock. The `EmailAdapter` **interface** and the local preview implementation stay, so the seam exists; the Resend implementation gets written against the real API when you deploy. |
-| `superjson` | Three wiring points and a dependency to avoid one `Date`. Return ISO strings from the contact mutation. |
-| Optimistic-update policy section | The old plan's own conclusion was *"There is no eligible persistent row-edit feature in the current foundation."* An entire section, a policy table and two checkboxes for a feature that does not exist. Reduced to one line under [Architecture](#architecture). |
-| 33-row "How to test" table | Every row restated a step's own "Verify …" clause. Verification now lives in each phase gate. |
+| `docs/architecture.md` + `development.md` + `deployment.md`            | Folded into `README.md`, which is still the unmodified template and needs rewriting anyway. Three docs for a solo project guarantees two go stale and start misleading you.                                                                                                                                                                                   |
+| Integration test tier                                                  | Kept unit (Vitest, fast, no Docker, runs in the hook) and e2e (Playwright, two specs). Dropped the middle tier: procedure tests against live local Supabase need Docker up, need a DB reset per test for isolation, are flaky on Windows, and duplicate the e2e coverage.                                                                                     |
+| Mocked Resend adapter                                                  | Testing a mock tests the mock. The `EmailAdapter` **interface** and the local preview implementation stay, so the seam exists; the Resend implementation gets written against the real API when you deploy.                                                                                                                                                   |
+| `superjson`                                                            | Three wiring points and a dependency to avoid one `Date`. Return ISO strings from the contact mutation.                                                                                                                                                                                                                                                       |
+| Optimistic-update policy section                                       | The old plan's own conclusion was _"There is no eligible persistent row-edit feature in the current foundation."_ An entire section, a policy table and two checkboxes for a feature that does not exist. Reduced to one line under [Architecture](#architecture).                                                                                            |
+| 33-row "How to test" table                                             | Every row restated a step's own "Verify …" clause. Verification now lives in each phase gate.                                                                                                                                                                                                                                                                 |
 
 ---
 
@@ -55,7 +56,7 @@ Each is a multi-tenant-SaaS pattern applied to a system with exactly one user an
 
 **Toolchain present:** Node v24.21.0, pnpm 10.34.5, git 2.55.0.windows.5. **Docker: not installed** (`docker: command not found`).
 
-**Repo:** not a git repository. Never built — no `.next/`, no `next-env.d.ts`. Authored source is only `app/{layout,page}.tsx`, `app/globals.css`, `components/theme-provider.tsx`, `components/ui/button.tsx`, `lib/utils.ts`.
+**Repo:** not a git repository. Never built — no `.next/`, no `next-env.d.ts`. Authored source is only `app/{layout,page}.tsx`, `app/globals.css`, `components/theme-provider.tsx`, `components/ui/button.tsx`, `lib/utils.ts` — all since relocated under `src/`, see [Target file tree](#target-file-tree).
 
 **Installed:** next 16.3.4 · react/react-dom 19.2.8 · typescript 5.9.3 · tailwindcss + @tailwindcss/postcss 4.3.3 · eslint 10.11.0 · eslint-config-next 16.3.4 · prettier 3.9.8 · prettier-plugin-tailwindcss 0.8.1 · @types/node 20.19.43 · @base-ui/react 1.8.0 · next-themes 0.4.6 · shadcn 4.21.0 · lucide-react 1.47.0 · cva 0.7.1 · cn 0.3.0. pnpm lockfile v9.
 
@@ -69,7 +70,7 @@ Each is a multi-tenant-SaaS pattern applied to a system with exactly one user an
 
 Browser flow: shadcn UI + React Hook Form → TanStack Query → tRPC → service → Supabase / email adapter.
 
-- Application procedures are hosted at `app/api/trpc/[trpc]/route.ts` on the Node runtime. No parallel REST API.
+- Application procedures are hosted at `src/app/api/trpc/[trpc]/route.ts` on the Node runtime. No parallel REST API.
 - Server Components use the server-side caller / prefetch proxy, never loopback HTTP.
 - Routers validate input and enforce access; services coordinate workflows. Skip repository wrappers that only rename SDK calls.
 - Feature **schemas** may be shared with the browser. Supabase clients, secret keys and email integrations are server-only.
@@ -80,22 +81,22 @@ Browser flow: shadcn UI + React Hook Form → TanStack Query → tRPC → servic
 
 ### State ownership
 
-| Concern | Owner |
-| --- | --- |
-| Shared transient UI state (mobile nav) | TanStack Store via `@tanstack/react-store`, accessed with `useSelector` |
-| State used by one component | Local React state |
-| Server records, caches, request status | TanStack Query through tRPC |
-| Form values, validation, submission state | React Hook Form + Zod |
-| Theme | Existing `next-themes` provider |
-| Route and shareable section | Next.js routing + native URL anchors |
-| Verified identity | Server-side `supabase.auth.getClaims()` |
+| Concern                                   | Owner                                                                   |
+| ----------------------------------------- | ----------------------------------------------------------------------- |
+| Shared transient UI state (mobile nav)    | TanStack Store via `@tanstack/react-store`, accessed with `useSelector` |
+| State used by one component               | Local React state                                                       |
+| Server records, caches, request status    | TanStack Query through tRPC                                             |
+| Form values, validation, submission state | React Hook Form + Zod                                                   |
+| Theme                                     | Existing `next-themes` provider                                         |
+| Route and shareable section               | Next.js routing + native URL anchors                                    |
+| Verified identity                         | Server-side `supabase.auth.getClaims()`                                 |
 
 Do not mirror query results, form fields, auth tokens or theme state into the UI store. Create the store through a factory scoped to a provider — no module-level mutable singleton, which would leak across server requests.
 
 ### Conventions
 
 - `name.context.ts` / `name.context.tsx`, kebab-case for multiword: `contact.form.tsx`, `contact.schema.ts`, `contact.router.ts`, `theme.provider.tsx`.
-- **Exempt:** `components/ui/**` and `lib/utils.ts` are vendored shadcn output — leave names and imports exactly as generated. Framework filenames (`page.tsx`, `layout.tsx`, `route.ts`, `proxy.ts`), tool configs and timestamped SQL migrations keep their own conventions.
+- **Exempt:** `src/components/ui/**` and `src/lib/utils.ts` are vendored shadcn output — leave names and imports exactly as generated. Framework filenames (`page.tsx`, `layout.tsx`, `route.ts`, `proxy.ts`), tool configs and timestamped SQL migrations keep their own conventions.
 - Prefer clear names and small functions over comments. Reserve comments for non-obvious constraints and security reasoning.
 - Strict TypeScript; infer types from schemas and routers; generate database types from the schema.
 
@@ -118,21 +119,21 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Prereqs:** none. This must be first: if `.gitattributes` is not committed before the first commit, Git's Windows defaults bake CRLF into history, Prettier rewrites to LF, lint-staged re-stages, and every file shows as modified forever.
 
-- [ ] `git init`. Add `.gitattributes` with `* text=auto eol=lf`.
-- [ ] Add `.editorconfig` matching `.prettierrc` (LF, 2-space indent, final newline).
-- [ ] Add `.nvmrc` (`24`) and `.npmrc` (`engine-strict=true`). Add `"packageManager": "pnpm@10.34.5"` and an `engines.node` field to `package.json`.
-- [ ] Fix `.gitignore`: add `!.env.example` after the `.env*` line, and add `.local/`.
-- [ ] Make the initial commit.
+- [x] `git init`. Add `.gitattributes` with `* text=auto eol=lf`.
+- [x] Add `.editorconfig` matching `.prettierrc` (LF, 2-space indent, final newline).
+- [x] Add `.nvmrc` (`24`) and `.npmrc` (`engine-strict=true`). Add `"packageManager": "pnpm@10.34.5"` and an `engines.node` field to `package.json`.
+- [x] Fix `.gitignore`: add `!.env.example` after the `.env*` line, and add `.local/`.
+- [x] Make the initial commit.
 - **Gate:** `git check-ignore -v .env.local` prints a match **and** `git check-ignore .env.example` exits non-zero.
 
 ### Phase 1 — Toolchain correction and first-ever build
 
 **Prereqs:** 0. This is the first time this project is built; establish a known-good baseline before anything else so later failures are unambiguous.
 
-- [ ] Record current `pnpm lint` output as the pre-existing baseline.
-- [ ] Downgrade `eslint` to `^9`. Bump `@types/node` to `^24`. Verify the resolved tree has no peer errors.
-- [ ] Change the `typecheck` script to `next typegen && tsc --noEmit`. Add `lint:fix`, `format:check`, and an aggregate `check` script. Expand `format` beyond `**/*.{ts,tsx}` to cover JSON, CSS, Markdown and YAML.
-- [ ] Fix `app/layout.tsx` in one pass: add `export const metadata`, add `data-scroll-behavior="smooth"` to `<html>`, and Prettier-format it (it currently has a stray semicolon, single quotes and an over-width line, all against the repo's own `.prettierrc`).
+- [x] Record current `pnpm lint` output as the pre-existing baseline.
+- [x] Downgrade `eslint` to `^9`. Bump `@types/node` to `^24`. Verify the resolved tree has no peer errors.
+- [x] Change the `typecheck` script to `next typegen && tsc --noEmit`. Add `lint:fix`, `format:check`, and an aggregate `check` script. Expand `format` beyond `**/*.{ts,tsx}` to cover JSON, CSS, Markdown and YAML.
+- [x] Fix `src/app/layout.tsx` in one pass: add `export const metadata`, add `data-scroll-behavior="smooth"` to `<html>`, and Prettier-format it (it currently has a stray semicolon, single quotes and an over-width line, all against the repo's own `.prettierrc`).
 - **Gate:** `pnpm lint && pnpm typecheck && pnpm build` — all exit 0.
 
 > `next typegen` loads `next.config.ts` using the production build phase, so required env vars must be present for it to run. Keep env validation (Phase 3) **out of** `next.config.ts` or `typecheck` will break without a `.env.local`.
@@ -152,7 +153,7 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 **Prereqs:** 1. Landing tests here is what makes every later phase verifiable by command instead of by clicking.
 
 - [ ] Add `vitest`, `@vitejs/plugin-react`, `@testing-library/{react,dom,jest-dom}`, `jsdom`, `vite-tsconfig-paths`. Add `vitest.config.ts` and a `test:unit` script.
-- [ ] Add `zod`. Create `config/env.server.ts` and `config/env.public.ts` with separate schemas, imported only from server and client code respectively.
+- [ ] Add `zod`. Create `src/config/env.server.ts` and `src/config/env.public.ts` with separate schemas, imported only from server and client code respectively.
 - [ ] Add `.env.example` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `NEXT_PUBLIC_APP_URL`, `EMAIL_MODE=preview`, `OWNER_EMAIL`.
 - [ ] Add a guard rejecting Supabase key values matching `/^eyJ/`. Supabase's current keys are short opaque `sb_publishable_…` / `sb_secret_…` strings; a long key starting with `eyJ` is a legacy JWT copied from a stale tutorial. Validate **shape only** so this passes before Supabase is running.
 - **Gate:** `pnpm test:unit` passes with a real assertion, and blanking a required var makes `pnpm build` fail naming that key.
@@ -164,9 +165,9 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 **Prereqs:** 3. Deliberately sequenced **before** Supabase so the hardest integration is proven in isolation, with no Docker dependency.
 
 - [ ] Add `@trpc/server`, `@trpc/client`, `@trpc/tanstack-react-query`, `@tanstack/react-query`, `client-only`, `server-only`.
-- [ ] Create `server/trpc/trpc.init.ts` (`createTRPCContext` wrapped in React `cache()`, `createTRPCRouter`, `baseProcedure`), `server/trpc/app.router.ts`, `lib/query/query.factory.ts` (`makeQueryClient`, a deliberate `staleTime`, and a `shouldDehydrateQuery` that also dehydrates pending queries), `lib/trpc/trpc.client.tsx` (`createTRPCContext<AppRouter>()` → `TRPCProvider`, `useTRPC`), `server/trpc/trpc.server.ts` (`import "server-only"`, `cache(makeQueryClient)`, `createTRPCOptionsProxy`).
-- [ ] Add `app/api/trpc/[trpc]/route.ts` using `fetchRequestHandler`, exported as both `GET` and `POST`. Do not add `export const runtime` — Node is already the default.
-- [ ] Mount the provider in `app/layout.tsx` alongside the theme provider. One provider, one browser cache.
+- [ ] Create `src/server/trpc/trpc.init.ts` (`createTRPCContext` wrapped in React `cache()`, `createTRPCRouter`, `baseProcedure`), `src/server/trpc/app.router.ts`, `src/lib/query/query.factory.ts` (`makeQueryClient`, a deliberate `staleTime`, and a `shouldDehydrateQuery` that also dehydrates pending queries), `src/lib/trpc/trpc.client.tsx` (`createTRPCContext<AppRouter>()` → `TRPCProvider`, `useTRPC`), `src/server/trpc/trpc.server.ts` (`import "server-only"`, `cache(makeQueryClient)`, `createTRPCOptionsProxy`).
+- [ ] Add `src/app/api/trpc/[trpc]/route.ts` using `fetchRequestHandler`, exported as both `GET` and `POST`. Do not add `export const runtime` — Node is already the default.
+- [ ] Mount the provider in `src/app/layout.tsx` alongside the theme provider. One provider, one browser cache.
 - [ ] Add one DB-free `health` procedure.
 - **Gate:** `pnpm dev`, then `curl "http://localhost:3000/api/trpc/health?input=%7B%7D"` returns a tRPC `{"result":{"data":…}}` envelope.
 
@@ -176,11 +177,11 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Prereqs:** 4
 
-- [ ] Add `@tanstack/react-store`. Move `components/theme-provider.tsx` → `providers/theme.provider.tsx` and update its import.
-- [ ] Add `features/portfolio/stores/portfolio-ui.store.ts` as a **factory**, plus `providers/portfolio-store.provider.tsx` scoping one instance to the interactive shell. Access it with `useSelector` — not the deprecated `useStore`.
+- [ ] Add `@tanstack/react-store`. Move `src/components/theme-provider.tsx` → `src/providers/theme.provider.tsx` and update its import.
+- [ ] Add `src/features/portfolio/stores/portfolio-ui.store.ts` as a **factory**, plus `src/providers/portfolio-store.provider.tsx` scoping one instance to the interactive shell. Access it with `useSelector` — not the deprecated `useStore`.
 - [ ] Build the scrolling `/` page with section navigation and a `#contact` section. Keep sections server-rendered; put client boundaries only around the nav and the form.
 - [ ] Keep navigation accessible: real anchors, keyboard operation, focus handling, and `prefers-reduced-motion` respected if scrolling is animated.
-- [ ] Add `react-hook-form`, `@hookform/resolvers@^5`, and `features/contact/schemas/contact.schema.ts` (name, email, message; whitespace normalisation; size limits). Build `contact.form.tsx` with labels, field errors, pending and success states. Submit handler stubbed for now.
+- [ ] Add `react-hook-form`, `@hookform/resolvers@^5`, and `src/features/contact/schemas/contact.schema.ts` (name, email, message; whitespace normalisation; size limits). Build `contact.form.tsx` with labels, field errors, pending and success states. Submit handler stubbed for now.
 - [ ] Add only the shadcn controls the form needs (`input`, `textarea`, `field`) via the CLI. **Do not rename or rewrite the generated files.**
 - **Gate:** `pnpm build && pnpm test:unit` pass, where unit tests cover the store's open/close/select-section transitions and the contact schema's accept/reject cases. Manually: `/#contact` scrolls smoothly both from nav and when opened directly, and selecting a section closes the mobile menu without clearing form input.
 
@@ -193,7 +194,7 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 - [ ] Add a `contact_messages` migration: id, normalised name/email/message, `created_at`, `notified_at timestamptz`, `notify_error text`, and a hashed-IP column for the rate check.
 - [ ] Enable RLS. `INSERT` allowed to `anon`; `SELECT`/`UPDATE`/`DELETE` require `authenticated`. There is no owner table — signup is disabled, so `authenticated` is the owner.
 - [ ] Create the single owner account through the CLI/Studio admin path. Do not commit a password.
-- [ ] Generate `types/database.type.ts` from the local schema. Add a `db:reset` and a `db:types` script.
+- [ ] Generate `src/types/database.type.ts` from the local schema. Add a `db:reset` and a `db:types` script.
 - **Gate:** `pnpm exec supabase db reset` replays cleanly, then as `anon` a `select` on `contact_messages` returns 0 rows while an `insert` succeeds.
 
 > **Windows port hazard:** Supabase binds 54321–54324. Windows reserves dynamic TCP ranges for Hyper-V/WSL2 that sometimes land in the 54xxx band, producing `bind: An attempt was made to access a socket in a way forbidden by its access permissions` — which looks nothing like a port conflict. Check with `netsh interface ipv4 show excludedportrange protocol=tcp` and remap in `config.toml` if they overlap.
@@ -203,8 +204,8 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 **Prereqs:** 6, 4
 
 - [ ] Add `@supabase/ssr` **and** `@supabase/supabase-js` (the latter is a peer, not a dependency — pnpm will not hoist it for you).
-- [ ] Create `lib/supabase/supabase.client.ts`, `supabase.server.ts` (awaits `cookies()`), and `supabase.proxy.ts` exporting `updateSession`.
-- [ ] Add root `proxy.ts` exporting `proxy(request)` and delegating to `updateSession`. **No `export const runtime`** — it throws in proxy files.
+- [ ] Create `src/lib/supabase/supabase.client.ts`, `supabase.server.ts` (awaits `cookies()`), and `supabase.proxy.ts` exporting `updateSession`.
+- [ ] Add `src/proxy.ts` exporting `proxy(request)` and delegating to `updateSession`. The Next docs are explicit: _"If you're using Proxy, ensure it is placed inside the `src` folder."_ **No `export const runtime`** — it throws in proxy files.
 - [ ] **Invert the gate from the upstream recipe.** Supabase's example redirects every unauthenticated request that is not `/login` or `/auth` to `/login`. Shipped as-is, that redirects every visitor away from your public portfolio. Gate on an allowlist of protected prefixes instead: `request.nextUrl.pathname.startsWith("/dashboard")`.
 - [ ] Verify identity with `supabase.auth.getClaims()`, not `getSession()` and not `getUser()`. `getClaims()` verifies the token signature on every call, locally against cached JWKS on asymmetric-signing projects. Never trust an unverified session object in server code.
 - [ ] Build `/login`, `/forgot-password`, `/reset-password` and a protected `/dashboard` shell. Generic error messages for bad credentials. Recovery redirects allowlisted to local URLs.
@@ -217,9 +218,9 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Prereqs:** 7, 5
 
-- [ ] Add `features/contact/server/contact.router.ts` and `contact.service.ts`. Validate with the shared schema, check the honeypot, check minimum time-to-submit, and check the hourly count by hashed IP. Reject before any write.
+- [ ] Add `src/features/contact/server/contact.router.ts` and `contact.service.ts`. Validate with the shared schema, check the honeypot, check minimum time-to-submit, and check the hourly count by hashed IP. Reject before any write.
 - [ ] Persist the message **before** attempting notification. A database failure must prevent the email step; a notification failure must not lose the message.
-- [ ] Define an `EmailAdapter` interface in `server/integrations/email/`. Implement `email-preview.adapter.ts` only — it writes an HTML/`.eml` file to `.local/email-previews/` using server-controlled filenames. Resend is a future second implementation of the same interface; do not write it now.
+- [ ] Define an `EmailAdapter` interface in `src/server/integrations/email/`. Implement `email-preview.adapter.ts` only — it writes an HTML/`.eml` file to `.local/email-previews/` using server-controlled filenames. Resend is a future second implementation of the same interface; do not write it now.
 - [ ] Record outcome in `notified_at` / `notify_error`. A preview is `previewed` — never report it as delivered.
 - [ ] Return a generic public acknowledgment tied to persistence. Never leak stored input, provider details or notification state.
 - [ ] Wire the form's submit handler to the mutation. Disable the button while pending. Retain input on recoverable errors. Return `created_at` as an ISO string so no transformer is needed.
@@ -237,7 +238,7 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Prereqs:** 9
 
-- [ ] Add structured error logging with request identifiers in `server/logging/logger.service.ts`. Verify passwords, tokens, full message bodies and unnecessary personal data are absent from ordinary logs.
+- [ ] Add structured error logging with request identifiers in `src/server/logging/logger.service.ts`. Verify passwords, tokens, full message bodies and unnecessary personal data are absent from ordinary logs.
 - [ ] Rewrite `README.md` (still the unmodified template): prerequisites including Docker, first-run setup, every script, and the local Supabase/Mailpit URLs. Keep `AGENTS.md` as-is — the "this is not the Next.js you know" warning is load-bearing.
 - [ ] Add a short "Deferred" section to the README recording future work: hosted Supabase, Vercel, Resend live sending, dashboard data, blog. Present none of it as configured.
 - **Gate:** a clean clone plus only the documented commands reaches a working `pnpm dev`.
@@ -258,55 +259,64 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 Create each directory when its first file is needed.
 
 ```text
-app/
-  layout.tsx            # + metadata, data-scroll-behavior="smooth", providers
-  page.tsx              # scrolling portfolio, #contact section
-  globals.css
-  (auth)/login/page.tsx
-  (auth)/forgot-password/page.tsx
-  (auth)/reset-password/page.tsx
-  (owner)/dashboard/{layout,page}.tsx
-  auth/confirm/route.ts
-  api/trpc/[trpc]/route.ts
+src/
+  app/
+    layout.tsx            # + metadata, data-scroll-behavior="smooth", providers
+    page.tsx              # scrolling portfolio, #contact section
+    globals.css
+    (auth)/login/page.tsx
+    (auth)/forgot-password/page.tsx
+    (auth)/reset-password/page.tsx
+    (owner)/dashboard/{layout,page}.tsx
+    auth/confirm/route.ts
+    api/trpc/[trpc]/route.ts
 
-components/ui/          # VENDORED — shadcn CLI output, do not rename or rewrite
-  button.tsx  input.tsx  textarea.tsx  field.tsx
-components/layout/site-shell.layout.tsx
+  components/ui/          # VENDORED — shadcn CLI output, do not rename or rewrite
+    button.tsx  input.tsx  textarea.tsx  field.tsx
+  components/layout/site-shell.layout.tsx
 
-providers/
-  app.provider.tsx  theme.provider.tsx  trpc.provider.tsx  portfolio-store.provider.tsx
+  providers/
+    app.provider.tsx  theme.provider.tsx  trpc.provider.tsx
+    portfolio-store.provider.tsx
 
-features/
-  portfolio/{components,stores,hooks}/
-  auth/{components,schemas,server}/
-  contact/
-    components/contact.form.tsx
-    schemas/contact.schema.ts
-    server/{contact.router.ts,contact.service.ts}
-  dashboard/components/
+  features/
+    portfolio/{components,stores,hooks}/
+    auth/{components,schemas,server}/
+    contact/
+      components/contact.form.tsx
+      schemas/contact.schema.ts
+      server/{contact.router.ts,contact.service.ts}
+    dashboard/components/
 
-server/
-  trpc/{trpc.init.ts,trpc.context.ts,app.router.ts,trpc.server.ts}
-  integrations/email/{email.adapter.ts,email-preview.adapter.ts}
-  logging/logger.service.ts
+  server/
+    trpc/{trpc.init.ts,trpc.context.ts,app.router.ts,trpc.server.ts}
+    integrations/email/{email.adapter.ts,email-preview.adapter.ts}
+    logging/logger.service.ts
 
-lib/
-  utils.ts              # VENDORED — leave as `export { cn } from "cn"`
-  supabase/{supabase.client.ts,supabase.server.ts,supabase.proxy.ts}
-  trpc/trpc.client.tsx
-  query/query.factory.ts
+  lib/
+    utils.ts              # VENDORED — leave as `export { cn } from "cn"`
+    supabase/{supabase.client.ts,supabase.server.ts,supabase.proxy.ts}
+    trpc/trpc.client.tsx
+    query/query.factory.ts
 
-config/{env.server.ts,env.public.ts}
-types/database.type.ts
+  config/{env.server.ts,env.public.ts}
+  types/database.type.ts
+  hooks/
+  proxy.ts                # MUST be inside src/, NOT the project root
+
+public/                   # stays at the project ROOT, per the Next docs
 supabase/{config.toml,migrations/}
 tests/{unit/,e2e/,fixtures/}
-
-proxy.ts  .env.example  .editorconfig  .gitattributes  .nvmrc  .npmrc
-lint-staged.config.mjs  vitest.config.ts  playwright.config.ts
+plans/
 .husky/pre-commit
+
+.env.example  .editorconfig  .gitattributes  .nvmrc  .npmrc
+components.json  eslint.config.mjs  next.config.ts  postcss.config.mjs
+tsconfig.json  package.json
+lint-staged.config.mjs  vitest.config.ts  playwright.config.ts
 ```
 
-Retain root-level `app/`; no `src/` migration. Change `next.config.ts` only when a requirement needs it.
+Application code lives under `src/`. Per the Next docs' src-folder rules, `public/`, `.env.*` and every config file stay at the project root, while `proxy.ts` goes **inside** `src/`. `tsconfig.json` maps `@/*` to `./src/*`. Change `next.config.ts` only when a requirement needs it.
 
 ---
 
