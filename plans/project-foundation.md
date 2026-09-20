@@ -241,9 +241,9 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Prereqs:** 9
 
-- [ ] Add structured error logging with request identifiers in `src/server/logging/logger.service.ts`. Verify passwords, tokens, full message bodies and unnecessary personal data are absent from ordinary logs.
-- [ ] Rewrite `README.md` (still the unmodified template): prerequisites including Docker, first-run setup, every script, and the local Supabase/Mailpit URLs. Keep `AGENTS.md` as-is — the "this is not the Next.js you know" warning is load-bearing.
-- [ ] Add a short "Deferred" section to the README recording future work: hosted Supabase, Vercel, Resend live sending, dashboard data, blog. Present none of it as configured.
+- [x] Add structured error logging with request identifiers in `src/server/logging/logger.service.ts`. Verify passwords, tokens, full message bodies and unnecessary personal data are absent from ordinary logs.
+- [x] Rewrite `README.md` (still the unmodified template): prerequisites including Docker, first-run setup, every script, and the local Supabase/Mailpit URLs. Keep `AGENTS.md` as-is — the "this is not the Next.js you know" warning is load-bearing.
+- [x] Add a short "Deferred" section to the README recording future work: hosted Supabase, Vercel, Resend live sending, dashboard data, blog. Present none of it as configured.
 - **Gate:** a clean clone plus only the documented commands reaches a working `pnpm dev`.
 
 ### Phase 11 — Final verification

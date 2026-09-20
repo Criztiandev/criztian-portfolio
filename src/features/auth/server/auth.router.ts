@@ -12,6 +12,7 @@ import {
   loginSchema,
   resetPasswordSchema,
 } from "@/features/auth/schemas/auth.schema"
+import { logWarn } from "@/server/logging/logger.service"
 import {
   baseProcedure,
   createTRPCRouter,
@@ -41,6 +42,8 @@ export const authRouter = createTRPCRouter({
     })
 
     if (error !== null) {
+      logWarn({ event: "auth.login_failed", requestId: ctx.requestId })
+
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: GENERIC_LOGIN_ERROR,
@@ -80,6 +83,11 @@ export const authRouter = createTRPCRouter({
       })
 
       if (error !== null) {
+        logWarn({
+          event: "auth.reset_password_failed",
+          requestId: ctx.requestId,
+        })
+
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Could not update the password. Request a new reset link.",

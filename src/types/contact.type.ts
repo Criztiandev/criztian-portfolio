@@ -17,6 +17,8 @@ export type ContactSubmitResult = {
   received: true
 }
 
+export type ContactRejectionReason = "honeypot" | "too_fast" | "rate_limited"
+
 export type EmailMessage = {
   to: string
   replyTo: string

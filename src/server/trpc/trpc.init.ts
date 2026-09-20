@@ -2,6 +2,7 @@ import { initTRPC, TRPCError } from "@trpc/server"
 import { cache } from "react"
 
 import { createSupabaseServerClient } from "@/lib/supabase/supabase.server"
+import { createRequestId } from "@/server/logging/logger.service"
 import type { OwnerClaims } from "@/types/auth.type"
 
 export const createTRPCContext = cache(async function createContext() {
@@ -9,7 +10,7 @@ export const createTRPCContext = cache(async function createContext() {
   const { data } = await supabase.auth.getClaims()
   const claims: OwnerClaims | null = data?.claims ?? null
 
-  return { supabase, claims }
+  return { supabase, claims, requestId: createRequestId() }
 })
 
 export type TRPCContext = Awaited<ReturnType<typeof createTRPCContext>>

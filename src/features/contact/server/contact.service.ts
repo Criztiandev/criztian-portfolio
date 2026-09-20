@@ -11,12 +11,25 @@ import {
   isTooFast,
 } from "@/features/contact/contact.rules"
 import { createSupabaseAdminClient } from "@/lib/supabase/supabase.admin"
+import { logError } from "@/server/logging/logger.service"
 import { createEmailAdapter } from "@/server/integrations/email/email.adapter"
-import type { ContactSubmitResult, ContactValues } from "@/types/contact.type"
+import type {
+  ContactRejectionReason,
+  ContactSubmitResult,
+  ContactValues,
+} from "@/types/contact.type"
 
 type SupabaseAdminClient = ReturnType<typeof createSupabaseAdminClient>
 
-export class ContactRejectedError extends Error {}
+export class ContactRejectedError extends Error {
+  readonly reason: ContactRejectionReason
+
+  constructor(reason: ContactRejectionReason) {
+    super(reason)
+    this.name = "ContactRejectedError"
+    this.reason = reason
+  }
+}
 
 export function hashClientAddress(address: string | null): string | null {
   if (address === null || address.length === 0) {
@@ -57,7 +70,8 @@ async function isOverRateLimit(
 async function notifyOwner(
   admin: SupabaseAdminClient,
   messageId: number,
-  values: ContactValues
+  values: ContactValues,
+  requestId: string | null
 ): Promise<void> {
   const adapter = createEmailAdapter()
   const notification = buildContactNotification(values, serverEnv.OWNER_EMAIL)
@@ -72,6 +86,13 @@ async function notifyOwner(
   } catch (error) {
     const reason = error instanceof Error ? error.message : "unknown"
 
+    logError({
+      event: "contact.notify_failed",
+      requestId,
+      details: { messageId },
+      error,
+    })
+
     await admin
       .from("contact_messages")
       .update({ notify_error: reason.slice(0, 2000) })
@@ -81,7 +102,8 @@ async function notifyOwner(
 
 export async function submitContactMessage(
   values: ContactValues,
-  clientAddress: string | null
+  clientAddress: string | null,
+  requestId: string | null = null
 ): Promise<ContactSubmitResult> {
   if (isHoneypotFilled(values.website)) {
     throw new ContactRejectedError("honeypot")
@@ -110,10 +132,16 @@ export async function submitContactMessage(
     .single()
 
   if (insertError !== null || inserted === null) {
+    logError({
+      event: "contact.persist_failed",
+      requestId,
+      error: insertError,
+    })
+
     throw new Error("contact_persist_failed")
   }
 
-  await notifyOwner(admin, inserted.id, values)
+  await notifyOwner(admin, inserted.id, values, requestId)
 
   return { received: true }
 }
