@@ -97,7 +97,9 @@ Do not mirror query results, form fields, auth tokens or theme state into the UI
 
 - `name.context.ts` / `name.context.tsx`, kebab-case for multiword: `contact.form.tsx`, `contact.schema.ts`, `contact.router.ts`, `theme.provider.tsx`.
 - **Exempt:** `src/components/ui/**` and `src/lib/utils.ts` are vendored shadcn output — leave names and imports exactly as generated. Framework filenames (`page.tsx`, `layout.tsx`, `route.ts`, `proxy.ts`), tool configs and timestamped SQL migrations keep their own conventions.
-- Prefer clear names and small functions over comments. Reserve comments for non-obvious constraints and security reasoning.
+- **No explanatory comments.** Code carries no narration. Rationale that matters lives in this plan or the README, not inline. Self-explanatory names and small functions instead.
+- **No dense one-liners.** Prefer explicit `for` / `for...of` loops and named helper functions over `reduce`, long chained pipelines, and clever operators (`??=`, nested ternaries). `.map()` inside JSX to render a list is fine. Multi-line object and argument literals even when they would fit on one line.
+- **All types live in `src/types/`** (`portfolio.type.ts`, `contact.type.ts`, `env.type.ts`, `database.type.ts`). **All static data lives in `src/data/`** (`navigation.data.ts`, `portfolio.data.ts`). Types and data are never mixed in one file, and neither is declared inline in a feature or component file. Derive store/schema types structurally in `src/types/` rather than re-exporting `ReturnType<typeof factory>`, which would import in a circle.
 - Strict TypeScript; infer types from schemas and routers; generate database types from the schema.
 
 ---
@@ -177,12 +179,12 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Prereqs:** 4
 
-- [ ] Add `@tanstack/react-store`. Move `src/components/theme-provider.tsx` → `src/providers/theme.provider.tsx` and update its import.
-- [ ] Add `src/features/portfolio/stores/portfolio-ui.store.ts` as a **factory**, plus `src/providers/portfolio-store.provider.tsx` scoping one instance to the interactive shell. Access it with `useSelector` — not the deprecated `useStore`.
-- [ ] Build the scrolling `/` page with section navigation and a `#contact` section. Keep sections server-rendered; put client boundaries only around the nav and the form.
-- [ ] Keep navigation accessible: real anchors, keyboard operation, focus handling, and `prefers-reduced-motion` respected if scrolling is animated.
-- [ ] Add `react-hook-form`, `@hookform/resolvers@^5`, and `src/features/contact/schemas/contact.schema.ts` (name, email, message; whitespace normalisation; size limits). Build `contact.form.tsx` with labels, field errors, pending and success states. Submit handler stubbed for now.
-- [ ] Add only the shadcn controls the form needs (`input`, `textarea`, `field`) via the CLI. **Do not rename or rewrite the generated files.**
+- [x] Add `@tanstack/react-store`. Move `src/components/theme-provider.tsx` → `src/providers/theme.provider.tsx` and update its import.
+- [x] Add `src/features/portfolio/stores/portfolio-ui.store.ts` as a **factory**, plus `src/providers/portfolio-store.provider.tsx` scoping one instance to the interactive shell. Access it with `useSelector` — not the deprecated `useStore`.
+- [x] Build the scrolling `/` page with section navigation and a `#contact` section. Keep sections server-rendered; put client boundaries only around the nav and the form.
+- [x] Keep navigation accessible: real anchors, keyboard operation, focus handling, and `prefers-reduced-motion` respected if scrolling is animated.
+- [x] Add `react-hook-form`, `@hookform/resolvers@^5`, and `src/features/contact/schemas/contact.schema.ts` (name, email, message; whitespace normalisation; size limits). Build `contact.form.tsx` with labels, field errors, pending and success states. Submit handler stubbed for now.
+- [x] Add only the shadcn controls the form needs (`input`, `textarea`, `field`) via the CLI. **Do not rename or rewrite the generated files.**
 - **Gate:** `pnpm build && pnpm test:unit` pass, where unit tests cover the store's open/close/select-section transitions and the contact schema's accept/reject cases. Manually: `/#contact` scrolls smoothly both from nav and when opened directly, and selecting a section closes the mobile menu without clearing form input.
 
 ### Phase 6 — Local Supabase and schema
@@ -300,7 +302,10 @@ src/
     query/query.factory.ts
 
   config/{env.server.ts,env.public.ts}
-  types/database.type.ts
+  types/                  # ALL TypeScript types
+    portfolio.type.ts  contact.type.ts  env.type.ts  database.type.ts
+  data/                   # ALL static data, kept separate from types
+    navigation.data.ts  portfolio.data.ts
   hooks/
   proxy.ts                # MUST be inside src/, NOT the project root
 

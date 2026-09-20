@@ -1,35 +1,51 @@
 import { defaultShouldDehydrateQuery, QueryClient } from "@tanstack/react-query"
 
-export function makeQueryClient() {
+const NON_RETRYABLE_CODES = ["UNAUTHORIZED", "FORBIDDEN", "BAD_REQUEST"]
+
+const MAX_QUERY_RETRIES = 2
+
+const QUERY_STALE_TIME_MS = 30 * 1000
+
+function readErrorCode(error: unknown): string | undefined {
+  const withData = error as { data?: { code?: string } } | null
+
+  return withData?.data?.code
+}
+
+function shouldRetryQuery(failureCount: number, error: unknown): boolean {
+  const code = readErrorCode(error)
+
+  for (const nonRetryable of NON_RETRYABLE_CODES) {
+    if (code === nonRetryable) {
+      return false
+    }
+  }
+
+  return failureCount < MAX_QUERY_RETRIES
+}
+
+function shouldDehydrate(
+  query: Parameters<typeof defaultShouldDehydrateQuery>[0]
+) {
+  if (defaultShouldDehydrateQuery(query)) {
+    return true
+  }
+
+  return query.state.status === "pending"
+}
+
+export function makeQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        // Non-zero so SSR-hydrated data is not refetched immediately on mount.
-        staleTime: 30 * 1000,
-        // Auth failures and bad input are not transient; retrying them only
-        // delays the error the user needs to see.
-        retry: (failureCount, error) => {
-          const code = (error as { data?: { code?: string } })?.data?.code
-          if (
-            code === "UNAUTHORIZED" ||
-            code === "FORBIDDEN" ||
-            code === "BAD_REQUEST"
-          ) {
-            return false
-          }
-          return failureCount < 2
-        },
+        staleTime: QUERY_STALE_TIME_MS,
+        retry: shouldRetryQuery,
       },
       mutations: {
         retry: false,
       },
       dehydrate: {
-        // The RSC transport can hydrate promises, so pending queries are
-        // dehydrated too: a server component high in the tree can start a
-        // fetch that a client component further down consumes.
-        shouldDehydrateQuery: (query) =>
-          defaultShouldDehydrateQuery(query) ||
-          query.state.status === "pending",
+        shouldDehydrateQuery: shouldDehydrate,
       },
     },
   })

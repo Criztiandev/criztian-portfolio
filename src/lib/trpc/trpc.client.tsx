@@ -12,42 +12,54 @@ import type { AppRouter } from "@/server/trpc/app.router"
 
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>()
 
+const TRPC_ENDPOINT = "/api/trpc"
+
 let browserQueryClient: QueryClient | undefined
 
-function getQueryClient() {
-  // Server: a fresh client per request, never shared between requests.
-  if (typeof window === "undefined") return makeQueryClient()
-  // Browser: one stable client. Re-making it when React suspends during the
-  // initial render would throw away in-flight queries.
-  browserQueryClient ??= makeQueryClient()
+function isServer(): boolean {
+  return typeof window === "undefined"
+}
+
+function getQueryClient(): QueryClient {
+  if (isServer()) {
+    return makeQueryClient()
+  }
+
+  if (browserQueryClient === undefined) {
+    browserQueryClient = makeQueryClient()
+  }
+
   return browserQueryClient
 }
 
-function getUrl() {
-  // Relative in the browser so the call stays same-origin. On the server the
-  // validated app URL is used rather than a hardcoded localhost fallback.
-  const base =
-    typeof window === "undefined" ? publicEnv.NEXT_PUBLIC_APP_URL : ""
-  return `${base}/api/trpc`
+function getUrl(): string {
+  if (isServer()) {
+    return `${publicEnv.NEXT_PUBLIC_APP_URL}${TRPC_ENDPOINT}`
+  }
+
+  return TRPC_ENDPOINT
 }
 
-export function TRPCReactProvider(
-  props: Readonly<{ children: React.ReactNode }>
-) {
-  // Deliberately not useState: with no suspense boundary between this and
-  // code that may suspend, React would discard the client on first render.
-  const queryClient = getQueryClient()
+function createClient() {
+  return createTRPCClient<AppRouter>({
+    links: [
+      httpBatchLink({
+        url: getUrl(),
+      }),
+    ],
+  })
+}
 
-  const [trpcClient] = useState(() =>
-    createTRPCClient<AppRouter>({
-      links: [httpBatchLink({ url: getUrl() })],
-    })
-  )
+export function TRPCReactProvider({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  const queryClient = getQueryClient()
+  const [trpcClient] = useState(createClient)
 
   return (
     <QueryClientProvider client={queryClient}>
       <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-        {props.children}
+        {children}
       </TRPCProvider>
     </QueryClientProvider>
   )

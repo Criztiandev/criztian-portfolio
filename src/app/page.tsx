@@ -1,19 +1,35 @@
-import { Button } from "@/components/ui/button"
+import { ContactForm } from "@/features/contact/components/contact.form"
+import { SectionNavigation } from "@/features/portfolio/components/section-navigation.component"
+import { PortfolioStoreProvider } from "@/providers/portfolio-store.provider"
 
 export default function Page() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
-      </div>
-    </div>
+    <PortfolioStoreProvider>
+      <SectionNavigation />
+
+      <main className="mx-auto max-w-4xl px-4">
+        <section id="work" className="scroll-mt-20 py-20">
+          <h1 className="text-2xl font-semibold">Work</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Selected projects will go here.
+          </p>
+        </section>
+
+        <section id="about" className="scroll-mt-20 py-20">
+          <h2 className="text-2xl font-semibold">About</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            A short introduction will go here.
+          </p>
+        </section>
+
+        <section id="contact" className="scroll-mt-20 py-20">
+          <h2 className="text-2xl font-semibold">Contact</h2>
+          <p className="mt-2 mb-6 text-sm text-muted-foreground">
+            Send me a message and I will get back to you.
+          </p>
+          <ContactForm />
+        </section>
+      </main>
+    </PortfolioStoreProvider>
   )
 }
