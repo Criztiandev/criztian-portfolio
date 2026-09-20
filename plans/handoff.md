@@ -1,9 +1,21 @@
-# Handoff — criztian-portfolio foundation
+# Handoff — criztian-portfolio
 
-> Written for the next Claude Code session picking up this build. Read this, then `plans/project-foundation.md` for the full plan.
-> State as of 2026-09-20, commit `3ade506`, branch `main`. **Commits after `8a4cb6d` are local only — not yet pushed** to `https://github.com/Criztiandev/criztian-portfolio`.
+> Written for the next Claude Code session picking up this build. Read this, then `plans/hero-and-editor.md` for the **active** plan. `plans/project-foundation.md` is the finished foundation and is history now.
+> State as of 2026-09-20, branch `project/portfolio`, remote `https://github.com/Criztiandev/criztian-portfolio`.
 
 ## Where things stand
+
+| Workstream                                            | State                                    |
+| ----------------------------------------------------- | ---------------------------------------- |
+| Foundation — `plans/project-foundation.md`            | **complete** — 56 of 56                  |
+| Hero dot-field — Part A of `plans/hero-and-editor.md` | **complete** — Phases 0–10               |
+| Live content editor — Part B of the same plan         | **not started** — Phases 11–15, 37 boxes |
+
+78 of 115 boxes in the active plan. 102 unit tests across 11 files, 5 Playwright specs, `pnpm check` clean.
+
+**The next session starts at Part B, Phase 11.** Everything it depends on already exists; see [Picking up Part B](#picking-up-part-b).
+
+## Foundation — complete
 
 **All phases complete. 56 of 56 boxes ticked. 59 unit tests and 2 e2e specs passing.**
 
@@ -88,6 +100,12 @@ The user reacts badly to violations of these. They are also in `plans/project-fo
 8. **Each e2e run sends a unique `x-forwarded-for`** (`2001:db8::<timestamp>`, the reserved documentation range). Next sets `x-forwarded-for` even on localhost, so every run previously hashed to one IP and the 5-per-hour limit would have rejected run 6 — the suite was one run from breaking when this was found. A per-run address gives each run its own bucket without deleting rows or weakening the limit. Prefer this over `db:reset` between runs.
 9. **`dev` is `next dev --webpack`; `build` stays on Turbopack.** Opting dev out of Turbopack is the documented escape hatch (`node_modules/next/dist/docs/01-app/02-guides/upgrading/version-16.md`) and is the fix for the `EPERM` 500s above. Costs slower HMR — webpack was ~5s to first compile here versus Turbopack's ~0.3s. Production builds are untouched, so nothing that ships changes. Revisit when the upstream Windows issues close.
 
+10. **`useDotField` uses zero `useState`, not the one the plan specified.** `react-hooks/set-state-in-effect` is an **error** in this config, and status changes would otherwise re-render on a 60fps path. The hook writes `data-status` / `data-point-count` onto the DOM nodes instead, and the CSS and e2e specs key off those attributes. Strictly better; do not reintroduce state.
+11. **`createDefaultSiteContent()` is a function in `site-content.rules.ts`, not a `DEFAULT_SITE_CONTENT` constant in `src/data`.** The convention says static data lives in `src/data`, but a composed constant there would need the schema, and the schema needs the primitive defaults from `src/data` — a runtime circular import. The primitives stay in `src/data/site-content.data.ts`; the composition is a function.
+12. **Dot-field tuning values differ from the approved plan's table.** Corrected against screenshots rather than reasoning — see Part A above for which moved and why.
+13. **Shader sources live in `src/features/portfolio/shaders/`, not `src/data/`.** They are program source, not tuning data, and keeping `hero.data.ts` purely numeric is what makes it usable as a tuning file. Flagged to the user as a judgment call; they did not object.
+14. **The hero tagline renders as plain text for now.** Tiptap is a Part B dependency and is not installed yet. Stopgap is `readRichTextPlainText`; Phase 14 replaces it with `generateHTML`.
+
 ## Phase 9 — Playwright (done)
 
 `playwright.config.ts` plus `tests/e2e/contact.spec.ts` and `tests/e2e/dashboard.spec.ts`. Run with `pnpm test:e2e`.
@@ -134,9 +152,75 @@ Evidence, so it does not have to be re-derived:
 | Outbound `fetch`/`axios` in `src/server/`        | none                                                                                                             |
 | Secrets or personal data in logs                 | 0 of 8 probed strings present                                                                                    |
 
+## Hero dot-field — Part A (done)
+
+The name renders as a grid of white dots sampled from the glyph outlines, carrying a slow idle wave, and the cursor opens a swirling vortex in it. Built from first principles — the reference site's own implementation is a dynamically-loaded third-party Framer plugin and was not copied.
+
+**How it fits together**, outermost first:
+
+| File                                                            | Role                                                                                                        |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `src/app/page.tsx`                                              | Server component. Reads published content, passes `fontDisplay.style.fontFamily` down as a plain string.    |
+| `src/features/portfolio/components/site-page.component.tsx`     | Renders the **whole public page** from a `SiteContent`. Part B's preview route renders this same component. |
+| `src/features/portfolio/components/hero.component.tsx`          | The `#home` section, the fallback ladder, `motion` entrance.                                                |
+| `src/features/portfolio/hooks/use-dot-field.hook.ts`            | All GL lifecycle. **Two effects** — see the warning below.                                                  |
+| `src/features/portfolio/services/dot-field-sampler.service.ts`  | Canvas2D: font gate, measure, `fillText`, `getImageData`.                                                   |
+| `src/features/portfolio/services/dot-field-renderer.service.ts` | WebGL2 plumbing: compile, link, VAO, uniforms, draw.                                                        |
+| `src/features/portfolio/shaders/*.ts`                           | GLSL as template literals.                                                                                  |
+| `src/features/portfolio/dot-field.rules.ts`                     | The pure layer. No DOM, no GL. Everything worth unit-testing lives here.                                    |
+| `src/data/hero.data.ts`                                         | `DOT_FIELD_TUNING` — **every** magic number. Tune the look here and nowhere else.                           |
+
+**Do not merge the two effects in `use-dot-field.hook.ts`.** The first creates the GL context and owns the RAF loop and listeners; its deps are stable. The second samples the glyphs and uploads the buffer, keyed on `[text, fontFamily]`. That split is the entire reason Part B's live editing is viable: a keystroke re-runs only the geometry effect. Putting `text` in the first effect's deps tears down and recreates a WebGL context per keystroke, which stutters visibly and eventually exhausts the browser's ~16-context limit.
+
+**The vortex maths, so nobody "simplifies" it.** The spiral arms come from _shear_, not rotation — a rigid rotation of the disc produces no arms. The rotation angle is `uVortexSwirl * falloff` where `falloff` decreases with radius, so inner material winds up relative to outer. The outward push is then applied along the **rotated** vector (`swirled / max(distance, 1.0)`), which moves material out _along_ the arm and keeps it coherent as the hole opens. Push along the un-rotated vector gives straight spokes instead.
+
+**Tuning is empirical and was corrected against screenshots, not reasoning.** The first render was wrong in two ways worth remembering:
+
+- `maxHeightRatio` is measured against the **hero stage container**, which is `h-[42vh]`, not the viewport. The plan's `0.42` therefore double-applied and capped the font at ~159 px so the width constraint never bound — the word came out a third of its intended size and read as thin dotted outlines. `0.85` is correct for a 42vh stage. **If the stage height changes, this needs rechecking.**
+- `vortexFade: 0.85` dimmed displaced dots to 15% opacity, so the vortex _erased_ the spiral arms instead of showing them. It is now `0.25`.
+
+Values that moved from the plan's table after looking at the result: `maxHeightRatio` 0.42→0.85, `vortexFade` 0.85→0.25, `vortexShrink` 0.45→0.2, `vortexRadius` 180→220, `vortexPush` 120→85, `dotSize` 2.8→3.2, `dotEdgePixels` 1.5→1. Screenshots were taken at DPR 1; on a DPR 2 display the field is denser and crisper.
+
+**Font-loading facts, verified against this project's real CSS output** — they invert the usual advice:
+
+- **next/font in Next 16 does not hash family names.** The emitted variable is `--font-display: 'Antonio', 'Antonio Fallback'`, not `__Antonio_e7cd54`. Hashed names were Next 13/14. Read the name from `fontDisplay.style.fontFamily` anyway so this never matters again.
+- **The trap is the second face.** The loader also emits `font-family: Antonio Fallback; src: local(Arial)` with metric overrides. It is _always_ available, so `document.fonts.check` against the full stack returns `true` while Antonio has not downloaded, and the canvas silently samples metric-adjusted Arial. `parsePrimaryFontFamily` splits on the comma and checks index 0 only. Keep it that way.
+- **`document.fonts.ready` alone is useless here.** It resolves when the current layout has no _pending_ loads, so if nothing has demanded the font yet it resolves immediately against an unloaded one. `document.fonts.load()` is the load-bearing call. `load()` resolves with `[]` rather than rejecting on an unknown family, so the `check()` afterwards is mandatory.
+- `display: "block"` on the loader, not the default `"swap"`. With `swap` the browser paints metric-adjusted Arial for up to 3s and then swaps — and that swap can land _after_ sampling.
+
+**Observability for tests.** The stage carries `data-status` (`idle` → `running`, or `unsupported`) and the canvas carries `data-point-count`. `tests/e2e/hero.spec.ts` asserts both: `data-status="running"` proves context creation, compilation, linking, the font gate, sampling, upload and first draw all succeeded, and `data-point-count > 500` is the only external signal that the sampler produced real geometry from the real font. If Antonio silently fails to load, the count moves and the test catches it. Headless Chromium has genuine WebGL2 via SwiftShader, so this path is really exercised.
+
+## Picking up Part B
+
+Everything Phase 11 needs is already built:
+
+- **`site_content` table** — migration `20260920160000_site_content.sql`. `draft` and `published` jsonb, `draft_updated_at`, `published_at`. A unique index on `((true))` makes a second row structurally impossible (verified: the second insert is rejected). RLS enabled and forced, **nothing granted to `anon`**, per-action policies for `authenticated`.
+- **`ownerProcedure` already exists** in `src/server/trpc/trpc.init.ts` and narrows `ctx.claims`. Use it for all three procedures. Do not add a second gate.
+- **Read path done** — `readPublishedContent()` / `readDraftContent()` in `src/features/site-content/server/site-content.service.ts`, both parsing through Zod and falling back to defaults so a malformed row degrades to a working site.
+- **Schema is the single source of truth** — `siteContentSchema` fills every field from `{}`, which is why the seed row is literally `'{}'::jsonb` and why an empty database still renders correctly. `createDefaultSiteContent()` lives in `site-content.rules.ts`, not `src/data`, because a constant there would create a circular import (`data → schema → data`).
+- **`buildThemeStyle()`** in the same rules file already maps the six curated colours onto the shadcn CSS variables.
+
+Two things Phase 12 must get right:
+
+- **Put the preview at `/dashboard/editor/preview`, not `/preview`.** Both auth layers are path-based — the proxy checks `PROTECTED_PATH_PREFIXES = ["/dashboard"]`, and `(owner)/dashboard/layout.tsx` does a second `getClaims()`. A route at `/preview` would be covered by **neither** and would serve unpublished drafts to anyone.
+- **Move the `mx-auto max-w-4xl px-4 py-12` container out of `dashboard/layout.tsx` into `dashboard/page.tsx` first.** Otherwise it crushes the full-bleed editor and preview. App Router cannot escape a parent layout, so this refactor is the cheap way.
+
+Known stopgap: **the hero tagline currently renders as plain text** via `readRichTextPlainText` in `site-content.rules.ts`, because Tiptap is not installed yet. Phase 14 swaps it for `generateHTML` from `@tiptap/html` using the same extension list. One call site — `hero.component.tsx`. Storing Tiptap JSON rather than HTML is deliberate: the extension list constrains the document, so there is no XSS surface and no sanitiser dependency.
+
+## Gotchas discovered building Part A
+
+- **TypeScript drops narrowing of a captured `const` inside a hoisted `function` declaration.** `const element = ref.current; if (element === null) return;` then using `element` inside `function inner() {}` errors with "possibly null" — confirmed with a minimal two-function repro, no other variables involved. The fix used throughout `use-dot-field.hook.ts` is an explicitly typed alias after the guard (`const container: HTMLElement = containerElement`). Arrow functions assigned to consts behave the same way. Do not "clean this up" back into a single declaration.
+- **`aria-hidden` on a wrapper removes everything inside it from the accessibility tree.** It was briefly on the stage div, which contains both the canvas and the `<h1>` — so the heading vanished for screen readers. `tests/e2e/hero.spec.ts` caught it on the first run. It belongs on the canvas alone.
+- **`motion/react` ships no `"use client"` directive** — the `.` and `./react` entries are a plain CJS re-export of `framer-motion`; only `./react-client` carries it. Importing `MotionConfig` straight into a server layout is asking for trouble. `src/providers/motion.provider.tsx` carries the directive instead, matching the existing provider pattern.
+- **`react-hooks/set-state-in-effect` is an error here**, so `useDotField` uses **zero** `useState` and communicates through `data-` attributes. This is better than the plan's one-`useState` design anyway: nothing in the render path changes at 60fps.
+- **Zod 4's `.default()` types against the _output_.** A nested object whose fields all have defaults cannot take `.default({})`. Use **`.prefault({})`**, which runs the value through parsing. Zod 4.6.5 also supports getter-based recursion, which is how the rich-text node schema is defined without a hand-written recursive type.
+- **`pg_column_size` is not immutable enough for a check constraint.** The size guards use `length(draft::text)` instead.
+- **Large TypeScript files defeat bash heredocs on this box.** A file mixing backticks, `${}`, quotes and regex literals will fail the whole command with `unexpected EOF while looking for matching`, and because bash parses before executing, _nothing_ in that command runs — including earlier statements that looked independent. Use the Write tool for those.
+- **`python` is not installed** (noted again in Environment landmines above).
+
 ## Open items for the user
 
-- **Site metadata is placeholder** — `"Criztian — Portfolio"` / `"Personal portfolio and contact."` in `src/app/layout.tsx`. Real copy still needed, plus the three section headings (Work / About / Contact) in `src/app/page.tsx`.
+- **Site metadata is placeholder** — `"Criztian — Portfolio"` / `"Personal portfolio and contact."` in `src/app/layout.tsx`. Hero copy is now database-driven and editable (`site_content.draft`); the Project / About / Services / Blog section bodies in `site-page.component.tsx` are still placeholders and are **not** yet editable — Part B covers the hero only.
 - **Commit author is `criztiandev`** (lowercase, guessed from the email when git had no identity). GitHub handle is `Criztiandev`. Offered a rewrite; the user has not decided.
 - **Browser walkthrough not fully confirmed.** Login is confirmed working from the user's own logs. The password-reset-through-Mailpit round trip and the contact form's rendered success state have been verified by HTTP/curl but not visually.
 
@@ -148,3 +232,7 @@ Evidence, so it does not have to be re-derived:
 - Do not add integration tests. Two tiers only — Vitest unit and Playwright e2e.
 - **Do not add Jotai, Zustand or Redux.** Asked on 2026-09-20 on the belief that no global state manager existed; one does — `@tanstack/react-store`, shipped and tested in Phase 5 (`portfolio-ui.store.ts`, `portfolio-store.provider.tsx`, `use-portfolio-ui.hook.ts`). Total global state is one boolean and one enum. The user chose to keep TanStack Store rather than migrate or run two libraries.
 - Do not run `/codex:review` unless asked; the user declined it once already.
+- **Do not merge the two effects in `use-dot-field.hook.ts`.** The split is what makes Part B's live editing possible — see Part A above.
+- **Do not put the editor preview route outside `/dashboard/`.** Both auth layers are path-based; anywhere else serves unpublished drafts to the public.
+- Do not add three.js, `@react-three/fiber` or `ogl`. The hero is ~220 lines of raw WebGL2 with no dependency surface, and the vertex shader would be identical under any of them. This was weighed and rejected with the user.
+- Do not raise `dotPitch` chasing a point count. Per-frame cost is O(1) in point count — the pitch is purely an aesthetic control.
