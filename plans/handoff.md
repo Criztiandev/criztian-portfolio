@@ -1,11 +1,11 @@
 # Handoff — criztian-portfolio foundation
 
 > Written for the next Claude Code session picking up this build. Read this, then `plans/project-foundation.md` for the full plan.
-> State as of 2026-09-20, commit `ccda3a6`, branch `main`, pushed to `https://github.com/Criztiandev/criztian-portfolio`.
+> State as of 2026-09-20, commit `3ade506`, branch `main`. **Commits after `8a4cb6d` are local only — not yet pushed** to `https://github.com/Criztiandev/criztian-portfolio`.
 
 ## Where things stand
 
-**Phases 0–9 complete and verified. 50 of 56 boxes ticked. 49 unit tests and 2 e2e specs passing.**
+**Phases 0–10 complete and verified. 53 of 56 boxes ticked. 59 unit tests and 2 e2e specs passing.**
 
 | Phase                                | State                                             |
 | ------------------------------------ | ------------------------------------------------- |
@@ -20,8 +20,8 @@
 | 7 Supabase SSR + owner auth          | done                                              |
 | 8 Contact submission + email preview | done                                              |
 | 9 Playwright e2e                     | done                                              |
-| **10 Logging + README**              | **NOT STARTED — do this next**                    |
-| 11 Final verification                | not started                                       |
+| 10 Logging + README                  | done                                              |
+| **11 Final verification**            | **NOT STARTED — do this next**                    |
 
 `pnpm check`, `pnpm test:unit`, `pnpm build` and `pnpm exec playwright test` are all green.
 
@@ -29,7 +29,7 @@
 
 ```bash
 cd E:/Project/criztian-portfolio
-pnpm exec supabase start     # Docker must be running
+pnpm supabase:server         # Docker must be running; prints the service URLs
 pnpm dev                     # http://localhost:3000
 ```
 
@@ -41,7 +41,7 @@ pnpm dev                     # http://localhost:3000
 | Mailpit (auth emails) | http://127.0.0.1:54324                                    |
 | Postgres              | `postgresql://postgres:postgres@127.0.0.1:54322/postgres` |
 
-Scripts: `dev` `build` `start` `lint` `lint:fix` `format` `format:check` `typecheck` `check` `test:unit` `test:unit:watch` `test:e2e` `test:e2e:ui` `db:start` `db:stop` `db:status` `db:reset` `db:types`.
+Scripts: `dev` `build` `start` `lint` `lint:fix` `format` `format:check` `typecheck` `check` `test:unit` `test:unit:watch` `test:e2e` `test:e2e:ui` `supabase:server` `db:start` `db:stop` `db:status` `db:reset` `db:types`. All are documented in `README.md`.
 
 `.env.local` exists and is gitignored, populated with real local Supabase keys. Owner account is `criztiandev@gmail.com`; **the password is known only to the user — never ask for it.** To exercise a logged-in flow, create a throwaway user via the admin API and delete it afterwards (see commit `15fbd79`), or ask the user to drive the browser.
 
@@ -62,7 +62,7 @@ The user reacts badly to violations of these. They are also in `plans/project-fo
 - **`/tmp` differs between bash and node** on this box. Bash's `/tmp` is `C:\Users\crizt\AppData\Local\Temp`; node resolves `/tmp` as `E:\tmp`. Use `process.env.TEMP` in node scripts.
 - **`UID` is readonly in bash.** A `UID=$(...)` capture silently fails. Cost a leaked test user once.
 - **`python` is not installed.** Use `node -e` for scripting.
-- **`supabase_vector` container crash-loops** (`ConnectionRefused` on the Docker socket). Cosmetic — it only feeds Studio's Logs pane, but it makes plain `supabase status` print nothing. Use `supabase status -o json`. Can be silenced with `[analytics] enabled = false` in `config.toml` if it becomes annoying; the user has not asked for this.
+- **`supabase_vector` container crash-loops** (`ConnectionRefused` on the Docker socket). Cosmetic — it only feeds Studio's Logs pane. An earlier note here claimed it makes plain `supabase status` print nothing; that is **no longer true** on CLI 2.117.0, which prints JSON either way (verified 2026-09-20). Can be silenced with `[analytics] enabled = false` in `config.toml`; the user has not asked for this.
 
 ## Version facts that contradict training data
 
@@ -98,13 +98,23 @@ What the specs had to work around, so nobody "simplifies" them back into failing
 - The logged-out `/dashboard` spec needs no credentials; that is why it was chosen. It asserts the redirect lands on `/login?next=/dashboard` **and** that the Sign in button renders. That second assertion is what caught the EPERM 500 — keep it.
 - Browser binaries live in `C:\Users\crizt\AppData\Local\ms-playwright` (chromium-1243, 433 MB), outside the repo.
 
-## Next: Phase 10 — logging + README
+## Phase 10 — logging + README (done)
 
-- `src/server/logging/logger.service.ts` with request identifiers; keep passwords, tokens and message bodies out of logs.
-- Rewrite `README.md` — still the unmodified shadcn template. **Carry over the Phase 9 box's unfinished clause: the README must note the ~120 MB `playwright install chromium` download.** Also document `test:e2e` and that e2e builds before it runs.
-- Add a short "Deferred" section: hosted Supabase, Vercel, Resend live sending, dashboard data, blog. Present none of it as configured.
+**Logging.** `src/server/logging/logger.service.ts` emits single-line JSON. Redaction lives beside it in `logger.rules.ts`, deliberately **without** `import "server-only"` so it is unit testable — the same split `contact.rules.ts`/`contact.service.ts` already uses. Do not add `server-only` to the rules file; it will break `tests/unit/logger-rules.test.ts`.
 
-Then Phase 11 (final verification).
+Every tRPC request carries a `requestId` (added in `createTRPCContext`) that appears on every line it produces, so a router-level warning and the central `onError` line can be tied together. Verified live: a honeypot submission produced `contact.rejected` and `trpc.request_failed` sharing one id.
+
+Redaction drops values under credential- or personal-shaped keys (`SENSITIVE_KEY_FRAGMENTS` in `src/data/logging.data.ts`), masks Supabase keys / JWTs / bearer tokens found anywhere in free text, caps nesting depth, and truncates long strings. **Call sites must keep passing only non-identifying fields** — a rejection reason, a tRPC path, an error code. Never pass contact names, emails or message bodies, even though redaction would catch them; defence in depth, not a licence.
+
+**README.** Rewritten from the shadcn template. Covers prerequisites, first run, every script, env vars, service URLs, both test tiers, layout, the Turbopack issue and a Deferred section. `AGENTS.md` left untouched, as the plan requires.
+
+**`pnpm supabase:server`** (user request, mid-phase) starts Supabase and prints **only** service URLs. Plain `supabase start` echoes `SECRET_KEY`, `SERVICE_ROLE_KEY` and `JWT_SECRET` into the terminal; this does not. `pnpm db:status` is still how you read the keys when filling `.env.local`, and the README says so.
+
+**Gate passed properly:** cloned the repo to a scratch directory, `pnpm install`, `cp .env.example .env.local`, filled the two keys from `pnpm db:status`, `pnpm dev` — 200 / 200 / 200 / 307 across `/`, `/login`, `/forgot-password`, `/dashboard`.
+
+## Next: Phase 11 — final verification
+
+Three boxes remain. Read the phase in `plans/project-foundation.md` before starting; do not infer them from this file.
 
 ## Open items for the user
 
