@@ -13,8 +13,6 @@ type PortfolioStoreContextValue = {
 const { StoreProvider, useStoreContext } =
   createStoreContext<PortfolioStoreContextValue>()
 
-export { useStoreContext as usePortfolioStoreContext }
-
 export function PortfolioStoreProvider({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -22,3 +20,5 @@ export function PortfolioStoreProvider({
 
   return <StoreProvider value={{ portfolioUi }}>{children}</StoreProvider>
 }
+
+export { useStoreContext as usePortfolioStoreContext }
