@@ -164,11 +164,11 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Prereqs:** 3. Deliberately sequenced **before** Supabase so the hardest integration is proven in isolation, with no Docker dependency.
 
-- [ ] Add `@trpc/server`, `@trpc/client`, `@trpc/tanstack-react-query`, `@tanstack/react-query`, `client-only`, `server-only`.
-- [ ] Create `src/server/trpc/trpc.init.ts` (`createTRPCContext` wrapped in React `cache()`, `createTRPCRouter`, `baseProcedure`), `src/server/trpc/app.router.ts`, `src/lib/query/query.factory.ts` (`makeQueryClient`, a deliberate `staleTime`, and a `shouldDehydrateQuery` that also dehydrates pending queries), `src/lib/trpc/trpc.client.tsx` (`createTRPCContext<AppRouter>()` → `TRPCProvider`, `useTRPC`), `src/server/trpc/trpc.server.ts` (`import "server-only"`, `cache(makeQueryClient)`, `createTRPCOptionsProxy`).
-- [ ] Add `src/app/api/trpc/[trpc]/route.ts` using `fetchRequestHandler`, exported as both `GET` and `POST`. Do not add `export const runtime` — Node is already the default.
-- [ ] Mount the provider in `src/app/layout.tsx` alongside the theme provider. One provider, one browser cache.
-- [ ] Add one DB-free `health` procedure.
+- [x] Add `@trpc/server`, `@trpc/client`, `@trpc/tanstack-react-query`, `@tanstack/react-query`, `client-only`, `server-only`.
+- [x] Create `src/server/trpc/trpc.init.ts` (`createTRPCContext` wrapped in React `cache()`, `createTRPCRouter`, `baseProcedure`), `src/server/trpc/app.router.ts`, `src/lib/query/query.factory.ts` (`makeQueryClient`, a deliberate `staleTime`, and a `shouldDehydrateQuery` that also dehydrates pending queries), `src/lib/trpc/trpc.client.tsx` (`createTRPCContext<AppRouter>()` → `TRPCProvider`, `useTRPC`), `src/server/trpc/trpc.server.ts` (`import "server-only"`, `cache(makeQueryClient)`, `createTRPCOptionsProxy`).
+- [x] Add `src/app/api/trpc/[trpc]/route.ts` using `fetchRequestHandler`, exported as both `GET` and `POST`. Do not add `export const runtime` — Node is already the default.
+- [x] Mount the provider in `src/app/layout.tsx` alongside the theme provider. One provider, one browser cache.
+- [x] Add one DB-free `health` procedure.
 - **Gate:** `pnpm dev`, then `curl "http://localhost:3000/api/trpc/health?input=%7B%7D"` returns a tRPC `{"result":{"data":…}}` envelope.
 
 > `createTRPCContext` is invoked two ways — with a `Request` via `fetchRequestHandler`, and with no arguments via `createTRPCOptionsProxy` in Server Components. Derive everything from `await cookies()` / `await headers()` rather than a passed-in `req` so one implementation serves both. This is the most common breakage in this integration.
