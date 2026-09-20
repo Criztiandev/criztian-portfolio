@@ -6,7 +6,7 @@ import {
   SENSITIVE_KEY_FRAGMENTS,
   SENSITIVE_VALUE_PATTERNS,
 } from "@/data/logging.data"
-import type { LogDetails, LoggedError } from "@/types/logging.type"
+import type { LogDetails, LoggedError, LogLevel } from "@/types/logging.type"
 
 export function isSensitiveKey(key: string): boolean {
   const normalized = key.toLowerCase()
@@ -105,4 +105,17 @@ export function describeError(error: unknown): LoggedError | null {
     message: maskSensitiveText(String(error)),
     stack: null,
   }
+}
+
+export function describeErrorForLevel(
+  level: LogLevel,
+  error: unknown
+): LoggedError | null {
+  const described = describeError(error)
+
+  if (described === null || level === "error") {
+    return described
+  }
+
+  return { ...described, stack: null }
 }

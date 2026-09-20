@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import { REDACTED_PLACEHOLDER } from "@/data/logging.data"
 import {
   describeError,
+  describeErrorForLevel,
   isSensitiveKey,
   maskSensitiveText,
   redactDetails,
@@ -101,5 +102,27 @@ describe("log redaction", () => {
     expect(describeError(null)).toBeNull()
     expect(describeError(undefined)).toBeNull()
     expect(describeError("plain string")?.name).toBe("UnknownError")
+  })
+})
+
+describe("stack traces by level", () => {
+  it("keeps the stack on a genuine error", () => {
+    const described = describeErrorForLevel("error", new Error("database down"))
+
+    expect(described?.stack).toBeTypeOf("string")
+  })
+
+  it("drops the stack on an expected condition, so a wrong password is not a wall of text", () => {
+    const warned = describeErrorForLevel("warn", new Error("wrong password"))
+    const informed = describeErrorForLevel("info", new Error("wrong password"))
+
+    expect(warned?.stack).toBeNull()
+    expect(informed?.stack).toBeNull()
+    expect(warned?.message).toBe("wrong password")
+  })
+
+  it("still reports nothing when there is no error at any level", () => {
+    expect(describeErrorForLevel("warn", null)).toBeNull()
+    expect(describeErrorForLevel("error", undefined)).toBeNull()
   })
 })

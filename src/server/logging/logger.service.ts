@@ -2,7 +2,10 @@ import "server-only"
 
 import { randomUUID } from "node:crypto"
 
-import { describeError, redactDetails } from "@/server/logging/logger.rules"
+import {
+  describeErrorForLevel,
+  redactDetails,
+} from "@/server/logging/logger.rules"
 import type { LogEntry, LogInput, LogLevel } from "@/types/logging.type"
 
 export function createRequestId(): string {
@@ -16,7 +19,7 @@ function buildEntry(level: LogLevel, input: LogInput): LogEntry {
     event: input.event,
     requestId: input.requestId,
     details: redactDetails(input.details ?? {}),
-    error: describeError(input.error),
+    error: describeErrorForLevel(level, input.error),
   }
 }
 
