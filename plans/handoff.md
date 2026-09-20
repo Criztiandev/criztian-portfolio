@@ -5,7 +5,9 @@
 
 ## Where things stand
 
-**Phases 0–10 complete and verified. 53 of 56 boxes ticked. 59 unit tests and 2 e2e specs passing.**
+**All phases complete. 56 of 56 boxes ticked. 59 unit tests and 2 e2e specs passing.**
+
+The foundation plan is finished. What remains is the user's own content and the deploy work the plan deliberately excluded — see [Open items](#open-items-for-the-user).
 
 | Phase                                | State                                             |
 | ------------------------------------ | ------------------------------------------------- |
@@ -21,7 +23,7 @@
 | 8 Contact submission + email preview | done                                              |
 | 9 Playwright e2e                     | done                                              |
 | 10 Logging + README                  | done                                              |
-| **11 Final verification**            | **NOT STARTED — do this next**                    |
+| 11 Final verification                | done                                              |
 
 `pnpm check`, `pnpm test:unit`, `pnpm build` and `pnpm exec playwright test` are all green.
 
@@ -112,9 +114,24 @@ Redaction drops values under credential- or personal-shaped keys (`SENSITIVE_KEY
 
 **Gate passed properly:** cloned the repo to a scratch directory, `pnpm install`, `cp .env.example .env.local`, filled the two keys from `pnpm db:status`, `pnpm dev` — 200 / 200 / 200 / 307 across `/`, `/login`, `/forgot-password`, `/dashboard`.
 
-## Next: Phase 11 — final verification
+## Phase 11 — final verification (done)
 
-Three boxes remain. Read the phase in `plans/project-foundation.md` before starting; do not infer them from this file.
+Evidence, so it does not have to be re-derived:
+
+| Check                                            | Result                                                                                                           |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `pnpm check`                                     | pass                                                                                                             |
+| `pnpm test:unit`                                 | 8 files, 59 tests                                                                                                |
+| `pnpm exec playwright test`                      | 2 passed                                                                                                         |
+| `pnpm build`                                     | pass, from a removed `.next`                                                                                     |
+| Secret key in `.next/static`                     | **absent**                                                                                                       |
+| Secret key in `.next/server`                     | absent — read from `process.env` at runtime, never inlined                                                       |
+| `sb_secret_` in client bundle                    | 1 hit, and it is **not** a leak: the literal help text in `LEGACY_JWT_MESSAGE`. Expect this hit; do not "fix" it |
+| Email provider SDK installed                     | none                                                                                                             |
+| `EMAIL_MODE` accepted values                     | `"preview"` only — the enum makes sending unreachable, not merely unconfigured                                   |
+| Hosted Supabase / Vercel / Resend host in `src/` | none                                                                                                             |
+| Outbound `fetch`/`axios` in `src/server/`        | none                                                                                                             |
+| Secrets or personal data in logs                 | 0 of 8 probed strings present                                                                                    |
 
 ## Open items for the user
 

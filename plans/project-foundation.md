@@ -250,9 +250,9 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Prereqs:** 10
 
-- [ ] `pnpm check` (format:check + lint + typecheck), `pnpm test:unit`, `pnpm exec playwright test`, `pnpm build` — all green.
-- [ ] Confirm the production build needs no live email credentials and no hosted database.
-- [ ] Confirm no real email sends and no credentials in browser output or ordinary logs.
+- [x] `pnpm check` (format:check + lint + typecheck), `pnpm test:unit`, `pnpm exec playwright test`, `pnpm build` — all green.
+- [x] Confirm the production build needs no live email credentials and no hosted database.
+- [x] Confirm no real email sends and no credentials in browser output or ordinary logs.
 - **Gate:** all of the above pass from a clean `pnpm install`.
 
 ---
