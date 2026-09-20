@@ -142,20 +142,20 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Prereqs:** 1
 
-- [ ] Add `husky`, `lint-staged`, `eslint-config-prettier` (placed **after** the configs it overrides) and `@tanstack/eslint-plugin-query` to the flat config.
-- [ ] Add `.husky/pre-commit` invoking `pnpm exec lint-staged`. Use `pnpm exec`, not `npx`, and Git-Bash-compatible syntax with LF endings.
-- [ ] Configure `lint-staged` with non-overlapping file groups so ESLint and Prettier never touch the same file concurrently: code files get `eslint --fix` then `prettier --write`; other supported files get `prettier --write` only.
-- [ ] Add a `prepare` script that tolerates environments without git or dev dependencies.
+- [x] Add `husky`, `lint-staged`, `eslint-config-prettier` (placed **after** the configs it overrides) and `@tanstack/eslint-plugin-query` to the flat config.
+- [x] Add `.husky/pre-commit` invoking `pnpm exec lint-staged`. Use `pnpm exec`, not `npx`, and Git-Bash-compatible syntax with LF endings.
+- [x] Configure `lint-staged` with non-overlapping file groups so ESLint and Prettier never touch the same file concurrently: code files get `eslint --fix` then `prettier --write`; other supported files get `prettier --write` only.
+- [x] Add a `prepare` script that tolerates environments without git or dev dependencies.
 - **Gate:** commit a deliberately unformatted file; it lands in history already formatted. Then commit a file with a real lint error; the commit is blocked.
 
 ### Phase 3 — Unit test harness and env validation
 
 **Prereqs:** 1. Landing tests here is what makes every later phase verifiable by command instead of by clicking.
 
-- [ ] Add `vitest`, `@vitejs/plugin-react`, `@testing-library/{react,dom,jest-dom}`, `jsdom`, `vite-tsconfig-paths`. Add `vitest.config.ts` and a `test:unit` script.
-- [ ] Add `zod`. Create `src/config/env.server.ts` and `src/config/env.public.ts` with separate schemas, imported only from server and client code respectively.
-- [ ] Add `.env.example` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `NEXT_PUBLIC_APP_URL`, `EMAIL_MODE=preview`, `OWNER_EMAIL`.
-- [ ] Add a guard rejecting Supabase key values matching `/^eyJ/`. Supabase's current keys are short opaque `sb_publishable_…` / `sb_secret_…` strings; a long key starting with `eyJ` is a legacy JWT copied from a stale tutorial. Validate **shape only** so this passes before Supabase is running.
+- [x] Add `vitest`, `@vitejs/plugin-react`, `@testing-library/{react,dom,jest-dom}`, `jsdom`, `vite-tsconfig-paths`. Add `vitest.config.ts` and a `test:unit` script.
+- [x] Add `zod`. Create `src/config/env.server.ts` and `src/config/env.public.ts` with separate schemas, imported only from server and client code respectively.
+- [x] Add `.env.example` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `NEXT_PUBLIC_APP_URL`, `EMAIL_MODE=preview`, `OWNER_EMAIL`.
+- [x] Add a guard rejecting Supabase key values matching `/^eyJ/`. Supabase's current keys are short opaque `sb_publishable_…` / `sb_secret_…` strings; a long key starting with `eyJ` is a legacy JWT copied from a stale tutorial. Validate **shape only** so this passes before Supabase is running.
 - **Gate:** `pnpm test:unit` passes with a real assertion, and blanking a required var makes `pnpm build` fail naming that key.
 
 > The public schema must not be able to import the server schema. Never prefix a secret with `NEXT_PUBLIC_`.
