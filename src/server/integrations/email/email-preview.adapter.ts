@@ -11,26 +11,7 @@ import type {
   EmailMessage,
 } from "@/types/contact.type"
 
-function buildPreviewDocument(message: EmailMessage): string {
-  return [
-    "<!doctype html>",
-    '<html lang="en">',
-    "<head>",
-    '<meta charset="utf-8" />',
-    "<title>Email preview</title>",
-    "</head>",
-    "<body>",
-    "<dl>",
-    `<dt>To</dt><dd>${message.to}</dd>`,
-    `<dt>Reply-To</dt><dd>${message.replyTo}</dd>`,
-    `<dt>Subject</dt><dd>${message.subject}</dd>`,
-    "</dl>",
-    "<hr />",
-    message.html,
-    "</body>",
-    "</html>",
-  ].join("\n")
-}
+import { buildPreviewDocument } from "./email-preview.document"
 
 function buildPreviewFilename(): string {
   const stamp = new Date().toISOString().replace(/[:.]/g, "-")

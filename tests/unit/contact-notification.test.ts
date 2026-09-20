@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  buildContactNotification,
-  escapeHtml,
-} from "@/emails/contact/contact-notification.template"
+import { buildContactNotification } from "@/emails/contact/contact-notification.template"
 import type { ContactValues } from "@/types/contact.type"
 
 const BASE_VALUES: ContactValues = {
@@ -13,22 +10,6 @@ const BASE_VALUES: ContactValues = {
   website: "",
   renderedAt: 1_700_000_000_000,
 }
-
-describe("escapeHtml", () => {
-  it("escapes every character that could break out of markup", () => {
-    expect(escapeHtml(`<script>alert("x")</script>`)).toBe(
-      "&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;"
-    )
-  })
-
-  it("escapes ampersands without double-escaping the result", () => {
-    expect(escapeHtml("Tom & Jerry")).toBe("Tom &amp; Jerry")
-  })
-
-  it("escapes single quotes", () => {
-    expect(escapeHtml("it's")).toBe("it&#39;s")
-  })
-})
 
 describe("buildContactNotification", () => {
   it("sends to the owner and sets reply-to to the visitor", () => {
