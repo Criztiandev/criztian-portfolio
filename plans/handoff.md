@@ -1,19 +1,19 @@
 # Handoff — criztian-portfolio
 
-> Written for the next Claude Code session picking up this build. Read this, then `plans/hero-and-editor.md` for the **active** plan. `plans/project-foundation.md` is the finished foundation and is history now.
+> Written for the next Claude Code session picking up this build. Both plans — `plans/project-foundation.md` and `plans/hero-and-editor.md` — are complete and are history now; read them for rationale, not for work remaining.
 > State as of 2026-09-20, branch `project/portfolio`, remote `https://github.com/Criztiandev/criztian-portfolio`.
 
 ## Where things stand
 
-| Workstream                                            | State                                    |
-| ----------------------------------------------------- | ---------------------------------------- |
-| Foundation — `plans/project-foundation.md`            | **complete** — 56 of 56                  |
-| Hero dot-field — Part A of `plans/hero-and-editor.md` | **complete** — Phases 0–10               |
-| Live content editor — Part B of the same plan         | **not started** — Phases 11–15, 37 boxes |
+| Workstream                                            | State                       |
+| ----------------------------------------------------- | --------------------------- |
+| Foundation — `plans/project-foundation.md`            | **complete** — 56 of 56     |
+| Hero dot-field — Part A of `plans/hero-and-editor.md` | **complete** — Phases 0–10  |
+| Live content editor — Part B of the same plan         | **complete** — Phases 11–15 |
 
-78 of 115 boxes in the active plan. 102 unit tests across 11 files, 5 Playwright specs, `pnpm check` clean.
+All 115 boxes in the active plan are ticked. 126 unit tests across 14 files, 8 Playwright specs, `pnpm check` clean, `pnpm build` clean.
 
-**The next session starts at Part B, Phase 11.** Everything it depends on already exists; see [Picking up Part B](#picking-up-part-b).
+**Both plans are finished.** What remains is the user's own content and the deploy work — see [Open items](#open-items-for-the-user).
 
 ## Foundation — complete
 
@@ -57,7 +57,7 @@ pnpm dev                     # http://localhost:3000
 
 Scripts: `dev` `build` `start` `lint` `lint:fix` `format` `format:check` `typecheck` `check` `test:unit` `test:unit:watch` `test:e2e` `test:e2e:ui` `supabase:server` `db:start` `db:stop` `db:status` `db:reset` `db:types`. All are documented in `README.md`.
 
-`.env.local` exists and is gitignored, populated with real local Supabase keys. Owner account is `criztiandev@gmail.com`; **the password is known only to the user — never ask for it.** To exercise a logged-in flow, create a throwaway user via the admin API and delete it afterwards (see commit `15fbd79`), or ask the user to drive the browser.
+`.env.local` exists and is gitignored, populated with real local Supabase keys. Owner account is `criztiandev@gmail.com`; **the password is known only to the user — never ask for it.** To exercise a logged-in flow, create a throwaway user via the admin API and delete it afterwards — `tests/e2e/owner-account.ts` does exactly this and is the working reference. Never ask the user for the password. Note that `auth.users` is currently **empty** (see Open items).
 
 ## The user's conventions — these override upstream docs
 
@@ -104,7 +104,13 @@ The user reacts badly to violations of these. They are also in `plans/project-fo
 11. **`createDefaultSiteContent()` is a function in `site-content.rules.ts`, not a `DEFAULT_SITE_CONTENT` constant in `src/data`.** The convention says static data lives in `src/data`, but a composed constant there would need the schema, and the schema needs the primitive defaults from `src/data` — a runtime circular import. The primitives stay in `src/data/site-content.data.ts`; the composition is a function.
 12. **Dot-field tuning values differ from the approved plan's table.** Corrected against screenshots rather than reasoning — see Part A above for which moved and why.
 13. **Shader sources live in `src/features/portfolio/shaders/`, not `src/data/`.** They are program source, not tuning data, and keeping `hero.data.ts` purely numeric is what makes it usable as a tuning file. Flagged to the user as a judgment call; they did not object.
-14. **The hero tagline renders as plain text for now.** Tiptap is a Part B dependency and is not installed yet. Stopgap is `readRichTextPlainText`; Phase 14 replaces it with `generateHTML`.
+14. **The hero tagline now renders Tiptap JSON as HTML.** The Part A stopgap (`readRichTextPlainText`) survives only as the fallback inside `renderRichTextHtml`.
+15. **The editor form seeds from the server draft, not a module-level `EMPTY_*` constant.** Phase 14 asked for the `login.form.tsx` shape exactly, but an editor pre-populated with empty values would erase the draft on first save. `defaultValues: buildEditorFormValues(initialContent)` is the only sensible reading of the phase as a whole, which also says "reloading the editor shows the persisted draft".
+16. **There are three preview message types, not the plan's two.** `ready` was added because an iframe's `load` event fires before React hydrates inside it — see Part B for the full story. The plan already required two-way messaging, so this is within its design.
+17. **`siteContentSchema` allowlists rich-text node and mark types.** The plan argued the Tiptap extension list removes the XSS surface, which is true, but the constraint manifests as a thrown `RangeError` rather than sanitisation, so an out-of-schema draft would crash the home page. The allowlist rejects it at the boundary and `renderRichTextHtml` catches anything that still gets through.
+18. **The `disciplines` schema drops blank entries.** A fixed-slot editor necessarily produces empty strings; without this, every parse failed and the editor was inert. See Part B.
+19. **`renderRichTextHtml` is a service, not a call inside `SitePage`.** The plan said to render server-side in `SitePage`, but `SitePage` also runs client-side inside the preview iframe, so the call has to work in both. `@tiptap/html` resolves per-environment and does.
+20. **The dashboard links to the editor.** One line in `dashboard/page.tsx`; there was otherwise no way to reach `/dashboard/editor` from the UI.
 
 ## Phase 9 — Playwright (done)
 
@@ -190,22 +196,57 @@ Values that moved from the plan's table after looking at the result: `maxHeightR
 
 **Observability for tests.** The stage carries `data-status` (`idle` → `running`, or `unsupported`) and the canvas carries `data-point-count`. `tests/e2e/hero.spec.ts` asserts both: `data-status="running"` proves context creation, compilation, linking, the font gate, sampling, upload and first draw all succeeded, and `data-point-count > 500` is the only external signal that the sampler produced real geometry from the real font. If Antonio silently fails to load, the count moves and the test catches it. Headless Chromium has genuine WebGL2 via SwiftShader, so this path is really exercised.
 
-## Picking up Part B
+## Live content editor — Part B (done)
 
-Everything Phase 11 needs is already built:
+`/dashboard/editor` is a three-pane editor: section list, live iframe preview, config panel. Typing retints and rewrites the preview in ~120 ms without a round trip; the draft autosaves ~800 ms after you stop; Publish promotes draft to published and revalidates `/`.
 
-- **`site_content` table** — migration `20260920160000_site_content.sql`. `draft` and `published` jsonb, `draft_updated_at`, `published_at`. A unique index on `((true))` makes a second row structurally impossible (verified: the second insert is rejected). RLS enabled and forced, **nothing granted to `anon`**, per-action policies for `authenticated`.
-- **`ownerProcedure` already exists** in `src/server/trpc/trpc.init.ts` and narrows `ctx.claims`. Use it for all three procedures. Do not add a second gate.
-- **Read path done** — `readPublishedContent()` / `readDraftContent()` in `src/features/site-content/server/site-content.service.ts`, both parsing through Zod and falling back to defaults so a malformed row degrades to a working site.
-- **Schema is the single source of truth** — `siteContentSchema` fills every field from `{}`, which is why the seed row is literally `'{}'::jsonb` and why an empty database still renders correctly. `createDefaultSiteContent()` lives in `site-content.rules.ts`, not `src/data`, because a constant there would create a circular import (`data → schema → data`).
-- **`buildThemeStyle()`** in the same rules file already maps the six curated colours onto the shadcn CSS variables.
+| File                                                                | Role                                                                                    |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `src/features/site-content/server/site-content.router.ts`           | `getDraft` / `saveDraft` / `publish`, all `ownerProcedure`. `revalidatePath("/")` here. |
+| `src/features/site-content/server/site-content.service.ts`          | Admin-client reads and writes. Singleton row updated with `.gte("id", 0)`.              |
+| `src/features/site-content/components/content-editor.component.tsx` | Three-pane shell. Owns `frameRef` and `pendingContentRef`, and the ready handshake.     |
+| `.../editor-config-panel.component.tsx`                             | The form, both debounces, save + publish mutations.                                     |
+| `.../editor-preview-pane.component.tsx`                             | Viewport toggle and the iframe.                                                         |
+| `.../site-preview.component.tsx`                                    | Runs **inside** the iframe. Holds content in state, listens for messages.               |
+| `src/features/site-content/rich-text.extensions.ts`                 | The one Tiptap extension list, shared by editor and renderer.                           |
+| `src/features/site-content/services/rich-text-renderer.service.ts`  | `generateHTML` with a plain-text fallback.                                              |
 
-Two things Phase 12 must get right:
+### The iframe hydration race — the bug that cost the most here
 
-- **Put the preview at `/dashboard/editor/preview`, not `/preview`.** Both auth layers are path-based — the proxy checks `PROTECTED_PATH_PREFIXES = ["/dashboard"]`, and `(owner)/dashboard/layout.tsx` does a second `getClaims()`. A route at `/preview` would be covered by **neither** and would serve unpublished drafts to anyone.
-- **Move the `mx-auto max-w-4xl px-4 py-12` container out of `dashboard/layout.tsx` into `dashboard/page.tsx` first.** Otherwise it crushes the full-bleed editor and preview. App Router cannot escape a parent layout, so this refactor is the cheap way.
+**An iframe's `load` event fires before React hydrates inside it.** The editor originally posted the initial content from `onLoad`; the preview's `message` listener is attached in a `useEffect`, so that first message arrived before anything was listening and was silently dropped.
 
-Known stopgap: **the hero tagline currently renders as plain text** via `readRichTextPlainText` in `site-content.rules.ts`, because Tiptap is not installed yet. Phase 14 swaps it for `generateHTML` from `@tiptap/html` using the same extension list. One call site — `hero.component.tsx`. Storing Tiptap JSON rather than HTML is deliberate: the extension list constrains the document, so there is no XSS surface and no sanitiser dependency.
+The fix is a handshake, and it is why there are **three** message types rather than the plan's two: when `SitePreview`'s effect attaches its listener it posts `{ type: "ready" }` to `window.parent`; the editor answers with the current `pendingContentRef.current`. `onLoad` is gone — do not reintroduce it, it is not a reliable readiness signal.
+
+**This also breaks tests that look correct.** A Playwright spec that waits for the preview's `h1` and then types will fail intermittently: the `h1` is server-rendered, so it appears long before hydration. `tests/e2e/editor.spec.ts` waits for `[data-status='running']` **inside the frame** first — that attribute only appears after the client hook runs, so it is a true hydration signal. Three separate ad-hoc runs reported "live preview never updates" before this was understood; the preview was fine, the test was early.
+
+### Empty form slots vs. a strict schema — silent, not loud
+
+The discipline editor renders a fixed `HERO_MAX_DISCIPLINES` inputs. Slots with no value register as `undefined`, and `z.array(z.string())` rejects `undefined` — so `siteContentSchema.safeParse(values)` failed on **every** keystroke, and because the debounce handler returns early on a parse failure, **nothing happened at all**: no preview update, no save, no error anywhere. It looked like the subscription was not firing.
+
+Two changes fix it, and both are worth keeping:
+
+- `buildEditorFormValues()` / `padDisciplineSlots()` pad the form's defaults to empty strings, which the schema accepts.
+- The `disciplines` schema now drops blank entries in a transform, so a cleared slot disappears instead of failing validation.
+
+**The general lesson: a debounced handler that early-returns on a parse failure fails silently.** If the editor ever appears inert again, check the parse result before anything else.
+
+### Tiptap facts, verified not assumed
+
+- **`@tiptap/html` resolves to a different build under Node** (`./dist/server/index.js`) which requires **`happy-dom`** as a real peer dependency. pnpm auto-installed it; it is not in `package.json` and does not need to be.
+- **`generateHTML` throws `RangeError` on any node or mark type outside the schema** — `Unknown node type: image`, `There is no mark type link in this schema`. A draft containing one would have crashed the public home page. Guarded twice: `siteContentSchema` now allowlists node and mark types (`RICH_TEXT_NODE_TYPES`, `RICH_TEXT_MARK_TYPES`), and `renderRichTextHtml` wraps the call in try/catch with an escaped plain-text fallback.
+- **Text content is properly escaped.** `<img src=x onerror=alert(1)>` renders as `&lt;img src=x onerror=alert(1)&gt;`. Verified directly. So `dangerouslySetInnerHTML` in the hero is sound — the risk was a crash, never injection. The trimmed StarterKit yields exactly nodes `doc, paragraph, text, hardBreak` and marks `bold, italic`, and none of them carry attributes.
+- The allowlists were confirmed by probing the built schema, not by reading the changelog.
+
+### Lint rules that shaped the code
+
+- **`react-hooks/refs` is an error, and it fires on _passing_ a ref-reading function during render** — not just on reading a ref. Both `form.handleSubmit(onSubmit)` and a `useMutation({ onMutate })` option were rejected when the function touched a timer ref. The explicit-submit "cancel the pending debounce" step was dropped as a result; a duplicate save writes identical content, so it costs nothing.
+- **`react-hooks/incompatible-library` warns on `form.watch()`.** Use `form.subscribe({ formState: { values: true }, callback })` for the effect subscription and `useWatch({ control, name })` for render subscriptions. Both are memoization-safe and warning-free.
+
+### Testing the logged-in flow without the user's password
+
+`tests/e2e/owner-account.ts` creates a throwaway confirmed user through the Supabase admin API in `beforeAll` and deletes it in `afterAll`. It reads credentials from the environment via `process.loadEnvFile(".env.local")` (Node 24 built-in) — **no key is ever written into a fixture**, per the push-protection landmine above.
+
+**`tests/e2e/hero.spec.ts` asserts the published hero name is literally `Criztian`.** Any manual publish of a test value breaks it — that happened here and was traced in minutes only because the failure names the expected text. `editor.spec.ts` reads the current name first and restores it at the end, so the suite is idempotent; keep it that way.
 
 ## Gotchas discovered building Part A
 
@@ -223,6 +264,9 @@ Known stopgap: **the hero tagline currently renders as plain text** via `readRic
 - **Site metadata is placeholder** — `"Criztian — Portfolio"` / `"Personal portfolio and contact."` in `src/app/layout.tsx`. Hero copy is now database-driven and editable (`site_content.draft`); the Project / About / Services / Blog section bodies in `site-page.component.tsx` are still placeholders and are **not** yet editable — Part B covers the hero only.
 - **Commit author is `criztiandev`** (lowercase, guessed from the email when git had no identity). GitHub handle is `Criztiandev`. Offered a rewrite; the user has not decided.
 - **Browser walkthrough not fully confirmed.** Login is confirmed working from the user's own logs. The password-reset-through-Mailpit round trip and the contact form's rendered success state have been verified by HTTP/curl but not visually.
+- **The local Supabase has no users at all.** Listed on 2026-09-20 after Part B: `auth.users` is empty, so `criztiandev@gmail.com` cannot log in locally and `/dashboard/editor` is unreachable without recreating it. This was already the case before that session's cleanup, which deleted only its own two throwaway addresses (`editor-probe@`, `editor-e2e@`) and logged each. A likely cause is an earlier `pnpm db:reset`, which drops auth rows along with everything else. Recreate with the admin API, or sign up once with `[auth] enable_signup` temporarily true.
+- **The e2e suite reuses a dev server if one is on :3000.** `reuseExistingServer` is on outside CI, so `pnpm test:e2e` silently skips `pnpm build && pnpm start` when `pnpm dev` is already running — which is how it ran here. Stop the dev server first for a run that genuinely exercises the production build. `pnpm build` was verified separately and is clean.
+- **One pre-existing build warning, not from Part B.** Turbopack flags `path.join(process.cwd(), EMAIL_PREVIEW_DIRECTORY)` in `email-preview.adapter.ts` as dynamic filesystem access that traces the whole project into the server bundle. Harmless locally; worth fixing before deploying, either by scoping the path statically or with a `turbopackIgnore` comment.
 
 ## What NOT to do
 
@@ -236,3 +280,7 @@ Known stopgap: **the hero tagline currently renders as plain text** via `readRic
 - **Do not put the editor preview route outside `/dashboard/`.** Both auth layers are path-based; anywhere else serves unpublished drafts to the public.
 - Do not add three.js, `@react-three/fiber` or `ogl`. The hero is ~220 lines of raw WebGL2 with no dependency surface, and the vertex shader would be identical under any of them. This was weighed and rejected with the user.
 - Do not raise `dotPitch` chasing a point count. Per-frame cost is O(1) in point count — the pitch is purely an aesthetic control.
+- **Do not post to the preview iframe from its `onLoad`.** The load event fires before React hydrates inside it, so the message is dropped. Use the `ready` handshake — see Part B.
+- **Do not make the preview wait on a server round trip.** The 80 ms postMessage path and the 800 ms `saveDraft` path are deliberately independent; collapsing them into one is what makes typing feel slow.
+- **Do not loosen the rich-text node/mark allowlist without widening the Tiptap extension list to match.** They are two halves of one invariant; `generateHTML` throws on anything the schema lets through that the extensions do not know.
+- Do not publish a test hero name and leave it. `tests/e2e/hero.spec.ts` asserts `Criztian`.

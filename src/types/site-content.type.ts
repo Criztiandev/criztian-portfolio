@@ -79,6 +79,10 @@ export type PreviewScrollMessage = {
 
 export type PreviewMessage = PreviewContentMessage | PreviewScrollMessage
 
+export type PreviewReadyMessage = {
+  type: "ready"
+}
+
 export type EditorSaveState = "idle" | "saving" | "saved" | "error"
 
 export type EditorPreviewWidthId = "desktop" | "tablet" | "mobile"

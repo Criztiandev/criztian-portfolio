@@ -2,6 +2,7 @@ import {
   FULL_PREVIEW_WIDTH,
   HERO_MAX_DISCIPLINES,
   PREVIEW_CONTENT_MESSAGE,
+  PREVIEW_READY_MESSAGE,
   PREVIEW_SCROLL_MESSAGE,
   PREVIEW_WIDTHS,
 } from "@/data/site-content.data"
@@ -159,4 +160,22 @@ export function buildEditorFormValues(content: SiteContent): SiteContent {
       disciplines: padDisciplineSlots(content.hero.disciplines),
     },
   }
+}
+
+export function isPreviewReadyMessage(
+  eventOrigin: string,
+  expectedOrigin: string,
+  data: unknown
+): boolean {
+  if (eventOrigin !== expectedOrigin) {
+    return false
+  }
+
+  if (typeof data !== "object" || data === null) {
+    return false
+  }
+
+  const message = data as Record<string, unknown>
+
+  return message.type === PREVIEW_READY_MESSAGE
 }

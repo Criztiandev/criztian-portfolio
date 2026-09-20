@@ -10,11 +10,7 @@ import { cn } from "@/lib/utils"
 
 export function EditorPreviewPane({
   frameRef,
-  onFrameLoad,
-}: Readonly<{
-  frameRef: React.RefObject<HTMLIFrameElement | null>
-  onFrameLoad: () => void
-}>) {
+}: Readonly<{ frameRef: React.RefObject<HTMLIFrameElement | null> }>) {
   const previewWidth = usePreviewWidth()
   const { selectPreviewWidth } = useEditorUiActions()
 
@@ -55,7 +51,6 @@ export function EditorPreviewPane({
           src={EDITOR_PREVIEW_PATH}
           title="Site preview"
           data-preview-width={previewWidth}
-          onLoad={onFrameLoad}
           style={{ width: readPreviewWidthValue(previewWidth) }}
           className="mx-auto h-full rounded-lg border bg-background shadow-sm transition-[width] duration-300"
         />

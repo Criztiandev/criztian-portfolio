@@ -404,33 +404,33 @@ The cost is cross-document messaging, which is ~30 lines for a same-origin ifram
 
 **Prereqs:** 13. This is where the two-speed update model lives.
 
-- [ ] Form via `react-hook-form` + `zodResolver` against the same schema, matching `login.form.tsx` exactly: `useForm<Input, unknown, Output>` (three generics — Zod transforms make input ≠ output, and both types come from `src/types/`), a module-level `EMPTY_*` defaults constant, `mode: "onBlur"`, and `<form onSubmit={form.handleSubmit(onSubmit)} noValidate>`.
-- [ ] **shadcn `Field` primitives, not the `Form`/`FormField`/`Controller` wrapper** — the repo does not use it. Structure is always `<FieldGroup><Field><FieldLabel htmlFor><Input {...form.register()} /><FieldError errors={[errors.x]} /></Field></FieldGroup>`. `FieldError` takes an **array**. Every input gets a namespaced `id` matching `htmlFor`, and `aria-invalid={errors.x ? true : undefined}` — `undefined`, never `false`.
-- [ ] Mutations are `useMutation(trpc.siteContent.saveDraft.mutationOptions({ ... }))` — the tRPC v11 proxy style, not `trpc.x.useMutation()`. Error display is `{mutation.isError ? <p role="alert" …> : null}` — ternary-to-`null`, never `&&`. Submit labels swap to a gerund with a real `…` character.
-- [ ] **Two independent debounces off the same `watch()` subscription:**
+- [x] Form via `react-hook-form` + `zodResolver` against the same schema, matching `login.form.tsx` exactly: `useForm<Input, unknown, Output>` (three generics — Zod transforms make input ≠ output, and both types come from `src/types/`), a module-level `EMPTY_*` defaults constant, `mode: "onBlur"`, and `<form onSubmit={form.handleSubmit(onSubmit)} noValidate>`.
+- [x] **shadcn `Field` primitives, not the `Form`/`FormField`/`Controller` wrapper** — the repo does not use it. Structure is always `<FieldGroup><Field><FieldLabel htmlFor><Input {...form.register()} /><FieldError errors={[errors.x]} /></Field></FieldGroup>`. `FieldError` takes an **array**. Every input gets a namespaced `id` matching `htmlFor`, and `aria-invalid={errors.x ? true : undefined}` — `undefined`, never `false`.
+- [x] Mutations are `useMutation(trpc.siteContent.saveDraft.mutationOptions({ ... }))` — the tRPC v11 proxy style, not `trpc.x.useMutation()`. Error display is `{mutation.isError ? <p role="alert" …> : null}` — ternary-to-`null`, never `&&`. Submit labels swap to a gerund with a real `…` character.
+- [x] **Two independent debounces off the same `watch()` subscription:**
   - **~80 ms → `postMessage` to the iframe.** Drives the visual. No network, no database.
   - **~800 ms → `saveDraft` mutation.** Persists. Updates `saveState` for a small "Saved" indicator.
 
   Keeping these separate is the core efficiency decision: the preview feels instant because it never waits on a round-trip, and the database sees roughly one write per pause rather than one per keystroke.
 
-- [ ] Short fields (`name`, `scrollLabel`, `worksLabel`, disciplines) are plain shadcn `Input`s. **Do not put a rich text editor on a headline.**
-- [ ] Tagline uses **Tiptap** — `useEditor` with `StarterKit` trimmed to bold, italic and hard break, in a shadcn-styled bordered container with a small toolbar. The hero tagline genuinely wants line-break and emphasis control, and this establishes the pattern for the About body later.
-- [ ] **Store Tiptap JSON, not HTML.** Render it with `generateHTML` from `@tiptap/html` using the same extension list, server-side in `SitePage`. Because the extension list constrains what the document can contain, there is **no XSS surface and no sanitizer dependency** — which is the entire reason to prefer JSON over storing HTML.
-- [ ] Colour fields: native `<input type="color">` styled as a shadcn swatch, paired with a hex text input so a specific value can be typed. Zero dependencies. (`react-colorful` is the ~3 kB upgrade if the native picker feels cheap.)
-- [ ] Colour changes post CSS-variable overrides to the iframe the same way text does, so the whole site retints live.
-- [ ] Publish button: disabled while `draft_updated_at <= published_at`, confirms, calls `publish`, shows the result. Surface "unpublished changes" state clearly — it is the only thing standing between a draft and the live site.
-- [ ] **Gate:** typing in the right pane visibly updates the centre pane within a frame or two; reloading the editor shows the persisted draft; the public site still shows the _old_ content until Publish.
+- [x] Short fields (`name`, `scrollLabel`, `worksLabel`, disciplines) are plain shadcn `Input`s. **Do not put a rich text editor on a headline.**
+- [x] Tagline uses **Tiptap** — `useEditor` with `StarterKit` trimmed to bold, italic and hard break, in a shadcn-styled bordered container with a small toolbar. The hero tagline genuinely wants line-break and emphasis control, and this establishes the pattern for the About body later.
+- [x] **Store Tiptap JSON, not HTML.** Render it with `generateHTML` from `@tiptap/html` using the same extension list, server-side in `SitePage`. Because the extension list constrains what the document can contain, there is **no XSS surface and no sanitizer dependency** — which is the entire reason to prefer JSON over storing HTML.
+- [x] Colour fields: native `<input type="color">` styled as a shadcn swatch, paired with a hex text input so a specific value can be typed. Zero dependencies. (`react-colorful` is the ~3 kB upgrade if the native picker feels cheap.)
+- [x] Colour changes post CSS-variable overrides to the iframe the same way text does, so the whole site retints live.
+- [x] Publish button: disabled while `draft_updated_at <= published_at`, confirms, calls `publish`, shows the result. Surface "unpublished changes" state clearly — it is the only thing standing between a draft and the live site.
+- [x] **Gate:** typing in the right pane visibly updates the centre pane within a frame or two; reloading the editor shows the persisted draft; the public site still shows the _old_ content until Publish.
 
 ## Phase 15 — Part B tests and verification
 
 **Prereqs:** 14.
 
-- [ ] Unit: the schema's default-filling behaviour, draft→published promotion, and the debounce/dirty helpers as pure functions in `site-content.rules.ts`.
-- [ ] Unit: the config panel renders fields for the selected entry and calls the save mutation. jsdom has no iframe contentWindow worth driving, so **assert the `postMessage` payload against a spy** rather than trying to test the preview end to end here.
-- [ ] E2E `tests/e2e/editor.spec.ts` — this is the only place the whole loop is real: log in, open the editor, change the hero name, assert the **iframe's** `h1` updates (Playwright's `frameLocator` makes this direct), click Publish, then visit `/` in a fresh context and assert the new name is live. That single spec covers postMessage, autosave, publish and revalidation in one pass.
-- [ ] Confirm logged-out access to `/dashboard/editor` and `/preview` both redirect.
-- [ ] Commit in two parts: `feat: add interactive dot-matrix hero with a cursor vortex` and `feat: add live content editor with draft and publish`. Include the regenerated `AGENTS.md` block if `next dev` rewrote it.
-- [ ] **Gate:** `pnpm check && pnpm test:unit && pnpm test:e2e` all exit 0.
+- [x] Unit: the schema's default-filling behaviour, draft→published promotion, and the debounce/dirty helpers as pure functions in `site-content.rules.ts`.
+- [x] Unit: the config panel renders fields for the selected entry and calls the save mutation. jsdom has no iframe contentWindow worth driving, so **assert the `postMessage` payload against a spy** rather than trying to test the preview end to end here.
+- [x] E2E `tests/e2e/editor.spec.ts` — this is the only place the whole loop is real: log in, open the editor, change the hero name, assert the **iframe's** `h1` updates (Playwright's `frameLocator` makes this direct), click Publish, then visit `/` in a fresh context and assert the new name is live. That single spec covers postMessage, autosave, publish and revalidation in one pass.
+- [x] Confirm logged-out access to `/dashboard/editor` and `/preview` both redirect.
+- [x] Commit in two parts: `feat: add interactive dot-matrix hero with a cursor vortex` and `feat: add live content editor with draft and publish`. Include the regenerated `AGENTS.md` block if `next dev` rewrote it.
+- [x] **Gate:** `pnpm check && pnpm test:unit && pnpm test:e2e` all exit 0.
 
 ---
 

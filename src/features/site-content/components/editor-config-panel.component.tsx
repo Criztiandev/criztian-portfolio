@@ -34,6 +34,7 @@ import {
 } from "@/features/site-content/hooks/use-editor-ui.hook"
 import { siteContentSchema } from "@/features/site-content/schemas/site-content.schema"
 import { postPreviewMessage } from "@/features/site-content/services/preview-messenger.service"
+import { buildEditorFormValues } from "@/features/site-content/site-content.rules"
 import { useTRPC } from "@/lib/trpc/trpc.client"
 import type {
   RichTextDocument,
@@ -73,7 +74,7 @@ export function EditorConfigPanel({
 
   const form = useForm<SiteContentInput, unknown, SiteContent>({
     resolver: zodResolver(siteContentSchema),
-    defaultValues: initialContent,
+    defaultValues: buildEditorFormValues(initialContent),
     mode: "onBlur",
   })
 

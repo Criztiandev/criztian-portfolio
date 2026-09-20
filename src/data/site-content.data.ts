@@ -101,6 +101,8 @@ export const PREVIEW_CONTENT_MESSAGE = "content"
 
 export const PREVIEW_SCROLL_MESSAGE = "scroll"
 
+export const PREVIEW_READY_MESSAGE = "ready"
+
 export const PREVIEW_CONTENT_DEBOUNCE_MS = 80
 
 export const DRAFT_SAVE_DEBOUNCE_MS = 800

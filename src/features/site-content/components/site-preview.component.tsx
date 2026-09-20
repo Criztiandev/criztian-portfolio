@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 
 import {
   PREVIEW_CONTENT_MESSAGE,
+  PREVIEW_READY_MESSAGE,
   PREVIEW_SCROLL_MESSAGE,
 } from "@/data/site-content.data"
 import { SitePage } from "@/features/portfolio/components/site-page.component"
@@ -55,6 +56,13 @@ export function SitePreview({
     }
 
     window.addEventListener("message", handleMessage)
+
+    if (window.parent !== window) {
+      window.parent.postMessage(
+        { type: PREVIEW_READY_MESSAGE },
+        window.location.origin
+      )
+    }
 
     return function unsubscribe() {
       window.removeEventListener("message", handleMessage)
