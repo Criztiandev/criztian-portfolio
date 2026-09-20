@@ -19,7 +19,12 @@
     "check": "pnpm format:check && pnpm lint && pnpm typecheck",
     "prepare": "husky",
     "test:unit": "vitest run",
-    "test:unit:watch": "vitest"
+    "test:unit:watch": "vitest",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:status": "supabase status",
+    "db:reset": "supabase db reset",
+    "db:types": "supabase gen types typescript --local > src/types/database.type.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -61,6 +66,7 @@
     "lint-staged": "^17.5.1",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
+    "supabase": "^2.117.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.0.1"

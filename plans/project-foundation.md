@@ -191,12 +191,12 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Prereqs:** Phase D, 1
 
-- [ ] Add `supabase` as a devDependency (version-pins the CLI with the project). Run `supabase init` and `supabase start`.
-- [ ] Disable public signup in `supabase/config.toml` (confirm the exact key against the generated file — historically `[auth] enable_signup = false`).
-- [ ] Add a `contact_messages` migration: id, normalised name/email/message, `created_at`, `notified_at timestamptz`, `notify_error text`, and a hashed-IP column for the rate check.
-- [ ] Enable RLS. `INSERT` allowed to `anon`; `SELECT`/`UPDATE`/`DELETE` require `authenticated`. There is no owner table — signup is disabled, so `authenticated` is the owner.
+- [x] Add `supabase` as a devDependency (version-pins the CLI with the project). Run `supabase init` and `supabase start`.
+- [x] Disable public signup in `supabase/config.toml` (confirm the exact key against the generated file — historically `[auth] enable_signup = false`).
+- [x] Add a `contact_messages` migration: id, normalised name/email/message, `created_at`, `notified_at timestamptz`, `notify_error text`, and a hashed-IP column for the rate check.
+- [x] Enable RLS. `INSERT` allowed to `anon`; `SELECT`/`UPDATE`/`DELETE` require `authenticated`. There is no owner table — signup is disabled, so `authenticated` is the owner.
 - [ ] Create the single owner account through the CLI/Studio admin path. Do not commit a password.
-- [ ] Generate `src/types/database.type.ts` from the local schema. Add a `db:reset` and a `db:types` script.
+- [x] Generate `src/types/database.type.ts` from the local schema. Add a `db:reset` and a `db:types` script.
 - **Gate:** `pnpm exec supabase db reset` replays cleanly, then as `anon` a `select` on `contact_messages` returns 0 rows while an `insert` succeeds.
 
 > **Windows port hazard:** Supabase binds 54321–54324. Windows reserves dynamic TCP ranges for Hyper-V/WSL2 that sometimes land in the 54xxx band, producing `bind: An attempt was made to access a socket in a way forbidden by its access permissions` — which looks nothing like a port conflict. Check with `netsh interface ipv4 show excludedportrange protocol=tcp` and remap in `config.toml` if they overlap.
