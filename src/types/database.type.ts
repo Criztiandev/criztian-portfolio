@@ -67,6 +67,30 @@ export type Database = {
         }
         Relationships: []
       }
+      site_content: {
+        Row: {
+          draft: Json
+          draft_updated_at: string
+          id: number
+          published: Json | null
+          published_at: string | null
+        }
+        Insert: {
+          draft?: Json
+          draft_updated_at?: string
+          id?: never
+          published?: Json | null
+          published_at?: string | null
+        }
+        Update: {
+          draft?: Json
+          draft_updated_at?: string
+          id?: never
+          published?: Json | null
+          published_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
