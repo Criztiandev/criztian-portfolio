@@ -1,0 +1,50 @@
+{
+  "files.eol": "\n",
+
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[javascriptreact]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[typescriptreact]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[jsonc]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[css]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[markdown]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  "eslint.useFlatConfig": true,
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/out/**": true,
+    "**/build/**": true,
+    "**/coverage/**": true,
+    "**/test-results/**": true,
+    "**/playwright-report/**": true,
+    "**/blob-report/**": true,
+    "**/supabase/.temp/**": true,
+    "**/.local/**": true
+  },
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/out": true,
+    "**/build": true,
+    "**/coverage": true,
+    "**/test-results": true,
+    "**/playwright-report": true,
+    "**/pnpm-lock.yaml": true
+  },
+
+  "files.exclude": {
+    "**/.next": true,
+    "**/tsconfig.tsbuildinfo": true
+  }
+}
