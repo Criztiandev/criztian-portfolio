@@ -205,13 +205,13 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Prereqs:** 6, 4
 
-- [ ] Add `@supabase/ssr` **and** `@supabase/supabase-js` (the latter is a peer, not a dependency — pnpm will not hoist it for you).
-- [ ] Create `src/lib/supabase/supabase.client.ts`, `supabase.server.ts` (awaits `cookies()`), and `supabase.proxy.ts` exporting `updateSession`.
-- [ ] Add `src/proxy.ts` exporting `proxy(request)` and delegating to `updateSession`. The Next docs are explicit: _"If you're using Proxy, ensure it is placed inside the `src` folder."_ **No `export const runtime`** — it throws in proxy files.
-- [ ] **Invert the gate from the upstream recipe.** Supabase's example redirects every unauthenticated request that is not `/login` or `/auth` to `/login`. Shipped as-is, that redirects every visitor away from your public portfolio. Gate on an allowlist of protected prefixes instead: `request.nextUrl.pathname.startsWith("/dashboard")`.
-- [ ] Verify identity with `supabase.auth.getClaims()`, not `getSession()` and not `getUser()`. `getClaims()` verifies the token signature on every call, locally against cached JWKS on asymmetric-signing projects. Never trust an unverified session object in server code.
-- [ ] Build `/login`, `/forgot-password`, `/reset-password` and a protected `/dashboard` shell. Generic error messages for bad credentials. Recovery redirects allowlisted to local URLs.
-- [ ] Clear private TanStack data and refresh server-rendered state on sign-out.
+- [x] Add `@supabase/ssr` **and** `@supabase/supabase-js` (the latter is a peer, not a dependency — pnpm will not hoist it for you).
+- [x] Create `src/lib/supabase/supabase.client.ts`, `supabase.server.ts` (awaits `cookies()`), and `supabase.proxy.ts` exporting `updateSession`.
+- [x] Add `src/proxy.ts` exporting `proxy(request)` and delegating to `updateSession`. The Next docs are explicit: _"If you're using Proxy, ensure it is placed inside the `src` folder."_ **No `export const runtime`** — it throws in proxy files.
+- [x] **Invert the gate from the upstream recipe.** Supabase's example redirects every unauthenticated request that is not `/login` or `/auth` to `/login`. Shipped as-is, that redirects every visitor away from your public portfolio. Gate on an allowlist of protected prefixes instead: `request.nextUrl.pathname.startsWith("/dashboard")`.
+- [x] Verify identity with `supabase.auth.getClaims()`, not `getSession()` and not `getUser()`. `getClaims()` verifies the token signature on every call, locally against cached JWKS on asymmetric-signing projects. Never trust an unverified session object in server code.
+- [x] Build `/login`, `/forgot-password`, `/reset-password` and a protected `/dashboard` shell. Generic error messages for bad credentials. Recovery redirects allowlisted to local URLs.
+- [x] Clear private TanStack data and refresh server-rendered state on sign-out.
 - **Gate:** `curl -I http://localhost:3000/` returns **200** (not a redirect) while `curl -I http://localhost:3000/dashboard` returns 307 to `/login`. That one pair catches the inverted-gate bug. Then complete a password reset through Supabase's local Mailpit inbox at `http://127.0.0.1:54324`.
 
 > **Verify against the installed `@supabase/ssr` types before writing the cookie handlers.** Recent versions changed `setAll` to take two arguments — `setAll(cookiesToSet, headers)` — where the second carries `Cache-Control: private, no-store` headers that stop a CDN serving one user's session cookie to another. Dropping the second argument is not a type error, so it fails silently. Confirm the shape in `node_modules/@supabase/ssr/dist/main/types.d.ts` after install.

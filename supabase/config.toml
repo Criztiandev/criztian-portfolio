@@ -217,7 +217,9 @@ web3 = 30
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
-enable_signup = false
+# Must stay true: this toggles the whole email PROVIDER (login + recovery),
+# not just signup. Global signup is disabled by [auth] enable_signup = false.
+enable_signup = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
@@ -246,6 +248,14 @@ otp_expiry = 3600
 # [auth.email.template.invite]
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
+
+# The default template uses {{ .ConfirmationURL }}, which routes through
+# /auth/v1/verify and returns tokens in the URL fragment. A server cannot read
+# a fragment, so the server-side flow needs {{ .TokenHash }} pointed at our own
+# /auth/confirm route, which exchanges it via verifyOtp.
+[auth.email.template.recovery]
+subject = "Reset your password"
+content_path = "./supabase/templates/recovery.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
