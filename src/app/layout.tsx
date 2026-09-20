@@ -1,21 +1,12 @@
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
 
 import "./globals.css"
+import { MotionProvider } from "@/providers/motion.provider"
 import { ThemeProvider } from "@/providers/theme.provider"
+import { fontDisplay, fontMono, fontSans } from "@/config/fonts.config"
 import { publicEnv } from "@/config/env.public"
 import { TRPCReactProvider } from "@/lib/trpc/trpc.client"
 import { cn } from "@/lib/utils"
-
-const fontSans = Geist({
-  subsets: ["latin"],
-  variable: "--font-sans",
-})
-
-const fontMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-})
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.NEXT_PUBLIC_APP_URL),
@@ -37,12 +28,15 @@ export default function RootLayout({
         "antialiased",
         fontMono.variable,
         "font-sans",
-        fontSans.variable
+        fontSans.variable,
+        fontDisplay.variable
       )}
     >
       <body>
         <TRPCReactProvider>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            <MotionProvider>{children}</MotionProvider>
+          </ThemeProvider>
         </TRPCReactProvider>
       </body>
     </html>

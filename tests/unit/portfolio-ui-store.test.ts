@@ -6,7 +6,7 @@ describe("portfolio UI store", () => {
   it("starts closed and deterministic, so server and client agree", () => {
     expect(createPortfolioUiStore().state).toEqual({
       isMobileNavOpen: false,
-      activeSection: "work",
+      activeSection: "home",
     })
   })
 
