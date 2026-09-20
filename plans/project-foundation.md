@@ -221,12 +221,12 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Prereqs:** 7, 5
 
-- [ ] Add `src/features/contact/server/contact.router.ts` and `contact.service.ts`. Validate with the shared schema, check the honeypot, check minimum time-to-submit, and check the hourly count by hashed IP. Reject before any write.
-- [ ] Persist the message **before** attempting notification. A database failure must prevent the email step; a notification failure must not lose the message.
-- [ ] Define an `EmailAdapter` interface in `src/server/integrations/email/`. Implement `email-preview.adapter.ts` only — it writes an HTML/`.eml` file to `.local/email-previews/` using server-controlled filenames. Resend is a future second implementation of the same interface; do not write it now.
-- [ ] Record outcome in `notified_at` / `notify_error`. A preview is `previewed` — never report it as delivered.
-- [ ] Return a generic public acknowledgment tied to persistence. Never leak stored input, provider details or notification state.
-- [ ] Wire the form's submit handler to the mutation. Disable the button while pending. Retain input on recoverable errors. Return `created_at` as an ISO string so no transformer is needed.
+- [x] Add `src/features/contact/server/contact.router.ts` and `contact.service.ts`. Validate with the shared schema, check the honeypot, check minimum time-to-submit, and check the hourly count by hashed IP. Reject before any write.
+- [x] Persist the message **before** attempting notification. A database failure must prevent the email step; a notification failure must not lose the message.
+- [x] Define an `EmailAdapter` interface in `src/server/integrations/email/`. Implement `email-preview.adapter.ts` only — it writes an HTML/`.eml` file to `.local/email-previews/` using server-controlled filenames. Resend is a future second implementation of the same interface; do not write it now.
+- [x] Record outcome in `notified_at` / `notify_error`. A preview is `previewed` — never report it as delivered.
+- [x] Return a generic public acknowledgment tied to persistence. Never leak stored input, provider details or notification state.
+- [x] Wire the form's submit handler to the mutation. Disable the button while pending. Retain input on recoverable errors. Return `created_at` as an ISO string so no transformer is needed.
 - **Gate:** submit the form; exactly one new row exists in `contact_messages` **and** one new file appears under `.local/email-previews/`. Confirm `.local/` is gitignored and not reachable through any app route.
 
 ### Phase 9 — End-to-end coverage

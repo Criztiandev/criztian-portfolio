@@ -6,6 +6,8 @@ const valid = {
   name: "Ada Lovelace",
   email: "ada@example.test",
   message: "Hello, I would like to talk about a project.",
+  website: "",
+  renderedAt: 1_700_000_000_000,
 }
 
 describe("contactSchema", () => {
@@ -35,12 +37,13 @@ describe("contactSchema", () => {
   })
 
   it("rejects a malformed email", () => {
-    const result = contactSchema.safeParse({ ...valid, email: "not-an-email" })
-    expect(result.success).toBe(false)
+    expect(contactSchema.safeParse({ ...valid, email: "nope" }).success).toBe(
+      false
+    )
   })
 
   it("rejects a name that is only whitespace", () => {
-    expect(contactSchema.safeParse({ ...valid, name: "     " }).success).toBe(
+    expect(contactSchema.safeParse({ ...valid, name: "   " }).success).toBe(
       false
     )
   })
@@ -53,11 +56,19 @@ describe("contactSchema", () => {
     expect(result.success).toBe(false)
   })
 
-  it("rejects a filled honeypot", () => {
+  it("rejects a missing renderedAt so timing cannot be skipped", () => {
+    const { renderedAt, ...withoutTimestamp } = valid
+    void renderedAt
+
+    expect(contactSchema.safeParse(withoutTimestamp).success).toBe(false)
+  })
+
+  it("accepts a filled honeypot at the schema layer, leaving rejection to the service", () => {
     const result = contactSchema.safeParse({
       ...valid,
       website: "http://spam.test",
     })
-    expect(result.success).toBe(false)
+
+    expect(result.success).toBe(true)
   })
 })

@@ -46,5 +46,6 @@ export const contactSchema = z.object({
           `Must be ${MESSAGE_MAX_LENGTH} characters or fewer`
         )
     ),
-  website: z.string().max(0).optional().or(z.literal("")),
+  website: z.string().max(200).optional(),
+  renderedAt: z.number().int().positive(),
 })

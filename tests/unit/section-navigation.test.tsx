@@ -3,14 +3,17 @@ import { describe, expect, it } from "vitest"
 
 import { ContactForm } from "@/features/contact/components/contact.form"
 import { SectionNavigation } from "@/features/portfolio/components/section-navigation.component"
+import { TRPCReactProvider } from "@/lib/trpc/trpc.client"
 import { PortfolioStoreProvider } from "@/providers/portfolio-store.provider"
 
 function renderShell() {
   return render(
-    <PortfolioStoreProvider>
-      <SectionNavigation />
-      <ContactForm />
-    </PortfolioStoreProvider>
+    <TRPCReactProvider>
+      <PortfolioStoreProvider>
+        <SectionNavigation />
+        <ContactForm />
+      </PortfolioStoreProvider>
+    </TRPCReactProvider>
   )
 }
 
