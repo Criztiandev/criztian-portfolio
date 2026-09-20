@@ -1,7 +1,9 @@
 "use client"
 
-import * as React from "react"
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes"
+import * as React from "react"
+
+import { THEME_TOGGLE_KEY, TYPING_TARGET_SELECTOR } from "@/data/theme.data"
 
 function ThemeProvider({
   children,
@@ -26,12 +28,31 @@ function isTypingTarget(target: EventTarget | null) {
     return false
   }
 
-  return (
-    target.isContentEditable ||
-    target.tagName === "INPUT" ||
-    target.tagName === "TEXTAREA" ||
-    target.tagName === "SELECT"
-  )
+  if (target.closest(TYPING_TARGET_SELECTOR)) {
+    return true
+  }
+
+  return target.isContentEditable
+}
+
+export function shouldToggleTheme(event: KeyboardEvent): boolean {
+  if (event.defaultPrevented || event.repeat) {
+    return false
+  }
+
+  if (event.metaKey || event.ctrlKey || event.altKey) {
+    return false
+  }
+
+  if (typeof event.key !== "string") {
+    return false
+  }
+
+  if (event.key.toLowerCase() !== THEME_TOGGLE_KEY) {
+    return false
+  }
+
+  return !isTypingTarget(event.target)
 }
 
 function ThemeHotkey() {
@@ -39,19 +60,7 @@ function ThemeHotkey() {
 
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.defaultPrevented || event.repeat) {
-        return
-      }
-
-      if (event.metaKey || event.ctrlKey || event.altKey) {
-        return
-      }
-
-      if (event.key.toLowerCase() !== "d") {
-        return
-      }
-
-      if (isTypingTarget(event.target)) {
+      if (!shouldToggleTheme(event)) {
         return
       }
 
