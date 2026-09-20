@@ -25,24 +25,25 @@ export const CONTEXT_OPTIONS: WebGLContextAttributes = {
 }
 
 export const DOT_FIELD_TUNING: DotFieldTuning = {
-  dotPitch: 5,
-  dotSize: 3.2,
+  dotPitch: 6,
+  dotSize: 6.3,
   dotEdgePixels: 1,
+  dotRoundness: 1,
   alphaThreshold: 40,
-  widthRatio: 0.72,
+  widthRatio: 0.78,
   maxHeightRatio: 0.85,
   minFontSize: 48,
   maxFontSize: 900,
   probeFontSize: 100,
   fontWeight: 700,
-  maxPointCount: 60000,
-  vortexRadius: 220,
-  vortexSwirl: 2.4,
-  vortexPush: 85,
-  vortexFade: 0.25,
-  vortexShrink: 0.2,
-  waveAmplitude: 6,
-  waveSecondaryAmplitude: 3,
+  maxPointCount: 250000,
+  vortexRadius: 190,
+  vortexSwirl: 1.35,
+  vortexPush: 22,
+  vortexFade: 0.12,
+  vortexShrink: 0.1,
+  waveAmplitude: 0,
+  waveSecondaryAmplitude: 0,
   waveFrequency: 0.0042,
   waveSecondaryFrequency: 0.011,
   waveSpeed: 0.55,
@@ -59,4 +60,4 @@ export const DOT_FIELD_TUNING: DotFieldTuning = {
 
 export const TEXT_PADDING_PX = 8
 
-export const DISPLAY_LETTER_SPACING = "-0.02em"
+export const DISPLAY_LETTER_SPACING = "0.050em"

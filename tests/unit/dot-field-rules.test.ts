@@ -233,16 +233,37 @@ describe("resolvePixelRatio", () => {
 
 describe("resolveDotPitch", () => {
   it("keeps the base pitch when the cell count is affordable", () => {
-    expect(resolveDotPitch(5, 2074, 416, 60000)).toBe(5)
+    expect(resolveDotPitch(5, 1, 2074, 416, 60000)).toBe(5)
   })
 
   it("coarsens the pitch rather than exceeding the point ceiling", () => {
-    const pitch = resolveDotPitch(5, 8000, 2000, 60000)
+    const pitch = resolveDotPitch(5, 1, 8000, 2000, 60000)
     const columns = Math.ceil(8000 / pitch)
     const rows = Math.ceil(2000 / pitch)
 
     expect(pitch).toBeGreaterThan(5)
     expect(columns * rows).toBeLessThanOrEqual(60000)
+  })
+
+  it("scales the pitch with the pixel ratio so density is display independent", () => {
+    expect(resolveDotPitch(2, 2, 2074, 416, 250000)).toBe(4)
+    expect(resolveDotPitch(2, 1.5, 2074, 416, 250000)).toBe(3)
+  })
+
+  it("samples the same grid at every pixel ratio", () => {
+    const cellCounts: number[] = []
+
+    for (const pixelRatio of [1, 1.5, 2]) {
+      const width = Math.round(1037 * pixelRatio)
+      const height = Math.round(306 * pixelRatio)
+      const pitch = resolveDotPitch(2, pixelRatio, width, height, 250000)
+
+      cellCounts.push(Math.ceil(width / pitch) * Math.ceil(height / pitch))
+    }
+
+    for (const cellCount of cellCounts) {
+      expect(cellCount).toBeCloseTo(cellCounts[0] ?? 0, -3)
+    }
   })
 })
 

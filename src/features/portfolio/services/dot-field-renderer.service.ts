@@ -98,6 +98,7 @@ function resolveUniformLocations(
     waveSpeed: context.getUniformLocation(program, "uWaveSpeed"),
     color: context.getUniformLocation(program, "uColor"),
     edgePixels: context.getUniformLocation(program, "uEdgePixels"),
+    dotRoundness: context.getUniformLocation(program, "uDotRoundness"),
   }
 }
 
@@ -160,6 +161,7 @@ export function applyStaticUniforms(
   context.uniform1f(uniforms.vortexFade, tuning.vortexFade)
   context.uniform1f(uniforms.vortexShrink, tuning.vortexShrink)
   context.uniform1f(uniforms.edgePixels, tuning.dotEdgePixels)
+  context.uniform1f(uniforms.dotRoundness, tuning.dotRoundness)
   context.uniform3f(uniforms.color, red, green, blue)
   context.uniform4f(
     uniforms.wave,

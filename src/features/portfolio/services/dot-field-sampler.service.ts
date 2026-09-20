@@ -161,6 +161,7 @@ export function sampleWordToPoints(
   const imageData = renderContext.getImageData(0, 0, canvasWidth, canvasHeight)
   const pitch = resolveDotPitch(
     tuning.dotPitch,
+    viewport.pixelRatio,
     canvasWidth,
     canvasHeight,
     tuning.maxPointCount

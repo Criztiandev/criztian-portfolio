@@ -85,11 +85,12 @@ export function resolvePixelRatio(reported: number, maximum: number): number {
 
 export function resolveDotPitch(
   basePitch: number,
+  pixelRatio: number,
   widthPx: number,
   heightPx: number,
   maxPointCount: number
 ): number {
-  let pitch = Math.max(1, Math.round(basePitch))
+  let pitch = Math.max(1, Math.round(basePitch * pixelRatio))
 
   for (let attempt = 0; attempt < MAX_PITCH_ATTEMPTS; attempt += 1) {
     const columns = Math.ceil(widthPx / pitch)

@@ -113,7 +113,6 @@ export function useDotField(request: UseDotFieldRequest): void {
       let elapsedSeconds = 0
       let isVisible = true
       let resizeHandle = 0
-      let cachedRect = container.getBoundingClientRect()
 
       function applyViewport(viewport: DotFieldViewport): void {
         const deviceWidth = Math.max(
@@ -234,18 +233,15 @@ export function useDotField(request: UseDotFieldRequest): void {
           return
         }
 
-        pointer.targetX =
-          (event.clientX - cachedRect.left) * viewport.pixelRatio
-        pointer.targetY = (event.clientY - cachedRect.top) * viewport.pixelRatio
+        const rect = container.getBoundingClientRect()
+
+        pointer.targetX = (event.clientX - rect.left) * viewport.pixelRatio
+        pointer.targetY = (event.clientY - rect.top) * viewport.pixelRatio
         pointer.targetInfluence = 1
       }
 
       function onPointerLeave(): void {
         pointer.targetInfluence = 0
-      }
-
-      function onScroll(): void {
-        cachedRect = container.getBoundingClientRect()
       }
 
       function onVisibilityChanged(): void {
@@ -277,7 +273,6 @@ export function useDotField(request: UseDotFieldRequest): void {
 
         const previousViewport = viewportRef.current
 
-        cachedRect = container.getBoundingClientRect()
         viewportRef.current = nextViewport
         applyViewport(nextViewport)
 
@@ -353,7 +348,6 @@ export function useDotField(request: UseDotFieldRequest): void {
         window.addEventListener("blur", onPointerLeave)
       }
 
-      window.addEventListener("scroll", onScroll, { passive: true })
       document.addEventListener("visibilitychange", onVisibilityChanged)
       canvas.addEventListener("webglcontextlost", onContextLost)
       reducedMotionQuery?.addEventListener("change", onMotionPreferenceChanged)
@@ -371,7 +365,6 @@ export function useDotField(request: UseDotFieldRequest): void {
         container.removeEventListener("pointerleave", onPointerLeave)
         container.removeEventListener("pointercancel", onPointerLeave)
         window.removeEventListener("blur", onPointerLeave)
-        window.removeEventListener("scroll", onScroll)
         document.removeEventListener("visibilitychange", onVisibilityChanged)
         canvas.removeEventListener("webglcontextlost", onContextLost)
         reducedMotionQuery?.removeEventListener(

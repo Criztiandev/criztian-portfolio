@@ -66,7 +66,7 @@ export function Hero({
         <div
           ref={containerRef}
           data-status="idle"
-          className="group relative h-[42vh] w-full"
+          className="group relative h-[min(500px,70svh)] w-full"
         >
           <h1
             style={{ fontFamily: displayFontFamily }}
@@ -89,12 +89,6 @@ export function Hero({
             )}
           />
         </div>
-
-        <motion.div
-          variants={ITEM_VARIANTS}
-          dangerouslySetInnerHTML={{ __html: taglineHtml }}
-          className="mt-16 max-w-md px-6 text-center text-base text-balance text-white/80"
-        />
       </motion.div>
 
       <motion.div

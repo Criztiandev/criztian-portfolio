@@ -154,6 +154,8 @@ export function SectionNavigation() {
       )}
     >
       <div className="relative flex h-18 items-center justify-between px-6 md:px-10">
+        <div>HI</div>
+
         <motion.nav
           aria-label="Primary"
           variants={GROUP_VARIANTS}
@@ -162,33 +164,11 @@ export function SectionNavigation() {
           {PORTFOLIO_LEADING_NAVIGATION.map(renderLink)}
         </motion.nav>
 
-        <a
-          href="#home"
-          aria-label="Criztian, back to top"
-          onClick={function onSelectHome() {
-            actions.selectSection("home")
-          }}
-          className={cn(
-            "absolute left-1/2 -translate-x-1/2 transition-colors",
-            "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-            isSolid ? "text-foreground" : "text-white"
-          )}
-        >
-          <motion.span
-            className="block"
-            whileHover={{ rotate: 90 }}
-            transition={{ duration: 0.6 }}
-          >
-            <LogoMark />
-          </motion.span>
-        </a>
-
         <motion.nav
           aria-label="Secondary"
           variants={GROUP_VARIANTS}
           className="hidden items-center gap-1 md:flex"
         >
-          {PORTFOLIO_TRAILING_NAVIGATION.map(renderLink)}
           {renderActionLink()}
         </motion.nav>
 

@@ -8,6 +8,7 @@ export type DotFieldTuning = {
   dotPitch: number
   dotSize: number
   dotEdgePixels: number
+  dotRoundness: number
   alphaThreshold: number
   widthRatio: number
   maxHeightRatio: number
@@ -84,6 +85,7 @@ export type DotFieldUniforms = {
   waveSpeed: WebGLUniformLocation | null
   color: WebGLUniformLocation | null
   edgePixels: WebGLUniformLocation | null
+  dotRoundness: WebGLUniformLocation | null
 }
 
 export type DotFieldRuntime = {

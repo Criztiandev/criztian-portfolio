@@ -21,15 +21,9 @@ uniform vec2 uWaveSpeed;
 out float vAlpha;
 out float vPointSize;
 
-const float TAU = 6.283185307179586;
-const float GOLDEN_RATIO = 0.6180339887498949;
-
 void main() {
   vec2 basePosition = aPoint.xy;
   float coverage = aPoint.z;
-
-  float seed = fract(float(gl_VertexID) * GOLDEN_RATIO);
-  float jitterPhase = seed * TAU;
 
   float amplitude = uWave.x * uPixelRatio;
   float secondaryAmplitude = uWave.y * uPixelRatio;
@@ -37,7 +31,7 @@ void main() {
   float secondaryFrequency = uWave.w / uPixelRatio;
 
   float primaryWave = sin(
-    basePosition.x * frequency + uTime * uWaveSpeed.x + jitterPhase * 0.06
+    basePosition.x * frequency + uTime * uWaveSpeed.x
   );
   float secondaryWave = sin(
     basePosition.y * secondaryFrequency + uTime * uWaveSpeed.y
@@ -68,11 +62,11 @@ void main() {
   vec2 displaced =
     uPointer + swirled + outward * (uVortexPush * uPixelRatio * falloff);
 
-  float sizeScale = mix(0.7, 1.0, coverage) * (0.9 + seed * 0.2);
+  float sizeScale = mix(0.94, 1.0, coverage);
   float pointSize = uDotSize * uPixelRatio * sizeScale;
   pointSize *= 1.0 - uVortexShrink * falloff;
 
-  float alpha = mix(0.6, 1.0, coverage) * (0.88 + seed * 0.12);
+  float alpha = mix(0.9, 1.0, coverage);
   alpha *= 1.0 - uVortexFade * falloff;
 
   vPointSize = max(pointSize, 1.0);
