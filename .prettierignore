@@ -10,3 +10,8 @@ src/types/database.type.ts
 
 # local-only development artifacts
 .local/
+
+# playwright output
+test-results/
+playwright-report/
+blob-report/

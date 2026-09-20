@@ -5,7 +5,7 @@
 
 ## Where things stand
 
-**Phases 0–8 complete and verified. 48 of 56 boxes ticked. 13 commits. 49 unit tests passing.**
+**Phases 0–9 complete and verified. 50 of 56 boxes ticked. 49 unit tests and 2 e2e specs passing.**
 
 | Phase                                | State                                             |
 | ------------------------------------ | ------------------------------------------------- |
@@ -19,11 +19,11 @@
 | 6 Local Supabase + schema + RLS      | done                                              |
 | 7 Supabase SSR + owner auth          | done                                              |
 | 8 Contact submission + email preview | done                                              |
-| **9 Playwright e2e**                 | **NOT STARTED — do this next**                    |
-| 10 Logging + README                  | not started                                       |
+| 9 Playwright e2e                     | done                                              |
+| **10 Logging + README**              | **NOT STARTED — do this next**                    |
 | 11 Final verification                | not started                                       |
 
-`pnpm check`, `pnpm test:unit` and `pnpm build` are all green at `ccda3a6`.
+`pnpm check`, `pnpm test:unit`, `pnpm build` and `pnpm exec playwright test` are all green.
 
 ## Start here
 
@@ -41,7 +41,7 @@ pnpm dev                     # http://localhost:3000
 | Mailpit (auth emails) | http://127.0.0.1:54324                                    |
 | Postgres              | `postgresql://postgres:postgres@127.0.0.1:54322/postgres` |
 
-Scripts: `dev` `build` `start` `lint` `lint:fix` `format` `format:check` `typecheck` `check` `test:unit` `test:unit:watch` `db:start` `db:stop` `db:status` `db:reset` `db:types`.
+Scripts: `dev` `build` `start` `lint` `lint:fix` `format` `format:check` `typecheck` `check` `test:unit` `test:unit:watch` `test:e2e` `test:e2e:ui` `db:start` `db:stop` `db:status` `db:reset` `db:types`.
 
 `.env.local` exists and is gitignored, populated with real local Supabase keys. Owner account is `criztiandev@gmail.com`; **the password is known only to the user — never ask for it.** To exercise a logged-in flow, create a throwaway user via the admin API and delete it afterwards (see commit `15fbd79`), or ask the user to drive the browser.
 
@@ -56,7 +56,7 @@ The user reacts badly to violations of these. They are also in `plans/project-fo
 
 ## Environment landmines — all hit, all real
 
-- **Windows Defender caused `EPERM: rename` → intermittent `GET / 500`** in `next dev`. Fixed by `Add-MpPreference -ExclusionPath 'E:\Project'`. If 500s reappear, check the exclusion still exists.
+- **Windows Defender causes `EPERM: rename` → intermittent 500s** in `next dev`. Fixed by `Add-MpPreference -ExclusionPath 'E:\Project'`. **This recurred on 2026-09-20** — a cold `next dev` reliably 500s on the second route compiled, failing the e2e run, with `EPERM` on `.next/dev/server/*-manifest.js` in `.next/dev/logs/next-development.log`. Reading or re-adding the exclusion needs an **elevated** PowerShell (`Get-MpPreference` returns "Must be an administrator"), so it could not be verified or re-applied from this session. **Ask the user to re-run the `Add-MpPreference` line as administrator.** Phase 9 sidesteps it by running e2e against a production build; `pnpm dev` itself is still exposed.
 - **Never `taskkill /F` the dev server.** It leaves locked handles on `.next`, reproducing the same EPERM. Ctrl-C it, and `rm -rf .next` if it happens.
 - **`/tmp` differs between bash and node** on this box. Bash's `/tmp` is `C:\Users\crizt\AppData\Local\Temp`; node resolves `/tmp` as `E:\tmp`. Use `process.env.TEMP` in node scripts.
 - **`UID` is readonly in bash.** A `UID=$(...)` capture silently fails. Cost a leaked test user once.
@@ -80,23 +80,29 @@ The user reacts badly to violations of these. They are also in `plans/project-fo
 4. **Custom recovery email template** (`supabase/templates/recovery.html`) using `{{ .TokenHash }}`. The default `{{ .ConfirmationURL }}` returns tokens in the URL fragment, which a server cannot read.
 5. **`vite-tsconfig-paths` dropped** — Vite 5 resolves tsconfig paths natively.
 6. **The `d` dark-mode hotkey was deleted.** It was shadcn template cruft with no UI affordance.
+7. **Playwright's `webServer` runs `pnpm build && pnpm start`, not `pnpm dev`.** `next dev` rewrites `.next` manifests as it compiles each route and loses a rename race with the virus scanner on this machine, serving a 500 for the second route the suite visits. A production build writes `.next` once, before any test runs. Costs ~10s of build per run and buys a deterministic suite. Revert to `pnpm dev` once the Defender exclusion is confirmed back.
+8. **Each e2e run sends a unique `x-forwarded-for`** (`2001:db8::<timestamp>`, the reserved documentation range). Next sets `x-forwarded-for` even on localhost, so every run previously hashed to one IP and the 5-per-hour limit would have rejected run 6 — the suite was one run from breaking when this was found. A per-run address gives each run its own bucket without deleting rows or weakening the limit. Prefer this over `db:reset` between runs.
 
-## Next: Phase 9 — Playwright
+## Phase 9 — Playwright (done)
 
-```
-- [ ] Add @playwright/test and run `pnpm exec playwright install chromium` (~120 MB)
-- [ ] Two specs only: contact happy path at /#contact, and /dashboard redirecting when logged out
-- Gate: pnpm exec playwright test — both pass
-```
+`playwright.config.ts` plus `tests/e2e/contact.spec.ts` and `tests/e2e/dashboard.spec.ts`. Run with `pnpm test:e2e`.
 
-Notes for whoever writes these:
+What the specs had to work around, so nobody "simplifies" them back into failing:
 
-- The contact form's timing check rejects submissions faster than 2 seconds. A Playwright spec that fills and submits instantly **will be rejected**. Either wait, or seed `renderedAt` — do not weaken the check to make a test pass.
-- Rate limit is 5 per hour per hashed IP. Repeated e2e runs against a persistent DB will start failing. Clear `contact_messages` between runs or use `pnpm db:reset`.
-- The logged-out `/dashboard` spec needs no credentials — that is why it was chosen.
-- Add `playwright.config.ts` and `tests/e2e/`. Do not put e2e specs where `vitest.config.ts` picks them up (`include` is `tests/unit/**`).
+- **The contact form's timing check rejects submissions faster than 2 seconds.** `contact.spec.ts` waits `MIN_SECONDS_BEFORE_SUBMIT` imported from `src/data/contact.data.ts` plus a margin, so changing the constant moves the test with it. Do not weaken the check to make a test faster.
+- **Rate limiting is per hashed IP, 5 per hour, and localhost is not exempt.** See deviation 8 — each run sends its own `x-forwarded-for`.
+- **e2e runs against a production build.** See deviation 7. `workers` is pinned to 1 for the same reason.
+- `reuseExistingServer` is on outside CI. If you already have `pnpm dev` on :3000 the suite will reuse it and inherit the dev-server EPERM flakiness — stop it first, or expect a 500.
+- The logged-out `/dashboard` spec needs no credentials; that is why it was chosen. It asserts the redirect lands on `/login?next=/dashboard` **and** that the Sign in button renders. That second assertion is what caught the EPERM 500 — keep it.
+- Browser binaries live in `C:\Users\crizt\AppData\Local\ms-playwright` (chromium-1243, 433 MB), outside the repo.
 
-Then Phase 10 (logging + README rewrite — README is still the unmodified shadcn template) and Phase 11 (final verification).
+## Next: Phase 10 — logging + README
+
+- `src/server/logging/logger.service.ts` with request identifiers; keep passwords, tokens and message bodies out of logs.
+- Rewrite `README.md` — still the unmodified shadcn template. **Carry over the Phase 9 box's unfinished clause: the README must note the ~120 MB `playwright install chromium` download.** Also document `test:e2e` and that e2e builds before it runs.
+- Add a short "Deferred" section: hosted Supabase, Vercel, Resend live sending, dashboard data, blog. Present none of it as configured.
+
+Then Phase 11 (final verification).
 
 ## Open items for the user
 
@@ -110,4 +116,5 @@ Then Phase 10 (logging + README rewrite — README is still the unmodified shadc
 - Do not add an `owner_accounts` table, a rate-limit table with an atomic RPC, idempotency keys, a notification state machine, or `docs/*.md`. All explicitly cut as over-engineering for a one-user site; rationale is in the plan's cut list.
 - Do not write the Resend adapter. The `EmailAdapter` interface exists; the real implementation waits until deployment so it is written against the live API rather than a mock.
 - Do not add integration tests. Two tiers only — Vitest unit and Playwright e2e.
+- **Do not add Jotai, Zustand or Redux.** Asked on 2026-09-20 on the belief that no global state manager existed; one does — `@tanstack/react-store`, shipped and tested in Phase 5 (`portfolio-ui.store.ts`, `portfolio-store.provider.tsx`, `use-portfolio-ui.hook.ts`). Total global state is one boolean and one enum. The user chose to keep TanStack Store rather than migrate or run two libraries.
 - Do not run `/codex:review` unless asked; the user declined it once already.

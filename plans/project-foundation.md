@@ -233,8 +233,8 @@ Each phase lists hard prerequisites, its deliverable, and one gate that proves i
 
 **Prereqs:** 8
 
-- [ ] Add `@playwright/test` and run `pnpm exec playwright install chromium` (~120 MB — budget for it and note it in the README).
-- [ ] Two specs only: the contact happy path at `/#contact`, and `/dashboard` redirecting when logged out.
+- [x] Add `@playwright/test` and run `pnpm exec playwright install chromium` (~120 MB — budget for it and note it in the README). _README note carried into Phase 10, which rewrites the README._
+- [x] Two specs only: the contact happy path at `/#contact`, and `/dashboard` redirecting when logged out.
 - **Gate:** `pnpm exec playwright test` — both pass against local services with synthetic data.
 
 ### Phase 10 — Logging and documentation
