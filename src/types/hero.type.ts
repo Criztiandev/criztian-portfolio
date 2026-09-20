@@ -1,4 +1,34 @@
-export type DotFieldStatus = "idle" | "running" | "unsupported"
+export type DotFieldStatus = "idle" | "running" | "text" | "unsupported"
+
+export type HeroWordmarkMode = "pending" | "dots" | "text"
+
+export type HeroIntroTiming = {
+  smallScale: number
+  sweepDelaySeconds: number
+  sweepDurationSeconds: number
+  sweepSoftnessPx: number
+  dimAlpha: number
+  growDelaySeconds: number
+  growDurationSeconds: number
+  liftPixels: number
+  taglineDelayAfterSettleSeconds: number
+  taglineDurationSeconds: number
+  scrollCueDelayAfterSettleSeconds: number
+  scrollCueDurationSeconds: number
+}
+
+export type DotFieldBounds = {
+  left: number
+  right: number
+}
+
+export type DotFieldIntroFrame = {
+  scale: number
+  revealX: number
+  softness: number
+  dim: number
+  isSettled: boolean
+}
 
 export type SiteHeaderPlacement = "leading" | "trailing" | "action"
 
@@ -44,9 +74,16 @@ export type DotFieldViewport = {
   pixelRatio: number
 }
 
+export type DotFieldPointCloud = {
+  positions: Float32Array
+  count: number
+}
+
 export type DotFieldSample = {
   positions: Float32Array
   count: number
+  left: number
+  right: number
 }
 
 export type DotFieldSizeRequest = {
@@ -86,6 +123,10 @@ export type DotFieldUniforms = {
   color: WebGLUniformLocation | null
   edgePixels: WebGLUniformLocation | null
   dotRoundness: WebGLUniformLocation | null
+  introScale: WebGLUniformLocation | null
+  introReveal: WebGLUniformLocation | null
+  introSoftness: WebGLUniformLocation | null
+  introDim: WebGLUniformLocation | null
 }
 
 export type DotFieldRuntime = {
@@ -110,4 +151,7 @@ export type UseDotFieldRequest = {
   text: string
   fontFamily: string
   dotColor: string
+  mode: HeroWordmarkMode
+  onIntroSettled: () => void
+  onUnsupported: () => void
 }

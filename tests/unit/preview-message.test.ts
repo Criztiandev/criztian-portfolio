@@ -23,7 +23,7 @@ describe("readPreviewMessage", () => {
     }
 
     expect(message.payload.hero.name).toBe("Ada")
-    expect(message.payload.hero.worksLabel).toBeTruthy()
+    expect(message.payload.theme.heroDot).toBeTruthy()
   })
 
   it("fills defaults around a partial payload", () => {

@@ -10,12 +10,6 @@ import type {
 
 export const HERO_NAME_MAX_LENGTH = 40
 
-export const HERO_LABEL_MAX_LENGTH = 60
-
-export const HERO_DISCIPLINE_MAX_LENGTH = 60
-
-export const HERO_MAX_DISCIPLINES = 4
-
 export const RICH_TEXT_NODE_TYPES = [
   "doc",
   "paragraph",
@@ -32,12 +26,6 @@ export const RICH_TEXT_MAX_LENGTH = 2000
 export const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i
 
 export const DEFAULT_HERO_NAME = "Criztian"
-
-export const DEFAULT_HERO_SCROLL_LABEL = "Scroll"
-
-export const DEFAULT_HERO_WORKS_LABEL = "06 Selected Works"
-
-export const DEFAULT_HERO_DISCIPLINES = ["Creative Direction", "Digital Design"]
 
 export const DEFAULT_HERO_TAGLINE_TEXT =
   "Crafting timeless digital experiences through design, strategy, and code."
@@ -123,8 +111,6 @@ export const INITIAL_EDITOR_UI_STATE: EditorUiState = {
 
 export const HERO_TEXT_FIELDS: HeroTextField[] = [
   { key: "name", label: "Name" },
-  { key: "scrollLabel", label: "Scroll label" },
-  { key: "worksLabel", label: "Selected works label" },
 ]
 
 export const THEME_COLOR_FIELDS: ThemeColorField[] = [

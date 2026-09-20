@@ -49,14 +49,4 @@ describe("Hero", () => {
 
     requestFrame.mockRestore()
   })
-
-  it("renders the tagline and the bottom row copy", () => {
-    renderHero()
-
-    expect(
-      screen.getByText(/Crafting timeless digital experiences/)
-    ).toBeInTheDocument()
-    expect(screen.getByText("06 Selected Works")).toBeInTheDocument()
-    expect(screen.getByText("Creative Direction")).toBeInTheDocument()
-  })
 })

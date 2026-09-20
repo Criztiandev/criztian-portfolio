@@ -1,10 +1,13 @@
 import { POINT_STRIDE, REFERENCE_FRAME_RATE } from "@/data/hero.data"
 import type {
+  DotFieldBounds,
+  DotFieldIntroFrame,
+  DotFieldPointCloud,
   DotFieldPointerPosition,
-  DotFieldSample,
   DotFieldSizeRequest,
   DotFieldTuning,
   DotFieldViewport,
+  HeroIntroTiming,
 } from "@/types/hero.type"
 
 const MAX_PITCH_ATTEMPTS = 24
@@ -112,7 +115,7 @@ export function samplePixelGrid(
   heightPx: number,
   pitchPx: number,
   threshold: number
-): DotFieldSample {
+): DotFieldPointCloud {
   const pitch = Math.max(1, Math.round(pitchPx))
   const collected: number[] = []
 
@@ -202,4 +205,71 @@ export function hexToRgbTriplet(hex: string): [number, number, number] {
   }
 
   return [red / 255, green / 255, blue / 255]
+}
+
+export function clampProgress(value: number): number {
+  if (!Number.isFinite(value) || value < 0) {
+    return 0
+  }
+
+  if (value > 1) {
+    return 1
+  }
+
+  return value
+}
+
+export function easeInOutCubic(progress: number): number {
+  if (progress < 0.5) {
+    return 4 * progress * progress * progress
+  }
+
+  return 1 - Math.pow(-2 * progress + 2, 3) / 2
+}
+
+export function resolveStageProgress(
+  introSeconds: number,
+  delaySeconds: number,
+  durationSeconds: number
+): number {
+  if (durationSeconds <= 0) {
+    return 1
+  }
+
+  return clampProgress((introSeconds - delaySeconds) / durationSeconds)
+}
+
+export function resolveIntroFrame(
+  introSeconds: number,
+  timing: HeroIntroTiming,
+  bounds: DotFieldBounds,
+  pixelRatio: number
+): DotFieldIntroFrame {
+  const sweepProgress = easeInOutCubic(
+    resolveStageProgress(
+      introSeconds,
+      timing.sweepDelaySeconds,
+      timing.sweepDurationSeconds
+    )
+  )
+  const growProgress = easeInOutCubic(
+    resolveStageProgress(
+      introSeconds,
+      timing.growDelaySeconds,
+      timing.growDurationSeconds
+    )
+  )
+
+  const softness = Math.max(timing.sweepSoftnessPx * pixelRatio, 1)
+  const span = Math.max(bounds.right - bounds.left, 1)
+  const travel = span + softness * 2
+
+  return {
+    scale: timing.smallScale + (1 - timing.smallScale) * growProgress,
+    revealX: bounds.left - softness + sweepProgress * travel,
+    softness,
+    dim: timing.dimAlpha,
+    isSettled:
+      introSeconds >= timing.growDelaySeconds + timing.growDurationSeconds,
+  }
 }

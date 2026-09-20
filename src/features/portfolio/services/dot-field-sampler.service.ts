@@ -167,7 +167,7 @@ export function sampleWordToPoints(
     tuning.maxPointCount
   )
 
-  const sample = samplePixelGrid(
+  const pointCloud = samplePixelGrid(
     imageData.data,
     canvasWidth,
     canvasHeight,
@@ -178,10 +178,15 @@ export function sampleWordToPoints(
   const offsetX = (viewport.width - canvasWidth) / 2
   const offsetY = (viewport.height - canvasHeight) / 2
 
-  for (let index = 0; index < sample.count; index += 1) {
-    sample.positions[index * 3] += offsetX
-    sample.positions[index * 3 + 1] += offsetY
+  for (let index = 0; index < pointCloud.count; index += 1) {
+    pointCloud.positions[index * 3] += offsetX
+    pointCloud.positions[index * 3 + 1] += offsetY
   }
 
-  return sample
+  return {
+    positions: pointCloud.positions,
+    count: pointCloud.count,
+    left: offsetX + TEXT_PADDING_PX,
+    right: offsetX + canvasWidth - TEXT_PADDING_PX,
+  }
 }

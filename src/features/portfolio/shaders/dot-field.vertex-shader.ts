@@ -17,13 +17,26 @@ uniform float uVortexFade;
 uniform float uVortexShrink;
 uniform vec4 uWave;
 uniform vec2 uWaveSpeed;
+uniform float uIntroScale;
+uniform float uIntroReveal;
+uniform float uIntroSoftness;
+uniform float uIntroDim;
 
 out float vAlpha;
 out float vPointSize;
 
 void main() {
-  vec2 basePosition = aPoint.xy;
+  vec2 center = uResolution * 0.5;
+  vec2 basePosition = center + (aPoint.xy - center) * uIntroScale;
   float coverage = aPoint.z;
+
+  float softness = max(uIntroSoftness, 1.0);
+  float unrevealed = smoothstep(
+    uIntroReveal - softness,
+    uIntroReveal + softness,
+    aPoint.x
+  );
+  float introAlpha = mix(1.0, uIntroDim, unrevealed);
 
   float amplitude = uWave.x * uPixelRatio;
   float secondaryAmplitude = uWave.y * uPixelRatio;
@@ -63,11 +76,12 @@ void main() {
     uPointer + swirled + outward * (uVortexPush * uPixelRatio * falloff);
 
   float sizeScale = mix(0.94, 1.0, coverage);
-  float pointSize = uDotSize * uPixelRatio * sizeScale;
+  float pointSize = uDotSize * uPixelRatio * sizeScale * uIntroScale;
   pointSize *= 1.0 - uVortexShrink * falloff;
 
   float alpha = mix(0.9, 1.0, coverage);
   alpha *= 1.0 - uVortexFade * falloff;
+  alpha *= introAlpha;
 
   vPointSize = max(pointSize, 1.0);
   vAlpha = alpha;

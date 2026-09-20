@@ -107,7 +107,7 @@ export type EditorUiActions = {
 
 export type EditorUiStore = Store<EditorUiState, EditorUiActions>
 
-export type HeroTextFieldKey = "name" | "scrollLabel" | "worksLabel"
+export type HeroTextFieldKey = "name"
 
 export type HeroTextField = {
   key: HeroTextFieldKey

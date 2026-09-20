@@ -1,4 +1,4 @@
-import type { DotFieldTuning } from "@/types/hero.type"
+import type { DotFieldTuning, HeroIntroTiming } from "@/types/hero.type"
 
 export const RESIZE_DEBOUNCE_MS = 150
 
@@ -55,7 +55,26 @@ export const DOT_FIELD_TUNING: DotFieldTuning = {
   autoPointerYFrequency: 0.41,
   autoPointerXAmplitude: 0.3,
   autoPointerYAmplitude: 0.18,
-  autoPointerInfluence: 0.7,
+  autoPointerInfluence: 0,
+}
+
+export const HERO_SCROLL_LABEL = "Scroll to explore"
+
+export const SETTLED_INTRO_SECONDS = 1000
+
+export const HERO_INTRO_TIMING: HeroIntroTiming = {
+  smallScale: 0.75,
+  sweepDelaySeconds: 0.25,
+  sweepDurationSeconds: 0.9,
+  sweepSoftnessPx: 26,
+  dimAlpha: 0.14,
+  growDelaySeconds: 1.05,
+  growDurationSeconds: 1.25,
+  liftPixels: 16,
+  taglineDelayAfterSettleSeconds: 0.05,
+  taglineDurationSeconds: 0.7,
+  scrollCueDelayAfterSettleSeconds: 0.3,
+  scrollCueDurationSeconds: 0.6,
 }
 
 export const TEXT_PADDING_PX = 8

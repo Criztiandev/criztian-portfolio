@@ -1,6 +1,5 @@
 import {
   FULL_PREVIEW_WIDTH,
-  HERO_MAX_DISCIPLINES,
   PREVIEW_CONTENT_MESSAGE,
   PREVIEW_READY_MESSAGE,
   PREVIEW_SCROLL_MESSAGE,
@@ -133,33 +132,6 @@ export function readPreviewWidthValue(
   }
 
   return FULL_PREVIEW_WIDTH
-}
-
-export function padDisciplineSlots(disciplines: string[]): string[] {
-  const slots: string[] = []
-
-  for (let index = 0; index < HERO_MAX_DISCIPLINES; index += 1) {
-    const discipline = disciplines[index]
-
-    if (discipline === undefined) {
-      slots.push("")
-      continue
-    }
-
-    slots.push(discipline)
-  }
-
-  return slots
-}
-
-export function buildEditorFormValues(content: SiteContent): SiteContent {
-  return {
-    ...content,
-    hero: {
-      ...content.hero,
-      disciplines: padDisciplineSlots(content.hero.disciplines),
-    },
-  }
 }
 
 export function isPreviewReadyMessage(

@@ -6,9 +6,11 @@ import {
   CONTEXT_OPTIONS,
   DOT_FIELD_TUNING,
   HEIGHT_CHANGE_IGNORE_PX,
+  HERO_INTRO_TIMING,
   MAX_FRAME_DELTA_SECONDS,
   MAX_PIXEL_RATIO,
   RESIZE_DEBOUNCE_MS,
+  SETTLED_INTRO_SECONDS,
   VISIBILITY_ROOT_MARGIN,
 } from "@/data/hero.data"
 import {
@@ -24,6 +26,7 @@ import {
   buildFontShorthand,
   parsePrimaryFontFamily,
   resolveAutoPointer,
+  resolveIntroFrame,
   resolvePixelRatio,
   shouldRebuildPoints,
 } from "@/features/portfolio/dot-field.rules"
@@ -40,11 +43,18 @@ import {
   waitForDisplayFont,
 } from "@/features/portfolio/services/dot-field-sampler.service"
 import type {
+  DotFieldBounds,
+  DotFieldIntroFrame,
   DotFieldPointer,
   DotFieldRuntime,
   DotFieldViewport,
   UseDotFieldRequest,
 } from "@/types/hero.type"
+
+const PLACEHOLDER_BOUNDS: DotFieldBounds = {
+  left: 0,
+  right: 1,
+}
 
 function createPointer(): DotFieldPointer {
   return {
@@ -68,12 +78,35 @@ function readViewport(container: HTMLElement): DotFieldViewport {
 }
 
 export function useDotField(request: UseDotFieldRequest): void {
-  const { containerRef, canvasRef, text, fontFamily, dotColor } = request
+  const {
+    containerRef,
+    canvasRef,
+    text,
+    fontFamily,
+    dotColor,
+    mode,
+    onIntroSettled,
+    onUnsupported,
+  } = request
 
   const runtimeRef = useRef<DotFieldRuntime | null>(null)
   const pointerRef = useRef<DotFieldPointer>(createPointer())
   const viewportRef = useRef<DotFieldViewport | null>(null)
   const rebuildRef = useRef<(() => void) | null>(null)
+  const redrawRef = useRef<(() => void) | null>(null)
+  const boundsRef = useRef<DotFieldBounds | null>(null)
+  const introStartRef = useRef<number | null>(null)
+  const hasSettledRef = useRef(false)
+  const settleCallbackRef = useRef(onIntroSettled)
+  const unsupportedCallbackRef = useRef(onUnsupported)
+
+  useEffect(
+    function keepCallbacksFresh() {
+      settleCallbackRef.current = onIntroSettled
+      unsupportedCallbackRef.current = onUnsupported
+    },
+    [onIntroSettled, onUnsupported]
+  )
 
   useEffect(
     function initialiseDotField() {
@@ -87,10 +120,29 @@ export function useDotField(request: UseDotFieldRequest): void {
       const container: HTMLElement = containerElement
       const canvas: HTMLCanvasElement = canvasElement
 
+      if (mode === "pending") {
+        return
+      }
+
+      if (mode === "text") {
+        container.dataset.status = "text"
+        return
+      }
+
+      function notifySettled(): void {
+        if (hasSettledRef.current) {
+          return
+        }
+
+        hasSettledRef.current = true
+        settleCallbackRef.current()
+      }
+
       const context = canvas.getContext("webgl2", CONTEXT_OPTIONS)
 
       if (context === null) {
         container.dataset.status = "unsupported"
+        unsupportedCallbackRef.current()
         return
       }
 
@@ -100,6 +152,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         runtime = createDotFieldRuntime(context)
       } catch {
         container.dataset.status = "unsupported"
+        unsupportedCallbackRef.current()
         return
       }
 
@@ -138,13 +191,57 @@ export function useDotField(request: UseDotFieldRequest): void {
         resizeDotField(runtime, deviceWidth, deviceHeight)
       }
 
+      function resolveIntro(): DotFieldIntroFrame {
+        const viewport = viewportRef.current
+        const pixelRatio = viewport === null ? 1 : viewport.pixelRatio
+        const bounds = boundsRef.current
+
+        if (bounds === null) {
+          return resolveIntroFrame(
+            SETTLED_INTRO_SECONDS,
+            HERO_INTRO_TIMING,
+            PLACEHOLDER_BOUNDS,
+            pixelRatio
+          )
+        }
+
+        if (hasSettledRef.current || prefersReducedMotion()) {
+          notifySettled()
+
+          return resolveIntroFrame(
+            SETTLED_INTRO_SECONDS,
+            HERO_INTRO_TIMING,
+            bounds,
+            pixelRatio
+          )
+        }
+
+        if (introStartRef.current === null) {
+          introStartRef.current = elapsedSeconds
+        }
+
+        const frame = resolveIntroFrame(
+          elapsedSeconds - introStartRef.current,
+          HERO_INTRO_TIMING,
+          bounds,
+          pixelRatio
+        )
+
+        if (frame.isSettled) {
+          notifySettled()
+        }
+
+        return frame
+      }
+
       function drawSingleFrame(): void {
         drawDotField(
           runtime,
           elapsedSeconds,
           pointer.currentX,
           pointer.currentY,
-          pointer.influence
+          pointer.influence,
+          resolveIntro()
         )
       }
 
@@ -262,6 +359,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         event.preventDefault()
         stopLoop()
         container.dataset.status = "unsupported"
+        unsupportedCallbackRef.current()
       }
 
       function applyResize(): void {
@@ -352,10 +450,13 @@ export function useDotField(request: UseDotFieldRequest): void {
       canvas.addEventListener("webglcontextlost", onContextLost)
       reducedMotionQuery?.addEventListener("change", onMotionPreferenceChanged)
 
+      redrawRef.current = drawSingleFrame
+
       startLoop()
 
       return function cleanupDotField() {
         stopLoop()
+        redrawRef.current = null
         window.clearTimeout(resizeHandle)
 
         resizeObserver?.disconnect()
@@ -381,11 +482,15 @@ export function useDotField(request: UseDotFieldRequest): void {
         runtimeRef.current = null
       }
     },
-    [containerRef, canvasRef, dotColor]
+    [containerRef, canvasRef, dotColor, mode]
   )
 
   useEffect(
     function buildDotFieldGeometry() {
+      if (mode !== "dots") {
+        return
+      }
+
       const containerElement = containerRef.current
       const canvasElement = canvasRef.current
 
@@ -430,8 +535,15 @@ export function useDotField(request: UseDotFieldRequest): void {
         }
 
         uploadPoints(runtime, sample)
+        boundsRef.current = { left: sample.left, right: sample.right }
         canvas.dataset.pointCount = String(sample.count)
         container.dataset.status = "running"
+
+        const redraw = redrawRef.current
+
+        if (redraw !== null) {
+          redraw()
+        }
       }
 
       function onFontsLoadingDone(): void {
@@ -475,6 +587,6 @@ export function useDotField(request: UseDotFieldRequest): void {
         }
       }
     },
-    [containerRef, canvasRef, text, fontFamily]
+    [containerRef, canvasRef, text, fontFamily, mode]
   )
 }

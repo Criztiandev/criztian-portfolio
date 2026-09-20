@@ -1,21 +1,15 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  DEFAULT_HERO_DISCIPLINES,
   DEFAULT_HERO_NAME,
-  DEFAULT_HERO_SCROLL_LABEL,
   DEFAULT_HERO_TAGLINE_TEXT,
-  DEFAULT_HERO_WORKS_LABEL,
   DEFAULT_THEME_HERO_DOT,
   DEFAULT_THEME_PAGE_BACKGROUND,
-  HERO_MAX_DISCIPLINES,
 } from "@/data/site-content.data"
 import {
-  buildEditorFormValues,
   createDefaultSiteContent,
   hasUnpublishedChanges,
   isPreviewReadyMessage,
-  padDisciplineSlots,
   parseSiteContent,
   readPreviewWidthValue,
 } from "@/features/site-content/site-content.rules"
@@ -25,9 +19,6 @@ describe("createDefaultSiteContent", () => {
     const content = createDefaultSiteContent()
 
     expect(content.hero.name).toBe(DEFAULT_HERO_NAME)
-    expect(content.hero.scrollLabel).toBe(DEFAULT_HERO_SCROLL_LABEL)
-    expect(content.hero.worksLabel).toBe(DEFAULT_HERO_WORKS_LABEL)
-    expect(content.hero.disciplines).toEqual(DEFAULT_HERO_DISCIPLINES)
   })
 
   it("fills the tagline as a rich text document", () => {
@@ -54,7 +45,6 @@ describe("parseSiteContent", () => {
 
     expect(result.usedDefaults).toBe(false)
     expect(result.content.hero.name).toBe("Ada")
-    expect(result.content.hero.worksLabel).toBe(DEFAULT_HERO_WORKS_LABEL)
     expect(result.content.theme.heroDot).toBe(DEFAULT_THEME_HERO_DOT)
   })
 
@@ -114,35 +104,6 @@ describe("readPreviewWidthValue", () => {
     expect(readPreviewWidthValue("desktop")).toBe("100%")
     expect(readPreviewWidthValue("tablet")).toBe("768px")
     expect(readPreviewWidthValue("mobile")).toBe("390px")
-  })
-})
-
-describe("padDisciplineSlots", () => {
-  it("pads short lists to the maximum with empty strings", () => {
-    const slots = padDisciplineSlots(["One"])
-
-    expect(slots).toHaveLength(HERO_MAX_DISCIPLINES)
-    expect(slots[0]).toBe("One")
-    expect(slots[1]).toBe("")
-  })
-
-  it("truncates lists longer than the maximum", () => {
-    const slots = padDisciplineSlots(["a", "b", "c", "d", "e", "f"])
-
-    expect(slots).toHaveLength(HERO_MAX_DISCIPLINES)
-  })
-})
-
-describe("buildEditorFormValues", () => {
-  it("produces discipline slots the schema accepts", () => {
-    const values = buildEditorFormValues(createDefaultSiteContent())
-
-    expect(values.hero.disciplines).toHaveLength(HERO_MAX_DISCIPLINES)
-
-    const parsed = parseSiteContent(values)
-
-    expect(parsed.usedDefaults).toBe(false)
-    expect(parsed.content.hero.disciplines).toEqual(DEFAULT_HERO_DISCIPLINES)
   })
 })
 

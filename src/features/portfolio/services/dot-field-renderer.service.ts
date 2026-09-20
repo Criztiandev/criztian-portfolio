@@ -3,6 +3,7 @@ import { hexToRgbTriplet } from "@/features/portfolio/dot-field.rules"
 import { DOT_FIELD_FRAGMENT_SHADER } from "@/features/portfolio/shaders/dot-field.fragment-shader"
 import { DOT_FIELD_VERTEX_SHADER } from "@/features/portfolio/shaders/dot-field.vertex-shader"
 import type {
+  DotFieldIntroFrame,
   DotFieldRuntime,
   DotFieldSample,
   DotFieldTuning,
@@ -99,6 +100,10 @@ function resolveUniformLocations(
     color: context.getUniformLocation(program, "uColor"),
     edgePixels: context.getUniformLocation(program, "uEdgePixels"),
     dotRoundness: context.getUniformLocation(program, "uDotRoundness"),
+    introScale: context.getUniformLocation(program, "uIntroScale"),
+    introReveal: context.getUniformLocation(program, "uIntroReveal"),
+    introSoftness: context.getUniformLocation(program, "uIntroSoftness"),
+    introDim: context.getUniformLocation(program, "uIntroDim"),
   }
 }
 
@@ -210,7 +215,8 @@ export function drawDotField(
   elapsedSeconds: number,
   pointerX: number,
   pointerY: number,
-  influence: number
+  influence: number,
+  intro: DotFieldIntroFrame
 ): void {
   const { context, uniforms } = runtime
 
@@ -226,6 +232,10 @@ export function drawDotField(
   context.uniform1f(uniforms.time, elapsedSeconds)
   context.uniform2f(uniforms.pointer, pointerX, pointerY)
   context.uniform1f(uniforms.influence, influence)
+  context.uniform1f(uniforms.introScale, intro.scale)
+  context.uniform1f(uniforms.introReveal, intro.revealX)
+  context.uniform1f(uniforms.introSoftness, intro.softness)
+  context.uniform1f(uniforms.introDim, intro.dim)
 
   context.drawArrays(context.POINTS, 0, runtime.pointCount)
   context.bindVertexArray(null)

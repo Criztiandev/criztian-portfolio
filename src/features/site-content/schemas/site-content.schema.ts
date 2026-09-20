@@ -1,20 +1,14 @@
 import { z } from "zod"
 
 import {
-  DEFAULT_HERO_DISCIPLINES,
   DEFAULT_HERO_NAME,
-  DEFAULT_HERO_SCROLL_LABEL,
   DEFAULT_HERO_TAGLINE,
-  DEFAULT_HERO_WORKS_LABEL,
   DEFAULT_THEME_ACCENT,
   DEFAULT_THEME_BODY_TEXT,
   DEFAULT_THEME_BORDER,
   DEFAULT_THEME_HERO_DOT,
   DEFAULT_THEME_MUTED_TEXT,
   DEFAULT_THEME_PAGE_BACKGROUND,
-  HERO_DISCIPLINE_MAX_LENGTH,
-  HERO_LABEL_MAX_LENGTH,
-  HERO_MAX_DISCIPLINES,
   HERO_NAME_MAX_LENGTH,
   HEX_COLOR_PATTERN,
   RICH_TEXT_MARK_TYPES,
@@ -52,19 +46,6 @@ const hexColorSchema = z
   .transform(normalizeHexColor)
   .pipe(z.string().regex(HEX_COLOR_PATTERN, "Enter a colour like #1a1a1a"))
 
-const heroLabelSchema = z
-  .string()
-  .transform(collapseWhitespace)
-  .pipe(
-    z
-      .string()
-      .min(1, "This cannot be empty")
-      .max(
-        HERO_LABEL_MAX_LENGTH,
-        `Must be ${HERO_LABEL_MAX_LENGTH} characters or fewer`
-      )
-  )
-
 export const heroContentSchema = z.object({
   name: z
     .string()
@@ -80,31 +61,6 @@ export const heroContentSchema = z.object({
     )
     .default(DEFAULT_HERO_NAME),
   tagline: richTextDocumentSchema.default(DEFAULT_HERO_TAGLINE),
-  scrollLabel: heroLabelSchema.default(DEFAULT_HERO_SCROLL_LABEL),
-  worksLabel: heroLabelSchema.default(DEFAULT_HERO_WORKS_LABEL),
-  disciplines: z
-    .array(z.string())
-    .transform(function dropBlankDisciplines(values) {
-      const disciplines: string[] = []
-
-      for (const value of values) {
-        const collapsed = collapseWhitespace(value)
-
-        if (collapsed.length === 0) {
-          continue
-        }
-
-        disciplines.push(collapsed)
-      }
-
-      return disciplines
-    })
-    .pipe(
-      z
-        .array(z.string().max(HERO_DISCIPLINE_MAX_LENGTH))
-        .max(HERO_MAX_DISCIPLINES)
-    )
-    .default(DEFAULT_HERO_DISCIPLINES),
 })
 
 export const themeContentSchema = z.object({

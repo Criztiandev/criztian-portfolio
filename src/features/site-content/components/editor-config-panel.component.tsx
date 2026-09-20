@@ -15,7 +15,6 @@ import {
 import { Input } from "@/components/ui/input"
 import {
   DRAFT_SAVE_DEBOUNCE_MS,
-  HERO_MAX_DISCIPLINES,
   HERO_TEXT_FIELDS,
   PREVIEW_CONTENT_DEBOUNCE_MS,
   PREVIEW_CONTENT_MESSAGE,
@@ -34,20 +33,12 @@ import {
 } from "@/features/site-content/hooks/use-editor-ui.hook"
 import { siteContentSchema } from "@/features/site-content/schemas/site-content.schema"
 import { postPreviewMessage } from "@/features/site-content/services/preview-messenger.service"
-import { buildEditorFormValues } from "@/features/site-content/site-content.rules"
 import { useTRPC } from "@/lib/trpc/trpc.client"
 import type {
   RichTextDocument,
   SiteContent,
   SiteContentInput,
 } from "@/types/site-content.type"
-
-const DISCIPLINE_SLOTS = Array.from(
-  { length: HERO_MAX_DISCIPLINES },
-  function createSlot(_unused, index) {
-    return index
-  }
-)
 
 export function EditorConfigPanel({
   initialContent,
@@ -74,7 +65,7 @@ export function EditorConfigPanel({
 
   const form = useForm<SiteContentInput, unknown, SiteContent>({
     resolver: zodResolver(siteContentSchema),
-    defaultValues: buildEditorFormValues(initialContent),
+    defaultValues: initialContent,
     mode: "onBlur",
   })
 
@@ -232,25 +223,6 @@ export function EditorConfigPanel({
               />
               <FieldError errors={[errors.hero?.tagline]} />
             </Field>
-
-            {DISCIPLINE_SLOTS.map(function renderDiscipline(index) {
-              return (
-                <Field key={index}>
-                  <FieldLabel htmlFor={`hero-discipline-${index}`}>
-                    Discipline {index + 1}
-                  </FieldLabel>
-                  <Input
-                    id={`hero-discipline-${index}`}
-                    autoComplete="off"
-                    aria-invalid={
-                      errors.hero?.disciplines?.[index] ? true : undefined
-                    }
-                    {...form.register(`hero.disciplines.${index}`)}
-                  />
-                  <FieldError errors={[errors.hero?.disciplines?.[index]]} />
-                </Field>
-              )
-            })}
           </FieldGroup>
         </div>
 
