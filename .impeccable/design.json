@@ -1,0 +1,291 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-26T00:00:00Z",
+  "title": "Design System: Criztian",
+  "extensions": {
+    "colorMeta": {
+      "unlit-black": {
+        "role": "neutral",
+        "displayName": "Unlit Black",
+        "canonical": "#000000",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#333333",
+          "#4d4d4d",
+          "#666666",
+          "#808080",
+          "#999999",
+          "#c2c2c2",
+          "#f0f0f0"
+        ]
+      },
+      "lamp-white": {
+        "role": "primary",
+        "displayName": "Lamp White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#333333",
+          "#4d4d4d",
+          "#666666",
+          "#808080",
+          "#999999",
+          "#c2c2c2",
+          "#f0f0f0"
+        ]
+      },
+      "lit-grey": {
+        "role": "neutral",
+        "displayName": "Lit Grey (white ~75%)",
+        "canonical": "#bfbfbf",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#333333",
+          "#4d4d4d",
+          "#666666",
+          "#808080",
+          "#999999",
+          "#c2c2c2",
+          "#f0f0f0"
+        ]
+      },
+      "dim-grey": {
+        "role": "neutral",
+        "displayName": "Dim Grey (white 60%)",
+        "canonical": "#999999",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#333333",
+          "#4d4d4d",
+          "#666666",
+          "#808080",
+          "#999999",
+          "#c2c2c2",
+          "#f0f0f0"
+        ]
+      },
+      "ghost-grey": {
+        "role": "neutral",
+        "displayName": "Ghost Grey (white 45%, decorative only)",
+        "canonical": "#737373",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#333333",
+          "#4d4d4d",
+          "#666666",
+          "#808080",
+          "#999999",
+          "#c2c2c2",
+          "#f0f0f0"
+        ]
+      },
+      "wire-grey": {
+        "role": "neutral",
+        "displayName": "Wire Grey (white 40%)",
+        "canonical": "#666666",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#333333",
+          "#4d4d4d",
+          "#666666",
+          "#808080",
+          "#999999",
+          "#c2c2c2",
+          "#f0f0f0"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The name only; the source shape the dot field samples."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section titles, uppercase. Size to be set with the first real section."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Paragraphs and form text, 65–75ch."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "Hero tagline and one-line statements, uppercase and tracked."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Nav links and the Contact action."
+      },
+      "cue": {
+        "displayName": "Cue",
+        "purpose": "Scroll cue and quiet wayfinding."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-intro",
+        "value": "cubic-bezier(0.65, 0, 0.35, 1)",
+        "purpose": "Wordmark sweep and grow."
+      },
+      {
+        "name": "intro-sweep",
+        "value": "900ms after 250ms",
+        "purpose": "Left-to-right reveal of the dim wordmark, 26px feather."
+      },
+      {
+        "name": "intro-grow",
+        "value": "1250ms after 1050ms",
+        "purpose": "Wordmark scales 0.75 to 1."
+      },
+      {
+        "name": "lift",
+        "value": "16px, 600–700ms ease-out",
+        "purpose": "Tagline and scroll cue rise in after the intro settles."
+      },
+      {
+        "name": "header-drop",
+        "value": "24px, 600ms, 60ms stagger",
+        "purpose": "Header entrance on load."
+      },
+      {
+        "name": "header-solid",
+        "value": "300ms colors",
+        "purpose": "Header turns translucent black past 120px of scroll."
+      },
+      {
+        "name": "canvas-fade",
+        "value": "500ms opacity",
+        "purpose": "Dot field fades in once running."
+      }
+    ],
+    "breakpoints": [{ "name": "md", "value": "768px" }]
+  },
+  "components": [
+    {
+      "name": "Dot-Field Wordmark",
+      "kind": "custom",
+      "refersTo": "display",
+      "description": "The name as a matrix of lit points on black; static approximation of the WebGL field.",
+      "html": "<div class=\"ds-wordmark-stage\"><h1 class=\"ds-wordmark\">Criztian</h1></div>",
+      "css": ".ds-wordmark-stage { background: #000000; padding: 32px 24px; display: flex; justify-content: center; } .ds-wordmark { margin: 0; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1; font-size: 96px; color: transparent; background: radial-gradient(circle, #ffffff 48%, transparent 53%) 0 0 / 6px 6px; -webkit-background-clip: text; background-clip: text; transition: filter 0.3s; } .ds-wordmark:hover { filter: brightness(1.15); }"
+    },
+    {
+      "name": "Navigation Link",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Uppercase tracked label at Lit Grey over black; Lamp White when hovered or current.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Primary\"><a class=\"ds-nav-link\" href=\"#home\" aria-current=\"true\">Home</a><a class=\"ds-nav-link\" href=\"#project\">Project</a><a class=\"ds-nav-link\" href=\"#about\">About</a></nav>",
+      "css": ".ds-nav { background: #000000; padding: 16px 24px; display: flex; gap: 4px; justify-content: center; } .ds-nav-link { font-family: Geist, system-ui, sans-serif; font-size: 12px; line-height: 16px; letter-spacing: 0.025em; text-transform: uppercase; color: #bfbfbf; text-decoration: none; padding: 8px 12px; border-radius: 0; transition: color 0.15s; } .ds-nav-link:hover, .ds-nav-link[aria-current] { color: #ffffff; } .ds-nav-link:focus-visible { outline: 2px solid #ffffff; outline-offset: 0; }"
+    },
+    {
+      "name": "Contact Action",
+      "kind": "button",
+      "refersTo": "button-contact",
+      "description": "The header's one call to action: square hairline outline that inverts on hover.",
+      "html": "<div class=\"ds-contact-stage\"><a class=\"ds-contact\" href=\"#contact\">Contact</a></div>",
+      "css": ".ds-contact-stage { background: #000000; padding: 24px; } .ds-contact { display: inline-block; font-family: Geist, system-ui, sans-serif; font-size: 12px; line-height: 16px; letter-spacing: 0.025em; text-transform: uppercase; color: #ffffff; text-decoration: none; padding: 8px 20px; border: 1px solid #666666; border-radius: 0; transition: background-color 0.15s, color 0.15s; } .ds-contact:hover { background: #ffffff; color: #000000; } .ds-contact:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Form submit: square Lamp White fill with black text.",
+      "html": "<div class=\"ds-btn-stage\"><button class=\"ds-btn-primary\" type=\"button\">Send message</button></div>",
+      "css": ".ds-btn-stage { background: #000000; padding: 24px; } .ds-btn-primary { font-family: Geist, system-ui, sans-serif; font-size: 14px; font-weight: 500; height: 32px; padding: 0 10px; background: #ffffff; color: #000000; border: 1px solid transparent; border-radius: 0; cursor: pointer; transition: background-color 0.15s, transform 0.1s; } .ds-btn-primary:hover { background: rgba(255, 255, 255, 0.8); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Square hairline field on black with a label above.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-name\">Name</label><input class=\"ds-input\" id=\"ds-name\" placeholder=\"Your name\" /></div>",
+      "css": ".ds-field { background: #000000; padding: 24px; display: flex; flex-direction: column; gap: 8px; max-width: 360px; } .ds-field-label { font-family: Geist, system-ui, sans-serif; font-size: 14px; font-weight: 500; color: #ffffff; } .ds-input { font-family: Geist, system-ui, sans-serif; font-size: 14px; height: 32px; padding: 4px 10px; background: transparent; color: #ffffff; border: 1px solid #666666; border-radius: 0; outline: none; transition: border-color 0.15s, box-shadow 0.15s; } .ds-input::placeholder { color: #999999; } .ds-input:hover { border-color: #999999; } .ds-input:focus-visible { border-color: #ffffff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
+    },
+    {
+      "name": "Section Headline",
+      "kind": "custom",
+      "refersTo": "headline",
+      "description": "Antonio uppercase section title over a Geist body line.",
+      "html": "<section class=\"ds-section\"><h2 class=\"ds-headline\">Services</h2><p class=\"ds-section-body\">What I can help with will go here.</p></section>",
+      "css": ".ds-section { background: #000000; padding: 32px 24px; } .ds-headline { margin: 0; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; text-transform: uppercase; line-height: 1; font-size: 56px; color: #ffffff; } .ds-section-body { margin: 12px 0 0; font-family: Geist, system-ui, sans-serif; font-size: 16px; line-height: 1.5; color: #bfbfbf; max-width: 65ch; }"
+    },
+    {
+      "name": "Scroll Cue",
+      "kind": "custom",
+      "refersTo": "cue",
+      "description": "Quiet tracked wayfinding label with a down-right arrow.",
+      "html": "<div class=\"ds-cue-stage\"><a class=\"ds-cue\" href=\"#project\"><span>Scroll to explore</span><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m7 7 10 10\"/><path d=\"M17 7v10H7\"/></svg></a></div>",
+      "css": ".ds-cue-stage { background: #000000; padding: 24px; display: flex; justify-content: center; } .ds-cue { display: inline-flex; align-items: center; gap: 8px; font-family: Geist, system-ui, sans-serif; font-size: 11px; line-height: 1.5; letter-spacing: 0.22em; text-transform: uppercase; color: #999999; text-decoration: none; transition: color 0.15s; } .ds-cue:hover { color: #ffffff; } .ds-cue:focus-visible { outline: 2px solid #ffffff; outline-offset: 4px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Lit Signal Board",
+    "overview": "The site is a dark room with a display board. The name Criztian is not typeset. It is built from thousands of points of light that sit on black and ripple away from the cursor like a vortex in a field of bulbs. Everything around the board is quiet signage: small, tracked-out, uppercase labels at partial brightness that never compete with it. The board is what you remember, and the rest of the page exists so you can read it.\n\nThe world is black throughout and strictly monochrome. Hierarchy is set by how brightly something is lit (full white, three-quarter, dimmed, ghost), never by hue. Every corner is square, because signage and hardware are square. The only round thing on the site is a dot. Motion is deliberate and cinematic. The name sweeps on dim, grows into place, and only then does the supporting copy lift in. The planned signature goes further: the dots leave the wordmark as you scroll and re-form into other shapes between sections.\n\nThis file describes the public site. The owner surfaces (/login, /dashboard, the editor) are tools that use the stock shadcn neutral system with light and dark modes. Only the Square Signal Rule reaches them, because it is set at the token level.",
+    "keyCharacteristics": [
+      "Black ground from hero to footer. The public page ignores the OS colour scheme.",
+      "One display voice (Antonio, uppercase) and one working voice (Geist).",
+      "Brightness is the only emphasis tool. No accent hue.",
+      "Zero radius. Dots are the only curves.",
+      "The dot field is decorative. A real <h1> always carries the name."
+    ],
+    "rules": [
+      {
+        "name": "The Light-Is-Emphasis Rule",
+        "body": "Hierarchy comes from brightness alone: lamp white, then lit, dim and ghost. If something needs more attention, light it brighter. Never give it a colour.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ghost Rule",
+        "body": "Ghost Grey never carries text a visitor has to read. If it must be read, it is Dim Grey or brighter.",
+        "section": "colors"
+      },
+      {
+        "name": "The Always-Night Rule",
+        "body": "The public page is black from top to bottom in every OS colour scheme. The owner can retune the six theme colours in the editor, but the seeded defaults stay dark.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Voice Rule",
+        "body": "Antonio is for uppercase headlines and the name. Geist handles everything else. There is no third voice, and there is no mixed-case Antonio.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tracked Signage Rule",
+        "body": "Uppercase Geist is always tracked out. Uppercase text at default tracking reads as shouting, not signage.",
+        "section": "typography"
+      },
+      {
+        "name": "The Stage Rule",
+        "body": "The hero owns the first viewport. Nothing else competes above the fold, not even a secondary call to action.",
+        "section": "layout"
+      },
+      {
+        "name": "The Lit-Not-Lifted Rule",
+        "body": "Nothing on the public site gets a box-shadow or a raised surface. When something needs to come forward, it gets brighter.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Square Signal Rule",
+        "body": "Zero radius everywhere. The only round thing on the site is a dot.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do keep every public section on Unlit Black (#000000) and express hierarchy through brightness steps: Lamp White, Lit Grey, Dim Grey.",
+      "Do set section titles in Antonio 700 uppercase and everything else in Geist.",
+      "Do track out uppercase Geist (0.025em for labels, 0.14em for ledes, 0.22em for cues).",
+      "Do keep a real, readable <h1> behind the dot field, and mark only the canvas aria-hidden.",
+      "Do route every motion through the reduced-motion preference. The dot field checks it separately, because it is not a motion component.",
+      "Do square corners through the --radius token rather than by editing vendored components."
+    ],
+    "donts": [
+      "Don't introduce an accent hue, gradient or tinted surface. The palette is white at different intensities on black.",
+      "Don't use a border radius anywhere. The only round thing is a dot.",
+      "Don't use shadows or raised cards. Brightness, not elevation, brings things forward.",
+      "Don't put readable text in Ghost Grey (#737373). It fails AA at body sizes.",
+      "Don't let the public page follow the OS light or dark scheme.",
+      "Don't lift copy, layouts or components verbatim from the reference sites. The seeded tagline and nav labels that match adriavale.framer.website are placeholders to replace with the owner's own words."
+    ]
+  }
+}
