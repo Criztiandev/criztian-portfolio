@@ -14,6 +14,12 @@ export const REFERENCE_FRAME_RATE = 60
 
 export const POINT_STRIDE = 3
 
+export const OFFSET_STRIDE = 2
+
+export const POINT_ATTRIBUTE_LOCATION = 0
+
+export const OFFSET_ATTRIBUTE_LOCATION = 1
+
 export const CONTEXT_OPTIONS: WebGLContextAttributes = {
   alpha: false,
   antialias: false,
@@ -25,37 +31,26 @@ export const CONTEXT_OPTIONS: WebGLContextAttributes = {
 }
 
 export const DOT_FIELD_TUNING: DotFieldTuning = {
-  dotPitch: 6,
-  dotSize: 6.3,
+  dotPitch: 3,
+  dotSize: 4,
   dotEdgePixels: 1,
   dotRoundness: 1,
-  alphaThreshold: 40,
+  alphaThreshold: 128,
   widthRatio: 0.78,
-  maxHeightRatio: 0.85,
+  narrowWidthRatio: 0.92,
+  narrowViewportWidth: 768,
+  maxHeightRatio: 0.57,
   minFontSize: 48,
   maxFontSize: 900,
   probeFontSize: 100,
   fontWeight: 700,
   maxPointCount: 250000,
-  vortexRadius: 190,
-  vortexSwirl: 1.35,
-  vortexPush: 22,
-  vortexFade: 0.12,
-  vortexShrink: 0.1,
-  waveAmplitude: 0,
-  waveSecondaryAmplitude: 0,
-  waveFrequency: 0.0042,
-  waveSecondaryFrequency: 0.011,
-  waveSpeed: 0.55,
-  waveSecondarySpeed: -0.31,
-  pointerLerp: 0.14,
-  influenceEnterLerp: 0.09,
-  influenceLeaveLerp: 0.06,
-  autoPointerXFrequency: 0.27,
-  autoPointerYFrequency: 0.41,
-  autoPointerXAmplitude: 0.3,
-  autoPointerYAmplitude: 0.18,
-  autoPointerInfluence: 0,
+  pointerRadius: 300,
+  pointerPush: 2,
+  springStiffness: 0.05,
+  springDamping: 0.95,
+  referenceInkHeight: 294,
+  sleepThreshold: 0.1,
 }
 
 export const HERO_SCROLL_LABEL = "Scroll to explore"

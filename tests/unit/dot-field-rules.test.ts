@@ -2,16 +2,15 @@ import { describe, expect, it } from "vitest"
 
 import { DOT_FIELD_TUNING } from "@/data/hero.data"
 import {
-  applyFrameLerp,
   buildFontShorthand,
   clampFontSize,
   parsePrimaryFontFamily,
-  resolveAutoPointer,
   resolveDotPitch,
   resolveFontSize,
   resolvePixelRatio,
   samplePixelGrid,
   shouldRebuildPoints,
+  stepDotPhysics,
 } from "@/features/portfolio/dot-field.rules"
 
 const IMAGE_SIZE = 8
@@ -162,18 +161,43 @@ describe("resolveFontSize", () => {
   })
 })
 
-describe("applyFrameLerp", () => {
-  it("advances the same amount at 120Hz as at 60Hz", () => {
-    const singleStep = applyFrameLerp(0, 1, 0.14, 1 / 60)
+describe("stepDotPhysics", () => {
+  it("pushes a dot away, bounces it past home, then settles", () => {
+    const homes = new Float32Array([100, 100, 1])
+    const offsets = new Float32Array(2)
+    const velocities = new Float32Array(2)
+    const frameSeconds = 1 / 60
 
-    const firstHalf = applyFrameLerp(0, 1, 0.14, 1 / 120)
-    const secondHalf = applyFrameLerp(firstHalf, 1, 0.14, 1 / 120)
+    function advance(isPointerDown: boolean): number {
+      return stepDotPhysics(
+        {
+          homes,
+          offsets,
+          velocities,
+          inkHeight: DOT_FIELD_TUNING.referenceInkHeight,
+          pointer: isPointerDown ? { x: 90, y: 100, isActive: true } : null,
+          deltaSeconds: frameSeconds,
+        },
+        DOT_FIELD_TUNING
+      )
+    }
 
-    expect(secondHalf).toBeCloseTo(singleStep, 6)
-  })
+    for (let frame = 0; frame < 30; frame += 1) {
+      advance(true)
+    }
 
-  it("snaps to the target when the rate is saturated", () => {
-    expect(applyFrameLerp(0, 1, 1, 1 / 60)).toBe(1)
+    expect(offsets[0]).toBeGreaterThan(5)
+
+    let deepestOvershoot = 0
+    let motion = 0
+
+    for (let frame = 0; frame < 600; frame += 1) {
+      motion = advance(false)
+      deepestOvershoot = Math.min(deepestOvershoot, offsets[0] ?? 0)
+    }
+
+    expect(deepestOvershoot).toBeLessThan(0)
+    expect(motion).toBeLessThan(DOT_FIELD_TUNING.sleepThreshold)
   })
 })
 
@@ -263,24 +287,6 @@ describe("resolveDotPitch", () => {
 
     for (const cellCount of cellCounts) {
       expect(cellCount).toBeCloseTo(cellCounts[0] ?? 0, -3)
-    }
-  })
-})
-
-describe("resolveAutoPointer", () => {
-  it("starts at the centre and stays inside the viewport", () => {
-    const start = resolveAutoPointer(0, 1000, 600, DOT_FIELD_TUNING)
-
-    expect(start.x).toBeCloseTo(500, 5)
-    expect(start.y).toBeCloseTo(300, 5)
-
-    for (let second = 0; second < 40; second += 1) {
-      const position = resolveAutoPointer(second, 1000, 600, DOT_FIELD_TUNING)
-
-      expect(position.x).toBeGreaterThanOrEqual(0)
-      expect(position.x).toBeLessThanOrEqual(1000)
-      expect(position.y).toBeGreaterThanOrEqual(0)
-      expect(position.y).toBeLessThanOrEqual(600)
     }
   })
 })

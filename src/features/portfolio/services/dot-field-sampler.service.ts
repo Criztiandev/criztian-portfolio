@@ -93,7 +93,11 @@ export function sampleWordToPoints(
     return metrics.actualBoundingBoxLeft + metrics.actualBoundingBoxRight
   }
 
-  const targetWidth = viewport.width * tuning.widthRatio
+  const widthRatio =
+    window.innerWidth < tuning.narrowViewportWidth
+      ? tuning.narrowWidthRatio
+      : tuning.widthRatio
+  const targetWidth = viewport.width * widthRatio
   const estimatedSize = resolveFontSize({
     measureInkWidth,
     targetWidth,
@@ -188,5 +192,6 @@ export function sampleWordToPoints(
     count: pointCloud.count,
     left: offsetX + TEXT_PADDING_PX,
     right: offsetX + canvasWidth - TEXT_PADDING_PX,
+    inkHeight,
   }
 }

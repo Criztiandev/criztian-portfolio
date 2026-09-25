@@ -17,25 +17,25 @@ import {
   hasFontLoadingApi,
   hasIntersectionObserver,
   hasResizeObserver,
-  prefersFinePointer,
   prefersReducedMotion,
   readReducedMotionQuery,
 } from "@/features/portfolio/browser-capability.rules"
 import {
-  applyFrameLerp,
   buildFontShorthand,
   parsePrimaryFontFamily,
-  resolveAutoPointer,
   resolveIntroFrame,
   resolvePixelRatio,
   shouldRebuildPoints,
+  stepDotPhysics,
 } from "@/features/portfolio/dot-field.rules"
 import {
+  applyDotColor,
   applyStaticUniforms,
   createDotFieldRuntime,
   destroyRuntime,
   drawDotField,
   resizeDotField,
+  uploadOffsets,
   uploadPoints,
 } from "@/features/portfolio/services/dot-field-renderer.service"
 import {
@@ -58,12 +58,9 @@ const PLACEHOLDER_BOUNDS: DotFieldBounds = {
 
 function createPointer(): DotFieldPointer {
   return {
-    currentX: 0,
-    currentY: 0,
-    targetX: 0,
-    targetY: 0,
-    influence: 0,
-    targetInfluence: 0,
+    x: 0,
+    y: 0,
+    isActive: false,
   }
 }
 
@@ -97,6 +94,7 @@ export function useDotField(request: UseDotFieldRequest): void {
   const boundsRef = useRef<DotFieldBounds | null>(null)
   const introStartRef = useRef<number | null>(null)
   const hasSettledRef = useRef(false)
+  const dotColorRef = useRef(dotColor)
   const settleCallbackRef = useRef(onIntroSettled)
   const unsupportedCallbackRef = useRef(onUnsupported)
 
@@ -120,12 +118,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       const container: HTMLElement = containerElement
       const canvas: HTMLCanvasElement = canvasElement
 
-      if (mode === "pending") {
-        return
-      }
-
       if (mode === "text") {
-        container.dataset.status = "text"
         return
       }
 
@@ -157,6 +150,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       }
 
       runtimeRef.current = runtime
+      applyDotColor(runtime, dotColorRef.current)
 
       const pointer = pointerRef.current
       const reducedMotionQuery = readReducedMotionQuery()
@@ -182,12 +176,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         canvas.style.width = viewport.width + "px"
         canvas.style.height = viewport.height + "px"
 
-        applyStaticUniforms(
-          runtime,
-          DOT_FIELD_TUNING,
-          viewport.pixelRatio,
-          dotColor
-        )
+        applyStaticUniforms(runtime, DOT_FIELD_TUNING, viewport.pixelRatio)
         resizeDotField(runtime, deviceWidth, deviceHeight)
       }
 
@@ -235,27 +224,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       }
 
       function drawSingleFrame(): void {
-        drawDotField(
-          runtime,
-          elapsedSeconds,
-          pointer.currentX,
-          pointer.currentY,
-          pointer.influence,
-          resolveIntro()
-        )
-      }
-
-      function advanceAutoPointer(): void {
-        const autoPointer = resolveAutoPointer(
-          elapsedSeconds,
-          canvas.width,
-          canvas.height,
-          DOT_FIELD_TUNING
-        )
-
-        pointer.targetX = autoPointer.x
-        pointer.targetY = autoPointer.y
-        pointer.targetInfluence = DOT_FIELD_TUNING.autoPointerInfluence
+        drawDotField(runtime, resolveIntro())
       }
 
       function renderFrame(timestamp: number): void {
@@ -269,35 +238,37 @@ export function useDotField(request: UseDotFieldRequest): void {
         previousTimestamp = timestamp
         elapsedSeconds += deltaSeconds
 
-        if (!prefersFinePointer()) {
-          advanceAutoPointer()
+        const isPushing = pointer.isActive && hasSettledRef.current
+
+        const motion = stepDotPhysics(
+          {
+            homes: runtime.positions,
+            offsets: runtime.offsets,
+            velocities: runtime.velocities,
+            inkHeight: runtime.inkHeight,
+            pointer: isPushing ? pointer : null,
+            deltaSeconds,
+          },
+          DOT_FIELD_TUNING
+        )
+
+        const isResting = !isPushing && motion < DOT_FIELD_TUNING.sleepThreshold
+
+        if (isResting && motion > 0) {
+          runtime.offsets.fill(0)
+          runtime.velocities.fill(0)
         }
 
-        const influenceRate =
-          pointer.targetInfluence > pointer.influence
-            ? DOT_FIELD_TUNING.influenceEnterLerp
-            : DOT_FIELD_TUNING.influenceLeaveLerp
-
-        pointer.currentX = applyFrameLerp(
-          pointer.currentX,
-          pointer.targetX,
-          DOT_FIELD_TUNING.pointerLerp,
-          deltaSeconds
-        )
-        pointer.currentY = applyFrameLerp(
-          pointer.currentY,
-          pointer.targetY,
-          DOT_FIELD_TUNING.pointerLerp,
-          deltaSeconds
-        )
-        pointer.influence = applyFrameLerp(
-          pointer.influence,
-          pointer.targetInfluence,
-          influenceRate,
-          deltaSeconds
-        )
+        if (motion > 0) {
+          uploadOffsets(runtime)
+        }
 
         drawSingleFrame()
+
+        if (isResting && hasSettledRef.current) {
+          frameId = 0
+          return
+        }
 
         frameId = window.requestAnimationFrame(renderFrame)
       }
@@ -332,13 +303,19 @@ export function useDotField(request: UseDotFieldRequest): void {
 
         const rect = container.getBoundingClientRect()
 
-        pointer.targetX = (event.clientX - rect.left) * viewport.pixelRatio
-        pointer.targetY = (event.clientY - rect.top) * viewport.pixelRatio
-        pointer.targetInfluence = 1
+        pointer.x = (event.clientX - rect.left) * viewport.pixelRatio
+        pointer.y = (event.clientY - rect.top) * viewport.pixelRatio
+        pointer.isActive = true
+
+        if (reducedMotionQuery?.matches === true) {
+          return
+        }
+
+        startLoop()
       }
 
       function onPointerLeave(): void {
-        pointer.targetInfluence = 0
+        pointer.isActive = false
       }
 
       function onVisibilityChanged(): void {
@@ -386,12 +363,9 @@ export function useDotField(request: UseDotFieldRequest): void {
 
         if (needsRebuild && rebuild !== null) {
           rebuild()
-          return
         }
 
-        if (prefersReducedMotion()) {
-          drawSingleFrame()
-        }
+        drawSingleFrame()
       }
 
       function onResizeObserved(): void {
@@ -421,11 +395,6 @@ export function useDotField(request: UseDotFieldRequest): void {
       viewportRef.current = initialViewport
       applyViewport(initialViewport)
 
-      pointer.currentX = canvas.width / 2
-      pointer.currentY = canvas.height / 2
-      pointer.targetX = pointer.currentX
-      pointer.targetY = pointer.currentY
-
       const resizeObserver = hasResizeObserver()
         ? new ResizeObserver(onResizeObserved)
         : null
@@ -439,13 +408,11 @@ export function useDotField(request: UseDotFieldRequest): void {
       resizeObserver?.observe(container)
       intersectionObserver?.observe(container)
 
-      if (prefersFinePointer()) {
-        container.addEventListener("pointermove", onPointerMove)
-        container.addEventListener("pointerleave", onPointerLeave)
-        container.addEventListener("pointercancel", onPointerLeave)
-        window.addEventListener("blur", onPointerLeave)
-      }
-
+      container.addEventListener("pointermove", onPointerMove)
+      container.addEventListener("pointerdown", onPointerMove)
+      container.addEventListener("pointerleave", onPointerLeave)
+      container.addEventListener("pointercancel", onPointerLeave)
+      window.addEventListener("blur", onPointerLeave)
       document.addEventListener("visibilitychange", onVisibilityChanged)
       canvas.addEventListener("webglcontextlost", onContextLost)
       reducedMotionQuery?.addEventListener("change", onMotionPreferenceChanged)
@@ -463,6 +430,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         intersectionObserver?.disconnect()
 
         container.removeEventListener("pointermove", onPointerMove)
+        container.removeEventListener("pointerdown", onPointerMove)
         container.removeEventListener("pointerleave", onPointerLeave)
         container.removeEventListener("pointercancel", onPointerLeave)
         window.removeEventListener("blur", onPointerLeave)
@@ -482,7 +450,28 @@ export function useDotField(request: UseDotFieldRequest): void {
         runtimeRef.current = null
       }
     },
-    [containerRef, canvasRef, dotColor, mode]
+    [containerRef, canvasRef, mode]
+  )
+
+  useEffect(
+    function recolourDotField() {
+      dotColorRef.current = dotColor
+
+      const runtime = runtimeRef.current
+
+      if (runtime === null) {
+        return
+      }
+
+      applyDotColor(runtime, dotColor)
+
+      const redraw = redrawRef.current
+
+      if (redraw !== null) {
+        redraw()
+      }
+    },
+    [dotColor]
   )
 
   useEffect(

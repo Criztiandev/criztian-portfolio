@@ -1,9 +1,5 @@
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)"
 
-const FINE_POINTER_QUERY = "(hover: hover) and (pointer: fine)"
-
-const DOT_FIELD_VIEWPORT_QUERY = "(min-width: 768px)"
-
 function matchesMediaQuery(query: string): boolean {
   if (typeof window === "undefined") {
     return false
@@ -44,10 +40,6 @@ export function prefersReducedMotion(): boolean {
   return matchesMediaQuery(REDUCED_MOTION_QUERY)
 }
 
-export function prefersFinePointer(): boolean {
-  return matchesMediaQuery(FINE_POINTER_QUERY)
-}
-
 export function readReducedMotionQuery(): MediaQueryList | null {
   if (typeof window === "undefined") {
     return null
@@ -58,20 +50,4 @@ export function readReducedMotionQuery(): MediaQueryList | null {
   }
 
   return window.matchMedia(REDUCED_MOTION_QUERY)
-}
-
-export function matchesDotFieldViewport(): boolean {
-  return matchesMediaQuery(DOT_FIELD_VIEWPORT_QUERY)
-}
-
-export function readDotFieldViewportQuery(): MediaQueryList | null {
-  if (typeof window === "undefined") {
-    return null
-  }
-
-  if (typeof window.matchMedia !== "function") {
-    return null
-  }
-
-  return window.matchMedia(DOT_FIELD_VIEWPORT_QUERY)
 }

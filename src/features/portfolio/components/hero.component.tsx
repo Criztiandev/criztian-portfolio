@@ -6,7 +6,6 @@ import type { Transition, Variants } from "motion/react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { HERO_INTRO_TIMING, HERO_SCROLL_LABEL } from "@/data/hero.data"
-import { useDotFieldViewport } from "@/features/portfolio/hooks/use-dot-field-viewport.hook"
 import { useDotField } from "@/features/portfolio/hooks/use-dot-field.hook"
 import { renderRichTextHtml } from "@/features/site-content/services/rich-text-renderer.service"
 import { cn } from "@/lib/utils"
@@ -15,7 +14,7 @@ import type { SiteContent } from "@/types/site-content.type"
 
 const WORDMARK_TEXT_CLASS = cn(
   "block text-center leading-none font-bold uppercase",
-  "text-[clamp(3rem,23vw,5rem)] md:text-[clamp(3rem,18vw,16rem)]"
+  "text-[min(25vw,40svh)] md:text-[clamp(3rem,18vw,16rem)]"
 )
 
 const WORDMARK_VARIANTS: Variants = {
@@ -87,21 +86,6 @@ const TEXT_SETTLE_MS =
   (HERO_INTRO_TIMING.growDelaySeconds + HERO_INTRO_TIMING.growDurationSeconds) *
   1000
 
-function resolveWordmarkMode(
-  hasDotFieldViewport: boolean | null,
-  isDotFieldUnsupported: boolean
-): HeroWordmarkMode {
-  if (hasDotFieldViewport === null) {
-    return "pending"
-  }
-
-  if (!hasDotFieldViewport || isDotFieldUnsupported) {
-    return "text"
-  }
-
-  return "dots"
-}
-
 export function Hero({
   content,
   displayFontFamily,
@@ -110,7 +94,6 @@ export function Hero({
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [hasIntroSettled, setHasIntroSettled] = useState(false)
   const [isDotFieldUnsupported, setIsDotFieldUnsupported] = useState(false)
-  const hasDotFieldViewport = useDotFieldViewport()
   const shouldReduceMotion = useReducedMotion() === true
 
   const markIntroSettled = useCallback(function markSettled() {
@@ -121,10 +104,7 @@ export function Hero({
     setIsDotFieldUnsupported(true)
   }, [])
 
-  const wordmarkMode = resolveWordmarkMode(
-    hasDotFieldViewport,
-    isDotFieldUnsupported
-  )
+  const wordmarkMode: HeroWordmarkMode = isDotFieldUnsupported ? "text" : "dots"
 
   useDotField({
     containerRef,
@@ -171,23 +151,23 @@ export function Hero({
     <section
       id="home"
       className={cn(
-        "relative isolate flex w-full flex-col items-center justify-center",
-        "overflow-hidden bg-black text-white",
-        "py-28 md:h-svh md:py-0"
+        "relative isolate flex h-svh w-full flex-col items-center justify-center",
+        "overflow-hidden bg-black text-white"
       )}
     >
       <div className="flex w-full flex-col items-center">
         <div
-          ref={containerRef}
-          data-status="idle"
-          className="group relative w-full md:h-[min(clamp(380px,23.4vw_+_200px,500px),70svh)]"
+          className={cn(
+            "relative h-[min(40vw,45svh)] w-full",
+            "md:h-[min(clamp(380px,23.4vw_+_200px,500px),70svh)]"
+          )}
         >
           <motion.div
             initial="hidden"
             animate={wordmarkTarget}
             variants={WORDMARK_VARIANTS}
             transition={resolveTransition(WORDMARK_TRANSITION)}
-            className="relative flex items-center justify-center px-4 md:absolute md:inset-0"
+            className="absolute inset-0 flex items-center justify-center px-4"
           >
             <div className="relative max-w-full">
               <span
@@ -223,15 +203,21 @@ export function Hero({
             </div>
           </motion.div>
 
-          <canvas
-            ref={canvasRef}
-            aria-hidden="true"
-            data-point-count="0"
-            className={cn(
-              "absolute inset-0 h-full w-full opacity-0",
-              "transition-opacity duration-500 group-data-[status=running]:opacity-100"
-            )}
-          />
+          <div
+            ref={containerRef}
+            data-status="idle"
+            className="group absolute inset-x-0 -inset-y-1/4 touch-pan-y touch-pinch-zoom"
+          >
+            <canvas
+              ref={canvasRef}
+              aria-hidden="true"
+              data-point-count="0"
+              className={cn(
+                "absolute inset-0 h-full w-full opacity-0",
+                "transition-opacity duration-500 group-data-[status=running]:opacity-100"
+              )}
+            />
+          </div>
         </div>
 
         <motion.div
@@ -240,7 +226,7 @@ export function Hero({
           variants={LIFT_VARIANTS}
           transition={resolveTransition(TAGLINE_TRANSITION)}
           className={cn(
-            "mt-6 max-w-[21rem] px-5 md:mt-0 md:max-w-[34rem] md:px-6",
+            "relative max-w-[21rem] px-5 md:max-w-[34rem] md:px-6",
             "text-center uppercase",
             "text-[0.8125rem] leading-[1.7] tracking-[0.05em] text-white/70",
             "md:text-sm md:leading-relaxed md:tracking-[0.14em] md:text-white/75"
@@ -254,9 +240,9 @@ export function Hero({
           variants={LIFT_VARIANTS}
           transition={resolveTransition(SCROLL_CUE_TRANSITION)}
           className={cn(
-            "mt-10 flex items-center gap-2 text-white/60 uppercase",
+            "absolute inset-x-0 bottom-10 flex items-center justify-center gap-2",
+            "text-white/60 uppercase [@media(max-height:30rem)]:hidden",
             "text-[0.75rem] tracking-[0.12em]",
-            "md:absolute md:inset-x-0 md:bottom-10 md:mt-0 md:justify-center",
             "md:text-[0.6875rem] md:tracking-[0.22em]"
           )}
         >

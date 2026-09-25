@@ -1,9 +1,13 @@
-import { POINT_STRIDE, REFERENCE_FRAME_RATE } from "@/data/hero.data"
+import {
+  OFFSET_STRIDE,
+  POINT_STRIDE,
+  REFERENCE_FRAME_RATE,
+} from "@/data/hero.data"
 import type {
   DotFieldBounds,
   DotFieldIntroFrame,
+  DotFieldPhysicsRequest,
   DotFieldPointCloud,
-  DotFieldPointerPosition,
   DotFieldSizeRequest,
   DotFieldTuning,
   DotFieldViewport,
@@ -138,24 +142,69 @@ export function samplePixelGrid(
   }
 }
 
-export function applyFrameLerp(
-  current: number,
-  target: number,
-  ratePerFrame: number,
-  deltaSeconds: number
+export function stepDotPhysics(
+  request: DotFieldPhysicsRequest,
+  tuning: DotFieldTuning
 ): number {
-  if (ratePerFrame <= 0) {
-    return current
-  }
-
-  if (ratePerFrame >= 1) {
-    return target
-  }
+  const { homes, offsets, velocities, inkHeight, pointer, deltaSeconds } =
+    request
 
   const steps = deltaSeconds * REFERENCE_FRAME_RATE
-  const factor = 1 - Math.pow(1 - ratePerFrame, steps)
+  const scale = inkHeight / tuning.referenceInkHeight
+  const radius = tuning.pointerRadius * scale
+  const radiusSquared = radius * radius
+  const push = tuning.pointerPush * scale * steps
+  const spring = tuning.springStiffness * steps
+  const damping = Math.pow(tuning.springDamping, steps)
+  const count = offsets.length / OFFSET_STRIDE
 
-  return current + (target - current) * factor
+  let maxMotion = 0
+
+  for (let index = 0; index < count; index += 1) {
+    const homeIndex = index * POINT_STRIDE
+    const offsetIndex = index * OFFSET_STRIDE
+    const offsetX = offsets[offsetIndex]
+    const offsetY = offsets[offsetIndex + 1]
+
+    let velocityX = velocities[offsetIndex] - offsetX * spring
+    let velocityY = velocities[offsetIndex + 1] - offsetY * spring
+
+    if (pointer !== null) {
+      const awayX = homes[homeIndex] + offsetX - pointer.x
+      const awayY = homes[homeIndex + 1] + offsetY - pointer.y
+      const distanceSquared = awayX * awayX + awayY * awayY
+
+      if (distanceSquared > 0 && distanceSquared < radiusSquared) {
+        const distance = Math.sqrt(distanceSquared)
+        const falloff = (radius - distance) / radius
+        const strength = (falloff * push) / distance
+
+        velocityX += awayX * strength
+        velocityY += awayY * strength
+      }
+    }
+
+    velocityX *= damping
+    velocityY *= damping
+
+    const nextX = offsetX + velocityX * steps
+    const nextY = offsetY + velocityY * steps
+
+    offsets[offsetIndex] = nextX
+    offsets[offsetIndex + 1] = nextY
+    velocities[offsetIndex] = velocityX
+    velocities[offsetIndex + 1] = velocityY
+
+    maxMotion = Math.max(
+      maxMotion,
+      Math.abs(nextX),
+      Math.abs(nextY),
+      Math.abs(velocityX),
+      Math.abs(velocityY)
+    )
+  }
+
+  return maxMotion
 }
 
 export function shouldRebuildPoints(
@@ -172,21 +221,6 @@ export function shouldRebuildPoints(
   }
 
   return Math.abs(previous.height - next.height) > heightTolerancePx
-}
-
-export function resolveAutoPointer(
-  elapsedSeconds: number,
-  widthPx: number,
-  heightPx: number,
-  tuning: DotFieldTuning
-): DotFieldPointerPosition {
-  const offsetX = Math.sin(elapsedSeconds * tuning.autoPointerXFrequency)
-  const offsetY = Math.sin(elapsedSeconds * tuning.autoPointerYFrequency)
-
-  return {
-    x: widthPx / 2 + offsetX * widthPx * tuning.autoPointerXAmplitude,
-    y: heightPx / 2 + offsetY * heightPx * tuning.autoPointerYAmplitude,
-  }
 }
 
 export function hexToRgbTriplet(hex: string): [number, number, number] {

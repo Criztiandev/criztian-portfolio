@@ -54,3 +54,27 @@ test.describe("hero dot field", () => {
     await expect(page.locator("#contact")).toBeVisible()
   })
 })
+
+test.describe("hero dot field on a phone", () => {
+  test.use({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 3,
+    isMobile: true,
+    hasTouch: true,
+  })
+
+  test("runs the webgl field on a narrow touch viewport", async ({ page }) => {
+    await page.goto("/")
+
+    const stage = page.locator("[data-status]").first()
+
+    await expect(stage).toHaveAttribute("data-status", "running", {
+      timeout: 15000,
+    })
+
+    const canvas = page.locator("canvas")
+    const pointCount = Number(await canvas.getAttribute("data-point-count"))
+
+    expect(pointCount).toBeGreaterThan(500)
+  })
+})

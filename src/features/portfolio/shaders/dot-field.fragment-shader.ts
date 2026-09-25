@@ -24,6 +24,6 @@ void main() {
     discard;
   }
 
-  fragColor = vec4(uColor, mask * vAlpha);
+  fragColor = vec4(uColor * vAlpha, mask);
 }
 `

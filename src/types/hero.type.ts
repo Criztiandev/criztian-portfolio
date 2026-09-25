@@ -1,6 +1,4 @@
-export type DotFieldStatus = "idle" | "running" | "text" | "unsupported"
-
-export type HeroWordmarkMode = "pending" | "dots" | "text"
+export type HeroWordmarkMode = "dots" | "text"
 
 export type HeroIntroTiming = {
   smallScale: number
@@ -41,31 +39,20 @@ export type DotFieldTuning = {
   dotRoundness: number
   alphaThreshold: number
   widthRatio: number
+  narrowWidthRatio: number
+  narrowViewportWidth: number
   maxHeightRatio: number
   minFontSize: number
   maxFontSize: number
   probeFontSize: number
   fontWeight: number
   maxPointCount: number
-  vortexRadius: number
-  vortexSwirl: number
-  vortexPush: number
-  vortexFade: number
-  vortexShrink: number
-  waveAmplitude: number
-  waveSecondaryAmplitude: number
-  waveFrequency: number
-  waveSecondaryFrequency: number
-  waveSpeed: number
-  waveSecondarySpeed: number
-  pointerLerp: number
-  influenceEnterLerp: number
-  influenceLeaveLerp: number
-  autoPointerXFrequency: number
-  autoPointerYFrequency: number
-  autoPointerXAmplitude: number
-  autoPointerYAmplitude: number
-  autoPointerInfluence: number
+  pointerRadius: number
+  pointerPush: number
+  springStiffness: number
+  springDamping: number
+  referenceInkHeight: number
+  sleepThreshold: number
 }
 
 export type DotFieldViewport = {
@@ -84,6 +71,7 @@ export type DotFieldSample = {
   count: number
   left: number
   right: number
+  inkHeight: number
 }
 
 export type DotFieldSizeRequest = {
@@ -92,34 +80,25 @@ export type DotFieldSizeRequest = {
   probeSize: number
 }
 
-export type DotFieldPointerPosition = {
+export type DotFieldPointer = {
   x: number
   y: number
+  isActive: boolean
 }
 
-export type DotFieldPointer = {
-  currentX: number
-  currentY: number
-  targetX: number
-  targetY: number
-  influence: number
-  targetInfluence: number
+export type DotFieldPhysicsRequest = {
+  homes: Float32Array
+  offsets: Float32Array
+  velocities: Float32Array
+  inkHeight: number
+  pointer: DotFieldPointer | null
+  deltaSeconds: number
 }
 
 export type DotFieldUniforms = {
   resolution: WebGLUniformLocation | null
-  pointer: WebGLUniformLocation | null
-  influence: WebGLUniformLocation | null
-  time: WebGLUniformLocation | null
   pixelRatio: WebGLUniformLocation | null
   dotSize: WebGLUniformLocation | null
-  vortexRadius: WebGLUniformLocation | null
-  vortexSwirl: WebGLUniformLocation | null
-  vortexPush: WebGLUniformLocation | null
-  vortexFade: WebGLUniformLocation | null
-  vortexShrink: WebGLUniformLocation | null
-  wave: WebGLUniformLocation | null
-  waveSpeed: WebGLUniformLocation | null
   color: WebGLUniformLocation | null
   edgePixels: WebGLUniformLocation | null
   dotRoundness: WebGLUniformLocation | null
@@ -134,8 +113,13 @@ export type DotFieldRuntime = {
   program: WebGLProgram
   vertexArray: WebGLVertexArrayObject
   buffer: WebGLBuffer
+  offsetBuffer: WebGLBuffer
   uniforms: DotFieldUniforms
   pointCount: number
+  positions: Float32Array
+  offsets: Float32Array
+  velocities: Float32Array
+  inkHeight: number
 }
 
 export type DotFieldSampleRequest = {

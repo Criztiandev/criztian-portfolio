@@ -160,7 +160,7 @@ Evidence, so it does not have to be re-derived:
 
 ## Hero dot-field — Part A (done)
 
-The name renders as a grid of white dots sampled from the glyph outlines, carrying a slow idle wave, and the cursor opens a swirling vortex in it. Built from first principles — the reference site's own implementation is a dynamically-loaded third-party Framer plugin and was not copied.
+The name renders as a grid of white dots sampled from the glyph outlines. The pointer scatters them and they spring back with a bounce (see "Hero spring scatter" below; it replaced the original swirling vortex). Built from first principles; the reference site's own component was not copied.
 
 **How it fits together**, outermost first:
 
@@ -178,14 +178,33 @@ The name renders as a grid of white dots sampled from the glyph outlines, carryi
 
 **Do not merge the two effects in `use-dot-field.hook.ts`.** The first creates the GL context and owns the RAF loop and listeners; its deps are stable. The second samples the glyphs and uploads the buffer, keyed on `[text, fontFamily]`. That split is the entire reason Part B's live editing is viable: a keystroke re-runs only the geometry effect. Putting `text` in the first effect's deps tears down and recreates a WebGL context per keystroke, which stutters visibly and eventually exhausts the browser's ~16-context limit.
 
-**The vortex maths, so nobody "simplifies" it.** The spiral arms come from _shear_, not rotation — a rigid rotation of the disc produces no arms. The rotation angle is `uVortexSwirl * falloff` where `falloff` decreases with radius, so inner material winds up relative to outer. The outward push is then applied along the **rotated** vector (`swirled / max(distance, 1.0)`), which moves material out _along_ the arm and keeps it coherent as the hole opens. Push along the un-rotated vector gives straight spokes instead.
+**`maxHeightRatio` is measured against the dot container, not the viewport.** That container is the canvas, which bleeds 25% above and below the wordmark box, so it is 1.5× the stage height. `0.57` (0.85 ÷ 1.5) keeps the ink at 85% of the stage. An early render double-applied a viewport ratio and shrank the word to a third of its size. **If the stage height or the bleed changes, recheck this.**
 
-**Tuning is empirical and was corrected against screenshots, not reasoning.** The first render was wrong in two ways worth remembering:
+## Hero spring scatter (replaced the vortex)
 
-- `maxHeightRatio` is measured against the **hero stage container**, which is `h-[42vh]`, not the viewport. The plan's `0.42` therefore double-applied and capped the font at ~159 px so the width constraint never bound — the word came out a third of its intended size and read as thin dotted outlines. `0.85` is correct for a 42vh stage. **If the stage height changes, this needs rechecking.**
-- `vortexFade: 0.85` dimmed displaced dots to 15% opacity, so the vortex _erased_ the spiral arms instead of showing them. It is now `0.25`.
+The owner asked for the adriavale.framer.website hero behaviour: the pointer pushes dots away and they spring back with a visible bounce. The stateless vertex-shader vortex could not do that, because a bounce needs per-dot velocity that persists between frames.
 
-Values that moved from the plan's table after looking at the result: `maxHeightRatio` 0.42→0.85, `vortexFade` 0.85→0.25, `vortexShrink` 0.45→0.2, `vortexRadius` 180→220, `vortexPush` 120→85, `dotSize` 2.8→3.2, `dotEdgePixels` 1.5→1. Screenshots were taken at DPR 1; on a DPR 2 display the field is denser and crisper.
+- **Model.** Each dot is a damped spring tied to its home, with semi-implicit Euler. Per 60Hz frame:
+  - push: `unit(dot − pointer) · (R − d)/R · 2` inside radius R = 300;
+  - spring: `−offset · 0.05`;
+  - damping: `velocity · 0.95`.
+  - This gives a damping ratio of about 0.12, a period of about 0.48s, 3–4 overshoots and about 3s to settle. The reference numbers came from reading the live page; only the maths was reused, not code.
+- **CPU, not GPU.** There are about 17k dots at 1440 wide, 30k at 1920 and 1.8k on a phone. A step is well under 1 ms, and `bufferSubData` of the offsets is at most about 300 KB.
+  - Transform feedback or ping-pong textures would add a second program and state for no measurable gain.
+  - Home positions stay in the static stride-3 buffer. Offsets are a separate dynamic buffer at attribute 1.
+- **Scaled step, no accumulator.** Each frame steps by `deltaSeconds × 60`, the same idiom the old pointer lerp used. It matches the reference exactly at 60Hz and stays stable at the 50 ms delta clamp.
+  - A fixed-step accumulator judders on 90, 120 and 144Hz screens (0/1/2 steps per frame).
+- **Scaled by ink height.** Radius and push are multiplied by `inkHeight / 294`, where 294 CSS px is the reference ink height.
+  - The ink height is in device px, so the pixel ratio cancels.
+  - That puts the desktop wordmark within a few px of the reference, and a phone gets a proportionally small radius instead of one that swallows the whole word.
+- **Sleep.** When the pointer is inactive and every offset and velocity is below 0.1 device px, the arrays are zeroed and the RAF stops. Pointer input restarts it.
+  - Because the loop can be asleep, `applyResize` must always redraw: setting `canvas.width` clears the canvas.
+- **The pointer only pushes after the intro settles.** During the intro the vertex shader scales home positions around the centre, so the CPU distances would be off by up to 25%.
+- **Blend changed from additive to source-over.** With 4px dots on a 3px pitch, neighbours overlap. Additive blending lit up the overlaps as a brighter lattice in the dim intro ghost, and would saturate any owner-chosen dot colour.
+- **`dotColor` left the GL effect's deps.** A colour edit used to tear down the runtime, and geometry was never rebuilt, so the field went blank while `data-status` stayed `running`. The colour is now a uniform set by its own small effect.
+- **The <768px text gate is gone.** Phones run the dots in a full-screen stage, with the name at 92% width.
+  - Touch uses `touch-action: pan-y pinch-zoom`, so horizontal drags scatter and vertical swipes still scroll; `pointercancel` sends the dots home. Never `preventDefault`.
+  - Removing the gate also fixed two tests that had been failing since the gate landed: `hero.test.tsx` expected `unsupported`, and the editor preview iframe (about 686 px wide) never reached `running`.
 
 **Font-loading facts, verified against this project's real CSS output** — they invert the usual advice:
 
@@ -279,7 +298,7 @@ Two changes fix it, and both are worth keeping:
 - **Do not merge the two effects in `use-dot-field.hook.ts`.** The split is what makes Part B's live editing possible — see Part A above.
 - **Do not put the editor preview route outside `/dashboard/`.** Both auth layers are path-based; anywhere else serves unpublished drafts to the public.
 - Do not add three.js, `@react-three/fiber` or `ogl`. The hero is ~220 lines of raw WebGL2 with no dependency surface, and the vertex shader would be identical under any of them. This was weighed and rejected with the user.
-- Do not raise `dotPitch` chasing a point count. Per-frame cost is O(1) in point count — the pitch is purely an aesthetic control.
+- Do not lower `dotPitch` below 3 without measuring. While dots are moving, per-frame cost is O(points) on the CPU (about 30k at 1920 wide today); at rest the loop sleeps and costs nothing.
 - **Do not post to the preview iframe from its `onLoad`.** The load event fires before React hydrates inside it, so the message is dropped. Use the `ready` handshake — see Part B.
 - **Do not make the preview wait on a server round trip.** The 80 ms postMessage path and the 800 ms `saveDraft` path are deliberately independent; collapsing them into one is what makes typing feel slow.
 - **Do not loosen the rich-text node/mark allowlist without widening the Tiptap extension list to match.** They are two halves of one invariant; `generateHTML` throws on anything the schema lets through that the extensions do not know.

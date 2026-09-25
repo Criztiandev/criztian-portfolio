@@ -1,4 +1,9 @@
-import { POINT_STRIDE } from "@/data/hero.data"
+import {
+  OFFSET_ATTRIBUTE_LOCATION,
+  OFFSET_STRIDE,
+  POINT_ATTRIBUTE_LOCATION,
+  POINT_STRIDE,
+} from "@/data/hero.data"
 import { hexToRgbTriplet } from "@/features/portfolio/dot-field.rules"
 import { DOT_FIELD_FRAGMENT_SHADER } from "@/features/portfolio/shaders/dot-field.fragment-shader"
 import { DOT_FIELD_VERTEX_SHADER } from "@/features/portfolio/shaders/dot-field.vertex-shader"
@@ -9,8 +14,6 @@ import type {
   DotFieldTuning,
   DotFieldUniforms,
 } from "@/types/hero.type"
-
-const POINT_ATTRIBUTE_LOCATION = 0
 
 function compileShader(
   context: WebGL2RenderingContext,
@@ -85,18 +88,8 @@ function resolveUniformLocations(
 ): DotFieldUniforms {
   return {
     resolution: context.getUniformLocation(program, "uResolution"),
-    pointer: context.getUniformLocation(program, "uPointer"),
-    influence: context.getUniformLocation(program, "uInfluence"),
-    time: context.getUniformLocation(program, "uTime"),
     pixelRatio: context.getUniformLocation(program, "uPixelRatio"),
     dotSize: context.getUniformLocation(program, "uDotSize"),
-    vortexRadius: context.getUniformLocation(program, "uVortexRadius"),
-    vortexSwirl: context.getUniformLocation(program, "uVortexSwirl"),
-    vortexPush: context.getUniformLocation(program, "uVortexPush"),
-    vortexFade: context.getUniformLocation(program, "uVortexFade"),
-    vortexShrink: context.getUniformLocation(program, "uVortexShrink"),
-    wave: context.getUniformLocation(program, "uWave"),
-    waveSpeed: context.getUniformLocation(program, "uWaveSpeed"),
     color: context.getUniformLocation(program, "uColor"),
     edgePixels: context.getUniformLocation(program, "uEdgePixels"),
     dotRoundness: context.getUniformLocation(program, "uDotRoundness"),
@@ -113,14 +106,16 @@ export function createDotFieldRuntime(
   const program = createDotFieldProgram(context)
   const vertexArray = context.createVertexArray()
   const buffer = context.createBuffer()
+  const offsetBuffer = context.createBuffer()
 
-  if (vertexArray === null || buffer === null) {
+  if (vertexArray === null || buffer === null || offsetBuffer === null) {
     context.deleteProgram(program)
 
     throw new Error("dot_field_buffers_unavailable")
   }
 
   context.bindVertexArray(vertexArray)
+
   context.bindBuffer(context.ARRAY_BUFFER, buffer)
   context.enableVertexAttribArray(POINT_ATTRIBUTE_LOCATION)
   context.vertexAttribPointer(
@@ -131,11 +126,23 @@ export function createDotFieldRuntime(
     0,
     0
   )
+
+  context.bindBuffer(context.ARRAY_BUFFER, offsetBuffer)
+  context.enableVertexAttribArray(OFFSET_ATTRIBUTE_LOCATION)
+  context.vertexAttribPointer(
+    OFFSET_ATTRIBUTE_LOCATION,
+    OFFSET_STRIDE,
+    context.FLOAT,
+    false,
+    0,
+    0
+  )
+
   context.bindVertexArray(null)
 
   context.disable(context.DEPTH_TEST)
   context.enable(context.BLEND)
-  context.blendFunc(context.SRC_ALPHA, context.ONE)
+  context.blendFunc(context.SRC_ALPHA, context.ONE_MINUS_SRC_ALPHA)
   context.clearColor(0, 0, 0, 1)
 
   return {
@@ -143,43 +150,39 @@ export function createDotFieldRuntime(
     program,
     vertexArray,
     buffer,
+    offsetBuffer,
     uniforms: resolveUniformLocations(context, program),
     pointCount: 0,
+    positions: new Float32Array(0),
+    offsets: new Float32Array(0),
+    velocities: new Float32Array(0),
+    inkHeight: 0,
   }
 }
 
 export function applyStaticUniforms(
   runtime: DotFieldRuntime,
   tuning: DotFieldTuning,
-  pixelRatio: number,
+  pixelRatio: number
+): void {
+  const { context, uniforms } = runtime
+
+  context.useProgram(runtime.program)
+  context.uniform1f(uniforms.pixelRatio, pixelRatio)
+  context.uniform1f(uniforms.dotSize, tuning.dotSize)
+  context.uniform1f(uniforms.edgePixels, tuning.dotEdgePixels)
+  context.uniform1f(uniforms.dotRoundness, tuning.dotRoundness)
+}
+
+export function applyDotColor(
+  runtime: DotFieldRuntime,
   dotColor: string
 ): void {
   const { context, uniforms } = runtime
   const [red, green, blue] = hexToRgbTriplet(dotColor)
 
   context.useProgram(runtime.program)
-  context.uniform1f(uniforms.pixelRatio, pixelRatio)
-  context.uniform1f(uniforms.dotSize, tuning.dotSize)
-  context.uniform1f(uniforms.vortexRadius, tuning.vortexRadius)
-  context.uniform1f(uniforms.vortexSwirl, tuning.vortexSwirl)
-  context.uniform1f(uniforms.vortexPush, tuning.vortexPush)
-  context.uniform1f(uniforms.vortexFade, tuning.vortexFade)
-  context.uniform1f(uniforms.vortexShrink, tuning.vortexShrink)
-  context.uniform1f(uniforms.edgePixels, tuning.dotEdgePixels)
-  context.uniform1f(uniforms.dotRoundness, tuning.dotRoundness)
   context.uniform3f(uniforms.color, red, green, blue)
-  context.uniform4f(
-    uniforms.wave,
-    tuning.waveAmplitude,
-    tuning.waveSecondaryAmplitude,
-    tuning.waveFrequency,
-    tuning.waveSecondaryFrequency
-  )
-  context.uniform2f(
-    uniforms.waveSpeed,
-    tuning.waveSpeed,
-    tuning.waveSecondarySpeed
-  )
 }
 
 export function resizeDotField(
@@ -200,6 +203,11 @@ export function uploadPoints(
 ): void {
   const { context } = runtime
 
+  runtime.positions = sample.positions
+  runtime.offsets = new Float32Array(sample.count * OFFSET_STRIDE)
+  runtime.velocities = new Float32Array(sample.count * OFFSET_STRIDE)
+  runtime.inkHeight = sample.inkHeight
+
   context.bindBuffer(context.ARRAY_BUFFER, runtime.buffer)
   context.bufferData(
     context.ARRAY_BUFFER,
@@ -207,15 +215,25 @@ export function uploadPoints(
     context.STATIC_DRAW
   )
 
+  context.bindBuffer(context.ARRAY_BUFFER, runtime.offsetBuffer)
+  context.bufferData(
+    context.ARRAY_BUFFER,
+    runtime.offsets,
+    context.DYNAMIC_DRAW
+  )
+
   runtime.pointCount = sample.count
+}
+
+export function uploadOffsets(runtime: DotFieldRuntime): void {
+  const { context } = runtime
+
+  context.bindBuffer(context.ARRAY_BUFFER, runtime.offsetBuffer)
+  context.bufferSubData(context.ARRAY_BUFFER, 0, runtime.offsets)
 }
 
 export function drawDotField(
   runtime: DotFieldRuntime,
-  elapsedSeconds: number,
-  pointerX: number,
-  pointerY: number,
-  influence: number,
   intro: DotFieldIntroFrame
 ): void {
   const { context, uniforms } = runtime
@@ -229,9 +247,6 @@ export function drawDotField(
   context.useProgram(runtime.program)
   context.bindVertexArray(runtime.vertexArray)
 
-  context.uniform1f(uniforms.time, elapsedSeconds)
-  context.uniform2f(uniforms.pointer, pointerX, pointerY)
-  context.uniform1f(uniforms.influence, influence)
   context.uniform1f(uniforms.introScale, intro.scale)
   context.uniform1f(uniforms.introReveal, intro.revealX)
   context.uniform1f(uniforms.introSoftness, intro.softness)
@@ -245,6 +260,7 @@ export function destroyRuntime(runtime: DotFieldRuntime): void {
   const { context } = runtime
 
   context.deleteBuffer(runtime.buffer)
+  context.deleteBuffer(runtime.offsetBuffer)
   context.deleteVertexArray(runtime.vertexArray)
   context.deleteProgram(runtime.program)
 }
