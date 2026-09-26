@@ -53,6 +53,7 @@ export type ProjectItemField = {
   label: string
   maxLength: number
   multiline: boolean
+  hint: string | null
 }
 
 export type SiteContentEntryId = "hero" | "quote" | "projects" | "theme"

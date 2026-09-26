@@ -82,6 +82,7 @@ export function buildThemeStyle(
     "--foreground": theme.bodyText,
     "--muted-foreground": theme.mutedText,
     "--primary": theme.accent,
+    "--primary-foreground": theme.pageBackground,
     "--border": theme.border,
   }
 }

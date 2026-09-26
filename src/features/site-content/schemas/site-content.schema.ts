@@ -126,9 +126,19 @@ export const projectItemSchema = z.object({
 })
 
 export const projectsContentSchema = z.object({
-  heading: boundedTextSchema(PROJECTS_HEADING_MAX_LENGTH).default(
-    DEFAULT_PROJECTS_HEADING
-  ),
+  heading: z
+    .string()
+    .transform(collapseWhitespace)
+    .pipe(
+      z
+        .string()
+        .min(1, "Enter a heading")
+        .max(
+          PROJECTS_HEADING_MAX_LENGTH,
+          `Must be ${PROJECTS_HEADING_MAX_LENGTH} characters or fewer`
+        )
+    )
+    .default(DEFAULT_PROJECTS_HEADING),
   lede: boundedTextSchema(PROJECTS_LEDE_MAX_LENGTH).default(
     DEFAULT_PROJECTS_LEDE
   ),

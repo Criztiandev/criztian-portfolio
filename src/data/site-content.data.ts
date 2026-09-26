@@ -88,48 +88,61 @@ export const NEW_PROJECT_ITEM: ProjectItem = {
   imageAlt: "",
 }
 
+export const PROJECT_LINK_HINT =
+  "A full https:// link. Anything else is left off the card."
+
+export const PROJECT_IMAGE_HINT =
+  "A file in public/projects, like /projects/shop.webp, or an https:// image link. Anything else shows the placeholder."
+
 export const PROJECT_ITEM_FIELDS: ProjectItemField[] = [
   {
     key: "title",
     label: "title",
     maxLength: PROJECT_TITLE_MAX_LENGTH,
     multiline: false,
+    hint: null,
   },
   {
     key: "tag",
     label: "tag",
     maxLength: PROJECT_TAG_MAX_LENGTH,
     multiline: false,
+    hint: null,
   },
   {
     key: "summary",
     label: "summary",
     maxLength: PROJECT_SUMMARY_MAX_LENGTH,
     multiline: true,
+    hint: null,
   },
   {
     key: "stack",
     label: "stack",
     maxLength: PROJECT_STACK_MAX_LENGTH,
     multiline: false,
+    hint: null,
   },
   {
     key: "link",
     label: "link",
     maxLength: PROJECT_LINK_MAX_LENGTH,
     multiline: false,
+    hint: PROJECT_LINK_HINT,
   },
   {
     key: "image",
     label: "image",
     maxLength: PROJECT_IMAGE_MAX_LENGTH,
     multiline: false,
+    hint: PROJECT_IMAGE_HINT,
   },
   {
     key: "imageAlt",
     label: "alt text",
     maxLength: PROJECT_IMAGE_ALT_MAX_LENGTH,
     multiline: false,
+    hint: null,
   },
 ]
 

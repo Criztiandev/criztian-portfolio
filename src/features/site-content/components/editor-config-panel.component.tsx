@@ -8,6 +8,7 @@ import { useFieldArray, useForm, useWatch } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import {
   Field,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -310,6 +311,9 @@ export function EditorConfigPanel({
                   {PROJECT_ITEM_FIELDS.map(
                     function renderProjectField(itemField) {
                       const fieldId = `project-${projectField.id}-${itemField.key}`
+                      const hintId = `${fieldId}-hint`
+                      const describedBy =
+                        itemField.hint === null ? undefined : hintId
                       const fieldError =
                         errors.projects?.items?.[index]?.[itemField.key]
                       const registration = form.register(
@@ -324,6 +328,7 @@ export function EditorConfigPanel({
                           {itemField.multiline ? (
                             <Textarea
                               id={fieldId}
+                              aria-describedby={describedBy}
                               maxLength={itemField.maxLength}
                               aria-invalid={fieldError ? true : undefined}
                               {...registration}
@@ -331,11 +336,17 @@ export function EditorConfigPanel({
                           ) : (
                             <Input
                               id={fieldId}
+                              aria-describedby={describedBy}
                               autoComplete="off"
                               maxLength={itemField.maxLength}
                               aria-invalid={fieldError ? true : undefined}
                               {...registration}
                             />
+                          )}
+                          {itemField.hint !== null && (
+                            <FieldDescription id={hintId}>
+                              {itemField.hint}
+                            </FieldDescription>
                           )}
                           <FieldError errors={[fieldError]} />
                         </Field>

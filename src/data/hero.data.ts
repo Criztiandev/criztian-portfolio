@@ -55,6 +55,13 @@ export const DOT_FRAME_RECT_STRIDE = 4
 
 export const DOT_FRAME_SELECTOR = "[data-dot-frame]"
 
+export const PROJECTS_MUTATION_OPTIONS: MutationObserverInit = {
+  childList: true,
+  subtree: true,
+  characterData: true,
+  attributeFilter: ["hidden"],
+}
+
 export const MAX_CANVAS_PIXELS = 10_000_000
 
 export const PIXEL_RATIO_STEPS = 4

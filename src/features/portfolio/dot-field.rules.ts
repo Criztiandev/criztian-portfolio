@@ -654,9 +654,14 @@ export function resolveCanvasWindowTop(
     projectsTop,
     pixelRatio,
     isStatic,
+    isSceneActive,
   } = request
 
-  if (isStatic || scrolled + viewportHeight <= projectsTop) {
+  if (isStatic) {
+    return 0
+  }
+
+  if (!isSceneActive && scrolled + viewportHeight <= projectsTop) {
     return 0
   }
 

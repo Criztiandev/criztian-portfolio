@@ -15,6 +15,7 @@ import {
   MAX_DOT_FRAMES,
   MAX_FRAME_DELTA_SECONDS,
   MORPH_LANDING_TOLERANCE_PX,
+  PROJECTS_MUTATION_OPTIONS,
   REDUCED_MOTION_MORPH_PASSES,
   RESIZE_DEBOUNCE_MS,
   SETTLED_INTRO_SECONDS,
@@ -679,6 +680,7 @@ export function useDotField(request: UseDotFieldRequest): void {
             projectsTop: layout.projectsTop,
             pixelRatio,
             isStatic: prefersReducedMotion(),
+            isSceneActive: compress > 0 || burst > 0,
           },
           DOT_FIELD_SCENE_TUNING
         )
@@ -738,6 +740,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         }
 
         advanceScene(deltaSeconds)
+        syncCanvasWindow()
 
         if (morph > 0 && burst < 1) {
           const spinBoost = resolveSpinBoost(compress, DOT_FIELD_SCENE_TUNING)
@@ -873,6 +876,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       function onMotionPreferenceChanged(): void {
         stopLoop()
         syncMorphToScroll()
+        drawSingleFrame()
         startLoop()
       }
 
@@ -979,6 +983,10 @@ export function useDotField(request: UseDotFieldRequest): void {
       resizeObserver?.observe(wordmark)
       resizeObserver?.observe(projects)
 
+      const mutationObserver = new MutationObserver(onLayoutObserved)
+
+      mutationObserver.observe(projects, PROJECTS_MUTATION_OPTIONS)
+
       if (tagline !== null) {
         resizeObserver?.observe(tagline)
       }
@@ -1010,6 +1018,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         window.clearTimeout(resizeHandle)
 
         resizeObserver?.disconnect()
+        mutationObserver.disconnect()
         intersectionObserver?.disconnect()
 
         for (const pointerTarget of pointerTargets) {

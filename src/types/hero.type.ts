@@ -148,6 +148,7 @@ export type DotFieldWindowRequest = {
   projectsTop: number
   pixelRatio: number
   isStatic: boolean
+  isSceneActive: boolean
 }
 
 export type DotFieldLoopRestRequest = {

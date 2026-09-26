@@ -196,9 +196,15 @@ describe("projects content", () => {
     ])
   })
 
+  it("rejects a blank heading", () => {
+    const result = parseSiteContent({ projects: { heading: "   " } })
+
+    expect(result.usedDefaults).toBe(true)
+  })
+
   it("allows blank fields and an empty list", () => {
     const blankItem = parseSiteContent({
-      projects: { heading: "", lede: "", items: [NEW_PROJECT_ITEM, {}] },
+      projects: { lede: "", items: [NEW_PROJECT_ITEM, {}] },
     })
     const emptyList = parseSiteContent({ projects: { items: [] } })
 

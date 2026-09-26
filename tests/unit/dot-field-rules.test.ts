@@ -635,6 +635,7 @@ const WINDOW_REQUEST = {
   projectsTop: 1800,
   pixelRatio: 2,
   isStatic: false,
+  isSceneActive: false,
 }
 
 describe("resolveCanvasWindowTop", () => {
@@ -645,6 +646,24 @@ describe("resolveCanvasWindowTop", () => {
         DOT_FIELD_SCENE_TUNING
       )
     ).toBe(0)
+  })
+
+  it("keeps following the burst while it plays above the projects", () => {
+    const resting = resolveCanvasWindowTop(
+      { ...WINDOW_REQUEST, scrolled: 800 },
+      DOT_FIELD_SCENE_TUNING
+    )
+    const imploding = resolveCanvasWindowTop(
+      { ...WINDOW_REQUEST, scrolled: 800, isSceneActive: true },
+      DOT_FIELD_SCENE_TUNING
+    )
+
+    expect(resting).toBe(0)
+    expect(imploding).toBeGreaterThan(0)
+    expect(800 - imploding).toBeGreaterThanOrEqual(0)
+    expect(
+      imploding + WINDOW_REQUEST.canvasHeight - (800 + 900)
+    ).toBeGreaterThanOrEqual(0)
   })
 
   it("stays at the stage top under reduced motion", () => {

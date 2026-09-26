@@ -29,7 +29,10 @@ export function SitePage({
 }: Readonly<{ content: SiteContent; displayFontFamily: string }>) {
   return (
     <PortfolioStoreProvider>
-      <div style={buildThemeStyle(content.theme) as React.CSSProperties}>
+      <div
+        className="bg-background text-foreground"
+        style={buildThemeStyle(content.theme) as React.CSSProperties}
+      >
         <SectionNavigation />
 
         <main>
