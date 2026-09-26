@@ -1,12 +1,25 @@
 import { describe, expect, it } from "vitest"
 
-import { DOT_FIELD_TUNING } from "@/data/hero.data"
 import {
+  CUBE_POINT_STRIDE,
+  DOT_FIELD_MORPH_TUNING,
+  DOT_FIELD_TUNING,
+  MAX_CANVAS_PIXELS,
+} from "@/data/hero.data"
+import {
+  buildCubeRotation,
   buildFontShorthand,
   clampFontSize,
+  createRandomSource,
+  followMorphProgress,
+  generateCubePoints,
+  isCubeEdgeIndex,
   parsePrimaryFontFamily,
+  projectCubePoints,
+  resolveCanvasPixelRatio,
   resolveDotPitch,
   resolveFontSize,
+  resolveMorphState,
   resolvePixelRatio,
   samplePixelGrid,
   shouldRebuildPoints,
@@ -296,5 +309,308 @@ describe("clampFontSize", () => {
     expect(clampFontSize(20, 48, 900)).toBe(48)
     expect(clampFontSize(2000, 48, 900)).toBe(900)
     expect(clampFontSize(300, 48, 900)).toBe(300)
+  })
+})
+
+const FACE_TUNING = {
+  ...DOT_FIELD_MORPH_TUNING,
+  cubeEdgePointLimit: 120,
+  cubeFaceAlpha: 0.25,
+}
+
+const JITTER_BOUND = FACE_TUNING.cubeEdgeJitter * 1.5 + 0.000001
+
+function readCubePoint(points: Float32Array, index: number): number[] {
+  const start = index * CUBE_POINT_STRIDE
+
+  return Array.from(points.subarray(start, start + CUBE_POINT_STRIDE))
+}
+
+function countCoordinatesNearFace(coordinates: number[]): number {
+  let nearFace = 0
+
+  for (const coordinate of coordinates) {
+    if (Math.abs(Math.abs(coordinate) - 1) <= JITTER_BOUND) {
+      nearFace += 1
+    }
+  }
+
+  return nearFace
+}
+
+function transformColumnMajor(matrix: Float32Array, vector: number[]) {
+  const [vectorX, vectorY, vectorZ] = vector as [number, number, number]
+
+  return [
+    matrix[0] * vectorX + matrix[3] * vectorY + matrix[6] * vectorZ,
+    matrix[1] * vectorX + matrix[4] * vectorY + matrix[7] * vectorZ,
+    matrix[2] * vectorX + matrix[5] * vectorY + matrix[8] * vectorZ,
+  ]
+}
+
+describe("createRandomSource", () => {
+  it("repeats the same sequence for the same seed", () => {
+    const first = createRandomSource(7)
+    const second = createRandomSource(7)
+
+    for (let draw = 0; draw < 20; draw += 1) {
+      const value = first()
+
+      expect(value).toBe(second())
+      expect(value).toBeGreaterThanOrEqual(0)
+      expect(value).toBeLessThan(1)
+    }
+  })
+})
+
+describe("isCubeEdgeIndex", () => {
+  it("selects exactly the requested number of edge dots", () => {
+    let selected = 0
+
+    for (let index = 0; index < 1000; index += 1) {
+      if (isCubeEdgeIndex(index, 1000, 137)) {
+        selected += 1
+      }
+    }
+
+    expect(selected).toBe(137)
+  })
+})
+
+describe("generateCubePoints", () => {
+  it("returns five values per dot and repeats for the same count", () => {
+    const first = generateCubePoints(500, FACE_TUNING)
+    const second = generateCubePoints(500, FACE_TUNING)
+
+    expect(first).toHaveLength(500 * CUBE_POINT_STRIDE)
+    expect(Array.from(first)).toEqual(Array.from(second))
+  })
+
+  it("returns an empty buffer for zero dots", () => {
+    expect(generateCubePoints(0, FACE_TUNING)).toHaveLength(0)
+  })
+
+  it("puts the edge limit on edges and the rest on faces", () => {
+    const points = generateCubePoints(500, FACE_TUNING)
+
+    let edgeDots = 0
+    let faceDots = 0
+
+    for (let index = 0; index < 500; index += 1) {
+      const brightness = readCubePoint(points, index)[4]
+
+      if (brightness === 1) {
+        edgeDots += 1
+      }
+
+      if (brightness === FACE_TUNING.cubeFaceAlpha) {
+        faceDots += 1
+      }
+    }
+
+    expect(edgeDots).toBe(FACE_TUNING.cubeEdgePointLimit)
+    expect(faceDots).toBe(500 - FACE_TUNING.cubeEdgePointLimit)
+  })
+
+  it("puts every dot on an edge when there are few dots", () => {
+    const points = generateCubePoints(60, FACE_TUNING)
+
+    for (let index = 0; index < 60; index += 1) {
+      expect(readCubePoint(points, index)[4]).toBe(1)
+    }
+  })
+
+  it("keeps edge dots on an edge within the jitter bound", () => {
+    const points = generateCubePoints(500, FACE_TUNING)
+
+    for (let index = 0; index < 500; index += 1) {
+      const point = readCubePoint(points, index)
+      const coordinates = point.slice(0, 3)
+
+      for (const coordinate of coordinates) {
+        expect(Math.abs(coordinate)).toBeLessThanOrEqual(1 + JITTER_BOUND)
+      }
+
+      if (point[4] === 1) {
+        expect(countCoordinatesNearFace(coordinates)).toBeGreaterThanOrEqual(2)
+      }
+    }
+  })
+
+  it("draws edge dots from the whole index range", () => {
+    const count = 1000
+    const points = generateCubePoints(count, FACE_TUNING)
+
+    let firstEdge = count
+    let lastEdge = -1
+
+    for (let index = 0; index < count; index += 1) {
+      if (readCubePoint(points, index)[4] === 1) {
+        firstEdge = Math.min(firstEdge, index)
+        lastEdge = Math.max(lastEdge, index)
+      }
+    }
+
+    expect(firstEdge).toBeLessThan(count * 0.1)
+    expect(lastEdge).toBeGreaterThan(count * 0.9)
+  })
+})
+
+describe("buildCubeRotation", () => {
+  it("is the identity with no yaw, pitch or roll", () => {
+    const matrix = Array.from(buildCubeRotation(0, 0, 0))
+    const identity = [1, 0, 0, 0, 1, 0, 0, 0, 1]
+
+    for (let index = 0; index < 9; index += 1) {
+      expect(matrix[index]).toBeCloseTo(identity[index] as number, 6)
+    }
+  })
+
+  it("is a proper rotation", () => {
+    const matrix = buildCubeRotation(0.7, 0.45, -0.2)
+    const columns = [
+      [matrix[0], matrix[1], matrix[2]],
+      [matrix[3], matrix[4], matrix[5]],
+      [matrix[6], matrix[7], matrix[8]],
+    ] as [number, number, number][]
+
+    for (const column of columns) {
+      expect(Math.hypot(...column)).toBeCloseTo(1, 5)
+    }
+
+    const [first, second, third] = columns as [
+      [number, number, number],
+      [number, number, number],
+      [number, number, number],
+    ]
+    const determinant =
+      first[0] * (second[1] * third[2] - second[2] * third[1]) -
+      second[0] * (first[1] * third[2] - first[2] * third[1]) +
+      third[0] * (first[1] * second[2] - first[2] * second[1])
+
+    expect(determinant).toBeCloseTo(1, 5)
+  })
+
+  it("tilts the vertical axis toward the viewer by the pitch", () => {
+    const pitch = 0.45
+    const [axisX, axisY, axisZ] = transformColumnMajor(
+      buildCubeRotation(1.3, pitch, 0),
+      [0, 1, 0]
+    )
+
+    expect(axisX).toBeCloseTo(0, 5)
+    expect(axisY).toBeCloseTo(Math.cos(pitch), 5)
+    expect(axisZ).toBeCloseTo(Math.sin(pitch), 5)
+  })
+
+  it("leans the spin axis sideways by the roll, whatever the yaw", () => {
+    const pitch = 0.45
+    const roll = -0.2
+
+    for (const yaw of [0, 1.3, 4]) {
+      const [axisX, axisY, axisZ] = transformColumnMajor(
+        buildCubeRotation(yaw, pitch, roll),
+        [0, 1, 0]
+      )
+
+      expect(axisX).toBeCloseTo(-Math.sin(roll) * Math.cos(pitch), 5)
+      expect(axisY).toBeCloseTo(Math.cos(roll) * Math.cos(pitch), 5)
+      expect(axisZ).toBeCloseTo(Math.sin(pitch), 5)
+    }
+  })
+})
+
+describe("projectCubePoints", () => {
+  const projection = {
+    center: { x: 400, y: 300 },
+    halfSize: 100,
+    cameraDistance: 5,
+    rotation: buildCubeRotation(0, 0, 0),
+  }
+
+  function projectOne(cubeX: number, cubeY: number, cubeZ: number) {
+    const cubePoints = new Float32Array([cubeX, cubeY, cubeZ, 0, 1])
+    const target = new Float32Array(3)
+
+    projectCubePoints(cubePoints, projection, target)
+
+    return Array.from(target)
+  }
+
+  it("puts the cube centre on the projection centre", () => {
+    expect(projectOne(0, 0, 0)).toEqual([400, 300, 0])
+  })
+
+  it("maps cube x to the right and cube y upward on the canvas", () => {
+    expect(projectOne(1, 0, 0)).toEqual([500, 300, 0])
+    expect(projectOne(0, 1, 0)).toEqual([400, 200, 0])
+  })
+
+  it("enlarges points nearer the viewer by the perspective", () => {
+    const [nearX] = projectOne(1, 0, 1) as [number]
+    const [farX] = projectOne(1, 0, -1) as [number]
+
+    expect(nearX - 400).toBeCloseTo(100 * (5 / 4), 3)
+    expect(farX - 400).toBeCloseTo(100 * (5 / 6), 3)
+  })
+
+  it("writes one stride-three home per cube point", () => {
+    const cubePoints = generateCubePoints(40, FACE_TUNING)
+    const target = new Float32Array(40 * 3)
+
+    projectCubePoints(cubePoints, projection, target)
+
+    for (let index = 0; index < 40; index += 1) {
+      expect(Number.isFinite(target[index * 3])).toBe(true)
+      expect(target[index * 3 + 2]).toBe(0)
+    }
+  })
+})
+
+describe("resolveCanvasPixelRatio", () => {
+  it("passes the device ratio through when the canvas fits the budget", () => {
+    expect(resolveCanvasPixelRatio(1440, 1400, 2, 16384)).toBe(2)
+    expect(resolveCanvasPixelRatio(390, 1300, 1.5, 16384)).toBe(1.5)
+  })
+
+  it("steps the ratio down to stay under the pixel budget", () => {
+    const ratio = resolveCanvasPixelRatio(2560, 2200, 2, 16384)
+
+    expect(ratio).toBeLessThan(2)
+    expect(2560 * 2200 * ratio * ratio).toBeLessThanOrEqual(MAX_CANVAS_PIXELS)
+  })
+
+  it("keeps the backing store inside the GPU's maximum dimension", () => {
+    const ratio = resolveCanvasPixelRatio(1000, 3000, 2, 4096)
+
+    expect(3000 * ratio).toBeLessThanOrEqual(4096)
+  })
+
+  it("never renders below CSS resolution", () => {
+    expect(resolveCanvasPixelRatio(4000, 4000, 2, 16384)).toBe(1)
+  })
+})
+
+describe("resolveMorphState", () => {
+  it("names the resting and moving states", () => {
+    expect(resolveMorphState(-0.1)).toBe("name")
+    expect(resolveMorphState(0)).toBe("name")
+    expect(resolveMorphState(0.5)).toBe("moving")
+    expect(resolveMorphState(1)).toBe("cube")
+  })
+})
+
+describe("followMorphProgress", () => {
+  it("moves toward the target without overshooting", () => {
+    const next = followMorphProgress(0, 1, 1 / 60, DOT_FIELD_MORPH_TUNING)
+
+    expect(next).toBeGreaterThan(0)
+    expect(next).toBeLessThan(1)
+  })
+
+  it("snaps onto the target once it is close enough", () => {
+    expect(
+      followMorphProgress(0.99999, 1, 1 / 60, DOT_FIELD_MORPH_TUNING)
+    ).toBe(1)
   })
 })

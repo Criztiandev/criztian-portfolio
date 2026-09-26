@@ -4,11 +4,13 @@ import { useEffect, useRef } from "react"
 
 import {
   CONTEXT_OPTIONS,
+  DOT_FIELD_MORPH_TUNING,
   DOT_FIELD_TUNING,
   HEIGHT_CHANGE_IGNORE_PX,
   HERO_INTRO_TIMING,
   MAX_FRAME_DELTA_SECONDS,
-  MAX_PIXEL_RATIO,
+  MORPH_LANDING_TOLERANCE_PX,
+  REDUCED_MOTION_MORPH_PASSES,
   RESIZE_DEBOUNCE_MS,
   SETTLED_INTRO_SECONDS,
   VISIBILITY_ROOT_MARGIN,
@@ -21,10 +23,16 @@ import {
   readReducedMotionQuery,
 } from "@/features/portfolio/browser-capability.rules"
 import {
+  buildCubeRotation,
   buildFontShorthand,
+  followMorphProgress,
+  generateCubePoints,
   parsePrimaryFontFamily,
+  projectCubePoints,
+  resolveCanvasPixelRatio,
   resolveIntroFrame,
-  resolvePixelRatio,
+  resolveMorphState,
+  resolveStageProgress,
   shouldRebuildPoints,
   stepDotPhysics,
 } from "@/features/portfolio/dot-field.rules"
@@ -44,10 +52,15 @@ import {
 } from "@/features/portfolio/services/dot-field-sampler.service"
 import type {
   DotFieldBounds,
+  DotFieldFrame,
   DotFieldIntroFrame,
+  DotFieldLayout,
+  DotFieldLayoutElements,
+  DotFieldPhysicsSpace,
   DotFieldPointer,
   DotFieldRuntime,
   DotFieldViewport,
+  HeroMorphState,
   UseDotFieldRequest,
 } from "@/types/hero.type"
 
@@ -64,19 +77,67 @@ function createPointer(): DotFieldPointer {
   }
 }
 
-function readViewport(container: HTMLElement): DotFieldViewport {
-  const rect = container.getBoundingClientRect()
+function readLayout(elements: DotFieldLayoutElements): DotFieldLayout {
+  const stageRect = elements.stage.getBoundingClientRect()
+  const wordRect = elements.wordmark.getBoundingClientRect()
+  const cubeRect = elements.cube.getBoundingClientRect()
+  const heroHeight = elements.hero.getBoundingClientRect().height
+  const cubeBottom = cubeRect.bottom - stageRect.top
 
   return {
-    width: rect.width,
-    height: rect.height,
-    pixelRatio: resolvePixelRatio(window.devicePixelRatio, MAX_PIXEL_RATIO),
+    width: stageRect.width,
+    height: Math.max(heroHeight, cubeBottom),
+    wordWidth: wordRect.width,
+    wordHeight: wordRect.height,
+    wordCenter: {
+      x: wordRect.left + wordRect.width / 2 - stageRect.left,
+      y: wordRect.top + wordRect.height / 2 - stageRect.top,
+    },
+    cubeCenter: {
+      x: cubeRect.left + cubeRect.width / 2 - stageRect.left,
+      y: cubeRect.top + cubeRect.height / 2 - stageRect.top,
+    },
+    cubeSide: Math.min(cubeRect.width, cubeRect.height),
+    morphStart: heroHeight * DOT_FIELD_MORPH_TUNING.morphStartRatio,
+    morphEnd: heroHeight - MORPH_LANDING_TOLERANCE_PX,
   }
+}
+
+function hasLayoutSizeChanged(
+  previous: DotFieldLayout,
+  next: DotFieldLayout
+): boolean {
+  if (previous.width !== next.width || previous.height !== next.height) {
+    return true
+  }
+
+  return (
+    previous.wordWidth !== next.wordWidth ||
+    previous.wordHeight !== next.wordHeight
+  )
+}
+
+function isUsableLayout(layout: DotFieldLayout): boolean {
+  return layout.width > 0 && layout.wordWidth > 0 && layout.wordHeight > 0
+}
+
+function readMorphTarget(stage: HTMLElement, layout: DotFieldLayout): number {
+  const scrolled = -stage.getBoundingClientRect().top
+
+  return resolveStageProgress(
+    scrolled,
+    layout.morphStart,
+    layout.morphEnd - layout.morphStart
+  )
 }
 
 export function useDotField(request: UseDotFieldRequest): void {
   const {
-    containerRef,
+    stageRef,
+    heroRef,
+    wordmarkRef,
+    taglineRef,
+    cubeRef,
     canvasRef,
     text,
     fontFamily,
@@ -89,6 +150,7 @@ export function useDotField(request: UseDotFieldRequest): void {
   const runtimeRef = useRef<DotFieldRuntime | null>(null)
   const pointerRef = useRef<DotFieldPointer>(createPointer())
   const viewportRef = useRef<DotFieldViewport | null>(null)
+  const sampledViewportRef = useRef<DotFieldViewport | null>(null)
   const rebuildRef = useRef<(() => void) | null>(null)
   const redrawRef = useRef<(() => void) | null>(null)
   const boundsRef = useRef<DotFieldBounds | null>(null)
@@ -108,15 +170,33 @@ export function useDotField(request: UseDotFieldRequest): void {
 
   useEffect(
     function initialiseDotField() {
-      const containerElement = containerRef.current
+      const stageElement = stageRef.current
+      const heroElement = heroRef.current
+      const wordmarkElement = wordmarkRef.current
+      const cubeElement = cubeRef.current
       const canvasElement = canvasRef.current
 
-      if (containerElement === null || canvasElement === null) {
+      if (
+        stageElement === null ||
+        heroElement === null ||
+        wordmarkElement === null ||
+        cubeElement === null ||
+        canvasElement === null
+      ) {
         return
       }
 
-      const container: HTMLElement = containerElement
+      const stage: HTMLElement = stageElement
+      const wordmark: HTMLElement = wordmarkElement
+      const cube: HTMLElement = cubeElement
       const canvas: HTMLCanvasElement = canvasElement
+      const tagline = taglineRef.current
+      const layoutElements: DotFieldLayoutElements = {
+        stage,
+        hero: heroElement,
+        wordmark,
+        cube,
+      }
 
       if (mode === "text") {
         return
@@ -134,7 +214,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       const context = canvas.getContext("webgl2", CONTEXT_OPTIONS)
 
       if (context === null) {
-        container.dataset.status = "unsupported"
+        stage.dataset.status = "unsupported"
         unsupportedCallbackRef.current()
         return
       }
@@ -144,7 +224,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       try {
         runtime = createDotFieldRuntime(context)
       } catch {
-        container.dataset.status = "unsupported"
+        stage.dataset.status = "unsupported"
         unsupportedCallbackRef.current()
         return
       }
@@ -153,6 +233,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       applyDotColor(runtime, dotColorRef.current)
 
       const pointer = pointerRef.current
+      const wordPointer = createPointer()
       const reducedMotionQuery = readReducedMotionQuery()
 
       let frameId = 0
@@ -160,29 +241,47 @@ export function useDotField(request: UseDotFieldRequest): void {
       let elapsedSeconds = 0
       let isVisible = true
       let resizeHandle = 0
+      let pixelRatio = 1
+      let layout = readLayout(layoutElements)
+      let morph = 0
+      let morphTarget = 0
+      let spinYaw = 0
+      let wobblePhase = 0
+      let isFieldAtRest = true
+      let morphState: HeroMorphState = "name"
 
-      function applyViewport(viewport: DotFieldViewport): void {
-        const deviceWidth = Math.max(
-          1,
-          Math.round(viewport.width * viewport.pixelRatio)
+      function applyCanvasSize(): void {
+        pixelRatio = resolveCanvasPixelRatio(
+          layout.width,
+          layout.height,
+          window.devicePixelRatio,
+          runtime.maxDimension
         )
-        const deviceHeight = Math.max(
-          1,
-          Math.round(viewport.height * viewport.pixelRatio)
-        )
+
+        const deviceWidth = Math.max(1, Math.round(layout.width * pixelRatio))
+        const deviceHeight = Math.max(1, Math.round(layout.height * pixelRatio))
 
         canvas.width = deviceWidth
         canvas.height = deviceHeight
-        canvas.style.width = viewport.width + "px"
-        canvas.style.height = viewport.height + "px"
+        canvas.style.width = deviceWidth / pixelRatio + "px"
+        canvas.style.height = deviceHeight / pixelRatio + "px"
 
-        applyStaticUniforms(runtime, DOT_FIELD_TUNING, viewport.pixelRatio)
-        resizeDotField(runtime, deviceWidth, deviceHeight)
+        applyStaticUniforms(
+          runtime,
+          DOT_FIELD_TUNING,
+          DOT_FIELD_MORPH_TUNING,
+          pixelRatio
+        )
+        resizeDotField(runtime)
+
+        viewportRef.current = {
+          width: layout.wordWidth,
+          height: layout.wordHeight,
+          pixelRatio,
+        }
       }
 
       function resolveIntro(): DotFieldIntroFrame {
-        const viewport = viewportRef.current
-        const pixelRatio = viewport === null ? 1 : viewport.pixelRatio
         const bounds = boundsRef.current
 
         if (bounds === null) {
@@ -223,8 +322,102 @@ export function useDotField(request: UseDotFieldRequest): void {
         return frame
       }
 
+      function buildFrame(): DotFieldFrame {
+        const sampled = sampledViewportRef.current
+        const sampleWidth = sampled === null ? 0 : sampled.width
+        const sampleHeight = sampled === null ? 0 : sampled.height
+        const bounds = boundsRef.current
+        const isStatic = prefersReducedMotion()
+        const tuning = DOT_FIELD_MORPH_TUNING
+
+        let yaw = spinYaw + morph * tuning.morphSpin
+        let pitch = tuning.cubePitch + tuning.cubeWobble * Math.sin(wobblePhase)
+        let roll = tuning.cubeRoll + tuning.cubeWobble * Math.cos(wobblePhase)
+        let morphPasses = [morph]
+
+        if (isStatic) {
+          yaw = tuning.cubeStaticYaw
+          pitch = tuning.cubePitch
+          roll = tuning.cubeRoll
+          morphPasses = REDUCED_MOTION_MORPH_PASSES
+        }
+
+        return {
+          intro: resolveIntro(),
+          wordOrigin: {
+            x: Math.round(layout.wordCenter.x * pixelRatio - sampleWidth / 2),
+            y: Math.round(layout.wordCenter.y * pixelRatio - sampleHeight / 2),
+          },
+          wordCenter: {
+            x: sampleWidth / 2,
+            y: sampleHeight / 2,
+          },
+          wordBounds: bounds === null ? PLACEHOLDER_BOUNDS : bounds,
+          cubeCenter: {
+            x: layout.cubeCenter.x * pixelRatio,
+            y: layout.cubeCenter.y * pixelRatio,
+          },
+          cubeHalfSize: layout.cubeSide * tuning.cubeHalfSizeRatio * pixelRatio,
+          rotation: buildCubeRotation(yaw, pitch, roll),
+          morphPasses,
+        }
+      }
+
       function drawSingleFrame(): void {
-        drawDotField(runtime, resolveIntro())
+        drawDotField(runtime, buildFrame())
+      }
+
+      function canPush(): boolean {
+        if (!hasSettledRef.current) {
+          return false
+        }
+
+        return morph === 0 || morph === 1
+      }
+
+      function resolvePhysicsSpace(frame: DotFieldFrame): DotFieldPhysicsSpace {
+        if (morph === 1) {
+          projectCubePoints(
+            runtime.cubePoints,
+            {
+              center: frame.cubeCenter,
+              halfSize: frame.cubeHalfSize,
+              cameraDistance: DOT_FIELD_MORPH_TUNING.cameraDistance,
+              rotation: frame.rotation,
+            },
+            runtime.cubeHomes
+          )
+
+          return {
+            homes: runtime.cubeHomes,
+            inkHeight:
+              layout.cubeSide *
+              DOT_FIELD_MORPH_TUNING.cubeInkRatio *
+              pixelRatio,
+            pointer,
+          }
+        }
+
+        wordPointer.x = pointer.x - frame.wordOrigin.x
+        wordPointer.y = pointer.y - frame.wordOrigin.y
+        wordPointer.isActive = pointer.isActive
+
+        return {
+          homes: runtime.positions,
+          inkHeight: runtime.inkHeight,
+          pointer: wordPointer,
+        }
+      }
+
+      function publishMorphState(progress: number): void {
+        const nextState = resolveMorphState(progress)
+
+        if (nextState === morphState) {
+          return
+        }
+
+        morphState = nextState
+        stage.dataset.morph = nextState
       }
 
       function renderFrame(timestamp: number): void {
@@ -238,34 +431,60 @@ export function useDotField(request: UseDotFieldRequest): void {
         previousTimestamp = timestamp
         elapsedSeconds += deltaSeconds
 
-        const isPushing = pointer.isActive && hasSettledRef.current
-
-        const motion = stepDotPhysics(
-          {
-            homes: runtime.positions,
-            offsets: runtime.offsets,
-            velocities: runtime.velocities,
-            inkHeight: runtime.inkHeight,
-            pointer: isPushing ? pointer : null,
-            deltaSeconds,
-          },
-          DOT_FIELD_TUNING
+        morph = followMorphProgress(
+          morph,
+          morphTarget,
+          deltaSeconds,
+          DOT_FIELD_MORPH_TUNING
         )
 
-        const isResting = !isPushing && motion < DOT_FIELD_TUNING.sleepThreshold
-
-        if (isResting && motion > 0) {
-          runtime.offsets.fill(0)
-          runtime.velocities.fill(0)
+        if (morph >= 1) {
+          notifySettled()
         }
 
-        if (motion > 0) {
+        if (morph > 0) {
+          spinYaw += DOT_FIELD_MORPH_TUNING.spinSpeed * deltaSeconds
+          wobblePhase += DOT_FIELD_MORPH_TUNING.wobbleSpeed * deltaSeconds
+        }
+
+        const frame = buildFrame()
+        const isPushing = pointer.isActive && canPush()
+
+        if (isPushing || !isFieldAtRest) {
+          const physicsSpace = resolvePhysicsSpace(frame)
+          const motion = stepDotPhysics(
+            {
+              homes: physicsSpace.homes,
+              offsets: runtime.offsets,
+              velocities: runtime.velocities,
+              inkHeight: physicsSpace.inkHeight,
+              pointer: isPushing ? physicsSpace.pointer : null,
+              deltaSeconds,
+            },
+            DOT_FIELD_TUNING
+          )
+
+          isFieldAtRest = !isPushing && motion < DOT_FIELD_TUNING.sleepThreshold
+
+          if (isFieldAtRest) {
+            runtime.offsets.fill(0)
+            runtime.velocities.fill(0)
+          }
+
           uploadOffsets(runtime)
         }
 
-        drawSingleFrame()
+        drawDotField(runtime, frame)
+        publishMorphState(morph)
 
-        if (isResting && hasSettledRef.current) {
+        const isMorphResting = morph === morphTarget
+
+        if (
+          isFieldAtRest &&
+          hasSettledRef.current &&
+          isMorphResting &&
+          morph === 0
+        ) {
           frameId = 0
           return
         }
@@ -294,20 +513,32 @@ export function useDotField(request: UseDotFieldRequest): void {
         frameId = window.requestAnimationFrame(renderFrame)
       }
 
-      function onPointerMove(event: PointerEvent): void {
-        const viewport = viewportRef.current
+      function syncMorphToScroll(): void {
+        morphTarget = readMorphTarget(stage, layout)
+        morph = morphTarget
+        publishMorphState(morph)
+      }
 
-        if (viewport === null) {
+      function onScroll(): void {
+        morphTarget = readMorphTarget(stage, layout)
+
+        if (prefersReducedMotion()) {
+          morph = morphTarget
+          publishMorphState(morph)
           return
         }
 
-        const rect = container.getBoundingClientRect()
+        startLoop()
+      }
 
-        pointer.x = (event.clientX - rect.left) * viewport.pixelRatio
-        pointer.y = (event.clientY - rect.top) * viewport.pixelRatio
+      function onPointerMove(event: PointerEvent): void {
+        const stageRect = stage.getBoundingClientRect()
+
+        pointer.x = (event.clientX - stageRect.left) * pixelRatio
+        pointer.y = (event.clientY - stageRect.top) * pixelRatio
         pointer.isActive = true
 
-        if (reducedMotionQuery?.matches === true) {
+        if (reducedMotionQuery?.matches === true || !canPush()) {
           return
         }
 
@@ -329,30 +560,34 @@ export function useDotField(request: UseDotFieldRequest): void {
 
       function onMotionPreferenceChanged(): void {
         stopLoop()
+        syncMorphToScroll()
         startLoop()
       }
 
       function onContextLost(event: Event): void {
         event.preventDefault()
         stopLoop()
-        container.dataset.status = "unsupported"
+        stage.dataset.status = "unsupported"
         unsupportedCallbackRef.current()
       }
 
       function applyResize(): void {
-        const nextViewport = readViewport(container)
+        const nextLayout = readLayout(layoutElements)
 
-        if (nextViewport.width <= 0 || nextViewport.height <= 0) {
+        if (!isUsableLayout(nextLayout)) {
           return
         }
 
+        layout = nextLayout
+
         const previousViewport = viewportRef.current
 
-        viewportRef.current = nextViewport
-        applyViewport(nextViewport)
+        applyCanvasSize()
 
+        const nextViewport = viewportRef.current
         const needsRebuild =
           previousViewport === null ||
+          nextViewport === null ||
           shouldRebuildPoints(
             previousViewport,
             nextViewport,
@@ -365,15 +600,33 @@ export function useDotField(request: UseDotFieldRequest): void {
           rebuild()
         }
 
+        morphTarget = readMorphTarget(stage, layout)
         drawSingleFrame()
+        startLoop()
       }
 
-      function onResizeObserved(): void {
-        window.clearTimeout(resizeHandle)
-        resizeHandle = window.setTimeout(applyResize, RESIZE_DEBOUNCE_MS)
+      function onLayoutObserved(): void {
+        const nextLayout = readLayout(layoutElements)
+
+        if (!isUsableLayout(nextLayout)) {
+          return
+        }
+
+        const isResized = hasLayoutSizeChanged(layout, nextLayout)
+
+        layout = nextLayout
+        morphTarget = readMorphTarget(stage, layout)
+
+        if (isResized) {
+          window.clearTimeout(resizeHandle)
+          resizeHandle = window.setTimeout(applyResize, RESIZE_DEBOUNCE_MS)
+        }
+
+        drawSingleFrame()
+        startLoop()
       }
 
-      function onHeroVisibility(entries: IntersectionObserverEntry[]): void {
+      function onCanvasVisibility(entries: IntersectionObserverEntry[]): void {
         const entry = entries[0]
 
         if (entry === undefined) {
@@ -390,28 +643,42 @@ export function useDotField(request: UseDotFieldRequest): void {
         stopLoop()
       }
 
-      const initialViewport = readViewport(container)
+      applyCanvasSize()
+      syncMorphToScroll()
 
-      viewportRef.current = initialViewport
-      applyViewport(initialViewport)
+      if (morphTarget > 0) {
+        notifySettled()
+      }
 
       const resizeObserver = hasResizeObserver()
-        ? new ResizeObserver(onResizeObserved)
+        ? new ResizeObserver(onLayoutObserved)
         : null
       const intersectionObserver = hasIntersectionObserver()
-        ? new IntersectionObserver(onHeroVisibility, {
+        ? new IntersectionObserver(onCanvasVisibility, {
             threshold: 0,
             rootMargin: VISIBILITY_ROOT_MARGIN,
           })
         : null
 
-      resizeObserver?.observe(container)
-      intersectionObserver?.observe(container)
+      resizeObserver?.observe(stage)
+      resizeObserver?.observe(wordmark)
 
-      container.addEventListener("pointermove", onPointerMove)
-      container.addEventListener("pointerdown", onPointerMove)
-      container.addEventListener("pointerleave", onPointerLeave)
-      container.addEventListener("pointercancel", onPointerLeave)
+      if (tagline !== null) {
+        resizeObserver?.observe(tagline)
+      }
+
+      intersectionObserver?.observe(canvas)
+
+      const pointerTargets = [wordmark, cube]
+
+      for (const pointerTarget of pointerTargets) {
+        pointerTarget.addEventListener("pointermove", onPointerMove)
+        pointerTarget.addEventListener("pointerdown", onPointerMove)
+        pointerTarget.addEventListener("pointerleave", onPointerLeave)
+        pointerTarget.addEventListener("pointercancel", onPointerLeave)
+      }
+
+      window.addEventListener("scroll", onScroll, { passive: true })
       window.addEventListener("blur", onPointerLeave)
       document.addEventListener("visibilitychange", onVisibilityChanged)
       canvas.addEventListener("webglcontextlost", onContextLost)
@@ -429,10 +696,14 @@ export function useDotField(request: UseDotFieldRequest): void {
         resizeObserver?.disconnect()
         intersectionObserver?.disconnect()
 
-        container.removeEventListener("pointermove", onPointerMove)
-        container.removeEventListener("pointerdown", onPointerMove)
-        container.removeEventListener("pointerleave", onPointerLeave)
-        container.removeEventListener("pointercancel", onPointerLeave)
+        for (const pointerTarget of pointerTargets) {
+          pointerTarget.removeEventListener("pointermove", onPointerMove)
+          pointerTarget.removeEventListener("pointerdown", onPointerMove)
+          pointerTarget.removeEventListener("pointerleave", onPointerLeave)
+          pointerTarget.removeEventListener("pointercancel", onPointerLeave)
+        }
+
+        window.removeEventListener("scroll", onScroll)
         window.removeEventListener("blur", onPointerLeave)
         document.removeEventListener("visibilitychange", onVisibilityChanged)
         canvas.removeEventListener("webglcontextlost", onContextLost)
@@ -450,7 +721,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         runtimeRef.current = null
       }
     },
-    [containerRef, canvasRef, mode]
+    [stageRef, heroRef, wordmarkRef, taglineRef, cubeRef, canvasRef, mode]
   )
 
   useEffect(
@@ -480,14 +751,14 @@ export function useDotField(request: UseDotFieldRequest): void {
         return
       }
 
-      const containerElement = containerRef.current
+      const stageElement = stageRef.current
       const canvasElement = canvasRef.current
 
-      if (containerElement === null || canvasElement === null) {
+      if (stageElement === null || canvasElement === null) {
         return
       }
 
-      const container: HTMLElement = containerElement
+      const stage: HTMLElement = stageElement
       const canvas: HTMLCanvasElement = canvasElement
 
       let isCancelled = false
@@ -508,14 +779,16 @@ export function useDotField(request: UseDotFieldRequest): void {
           return
         }
 
+        const sampleViewport: DotFieldViewport = {
+          width: viewport.width * viewport.pixelRatio,
+          height: viewport.height * viewport.pixelRatio,
+          pixelRatio: viewport.pixelRatio,
+        }
+
         const sample = sampleWordToPoints({
           text: text.toUpperCase(),
           fontFamily: primaryFamily,
-          viewport: {
-            width: viewport.width * viewport.pixelRatio,
-            height: viewport.height * viewport.pixelRatio,
-            pixelRatio: viewport.pixelRatio,
-          },
+          viewport: sampleViewport,
           tuning: DOT_FIELD_TUNING,
         })
 
@@ -523,10 +796,15 @@ export function useDotField(request: UseDotFieldRequest): void {
           return
         }
 
-        uploadPoints(runtime, sample)
+        uploadPoints(
+          runtime,
+          sample,
+          generateCubePoints(sample.count, DOT_FIELD_MORPH_TUNING)
+        )
         boundsRef.current = { left: sample.left, right: sample.right }
+        sampledViewportRef.current = sampleViewport
         canvas.dataset.pointCount = String(sample.count)
-        container.dataset.status = "running"
+        stage.dataset.status = "running"
 
         const redraw = redrawRef.current
 
@@ -576,6 +854,6 @@ export function useDotField(request: UseDotFieldRequest): void {
         }
       }
     },
-    [containerRef, canvasRef, text, fontFamily, mode]
+    [stageRef, canvasRef, text, fontFamily, mode]
   )
 }

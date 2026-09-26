@@ -88,6 +88,32 @@ describe("EditorConfigPanel", () => {
     expect(lastCall[1]).toBe(window.location.origin)
   })
 
+  it("renders hidden quote fields until the quote entry is selected", () => {
+    renderPanel()
+
+    expect(screen.getByLabelText("Quote").closest("[hidden]")).not.toBeNull()
+    expect(screen.getByLabelText("Author").closest("[hidden]")).not.toBeNull()
+  })
+
+  it("posts an edited quote to the preview frame", async () => {
+    const { postMessage } = renderPanel()
+
+    fireEvent.change(screen.getByLabelText("Quote"), {
+      target: { value: "Keep going." },
+    })
+
+    await waitFor(
+      function assertPosted() {
+        expect(postMessage).toHaveBeenCalled()
+      },
+      { timeout: 3000 }
+    )
+
+    const lastCall = postMessage.mock.calls[postMessage.mock.calls.length - 1]
+
+    expect(lastCall[0].payload.quote.text).toBe("Keep going.")
+  })
+
   it("keeps the publish button disabled while the live site is current", () => {
     renderPanel()
 

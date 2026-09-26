@@ -37,9 +37,9 @@ export function SitePage({
       <div style={buildThemeStyle(content.theme) as React.CSSProperties}>
         <SectionNavigation />
 
-        <Hero content={content} displayFontFamily={displayFontFamily} />
-
         <main>
+          <Hero content={content} displayFontFamily={displayFontFamily} />
+
           {PLACEHOLDER_SECTIONS.map(function renderSection(section) {
             return (
               <section

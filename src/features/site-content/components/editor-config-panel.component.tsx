@@ -13,11 +13,14 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import {
   DRAFT_SAVE_DEBOUNCE_MS,
   HERO_TEXT_FIELDS,
   PREVIEW_CONTENT_DEBOUNCE_MS,
   PREVIEW_CONTENT_MESSAGE,
+  QUOTE_AUTHOR_MAX_LENGTH,
+  QUOTE_TEXT_MAX_LENGTH,
   SAVE_STATE_LABELS,
   SITE_CONTENT_PUBLISH_CONFIRMATION,
   SITE_CONTENT_PUBLISH_FAILED_MESSAGE,
@@ -222,6 +225,33 @@ export function EditorConfigPanel({
                 onChange={handleTaglineChange}
               />
               <FieldError errors={[errors.hero?.tagline]} />
+            </Field>
+          </FieldGroup>
+        </div>
+
+        <div hidden={selectedEntry !== "quote"}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="quote-text">Quote</FieldLabel>
+              <Textarea
+                id="quote-text"
+                maxLength={QUOTE_TEXT_MAX_LENGTH}
+                aria-invalid={errors.quote?.text ? true : undefined}
+                {...form.register("quote.text")}
+              />
+              <FieldError errors={[errors.quote?.text]} />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="quote-author">Author</FieldLabel>
+              <Input
+                id="quote-author"
+                autoComplete="off"
+                maxLength={QUOTE_AUTHOR_MAX_LENGTH}
+                aria-invalid={errors.quote?.author ? true : undefined}
+                {...form.register("quote.author")}
+              />
+              <FieldError errors={[errors.quote?.author]} />
             </Field>
           </FieldGroup>
         </div>

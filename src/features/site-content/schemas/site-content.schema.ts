@@ -3,6 +3,8 @@ import { z } from "zod"
 import {
   DEFAULT_HERO_NAME,
   DEFAULT_HERO_TAGLINE,
+  DEFAULT_QUOTE_AUTHOR,
+  DEFAULT_QUOTE_TEXT,
   DEFAULT_THEME_ACCENT,
   DEFAULT_THEME_BODY_TEXT,
   DEFAULT_THEME_BORDER,
@@ -11,6 +13,8 @@ import {
   DEFAULT_THEME_PAGE_BACKGROUND,
   HERO_NAME_MAX_LENGTH,
   HEX_COLOR_PATTERN,
+  QUOTE_AUTHOR_MAX_LENGTH,
+  QUOTE_TEXT_MAX_LENGTH,
   RICH_TEXT_MARK_TYPES,
   RICH_TEXT_NODE_TYPES,
 } from "@/data/site-content.data"
@@ -63,6 +67,34 @@ export const heroContentSchema = z.object({
   tagline: richTextDocumentSchema.default(DEFAULT_HERO_TAGLINE),
 })
 
+export const quoteContentSchema = z.object({
+  text: z
+    .string()
+    .transform(collapseWhitespace)
+    .pipe(
+      z
+        .string()
+        .min(1, "Enter a quote")
+        .max(
+          QUOTE_TEXT_MAX_LENGTH,
+          `Must be ${QUOTE_TEXT_MAX_LENGTH} characters or fewer`
+        )
+    )
+    .default(DEFAULT_QUOTE_TEXT),
+  author: z
+    .string()
+    .transform(collapseWhitespace)
+    .pipe(
+      z
+        .string()
+        .max(
+          QUOTE_AUTHOR_MAX_LENGTH,
+          `Must be ${QUOTE_AUTHOR_MAX_LENGTH} characters or fewer`
+        )
+    )
+    .default(DEFAULT_QUOTE_AUTHOR),
+})
+
 export const themeContentSchema = z.object({
   pageBackground: hexColorSchema.default(DEFAULT_THEME_PAGE_BACKGROUND),
   bodyText: hexColorSchema.default(DEFAULT_THEME_BODY_TEXT),
@@ -74,5 +106,6 @@ export const themeContentSchema = z.object({
 
 export const siteContentSchema = z.object({
   hero: heroContentSchema.prefault({}),
+  quote: quoteContentSchema.prefault({}),
   theme: themeContentSchema.prefault({}),
 })

@@ -10,6 +10,14 @@ import type {
 
 export const HERO_NAME_MAX_LENGTH = 40
 
+export const QUOTE_TEXT_MAX_LENGTH = 140
+
+export const QUOTE_AUTHOR_MAX_LENGTH = 80
+
+export const DEFAULT_QUOTE_TEXT = "Your quote about life goes here."
+
+export const DEFAULT_QUOTE_AUTHOR = ""
+
 export const RICH_TEXT_NODE_TYPES = [
   "doc",
   "paragraph",
@@ -62,6 +70,11 @@ export const SITE_CONTENT_ENTRIES: SiteContentEntry[] = [
     id: "hero",
     label: "Hero",
     sectionId: "home",
+  },
+  {
+    id: "quote",
+    label: "Quote",
+    sectionId: "quote",
   },
   {
     id: "theme",

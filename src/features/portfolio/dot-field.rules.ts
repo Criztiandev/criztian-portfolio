@@ -1,17 +1,30 @@
 import {
+  CUBE_EDGES,
+  CUBE_FACES,
+  CUBE_POINT_STRIDE,
+  CUBE_SEED,
+  MAX_CANVAS_PIXELS,
+  MAX_PIXEL_RATIO,
   OFFSET_STRIDE,
+  PIXEL_RATIO_STEPS,
   POINT_STRIDE,
   REFERENCE_FRAME_RATE,
 } from "@/data/hero.data"
 import type {
+  CubeEdge,
+  CubeFace,
+  CubeProjection,
   DotFieldBounds,
   DotFieldIntroFrame,
+  DotFieldMorphTuning,
   DotFieldPhysicsRequest,
   DotFieldPointCloud,
   DotFieldSizeRequest,
   DotFieldTuning,
   DotFieldViewport,
   HeroIntroTiming,
+  HeroMorphState,
+  RandomSource,
 } from "@/types/hero.type"
 
 const MAX_PITCH_ATTEMPTS = 24
@@ -306,4 +319,223 @@ export function resolveIntroFrame(
     isSettled:
       introSeconds >= timing.growDelaySeconds + timing.growDurationSeconds,
   }
+}
+
+export function resolveCanvasPixelRatio(
+  cssWidth: number,
+  cssHeight: number,
+  reportedRatio: number,
+  maxDimension: number
+): number {
+  const deviceRatio = resolvePixelRatio(reportedRatio, MAX_PIXEL_RATIO)
+
+  if (cssWidth <= 0 || cssHeight <= 0) {
+    return deviceRatio
+  }
+
+  const areaLimit = Math.sqrt(MAX_CANVAS_PIXELS / (cssWidth * cssHeight))
+  const dimensionLimit = Math.min(
+    maxDimension / cssWidth,
+    maxDimension / cssHeight
+  )
+  const budgetRatio =
+    Math.floor(Math.min(areaLimit, dimensionLimit) * PIXEL_RATIO_STEPS) /
+    PIXEL_RATIO_STEPS
+
+  return Math.max(1, Math.min(deviceRatio, budgetRatio))
+}
+
+export function createRandomSource(seed: number): RandomSource {
+  let state = seed >>> 0
+
+  return function nextRandom(): number {
+    state = (state + 0x6d2b79f5) >>> 0
+
+    let mixed = state
+    mixed = Math.imul(mixed ^ (mixed >>> 15), mixed | 1)
+    mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), mixed | 61)
+
+    return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function resolveJitter(nextRandom: RandomSource, jitter: number): number {
+  const spread = nextRandom() + nextRandom() + nextRandom() - 1.5
+
+  return spread * jitter
+}
+
+function writeEdgePoint(
+  points: Float32Array,
+  pointIndex: number,
+  edge: CubeEdge,
+  nextRandom: RandomSource,
+  jitter: number
+): void {
+  const along = nextRandom()
+
+  for (let axis = 0; axis < 3; axis += 1) {
+    const start = edge.start[axis]
+    const end = edge.end[axis]
+
+    points[pointIndex + axis] =
+      start + (end - start) * along + resolveJitter(nextRandom, jitter)
+  }
+}
+
+function writeFacePoint(
+  points: Float32Array,
+  pointIndex: number,
+  face: CubeFace,
+  nextRandom: RandomSource
+): void {
+  for (let axis = 0; axis < 3; axis += 1) {
+    if (axis === face.axis) {
+      points[pointIndex + axis] = face.side
+      continue
+    }
+
+    points[pointIndex + axis] = nextRandom() * 2 - 1
+  }
+}
+
+export function isCubeEdgeIndex(
+  index: number,
+  count: number,
+  edgeCount: number
+): boolean {
+  const before = Math.floor((index * edgeCount) / count)
+  const after = Math.floor(((index + 1) * edgeCount) / count)
+
+  return after > before
+}
+
+export function generateCubePoints(
+  count: number,
+  tuning: DotFieldMorphTuning
+): Float32Array {
+  const points = new Float32Array(Math.max(0, count) * CUBE_POINT_STRIDE)
+
+  if (count <= 0) {
+    return points
+  }
+
+  const nextRandom = createRandomSource(CUBE_SEED)
+  const edgeCount = Math.min(count, tuning.cubeEdgePointLimit)
+
+  let edgeOrdinal = 0
+  let faceOrdinal = 0
+
+  for (let index = 0; index < count; index += 1) {
+    const pointIndex = index * CUBE_POINT_STRIDE
+
+    points[pointIndex + 3] = nextRandom()
+
+    if (isCubeEdgeIndex(index, count, edgeCount)) {
+      const edge = CUBE_EDGES[edgeOrdinal % CUBE_EDGES.length]
+
+      writeEdgePoint(
+        points,
+        pointIndex,
+        edge,
+        nextRandom,
+        tuning.cubeEdgeJitter
+      )
+      points[pointIndex + 4] = 1
+      edgeOrdinal += 1
+      continue
+    }
+
+    const face = CUBE_FACES[faceOrdinal % CUBE_FACES.length]
+
+    writeFacePoint(points, pointIndex, face, nextRandom)
+    points[pointIndex + 4] = tuning.cubeFaceAlpha
+    faceOrdinal += 1
+  }
+
+  return points
+}
+
+export function buildCubeRotation(
+  yaw: number,
+  pitch: number,
+  roll: number
+): Float32Array {
+  const yawCos = Math.cos(yaw)
+  const yawSin = Math.sin(yaw)
+  const pitchCos = Math.cos(pitch)
+  const pitchSin = Math.sin(pitch)
+  const rollCos = Math.cos(roll)
+  const rollSin = Math.sin(roll)
+
+  return new Float32Array([
+    rollCos * yawCos - rollSin * pitchSin * yawSin,
+    rollSin * yawCos + rollCos * pitchSin * yawSin,
+    -pitchCos * yawSin,
+    -rollSin * pitchCos,
+    rollCos * pitchCos,
+    pitchSin,
+    rollCos * yawSin + rollSin * pitchSin * yawCos,
+    rollSin * yawSin - rollCos * pitchSin * yawCos,
+    pitchCos * yawCos,
+  ])
+}
+
+export function projectCubePoints(
+  cubePoints: Float32Array,
+  projection: CubeProjection,
+  target: Float32Array
+): void {
+  const { center, halfSize, cameraDistance, rotation } = projection
+  const count = cubePoints.length / CUBE_POINT_STRIDE
+
+  for (let index = 0; index < count; index += 1) {
+    const sourceIndex = index * CUBE_POINT_STRIDE
+    const targetIndex = index * POINT_STRIDE
+    const cubeX = cubePoints[sourceIndex]
+    const cubeY = cubePoints[sourceIndex + 1]
+    const cubeZ = cubePoints[sourceIndex + 2]
+
+    const rotatedX =
+      rotation[0] * cubeX + rotation[3] * cubeY + rotation[6] * cubeZ
+    const rotatedY =
+      rotation[1] * cubeX + rotation[4] * cubeY + rotation[7] * cubeZ
+    const rotatedZ =
+      rotation[2] * cubeX + rotation[5] * cubeY + rotation[8] * cubeZ
+    const perspective =
+      cameraDistance / Math.max(cameraDistance - rotatedZ, 0.5)
+
+    target[targetIndex] = center.x + rotatedX * perspective * halfSize
+    target[targetIndex + 1] = center.y - rotatedY * perspective * halfSize
+    target[targetIndex + 2] = 0
+  }
+}
+
+export function followMorphProgress(
+  current: number,
+  target: number,
+  deltaSeconds: number,
+  tuning: DotFieldMorphTuning
+): number {
+  const gap = target - current
+
+  if (Math.abs(gap) < tuning.morphSettleEpsilon) {
+    return target
+  }
+
+  const blend = 1 - Math.exp(-tuning.morphFollowRate * deltaSeconds)
+
+  return current + gap * blend
+}
+
+export function resolveMorphState(progress: number): HeroMorphState {
+  if (progress <= 0) {
+    return "name"
+  }
+
+  if (progress >= 1) {
+    return "cube"
+  }
+
+  return "moving"
 }

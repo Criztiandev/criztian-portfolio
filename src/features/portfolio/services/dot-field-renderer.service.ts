@@ -1,4 +1,10 @@
 import {
+  CUBE_DETAIL_ATTRIBUTE_LOCATION,
+  CUBE_DETAIL_COMPONENTS,
+  CUBE_POINT_STRIDE,
+  CUBE_POSITION_ATTRIBUTE_LOCATION,
+  CUBE_POSITION_COMPONENTS,
+  FALLBACK_MAX_DIMENSION,
   OFFSET_ATTRIBUTE_LOCATION,
   OFFSET_STRIDE,
   POINT_ATTRIBUTE_LOCATION,
@@ -8,7 +14,8 @@ import { hexToRgbTriplet } from "@/features/portfolio/dot-field.rules"
 import { DOT_FIELD_FRAGMENT_SHADER } from "@/features/portfolio/shaders/dot-field.fragment-shader"
 import { DOT_FIELD_VERTEX_SHADER } from "@/features/portfolio/shaders/dot-field.vertex-shader"
 import type {
-  DotFieldIntroFrame,
+  DotFieldFrame,
+  DotFieldMorphTuning,
   DotFieldRuntime,
   DotFieldSample,
   DotFieldTuning,
@@ -97,7 +104,42 @@ function resolveUniformLocations(
     introReveal: context.getUniformLocation(program, "uIntroReveal"),
     introSoftness: context.getUniformLocation(program, "uIntroSoftness"),
     introDim: context.getUniformLocation(program, "uIntroDim"),
+    wordOrigin: context.getUniformLocation(program, "uWordOrigin"),
+    wordCenter: context.getUniformLocation(program, "uWordCenter"),
+    wordBounds: context.getUniformLocation(program, "uWordBounds"),
+    morph: context.getUniformLocation(program, "uMorph"),
+    morphStagger: context.getUniformLocation(program, "uMorphStagger"),
+    morphJitter: context.getUniformLocation(program, "uMorphJitter"),
+    morphArc: context.getUniformLocation(program, "uMorphArc"),
+    cubeCenter: context.getUniformLocation(program, "uCubeCenter"),
+    cubeHalfSize: context.getUniformLocation(program, "uCubeHalfSize"),
+    cubeRotation: context.getUniformLocation(program, "uCubeRotation"),
+    cameraDistance: context.getUniformLocation(program, "uCameraDistance"),
+    farLight: context.getUniformLocation(program, "uFarLight"),
+    cubeDotSize: context.getUniformLocation(program, "uCubeDotSize"),
   }
+}
+
+function readMaxDimension(context: WebGL2RenderingContext): number {
+  const viewportDimensions: unknown = context.getParameter(
+    context.MAX_VIEWPORT_DIMS
+  )
+  const renderbufferSize: unknown = context.getParameter(
+    context.MAX_RENDERBUFFER_SIZE
+  )
+
+  if (
+    !(viewportDimensions instanceof Int32Array) ||
+    typeof renderbufferSize !== "number"
+  ) {
+    return FALLBACK_MAX_DIMENSION
+  }
+
+  return Math.min(
+    viewportDimensions[0],
+    viewportDimensions[1],
+    renderbufferSize
+  )
 }
 
 export function createDotFieldRuntime(
@@ -107,12 +149,21 @@ export function createDotFieldRuntime(
   const vertexArray = context.createVertexArray()
   const buffer = context.createBuffer()
   const offsetBuffer = context.createBuffer()
+  const cubeBuffer = context.createBuffer()
 
-  if (vertexArray === null || buffer === null || offsetBuffer === null) {
+  if (
+    vertexArray === null ||
+    buffer === null ||
+    offsetBuffer === null ||
+    cubeBuffer === null
+  ) {
     context.deleteProgram(program)
 
     throw new Error("dot_field_buffers_unavailable")
   }
+
+  const floatBytes = Float32Array.BYTES_PER_ELEMENT
+  const cubeStrideBytes = CUBE_POINT_STRIDE * floatBytes
 
   context.bindVertexArray(vertexArray)
 
@@ -138,6 +189,26 @@ export function createDotFieldRuntime(
     0
   )
 
+  context.bindBuffer(context.ARRAY_BUFFER, cubeBuffer)
+  context.enableVertexAttribArray(CUBE_POSITION_ATTRIBUTE_LOCATION)
+  context.vertexAttribPointer(
+    CUBE_POSITION_ATTRIBUTE_LOCATION,
+    CUBE_POSITION_COMPONENTS,
+    context.FLOAT,
+    false,
+    cubeStrideBytes,
+    0
+  )
+  context.enableVertexAttribArray(CUBE_DETAIL_ATTRIBUTE_LOCATION)
+  context.vertexAttribPointer(
+    CUBE_DETAIL_ATTRIBUTE_LOCATION,
+    CUBE_DETAIL_COMPONENTS,
+    context.FLOAT,
+    false,
+    cubeStrideBytes,
+    CUBE_POSITION_COMPONENTS * floatBytes
+  )
+
   context.bindVertexArray(null)
 
   context.disable(context.DEPTH_TEST)
@@ -151,18 +222,23 @@ export function createDotFieldRuntime(
     vertexArray,
     buffer,
     offsetBuffer,
+    cubeBuffer,
     uniforms: resolveUniformLocations(context, program),
     pointCount: 0,
     positions: new Float32Array(0),
     offsets: new Float32Array(0),
     velocities: new Float32Array(0),
     inkHeight: 0,
+    cubePoints: new Float32Array(0),
+    cubeHomes: new Float32Array(0),
+    maxDimension: readMaxDimension(context),
   }
 }
 
 export function applyStaticUniforms(
   runtime: DotFieldRuntime,
   tuning: DotFieldTuning,
+  morphTuning: DotFieldMorphTuning,
   pixelRatio: number
 ): void {
   const { context, uniforms } = runtime
@@ -172,6 +248,12 @@ export function applyStaticUniforms(
   context.uniform1f(uniforms.dotSize, tuning.dotSize)
   context.uniform1f(uniforms.edgePixels, tuning.dotEdgePixels)
   context.uniform1f(uniforms.dotRoundness, tuning.dotRoundness)
+  context.uniform1f(uniforms.morphStagger, morphTuning.morphStagger)
+  context.uniform1f(uniforms.morphJitter, morphTuning.morphJitter)
+  context.uniform1f(uniforms.morphArc, morphTuning.morphArcPixels * pixelRatio)
+  context.uniform1f(uniforms.cameraDistance, morphTuning.cameraDistance)
+  context.uniform1f(uniforms.farLight, morphTuning.farLight)
+  context.uniform1f(uniforms.cubeDotSize, morphTuning.cubeDotSize)
 }
 
 export function applyDotColor(
@@ -185,12 +267,10 @@ export function applyDotColor(
   context.uniform3f(uniforms.color, red, green, blue)
 }
 
-export function resizeDotField(
-  runtime: DotFieldRuntime,
-  widthPx: number,
-  heightPx: number
-): void {
+export function resizeDotField(runtime: DotFieldRuntime): void {
   const { context, uniforms } = runtime
+  const widthPx = context.drawingBufferWidth
+  const heightPx = context.drawingBufferHeight
 
   context.viewport(0, 0, widthPx, heightPx)
   context.useProgram(runtime.program)
@@ -199,7 +279,8 @@ export function resizeDotField(
 
 export function uploadPoints(
   runtime: DotFieldRuntime,
-  sample: DotFieldSample
+  sample: DotFieldSample,
+  cubePoints: Float32Array
 ): void {
   const { context } = runtime
 
@@ -207,6 +288,8 @@ export function uploadPoints(
   runtime.offsets = new Float32Array(sample.count * OFFSET_STRIDE)
   runtime.velocities = new Float32Array(sample.count * OFFSET_STRIDE)
   runtime.inkHeight = sample.inkHeight
+  runtime.cubePoints = cubePoints
+  runtime.cubeHomes = new Float32Array(sample.count * POINT_STRIDE)
 
   context.bindBuffer(context.ARRAY_BUFFER, runtime.buffer)
   context.bufferData(
@@ -222,6 +305,9 @@ export function uploadPoints(
     context.DYNAMIC_DRAW
   )
 
+  context.bindBuffer(context.ARRAY_BUFFER, runtime.cubeBuffer)
+  context.bufferData(context.ARRAY_BUFFER, cubePoints, context.STATIC_DRAW)
+
   runtime.pointCount = sample.count
 }
 
@@ -234,9 +320,10 @@ export function uploadOffsets(runtime: DotFieldRuntime): void {
 
 export function drawDotField(
   runtime: DotFieldRuntime,
-  intro: DotFieldIntroFrame
+  frame: DotFieldFrame
 ): void {
   const { context, uniforms } = runtime
+  const { intro } = frame
 
   context.clear(context.COLOR_BUFFER_BIT)
 
@@ -251,8 +338,22 @@ export function drawDotField(
   context.uniform1f(uniforms.introReveal, intro.revealX)
   context.uniform1f(uniforms.introSoftness, intro.softness)
   context.uniform1f(uniforms.introDim, intro.dim)
+  context.uniform2f(uniforms.wordOrigin, frame.wordOrigin.x, frame.wordOrigin.y)
+  context.uniform2f(uniforms.wordCenter, frame.wordCenter.x, frame.wordCenter.y)
+  context.uniform2f(
+    uniforms.wordBounds,
+    frame.wordBounds.left,
+    frame.wordBounds.right
+  )
+  context.uniform2f(uniforms.cubeCenter, frame.cubeCenter.x, frame.cubeCenter.y)
+  context.uniform1f(uniforms.cubeHalfSize, frame.cubeHalfSize)
+  context.uniformMatrix3fv(uniforms.cubeRotation, false, frame.rotation)
 
-  context.drawArrays(context.POINTS, 0, runtime.pointCount)
+  for (const morph of frame.morphPasses) {
+    context.uniform1f(uniforms.morph, morph)
+    context.drawArrays(context.POINTS, 0, runtime.pointCount)
+  }
+
   context.bindVertexArray(null)
 }
 
@@ -261,6 +362,7 @@ export function destroyRuntime(runtime: DotFieldRuntime): void {
 
   context.deleteBuffer(runtime.buffer)
   context.deleteBuffer(runtime.offsetBuffer)
+  context.deleteBuffer(runtime.cubeBuffer)
   context.deleteVertexArray(runtime.vertexArray)
   context.deleteProgram(runtime.program)
 }

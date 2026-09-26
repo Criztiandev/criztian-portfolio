@@ -168,7 +168,8 @@ The name renders as a grid of white dots sampled from the glyph outlines. The po
 | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `src/app/page.tsx`                                              | Server component. Reads published content, passes `fontDisplay.style.fontFamily` down as a plain string.    |
 | `src/features/portfolio/components/site-page.component.tsx`     | Renders the **whole public page** from a `SiteContent`. Part B's preview route renders this same component. |
-| `src/features/portfolio/components/hero.component.tsx`          | The `#home` section, the fallback ladder, `motion` entrance.                                                |
+| `src/features/portfolio/components/hero.component.tsx`          | The stage: the one canvas, `#home`, the fallback ladder, `motion` entrance, and the quote section.          |
+| `src/features/portfolio/components/quote-section.component.tsx` | `#quote`: the cube slot the morph lands in, and the owner-editable statement quote with its reveal.         |
 | `src/features/portfolio/hooks/use-dot-field.hook.ts`            | All GL lifecycle. **Two effects** — see the warning below.                                                  |
 | `src/features/portfolio/services/dot-field-sampler.service.ts`  | Canvas2D: font gate, measure, `fillText`, `getImageData`.                                                   |
 | `src/features/portfolio/services/dot-field-renderer.service.ts` | WebGL2 plumbing: compile, link, VAO, uniforms, draw.                                                        |
@@ -178,7 +179,7 @@ The name renders as a grid of white dots sampled from the glyph outlines. The po
 
 **Do not merge the two effects in `use-dot-field.hook.ts`.** The first creates the GL context and owns the RAF loop and listeners; its deps are stable. The second samples the glyphs and uploads the buffer, keyed on `[text, fontFamily]`. That split is the entire reason Part B's live editing is viable: a keystroke re-runs only the geometry effect. Putting `text` in the first effect's deps tears down and recreates a WebGL context per keystroke, which stutters visibly and eventually exhausts the browser's ~16-context limit.
 
-**`maxHeightRatio` is measured against the dot container, not the viewport.** That container is the canvas, which bleeds 25% above and below the wordmark box, so it is 1.5× the stage height. `0.57` (0.85 ÷ 1.5) keeps the ink at 85% of the stage. An early render double-applied a viewport ratio and shrank the word to a third of its size. **If the stage height or the bleed changes, recheck this.**
+**`maxHeightRatio` is measured against the dot container, not the viewport.** That container is the bleed box (the pointer target, which no longer holds the canvas since the scroll morph), which bleeds 25% above and below the wordmark box, so it is 1.5× the stage height. `0.57` (0.85 ÷ 1.5) keeps the ink at 85% of the stage. An early render double-applied a viewport ratio and shrank the word to a third of its size. **If the stage height or the bleed changes, recheck this.**
 
 ## Hero spring scatter (replaced the vortex)
 
@@ -213,7 +214,59 @@ The owner asked for the adriavale.framer.website hero behaviour: the pointer pus
 - **`document.fonts.ready` alone is useless here.** It resolves when the current layout has no _pending_ loads, so if nothing has demanded the font yet it resolves immediately against an unloaded one. `document.fonts.load()` is the load-bearing call. `load()` resolves with `[]` rather than rejecting on an unknown family, so the `check()` afterwards is mandatory.
 - `display: "block"` on the loader, not the default `"swap"`. With `swap` the browser paints metric-adjusted Arial for up to 3s and then swaps — and that swap can land _after_ sampling.
 
-**Observability for tests.** The stage carries `data-status` (`idle` → `running`, or `unsupported`) and the canvas carries `data-point-count`. `tests/e2e/hero.spec.ts` asserts both: `data-status="running"` proves context creation, compilation, linking, the font gate, sampling, upload and first draw all succeeded, and `data-point-count > 500` is the only external signal that the sampler produced real geometry from the real font. If Antonio silently fails to load, the count moves and the test catches it. Headless Chromium has genuine WebGL2 via SwiftShader, so this path is really exercised.
+**Observability for tests.** The stage carries `data-status` (`idle` → `running`, or `unsupported`) and `data-morph` (`name` → `moving` → `cube`), and the canvas carries `data-point-count`. `tests/e2e/hero.spec.ts` asserts both: `data-status="running"` proves context creation, compilation, linking, the font gate, sampling, upload and first draw all succeeded, and `data-point-count > 500` is the only external signal that the sampler produced real geometry from the real font. If Antonio silently fails to load, the count moves and the test catches it. Headless Chromium has genuine WebGL2 via SwiftShader, so this path is really exercised.
+
+## Scroll morph + quote (done, 2026-09-26)
+
+As the visitor scrolls out of the hero, the name's own dots leave the wordmark, arc down the page and re-form as a slowly turning cube drawn in stippled dot outlines, with an owner-editable statement quote wiped in underneath (`#quote`). This is the "scroll morph" DESIGN.md planned, and the jeffmilanes.com Scene 03 idea it borrows from. The design was reviewed by three independent critics (GL, layout, conventions) before it was built.
+
+- **One canvas, owned by `Hero`, scrolling with the document.** `Hero`'s root is now the stage: the canvas, `#home` and `#quote`. The canvas runs from the stage top to the cube slot's bottom and scrolls natively.
+  - A sticky or fixed canvas was rejected. It must move the name with main-thread `scrollY`, a frame behind compositor scrolling, so the dot name would wobble against the DOM tagline on flings.
+  - Scroll drives only the morph _progress_, eased toward its target (`morphFollowRate`), so the one-frame lag is absorbed.
+  - Keeping `Hero` as the owner (not a new wrapper) kept every existing unit test meaningful and needed no state lifting.
+- **The canvas is opaque (`alpha: false`), so it sits at `-z-10` inside an `isolate` stage.** An absolutely positioned canvas paints over non-positioned content regardless of DOM order; without this it hides the quote. `#home` lost its own `bg-black` for the same reason: the stage is black.
+- **Home positions stay in the bleed box's local device px.** Uniforms (`uWordOrigin`, `uWordCenter`) place them on the stage-wide canvas. Sampling, `maxHeightRatio`, the physics and the pointer maths are therefore unchanged.
+  - The origin is anchored on the box centre and **rounded to whole device pixels**. Unrounded, the lattice lands at a sub-pixel phase and the seams between dots render visibly darker.
+  - The canvas CSS size is derived from the rounded backing size, never the other way round. A fractional CSS height made the compositor rescale the whole lattice.
+  - At rest on desktop the hero is pixel-identical to the pre-morph build (measured).
+  - At DPR 2 the lattice phase differs by a sub-pixel. The old phase was an accident of a fractional layout offset, and no whole-pixel snap reproduces it.
+- **Pixel budget.** The canvas is about 1.5 viewports tall. `resolveCanvasPixelRatio` caps the backing store at `MAX_CANVAS_PIXELS` (10M) and the GPU's maximum dimension, stepped in quarters so small height changes don't force a resample. One pixel ratio feeds the canvas, the sampler and the pointer.
+  - This keeps DPR 2 on 13–14" laptops, gives about 1.75 on a 16", and about 1.25 on 4K at 150%. Phones are unaffected.
+- **Dimness is opacity, not darkness.** The fragment writes `rgb = colour × shade` and `alpha = mask × opacity` under the original source-over blend.
+  - At rest this is exactly the old path.
+  - In the cube, far edges are dimmed by _opacity_. Compositing one colour over itself never darkens it, so a dim back edge drawn after a bright front edge cannot chew a hole in it. That was the real risk with plain source-over.
+  - MAX blending was tried first and rejected. It stopped soft dot edges accumulating, which darkened every seam in the wordmark.
+- **Cube geometry is CPU-side and pure.** `generateCubePoints` (`dot-field.rules.ts`) uses a seeded PRNG, so it is deterministic and unit-tested.
+  - Up to 7,200 dots are spread evenly over the index range onto the 12 edges, with bounded jitter for the stipple. The owner asked for thicker edges after the first pass, so the jitter went from 0.02 to 0.03 and the cube dots from 2.25 to 3 CSS px. The rest fade out mid-flight (`cubeFaceAlpha` 0, the owner's choice; raise it for dim "glass" faces).
+  - It is regenerated whenever the wordmark is resampled and uploaded **inside** `uploadPoints`, so the two buffers can never disagree in length.
+- **The loop still sleeps in the hero.**
+  - While the cube is on screen it spins constantly.
+    - It first shipped as spin-then-rest (a 3s hold, then stopped by 5s, for WCAG 2.2.2). The owner then asked for constant rotation with "personality".
+    - The spin axis now leans (`cubeRoll` −0.2 rad) and precesses in a small circle (`cubeWobble` 0.07 rad at `wobbleSpeed` 0.9 rad/s): pitch uses the sine of the phase and roll the cosine.
+    - The idle-stop code (`resolveSpinSpeed`, the hold and idle tuning) was deleted, not disabled.
+  - RAF was measured at 0 frames per second with the name at rest.
+  - While the cube is visible, the loop runs for the spin; it was measured still turning 8.5s after the last scroll. Once the canvas leaves the viewport it stops.
+  - Scroll or pointer input wakes it.
+  - The IntersectionObserver watches the **canvas**.
+    - Watching the wordmark box stops the loop exactly when the cube scrolls into view.
+    - Watching the whole stage (a review finding) keeps an off-screen cube spinning, because the stage runs about 400px past the canvas into the quote. With constant spin, that would be permanent while the quote is read.
+  - Pointer moves only wake the loop when a push can actually happen (name or cube formed). Otherwise hovering mid-morph redraws identical frames.
+- **Layout is re-measured, not resampled.** One `ResizeObserver` watches the stage, the bleed box and the tagline, and re-anchors immediately. The backing-store resize and any resample stay on the 150 ms debounce, gated by `shouldRebuildPoints`. Quote edits never resample the name.
+- **Reduced motion draws both states statically.** The name at progress 0 and the cube at a fixed angle go in two draw calls, with no loop and no flight. `data-morph` still tracks the scroll position.
+- **Deep links settle the intro.** Loading at `/#quote` (or `/#contact`, or with scroll restoration) starts with progress at its target and skips the intro, so there is no fly-in and no half-finished name waiting above.
+- **The quote is plain text, not rich text.** Antonio uppercase has no italic voice, and plain text avoids tying the quote to the Tiptap allowlist. `#quote` has no scroll margin, so selecting it in the editor lands exactly on the formed cube.
+- **The cube is interactive, with the same physics as the name.** The owner asked for the cube to scatter and spring back in sync with the hero.
+  - **One spring for both shapes.** The shader adds the spring offsets _after_ the name-to-cube mix, so one offset buffer and one `stepDotPhysics` drive both. At rest the name is still pixel-identical (measured).
+  - **CPU homes for the cube.** Its home positions exist only on the GPU, so while the cube is formed and being touched, `projectCubePoints` recomputes them on the CPU with the shader's exact rotation and perspective maths. That is about 30k multiply-adds, well under a millisecond, and it only runs while the field is moving.
+  - **Pointer space.** The pointer lives in canvas device px. The name's physics gets a copy shifted by `uWordOrigin`, so the old local-space maths is unchanged.
+  - **Radius.** The cube's push radius uses `cubeSide × cubeInkRatio` (0.65) as its ink height. That matches the name's radius-to-letter-height feel.
+  - **Rotation and spin.** Offsets are screen-space and decay while the homes rotate, so scattered dots ride the rotation home.
+- **Review fixes (2026-09-26), all confirmed by a second, adversarial pass:**
+  - **Hero height is fractional.** It is measured with `getBoundingClientRect().height` and gets a 1px landing tolerance. With a fractional `100svh` (browser zoom, Windows scaling), `/#quote` otherwise settled at 0.9999 and `data-morph` stayed "moving".
+  - **The caption is always mounted.** It is hidden with `hidden` when the author is empty. A caption that mounted after the reveal never animated in, so an author typed in the editor stayed invisible in the preview.
+  - **The quote fields carry `maxLength`.** A pasted over-long quote otherwise failed the whole-form `safeParse` on every change and silently stalled preview and autosave for every panel. This is the trap described under Part B.
+  - **The quote paragraph has `wrap-break-word`.** The settled `inset(0%)` clip would otherwise cut off a long unbroken token such as a URL.
+- **Editor labels must not contain "Name".** `editor.spec.ts` uses `getByLabel("Name")`, which is a substring match and counts hidden panels, so "Author name" would break it.
 
 ## Live content editor — Part B (done)
 
@@ -280,6 +333,10 @@ Two changes fix it, and both are worth keeping:
 
 ## Open items for the user
 
+- **Constant cube rotation fails WCAG 2.2.2.** It is endless motion with no pause control, and the owner chose it knowingly on 2026-09-26. Reduced motion gets a still cube. If AA compliance matters, add a small square pause toggle by the cube.
+- **The quote is a placeholder.** It is seeded as "Your quote about life goes here." with no author. Replace it in the editor (Quote entry). Nothing is invented.
+- **The theme drift is now in plain view.** After 120 px of scroll the header turns solid in the seeded light theme: a pale grey bar over the black cube section. The stage also ends in a hard edge into the white `#project` section. DESIGN.md already specifies the dark reseed.
+- **Without JavaScript the quote stays clipped,** the same as the hero tagline, because the reveal's initial state is server-rendered.
 - **Site metadata is placeholder** — `"Criztian — Portfolio"` / `"Personal portfolio and contact."` in `src/app/layout.tsx`. Hero copy is now database-driven and editable (`site_content.draft`); the Project / About / Services / Blog section bodies in `site-page.component.tsx` are still placeholders and are **not** yet editable — Part B covers the hero only.
 - **Commit author is `criztiandev`** (lowercase, guessed from the email when git had no identity). GitHub handle is `Criztiandev`. Offered a rewrite; the user has not decided.
 - **Browser walkthrough not fully confirmed.** Login is confirmed working from the user's own logs. The password-reset-through-Mailpit round trip and the contact form's rendered success state have been verified by HTTP/curl but not visually.

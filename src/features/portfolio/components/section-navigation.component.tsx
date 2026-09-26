@@ -1,15 +1,16 @@
 "use client"
 
-import { Menu, X } from "lucide-react"
+import { ArrowUpRight, Menu, X } from "lucide-react"
 import { motion, useMotionValueEvent, useScroll } from "motion/react"
 import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
   PORTFOLIO_ACTION_NAVIGATION,
-  PORTFOLIO_LEADING_NAVIGATION,
+  PORTFOLIO_BRAND_LABEL,
+  PORTFOLIO_HOME_NAVIGATION,
   PORTFOLIO_NAVIGATION,
-  PORTFOLIO_TRAILING_NAVIGATION,
+  PORTFOLIO_PRIMARY_NAVIGATION,
 } from "@/data/navigation.data"
 import {
   useActiveSection,
@@ -48,19 +49,6 @@ const GROUP_VARIANTS = {
     opacity: 1,
     y: 0,
   },
-}
-
-function LogoMark() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className="size-[18px]"
-      fill="currentColor"
-    >
-      <path d="M12 1.5 13.2 9l5.3-4.2-4.2 5.3L21.9 12l-7.6 1.9 4.2 5.3-5.3-4.2L12 22.5 10.8 15l-5.3 4.2 4.2-5.3L2.1 12l7.6-1.9-4.2-5.3L10.8 9z" />
-    </svg>
-  )
 }
 
 export function SectionNavigation() {
@@ -105,7 +93,7 @@ export function SectionNavigation() {
         onClick={onSelect}
         aria-current={isActive ? "true" : undefined}
         className={cn(
-          "rounded-sm px-3 py-2 text-xs tracking-wide uppercase transition-colors",
+          "rounded-sm px-3 py-2 text-sm tracking-wide uppercase transition-colors",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
           isSolid
             ? "text-muted-foreground hover:text-foreground"
@@ -114,6 +102,39 @@ export function SectionNavigation() {
         )}
       >
         {item.label}
+      </a>
+    )
+  }
+
+  function renderBrandLink() {
+    const item = PORTFOLIO_HOME_NAVIGATION
+
+    function onSelect() {
+      actions.selectSection(item.id)
+    }
+
+    return (
+      <a
+        href={item.href}
+        onClick={onSelect}
+        className={cn(
+          "inline-flex items-start gap-0.5 justify-self-start transition-colors",
+          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+          isSolid ? "text-foreground" : "text-white"
+        )}
+      >
+        <span className="font-display text-[1.75rem] leading-none font-bold uppercase">
+          {PORTFOLIO_BRAND_LABEL}
+        </span>
+        <span
+          aria-hidden="true"
+          className={cn(
+            "text-[0.625rem] leading-none",
+            isSolid ? "text-muted-foreground" : "text-white/45"
+          )}
+        >
+          ©
+        </span>
       </a>
     )
   }
@@ -129,16 +150,17 @@ export function SectionNavigation() {
       <a
         href={item.href}
         onClick={onSelect}
-        aria-current={item.id === activeSection ? "true" : undefined}
         className={cn(
-          "border px-5 py-2 text-xs tracking-wide uppercase transition-colors",
+          "inline-flex items-center gap-2 px-5 py-2",
+          "text-sm tracking-wide uppercase transition-colors",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
           isSolid
-            ? "border-border text-foreground hover:bg-foreground hover:text-background"
-            : "border-white/40 text-white hover:bg-white hover:text-black"
+            ? "bg-foreground text-background hover:bg-foreground/80"
+            : "bg-white text-black hover:bg-white/80"
         )}
       >
         {item.label}
+        <ArrowUpRight aria-hidden="true" className="size-4" />
       </a>
     )
   }
@@ -153,26 +175,31 @@ export function SectionNavigation() {
         isSolid ? "border-b bg-background/80 backdrop-blur" : "bg-transparent"
       )}
     >
-      <div className="relative flex h-18 items-center justify-between px-6 md:px-10">
-        <div>HI</div>
+      <div
+        className={cn(
+          "relative flex h-18 items-center justify-between px-6",
+          "md:grid md:grid-cols-[1fr_auto_1fr] md:px-10"
+        )}
+      >
+        <motion.div variants={GROUP_VARIANTS} className="justify-self-start">
+          {renderBrandLink()}
+        </motion.div>
 
         <motion.nav
           aria-label="Primary"
           variants={GROUP_VARIANTS}
-          className="hidden items-center gap-1 md:flex"
+          className="hidden items-center gap-4 md:flex"
         >
-          {PORTFOLIO_LEADING_NAVIGATION.map(renderLink)}
+          {PORTFOLIO_PRIMARY_NAVIGATION.map(renderLink)}
         </motion.nav>
 
         <motion.nav
           aria-label="Secondary"
           variants={GROUP_VARIANTS}
-          className="hidden items-center gap-1 md:flex"
+          className="hidden items-center justify-self-end md:flex"
         >
           {renderActionLink()}
         </motion.nav>
-
-        <div className="flex-1 md:hidden" />
 
         <Button
           type="button"

@@ -17,8 +17,9 @@ typography:
     letterSpacing: "0.05em"
   headline:
     fontFamily: 'Antonio, "Antonio Fallback", sans-serif'
+    fontSize: "clamp(1.75rem, 1rem + 3vw, 3.5rem)"
     fontWeight: 700
-    lineHeight: 1
+    lineHeight: 1.05
   body:
     fontFamily: 'Geist, "Geist Fallback", sans-serif'
     fontSize: "1rem"
@@ -59,12 +60,13 @@ components:
   nav-link-active:
     textColor: "{colors.lamp-white}"
   button-contact:
-    textColor: "{colors.lamp-white}"
+    backgroundColor: "{colors.lamp-white}"
+    textColor: "{colors.unlit-black}"
     typography: "{typography.label}"
     rounded: "{rounded.none}"
     padding: "8px 20px"
   button-contact-hover:
-    backgroundColor: "{colors.lamp-white}"
+    backgroundColor: "{colors.lit-grey}"
     textColor: "{colors.unlit-black}"
   button-primary:
     backgroundColor: "{colors.lamp-white}"
@@ -72,6 +74,12 @@ components:
     rounded: "{rounded.none}"
     height: "32px"
     padding: "0 10px"
+  quote-statement:
+    textColor: "{colors.lamp-white}"
+    typography: "{typography.headline}"
+  quote-attribution:
+    textColor: "{colors.dim-grey}"
+    typography: "{typography.cue}"
   input:
     backgroundColor: "{colors.unlit-black}"
     textColor: "{colors.lamp-white}"
@@ -88,7 +96,7 @@ components:
 
 The site is a dark room with a display board. The name **Criztian** is not typeset. It is built from thousands of points of light that sit on black, scatter from a cursor or a finger, and spring back with a bounce. Everything around the board is quiet signage: small, tracked-out, uppercase labels at partial brightness that never compete with it. The board is what you remember, and the rest of the page exists so you can read it.
 
-The world is **black throughout** and **strictly monochrome**. Hierarchy is set by how brightly something is lit (full white, three-quarter, dimmed, ghost), never by hue. Every corner is square, because signage and hardware are square. The only round thing on the site is a dot. Motion is deliberate and cinematic. The name sweeps on dim, grows into place, and only then does the supporting copy lift in. The planned signature goes further: the dots leave the wordmark as you scroll and re-form into other shapes between sections.
+The world is **black throughout** and **strictly monochrome**. Hierarchy is set by how brightly something is lit (full white, three-quarter, dimmed, ghost), never by hue. Every corner is square, because signage and hardware are square. The only round thing on the site is a dot. Motion is deliberate and cinematic. The name sweeps on dim, grows into place, and only then does the supporting copy lift in. The signature goes further: as you scroll, the dots leave the wordmark and re-form into a slowly turning cube drawn in stippled points, above a statement quote.
 
 This file describes the public site. The owner surfaces (`/login`, `/dashboard`, the editor) are tools that use the stock shadcn neutral system with light and dark modes. Only the Square Signal Rule reaches them, because it is set at the token level.
 
@@ -131,7 +139,7 @@ The palette is a set of brightness levels on black. Every colour is white at som
 
 **Known drift:**
 
-- The seeded owner-theme defaults in `src/data/site-content.data.ts` are still light (page `#ffffff`, body text `#252525`), so every section below the hero renders white.
+- The seeded owner-theme defaults in `src/data/site-content.data.ts` are still light (page `#ffffff`, body text `#252525`), so every section below the quote renders white, and the header turns into a pale grey bar once it goes solid over the black stage.
 - In an OS dark scheme the page mixes both worlds. `next-themes` darkens the body, while the owner theme forces `--background` to white inside the page wrapper, so the scrolled header renders as a pale grey bar over a dark page.
 - The five owner-editable tokens should seed as follows:
   - page background → Unlit Black
@@ -155,7 +163,7 @@ The palette is a set of brightness levels on black. Every colour is white at som
 ### Hierarchy
 
 - **Display** (Antonio 700, uppercase, `min(25vw, 40svh)` on mobile and `clamp(3rem, 18vw, 16rem)` from 768px, line-height 1, tracking 0.05em in the dot sampler): the name, and nothing else. It is the source shape the dot field samples.
-- **Headline** (Antonio 700, uppercase, line-height 1): section titles such as Project, About, Services, Blog and Contact. The size is not yet set; resolve it when the first real section ships. Keep it clearly below Display and clearly above everything in Geist.
+- **Headline** (Antonio 700, uppercase, `clamp(1.75rem, 1rem + 3vw, 3.5rem)`, line-height 1.05): section titles such as Project, About, Services, Blog and Contact, and the **statement quote** under the cube. The rem term keeps it growing under page zoom (WCAG 1.4.4). Keep it clearly below Display and clearly above everything in Geist.
 - **Body** (Geist 400, 16px, line-height 1.5): paragraphs and form text. Keep lines to about 65–75ch.
 - **Lede** (Geist 400, uppercase, 14px/1.625 with 0.14em tracking from 768px; 13px/1.7 with 0.05em tracking on mobile): the hero tagline and other one-line statements under a headline. Maximum width is 34rem.
 - **Label** (Geist 400, uppercase, 12px, 0.025em tracking): nav links and the Contact action.
@@ -163,7 +171,7 @@ The palette is a set of brightness levels on black. Every colour is white at som
 
 ### Named Rules
 
-**The Two-Voice Rule.** Antonio is for uppercase headlines and the name. Geist handles everything else. There is no third voice, and there is no mixed-case Antonio.
+**The Two-Voice Rule.** Antonio is for uppercase headlines, the statement quote and the name. Geist handles everything else. There is no third voice, and there is no mixed-case Antonio.
 
 **The Tracked Signage Rule.** Uppercase Geist is always tracked out. Uppercase text at default tracking reads as shouting, not signage.
 
@@ -176,12 +184,13 @@ The layout is a single vertical scroll of full-width sections on one black groun
 - **Hero stage:**
   - At every width it fills exactly one viewport (`100svh`) and centres its content.
   - The wordmark box is `min(40vw, 45svh)` tall on mobile and `min(clamp(380px, 23.4vw + 200px, 500px), 70svh)` from 768px. The name spans 92% of the width on mobile and 78% from 768px.
-  - The dot canvas bleeds 25% above and below the wordmark box, so scattered dots are never clipped along an invisible line.
+  - The pointer box bleeds 25% above and below the wordmark box. The one dot canvas spans the whole stage (hero and quote) from its top to the cube slot's bottom, so scattered and travelling dots are never clipped along an invisible line. Its backing store is capped at `MAX_CANVAS_PIXELS`.
   - The scroll cue is pinned 40px from the bottom of the stage at every width, and hidden when the viewport is under 30rem tall (landscape phones).
 - **Header:**
   - Fixed and 72px tall, with 24px side gutters on mobile and 40px on desktop.
-  - It has three zones: brand mark at left, primary nav (Home, Project, About) in the centre, and the Contact action at right.
+  - It has three zones on a `1fr auto 1fr` grid, so the nav stays truly centred: the brand wordmark at left (linking to `#home`), the primary nav (Project, Blog, About, Contact) in the centre, and the "Let's talk" action at right.
   - Below 768px the nav collapses behind a menu button into a full-width stacked panel.
+- **Quote (`#quote`):** directly after the hero, on the same black stage, and not in the nav. It is at least one viewport tall. A square cube slot, `min(80vw, 46svh, 36rem)`, is top-aligned under a `max(5.5rem, 12svh)` top pad, so its position never depends on the quote's length. The centred quote sits 32px below the slot (40px from 768px), at most 20ch wide and balanced. It has no scroll margin, so an anchored `#quote` lands exactly on the formed cube.
 - **Sections:** currently placeholder layout. Each is a centred column (max 896px, 16px gutters, 80px vertical padding) with an 80px scroll margin so anchored headings clear the header. Treat the scroll margin as fixed and the column as provisional.
 
 **The Stage Rule.** The hero owns the first viewport. Nothing else competes above the fold, not even a secondary call to action.
@@ -219,21 +228,34 @@ The name as a matrix of lit points. It is a single WebGL2 canvas that samples An
   - It works with a mouse hover or a finger drag. Vertical swipes still scroll the page, and the dots bounce home when they do.
   - It is inactive during the intro and under reduced motion.
 - **Fallbacks:** no WebGL2 falls back to the text wordmark, with the same sweep and grow done in CSS. Reduced motion draws the settled dots once, with no loop. There is no viewport gate: phones run the dots. The `<h1>` is always present and readable. Only the canvas is `aria-hidden`.
-- **Planned: scroll morph.** Borrowed from jeffmilanes.com Scene 03. As the visitor scrolls, the dots leave the name, travel down with the page and re-form into outline shapes (for example, a device frame drawn in dots) as the transition into the next section.
-  - It stays decorative: the text `<h1>` and each section's real content carry all meaning.
-  - Under reduced motion there is no morph.
-  - It stays inside the existing point budget (maximum 250,000 points).
-  - It is not built yet.
+- **Scroll morph.** Borrowed from jeffmilanes.com Scene 03. As the visitor scrolls, the name's own dots leave the wordmark and re-form as a cube drawn in stippled outlines, in the slot above the quote.
+  - **Window:** the morph starts once 10% of the hero has scrolled away and completes when the quote section reaches the top of the viewport. Progress follows the scroll with a short ease, so flings read as a float, not a jitter.
+  - **Flight:** the name dissolves left to right, echoing the intro sweep and the quote wipe. Each dot's departure is staggered, it travels on a gentle arc, and it eases in and out.
+  - **Cube:** up to 7,200 dots land on the 12 edges in a jittered band about as thick as a chalk stroke, drawn with 3px dots. Leftover dots fade out mid-flight. The cube is tilted toward the viewer and seen in perspective.
+  - **Pointer:** the cube scatters and springs back exactly like the name, with the same spring and bounce. Its push radius is scaled to the cube's on-screen size, as the name's is to its ink height. Scattered dots ride the rotation home.
+  - **Depth as light:** far edges are dimmer (down to 35%), never smaller or coloured. Dimness is expressed as opacity, so a far edge can never darken a near one where they cross.
+  - **Constant spin with a lean:** the cube never stops turning, one revolution about every 21s. Its spin axis leans about 11° to the right and slowly circles a further 4° like a spinning top, once every 7s, so it never turns on a rigid, mechanical axis. Scrolling back reverses the morph, and dots in flight ignore the pointer.
+  - **Known gap:** endless motion with no pause control does not meet WCAG 2.2.2 (Pause, Stop, Hide). The owner chose constant rotation over the earlier spin-then-rest. Reduced motion still gets a still cube. A pause toggle is the fix if AA compliance is needed.
+  - **Reduced motion:** no flight, spin or wobble. The name and the cube, leaning at its resting angle, are drawn still, each in its own place.
+  - **No WebGL2:** the slot collapses and the quote moves up. The text `<h1>` and the quote carry all meaning either way.
+  - It reuses the wordmark's points, so it adds none to the budget.
+
+### Statement Quote
+
+The one quote on the page, owner-editable in the dashboard (text plus an optional author), seeded as a visible placeholder until the owner writes their own. It is the Headline voice: Antonio 700 uppercase in Lamp White, centred, at most 20ch wide and balanced across lines. The author sits 24px below in Cue type at Dim Grey after an em dash, and is hidden when empty. Its markup is `figure > blockquote > p` plus a `figcaption`.
+
+- **Reveal:** once the quote is 20% into the viewport (about when the cube locks in), a clip wipe opens it left to right while the text slides 24px into place, over 0.9s on `cubic-bezier(0.65, 0, 0.35, 1)`. The author lifts in 0.6s later. It plays once.
+- **Reduced motion:** it appears instantly. The hidden state never uses opacity, so the text stays readable to assistive tech throughout.
 
 ### Navigation
 
-Uppercase Label links at Lit Grey over the hero, lighting to Lamp White on hover and for the current section (`aria-current`). They sit in the centre zone in a 4px-gapped row with 12px × 8px hit padding. Once the header turns solid, the links step down to muted text and hover to full foreground. The header drops in 24px on load (0.6s) and its groups stagger in 0.06s apart. On mobile, a ghost icon button toggles a stacked panel of all six links, and Escape closes it.
+Uppercase 14px Geist links, tracked out, at Lit Grey over the hero, lighting to Lamp White on hover and for the current section (`aria-current`). They sit in the centre zone in a 16px-gapped row with 12px × 8px hit padding. Once the header turns solid, the links step down to muted text and hover to full foreground. The header drops in 24px on load (0.6s) and its groups stagger in 0.06s apart. On mobile, a ghost icon button toggles a stacked panel of all six links, and Escape closes it.
 
-**Known drift:** the brand slot holds placeholder text "HI". It renders black on black over the hero, so it is invisible. An eight-point star glyph (`LogoMark`) is defined in the component but not used.
+**Brand (placeholder):** the name in Antonio 700 uppercase at 28px, Lamp White, with a small Ghost Grey © at its top right. It stands in until the owner's own logo (planned as a cursive mark) replaces it.
 
 ### Contact Action
 
-The one call to action in the header: a square outlined button in Label type with a Wire Grey hairline and Lamp White text, 20px × 8px padding. On hover it inverts to a Lamp White fill with Unlit Black text. It is the brightest interactive surface on the page, and it links to `#contact`.
+The one call to action in the header: a square Lamp White button with Unlit Black 14px uppercase text reading "Let's talk" and a 16px up-right arrow, 20px × 8px padding. On hover the fill dims to 80%. It is the brightest interactive surface on the page, it links to `#contact`, and it is hidden below 768px, where the menu panel carries Contact.
 
 ### Buttons
 
@@ -250,14 +272,14 @@ The one call to action in the header: a square outlined button in Label type wit
 
 ### Scroll Cue
 
-Cue type in Dim Grey with a 14px down-right arrow. It lifts in (16px, 0.6s) 0.3s after the intro settles, and invites the scroll that will drive the planned morph.
+Cue type in Dim Grey with a 14px down-right arrow. It lifts in (16px, 0.6s) 0.3s after the intro settles, and invites the scroll that drives the morph.
 
 ## Do's and Don'ts
 
 ### Do:
 
 - **Do** keep every public section on Unlit Black (#000000) and express hierarchy through brightness steps: Lamp White, Lit Grey, Dim Grey.
-- **Do** set section titles in Antonio 700 uppercase and everything else in Geist.
+- **Do** set section titles and the statement quote in Antonio 700 uppercase and everything else in Geist.
 - **Do** track out uppercase Geist (0.025em for labels, 0.14em for ledes, 0.22em for cues).
 - **Do** keep a real, readable `<h1>` behind the dot field, and mark only the canvas `aria-hidden`.
 - **Do** route every motion through the reduced-motion preference. The dot field checks it separately, because it is not a `motion` component.

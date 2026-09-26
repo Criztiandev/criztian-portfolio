@@ -3,8 +3,12 @@ import { describe, expect, it } from "vitest"
 import {
   DEFAULT_HERO_NAME,
   DEFAULT_HERO_TAGLINE_TEXT,
+  DEFAULT_QUOTE_AUTHOR,
+  DEFAULT_QUOTE_TEXT,
   DEFAULT_THEME_HERO_DOT,
   DEFAULT_THEME_PAGE_BACKGROUND,
+  QUOTE_AUTHOR_MAX_LENGTH,
+  QUOTE_TEXT_MAX_LENGTH,
 } from "@/data/site-content.data"
 import {
   createDefaultSiteContent,
@@ -76,6 +80,55 @@ describe("parseSiteContent", () => {
 
   it("falls back to defaults when the document is the wrong shape", () => {
     const result = parseSiteContent("not a document")
+
+    expect(result.usedDefaults).toBe(true)
+  })
+})
+
+describe("quote content", () => {
+  it("seeds the placeholder quote with no author", () => {
+    const content = createDefaultSiteContent()
+
+    expect(content.quote.text).toBe(DEFAULT_QUOTE_TEXT)
+    expect(content.quote.author).toBe(DEFAULT_QUOTE_AUTHOR)
+  })
+
+  it("fills the quote for a document saved before the quote existed", () => {
+    const result = parseSiteContent({ hero: { name: "Ada" }, theme: {} })
+
+    expect(result.usedDefaults).toBe(false)
+    expect(result.content.quote.text).toBe(DEFAULT_QUOTE_TEXT)
+  })
+
+  it("collapses whitespace in the quote and the author", () => {
+    const result = parseSiteContent({
+      quote: { text: "  Keep   going  ", author: " Ada   Lovelace " },
+    })
+
+    expect(result.content.quote.text).toBe("Keep going")
+    expect(result.content.quote.author).toBe("Ada Lovelace")
+  })
+
+  it("rejects a blank quote", () => {
+    const result = parseSiteContent({ quote: { text: "   " } })
+
+    expect(result.usedDefaults).toBe(true)
+  })
+
+  it("resets the whole document when the quote is over the limit", () => {
+    const result = parseSiteContent({
+      hero: { name: "Ada" },
+      quote: { text: "a".repeat(QUOTE_TEXT_MAX_LENGTH + 1) },
+    })
+
+    expect(result.usedDefaults).toBe(true)
+    expect(result.content.hero.name).toBe(DEFAULT_HERO_NAME)
+  })
+
+  it("rejects an author over the limit", () => {
+    const result = parseSiteContent({
+      quote: { author: "a".repeat(QUOTE_AUTHOR_MAX_LENGTH + 1) },
+    })
 
     expect(result.usedDefaults).toBe(true)
   })

@@ -70,12 +70,28 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
 **Hero dot field** (`src/features/portfolio/`).
 
 - **How it works:** raw WebGL2, no three.js or ogl. The sampler (Canvas2D) rasterises the name in Antonio and samples a dot grid. The renderer and GLSL in `shaders/` draw it. `dot-field.rules.ts` is the pure, unit-tested layer.
+- **Stage and scroll morph:**
+  - `Hero`'s root is the stage. It holds the one opaque canvas at `-z-10` inside `isolate`, then `#home`, then `QuoteSection` (`#quote`). The canvas runs from the stage top to the cube slot's bottom and scrolls with the document.
+  - Scrolling out of the hero morphs the name's dots into a spinning stippled cube in the quote's slot.
+  - Keep **exactly one `<canvas>` and one `[data-status]`** on the page; the e2e specs use strict locators.
+- **Coordinates:** home positions stay in the bleed box's local device px. Uniforms (`uWordOrigin`, rounded to whole device pixels, and `uWordCenter`) place them on the canvas. One pixel ratio from `resolveCanvasPixelRatio` feeds the canvas, the sampler and the pointer. The canvas CSS size is derived from its rounded backing size.
+- **Cube buffer:** attributes 2 and 3 come from `generateCubePoints`, always for the same count as the wordmark, and are uploaded inside `uploadPoints`.
+- **Blending:** dimness in the cube is opacity, not darkness, under source-over. Don't switch to MAX blending: it darkens the wordmark's seams.
 - **Tuning:** every tuning number lives in `src/data/hero.data.ts`. Tune there and nowhere else.
-- **Two effects in `use-dot-field.hook.ts`; never merge them.** One owns the GL context and animation loop, with stable deps (`[containerRef, canvasRef, mode]`). The other resamples geometry on `[text, fontFamily]`. Merging them recreates a WebGL context on every editor keystroke. A third, tiny effect applies `dotColor` as a uniform; never put `dotColor` in the GL effect's deps, or a colour edit blanks the field.
-- **Physics:** each dot is a damped spring (`stepDotPhysics` in `dot-field.rules.ts`), stepped on the CPU and streamed to vertex attribute 1 as offsets from the static home positions. Radius and push scale with the wordmark's ink height. The RAF loop stops once every dot is at rest and pointer input restarts it, so a resize must always redraw.
-- **No `useState` in the hook.** Status goes out as DOM attributes (`data-status`, `data-point-count`), which CSS and the e2e specs key off.
+- **Two effects in `use-dot-field.hook.ts`; never merge them.** One owns the GL context and animation loop, with stable deps (`[stageRef, heroRef, wordmarkRef, taglineRef, cubeRef, canvasRef, mode]`). The quote never enters the hook. The other resamples geometry on `[text, fontFamily]`. Merging them recreates a WebGL context on every editor keystroke. A third, tiny effect applies `dotColor` as a uniform; never put `dotColor` in the GL effect's deps, or a colour edit blanks the field.
+- **Physics:** each dot is a damped spring (`stepDotPhysics` in `dot-field.rules.ts`), stepped on the CPU and streamed to vertex attribute 1 as offsets from the static home positions. Radius and push scale with the wordmark's ink height.
+- **Pointer:** it pushes at morph 0 (the name) and at morph 1 (the cube), never while dots are in flight.
+  - The pointer is kept in canvas device px.
+  - For the cube, `projectCubePoints` recomputes the homes on the CPU with the shader's exact maths. The ink height becomes `cubeSide × cubeInkRatio`.
+  - Offsets are added after the name-to-cube mix, so one spring drives both shapes.
+- **Loop:**
+  - The RAF loop stops once every dot is at rest and the morph is back at 0.
+  - While the cube shows (morph > 0) it spins constantly, by the owner's choice, and the loop runs as long as the canvas is visible.
+  - Scroll and pointer input restart the loop, so a resize must always redraw.
+  - The cube's orientation is `buildCubeRotation(yaw, pitch, roll)`. The pitch and roll wobble around `cubePitch` and `cubeRoll`. The IntersectionObserver watches the canvas: not the wordmark box, which would freeze the cube, and not the whole stage, which runs past the drawn area.
+- **No `useState` in the hook.** Status goes out as DOM attributes (`data-status` and `data-morph` on the stage, `data-point-count` on the canvas), which CSS and the e2e specs key off.
 - **Font gate:** it must check only the primary family (`Antonio`), because `Antonio Fallback` (metric-adjusted Arial) always reports as loaded. Use `document.fonts.load()` followed by `check()`; `fonts.ready` alone is not enough.
-- **Fallbacks:** no WebGL2 (or a lost context) falls back to the text `<h1>`. Reduced motion draws the settled dots once and never starts the loop. There is no viewport gate; phones run the dots. `aria-hidden` goes on the canvas only.
+- **Fallbacks:** no WebGL2 (or a lost context) falls back to the text `<h1>`, and the cube slot collapses. Reduced motion draws the settled name and the still cube once, in two draw calls, and never starts the loop. There is no viewport gate; phones run the dots. `aria-hidden` goes on the canvas only.
 
 **Other.**
 
@@ -107,6 +123,7 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
 - **e2e state:**
   - `tests/e2e/hero.spec.ts` asserts the published hero name is `Criztian`. Never leave a test value published; `editor.spec.ts` restores the name.
   - Logged-in specs create and delete a throwaway user via the admin API (`tests/e2e/owner-account.ts`). The owner's password is never needed; don't ask for it.
+  - `editor.spec.ts` finds the name field with `getByLabel("Name")`, a substring match that also counts hidden panels. No other editor label may contain "Name".
   - Each run sends a unique `x-forwarded-for` so the contact rate limit gets a fresh bucket.
 - **Contact anti-spam is deliberate:** a honeypot, a two-second minimum time-to-submit, and five per hour per hashed IP. Never weaken the checks to make tests faster.
 - **`#contact` must keep working;** the e2e suite navigates to it.

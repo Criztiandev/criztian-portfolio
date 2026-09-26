@@ -1,5 +1,89 @@
 export type HeroWordmarkMode = "dots" | "text"
 
+export type HeroMorphState = "name" | "moving" | "cube"
+
+export type CubicBezier = [number, number, number, number]
+
+export type CubeVector = [number, number, number]
+
+export type CubeEdge = {
+  start: CubeVector
+  end: CubeVector
+}
+
+export type CubeFace = {
+  axis: 0 | 1 | 2
+  side: number
+}
+
+export type RandomSource = () => number
+
+export type DotFieldVector = {
+  x: number
+  y: number
+}
+
+export type DotFieldMorphTuning = {
+  morphStartRatio: number
+  morphFollowRate: number
+  morphSettleEpsilon: number
+  morphStagger: number
+  morphJitter: number
+  morphArcPixels: number
+  cubeHalfSizeRatio: number
+  cameraDistance: number
+  cubePitch: number
+  cubeRoll: number
+  cubeWobble: number
+  wobbleSpeed: number
+  cubeStaticYaw: number
+  spinSpeed: number
+  morphSpin: number
+  cubeEdgePointLimit: number
+  cubeEdgeJitter: number
+  cubeFaceAlpha: number
+  farLight: number
+  cubeDotSize: number
+  cubeInkRatio: number
+}
+
+export type CubeProjection = {
+  center: DotFieldVector
+  halfSize: number
+  cameraDistance: number
+  rotation: Float32Array
+}
+
+export type DotFieldLayout = {
+  width: number
+  height: number
+  wordWidth: number
+  wordHeight: number
+  wordCenter: DotFieldVector
+  cubeCenter: DotFieldVector
+  cubeSide: number
+  morphStart: number
+  morphEnd: number
+}
+
+export type DotFieldLayoutElements = {
+  stage: HTMLElement
+  hero: HTMLElement
+  wordmark: HTMLElement
+  cube: HTMLElement
+}
+
+export type DotFieldFrame = {
+  intro: DotFieldIntroFrame
+  wordOrigin: DotFieldVector
+  wordCenter: DotFieldVector
+  wordBounds: DotFieldBounds
+  cubeCenter: DotFieldVector
+  cubeHalfSize: number
+  rotation: Float32Array
+  morphPasses: number[]
+}
+
 export type HeroIntroTiming = {
   smallScale: number
   sweepDelaySeconds: number
@@ -27,8 +111,6 @@ export type DotFieldIntroFrame = {
   dim: number
   isSettled: boolean
 }
-
-export type SiteHeaderPlacement = "leading" | "trailing" | "action"
 
 export type MeasureInkWidth = (fontSize: number) => number
 
@@ -106,6 +188,19 @@ export type DotFieldUniforms = {
   introReveal: WebGLUniformLocation | null
   introSoftness: WebGLUniformLocation | null
   introDim: WebGLUniformLocation | null
+  wordOrigin: WebGLUniformLocation | null
+  wordCenter: WebGLUniformLocation | null
+  wordBounds: WebGLUniformLocation | null
+  morph: WebGLUniformLocation | null
+  morphStagger: WebGLUniformLocation | null
+  morphJitter: WebGLUniformLocation | null
+  morphArc: WebGLUniformLocation | null
+  cubeCenter: WebGLUniformLocation | null
+  cubeHalfSize: WebGLUniformLocation | null
+  cubeRotation: WebGLUniformLocation | null
+  cameraDistance: WebGLUniformLocation | null
+  farLight: WebGLUniformLocation | null
+  cubeDotSize: WebGLUniformLocation | null
 }
 
 export type DotFieldRuntime = {
@@ -114,12 +209,22 @@ export type DotFieldRuntime = {
   vertexArray: WebGLVertexArrayObject
   buffer: WebGLBuffer
   offsetBuffer: WebGLBuffer
+  cubeBuffer: WebGLBuffer
   uniforms: DotFieldUniforms
   pointCount: number
   positions: Float32Array
   offsets: Float32Array
   velocities: Float32Array
   inkHeight: number
+  cubePoints: Float32Array
+  cubeHomes: Float32Array
+  maxDimension: number
+}
+
+export type DotFieldPhysicsSpace = {
+  homes: Float32Array
+  inkHeight: number
+  pointer: DotFieldPointer
 }
 
 export type DotFieldSampleRequest = {
@@ -130,7 +235,11 @@ export type DotFieldSampleRequest = {
 }
 
 export type UseDotFieldRequest = {
-  containerRef: React.RefObject<HTMLElement | null>
+  stageRef: React.RefObject<HTMLElement | null>
+  heroRef: React.RefObject<HTMLElement | null>
+  wordmarkRef: React.RefObject<HTMLElement | null>
+  taglineRef: React.RefObject<HTMLElement | null>
+  cubeRef: React.RefObject<HTMLElement | null>
   canvasRef: React.RefObject<HTMLCanvasElement | null>
   text: string
   fontFamily: string

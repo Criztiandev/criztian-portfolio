@@ -34,7 +34,7 @@ export type SiteContent = z.output<typeof siteContentSchema>
 
 export type SiteContentThemeKey = keyof SiteContent["theme"]
 
-export type SiteContentEntryId = "hero" | "theme"
+export type SiteContentEntryId = "hero" | "quote" | "theme"
 
 export type SiteContentEntry = {
   id: SiteContentEntryId

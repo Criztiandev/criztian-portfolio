@@ -2,7 +2,8 @@ export const DOT_FIELD_FRAGMENT_SHADER = `#version 300 es
 
 precision mediump float;
 
-in float vAlpha;
+in float vShade;
+in float vOpacity;
 in float vPointSize;
 
 uniform vec3 uColor;
@@ -19,11 +20,12 @@ void main() {
 
   float edge = clamp(uEdgePixels / max(vPointSize, 1.0), 0.05, 0.9);
   float mask = 1.0 - smoothstep(1.0 - edge, 1.0, distanceFromCenter);
+  float coverage = mask * vOpacity;
 
-  if (mask <= 0.001) {
+  if (coverage <= 0.001) {
     discard;
   }
 
-  fragColor = vec4(uColor * vAlpha, mask);
+  fragColor = vec4(uColor * vShade, coverage);
 }
 `

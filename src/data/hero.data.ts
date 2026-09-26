@@ -1,4 +1,13 @@
-import type { DotFieldTuning, HeroIntroTiming } from "@/types/hero.type"
+import type { Transition, Variants } from "motion/react"
+
+import type {
+  CubeEdge,
+  CubeFace,
+  CubicBezier,
+  DotFieldMorphTuning,
+  DotFieldTuning,
+  HeroIntroTiming,
+} from "@/types/hero.type"
 
 export const RESIZE_DEBOUNCE_MS = 150
 
@@ -19,6 +28,76 @@ export const OFFSET_STRIDE = 2
 export const POINT_ATTRIBUTE_LOCATION = 0
 
 export const OFFSET_ATTRIBUTE_LOCATION = 1
+
+export const CUBE_POINT_STRIDE = 5
+
+export const CUBE_POSITION_COMPONENTS = 3
+
+export const CUBE_DETAIL_COMPONENTS = 2
+
+export const CUBE_POSITION_ATTRIBUTE_LOCATION = 2
+
+export const CUBE_DETAIL_ATTRIBUTE_LOCATION = 3
+
+export const CUBE_SEED = 20260926
+
+export const MAX_CANVAS_PIXELS = 10_000_000
+
+export const PIXEL_RATIO_STEPS = 4
+
+export const FALLBACK_MAX_DIMENSION = 4096
+
+export const REDUCED_MOTION_MORPH_PASSES = [0, 1]
+
+export const MORPH_LANDING_TOLERANCE_PX = 1
+
+export const CUBE_EDGES: CubeEdge[] = [
+  { start: [-1, -1, -1], end: [1, -1, -1] },
+  { start: [-1, 1, -1], end: [1, 1, -1] },
+  { start: [-1, -1, 1], end: [1, -1, 1] },
+  { start: [-1, 1, 1], end: [1, 1, 1] },
+  { start: [-1, -1, -1], end: [-1, 1, -1] },
+  { start: [1, -1, -1], end: [1, 1, -1] },
+  { start: [-1, -1, 1], end: [-1, 1, 1] },
+  { start: [1, -1, 1], end: [1, 1, 1] },
+  { start: [-1, -1, -1], end: [-1, -1, 1] },
+  { start: [1, -1, -1], end: [1, -1, 1] },
+  { start: [-1, 1, -1], end: [-1, 1, 1] },
+  { start: [1, 1, -1], end: [1, 1, 1] },
+]
+
+export const CUBE_FACES: CubeFace[] = [
+  { axis: 0, side: -1 },
+  { axis: 0, side: 1 },
+  { axis: 1, side: -1 },
+  { axis: 1, side: 1 },
+  { axis: 2, side: -1 },
+  { axis: 2, side: 1 },
+]
+
+export const DOT_FIELD_MORPH_TUNING: DotFieldMorphTuning = {
+  morphStartRatio: 0.1,
+  morphFollowRate: 10,
+  morphSettleEpsilon: 0.0001,
+  morphStagger: 0.45,
+  morphJitter: 0.35,
+  morphArcPixels: 48,
+  cubeHalfSizeRatio: 0.26,
+  cameraDistance: 5,
+  cubePitch: 0.45,
+  cubeRoll: -0.2,
+  cubeWobble: 0.07,
+  wobbleSpeed: 0.9,
+  cubeStaticYaw: 0.6,
+  spinSpeed: 0.3,
+  morphSpin: Math.PI / 2,
+  cubeEdgePointLimit: 7200,
+  cubeEdgeJitter: 0.03,
+  cubeFaceAlpha: 0,
+  farLight: 0.35,
+  cubeDotSize: 3,
+  cubeInkRatio: 0.65,
+}
 
 export const CONTEXT_OPTIONS: WebGLContextAttributes = {
   alpha: false,
@@ -75,3 +154,48 @@ export const HERO_INTRO_TIMING: HeroIntroTiming = {
 export const TEXT_PADDING_PX = 8
 
 export const DISPLAY_LETTER_SPACING = "0.050em"
+
+export const SIGNAL_EASE: CubicBezier = [0.65, 0, 0.35, 1]
+
+export const INSTANT_TRANSITION: Transition = {
+  duration: 0,
+}
+
+export const LIFT_VARIANTS: Variants = {
+  hidden: {
+    opacity: 0,
+    y: HERO_INTRO_TIMING.liftPixels,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+  },
+}
+
+export const QUOTE_REVEAL_VARIANTS: Variants = {
+  hidden: {
+    clipPath: "inset(0% 100% 0% 0%)",
+    x: -24,
+  },
+  visible: {
+    clipPath: "inset(0% 0% 0% 0%)",
+    x: 0,
+  },
+}
+
+export const QUOTE_REVEAL_TRANSITION: Transition = {
+  duration: 0.9,
+  ease: SIGNAL_EASE,
+}
+
+export const QUOTE_AUTHOR_TRANSITION: Transition = {
+  delay: 0.6,
+  duration: 0.6,
+  ease: "easeOut",
+}
+
+export const QUOTE_VIEWPORT = {
+  once: true,
+  amount: 0,
+  margin: "0px 0px -20% 0px",
+}

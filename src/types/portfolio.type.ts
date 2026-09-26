@@ -1,7 +1,5 @@
 import type { Store } from "@tanstack/react-store"
 
-import type { SiteHeaderPlacement } from "@/types/hero.type"
-
 export type PortfolioSection =
   "home" | "project" | "about" | "services" | "blog" | "contact"
 
@@ -9,7 +7,6 @@ export type PortfolioNavigationItem = {
   id: PortfolioSection
   label: string
   href: string
-  placement: SiteHeaderPlacement
 }
 
 export type PortfolioUiState = {
