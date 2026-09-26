@@ -3,6 +3,9 @@ import { z } from "zod"
 import {
   DEFAULT_HERO_NAME,
   DEFAULT_HERO_TAGLINE,
+  DEFAULT_PROJECT_ITEMS,
+  DEFAULT_PROJECTS_HEADING,
+  DEFAULT_PROJECTS_LEDE,
   DEFAULT_QUOTE_AUTHOR,
   DEFAULT_QUOTE_TEXT,
   DEFAULT_THEME_ACCENT,
@@ -13,6 +16,16 @@ import {
   DEFAULT_THEME_PAGE_BACKGROUND,
   HERO_NAME_MAX_LENGTH,
   HEX_COLOR_PATTERN,
+  PROJECT_IMAGE_ALT_MAX_LENGTH,
+  PROJECT_IMAGE_MAX_LENGTH,
+  PROJECT_LINK_MAX_LENGTH,
+  PROJECT_STACK_MAX_LENGTH,
+  PROJECT_SUMMARY_MAX_LENGTH,
+  PROJECT_TAG_MAX_LENGTH,
+  PROJECT_TITLE_MAX_LENGTH,
+  PROJECTS_HEADING_MAX_LENGTH,
+  PROJECTS_LEDE_MAX_LENGTH,
+  PROJECTS_MAX,
   QUOTE_AUTHOR_MAX_LENGTH,
   QUOTE_TEXT_MAX_LENGTH,
   RICH_TEXT_MARK_TYPES,
@@ -95,6 +108,36 @@ export const quoteContentSchema = z.object({
     .default(DEFAULT_QUOTE_AUTHOR),
 })
 
+function boundedTextSchema(maxLength: number) {
+  return z
+    .string()
+    .transform(collapseWhitespace)
+    .pipe(z.string().max(maxLength, `Must be ${maxLength} characters or fewer`))
+}
+
+export const projectItemSchema = z.object({
+  title: boundedTextSchema(PROJECT_TITLE_MAX_LENGTH).default(""),
+  tag: boundedTextSchema(PROJECT_TAG_MAX_LENGTH).default(""),
+  summary: boundedTextSchema(PROJECT_SUMMARY_MAX_LENGTH).default(""),
+  stack: boundedTextSchema(PROJECT_STACK_MAX_LENGTH).default(""),
+  link: boundedTextSchema(PROJECT_LINK_MAX_LENGTH).default(""),
+  image: boundedTextSchema(PROJECT_IMAGE_MAX_LENGTH).default(""),
+  imageAlt: boundedTextSchema(PROJECT_IMAGE_ALT_MAX_LENGTH).default(""),
+})
+
+export const projectsContentSchema = z.object({
+  heading: boundedTextSchema(PROJECTS_HEADING_MAX_LENGTH).default(
+    DEFAULT_PROJECTS_HEADING
+  ),
+  lede: boundedTextSchema(PROJECTS_LEDE_MAX_LENGTH).default(
+    DEFAULT_PROJECTS_LEDE
+  ),
+  items: z
+    .array(projectItemSchema)
+    .max(PROJECTS_MAX, `Add ${PROJECTS_MAX} projects or fewer`)
+    .default(DEFAULT_PROJECT_ITEMS),
+})
+
 export const themeContentSchema = z.object({
   pageBackground: hexColorSchema.default(DEFAULT_THEME_PAGE_BACKGROUND),
   bodyText: hexColorSchema.default(DEFAULT_THEME_BODY_TEXT),
@@ -107,5 +150,6 @@ export const themeContentSchema = z.object({
 export const siteContentSchema = z.object({
   hero: heroContentSchema.prefault({}),
   quote: quoteContentSchema.prefault({}),
+  projects: projectsContentSchema.prefault({}),
   theme: themeContentSchema.prefault({}),
 })

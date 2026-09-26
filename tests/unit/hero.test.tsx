@@ -60,6 +60,16 @@ describe("Hero", () => {
     expect(container.querySelectorAll("canvas")).toHaveLength(1)
   })
 
+  it("renders the projects inside the stage without a second canvas", () => {
+    const { container } = renderHero()
+    const stage = container.querySelector("[data-status]")
+
+    expect(stage?.querySelector("#project")).not.toBeNull()
+    expect(container.querySelectorAll("[data-status]")).toHaveLength(1)
+    expect(container.querySelectorAll("canvas")).toHaveLength(1)
+    expect(container.querySelectorAll("h1")).toHaveLength(1)
+  })
+
   it("starts with the dots forming the name", () => {
     const { container } = renderHero()
 

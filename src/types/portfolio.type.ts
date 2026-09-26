@@ -1,5 +1,7 @@
 import type { Store } from "@tanstack/react-store"
 
+import type { SiteContentProjects } from "@/types/site-content.type"
+
 export type PortfolioSection =
   "home" | "project" | "about" | "services" | "blog" | "contact"
 
@@ -22,3 +24,13 @@ export type PortfolioUiActions = {
 }
 
 export type PortfolioUiStore = Store<PortfolioUiState, PortfolioUiActions>
+
+export type ProjectImage = {
+  src: string
+  isRemote: boolean
+}
+
+export type ProjectsSectionProps = {
+  projects: SiteContentProjects
+  sectionRef: React.RefObject<HTMLElement | null>
+}

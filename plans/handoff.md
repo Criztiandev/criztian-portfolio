@@ -1,19 +1,100 @@
 # Handoff — criztian-portfolio
 
-> Written for the next Claude Code session picking up this build. Both plans — `plans/project-foundation.md` and `plans/hero-and-editor.md` — are complete and are history now; read them for rationale, not for work remaining.
-> State as of 2026-09-20, branch `project/portfolio`, remote `https://github.com/Criztiandev/criztian-portfolio`.
+> Written for the next Claude Code session picking up this build. Both plans, `plans/project-foundation.md` and `plans/hero-and-editor.md`, are complete history: read them for rationale, not for work remaining. **Projects is done (see [Projects + burst](#projects--burst-done-2026-09-26)); the next section in the scroll is About. The brief under [Next: the section after the quote](#next-the-section-after-the-quote) was written for Projects and still applies to About.**
+> State as of 2026-09-26: branch `project/portfolio` at `cef4bb8`, **3 commits ahead of `origin/project/portfolio` and not pushed**. Remote `https://github.com/Criztiandev/criztian-portfolio`.
 
 ## Where things stand
 
-| Workstream                                            | State                       |
-| ----------------------------------------------------- | --------------------------- |
-| Foundation — `plans/project-foundation.md`            | **complete** — 56 of 56     |
-| Hero dot-field — Part A of `plans/hero-and-editor.md` | **complete** — Phases 0–10  |
-| Live content editor — Part B of the same plan         | **complete** — Phases 11–15 |
+| Workstream                                                | State                                                                          |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Foundation: `plans/project-foundation.md`                 | **complete**, 56 of 56                                                         |
+| Hero dot field: Part A of `plans/hero-and-editor.md`      | **complete**, Phases 0–10                                                      |
+| Live content editor: Part B of the same plan              | **complete**, Phases 11–15                                                     |
+| Header rework (brand wordmark, centred nav, "Let's talk") | **complete**, committed with the morph                                         |
+| Scroll morph and quote section (`#quote`)                 | **complete**, see [Scroll morph + quote](#scroll-morph--quote-done-2026-09-26) |
+| Projects section + cube compress/burst + dot frames       | **complete**, see [Projects + burst](#projects--burst-done-2026-09-26)         |
+| About, Services, Blog                                     | placeholder text in `site-page.component.tsx`; not editable                    |
 
-All 115 boxes in the active plan are ticked. 126 unit tests across 14 files, 8 Playwright specs, `pnpm check` clean, `pnpm build` clean.
+The suite is 161 unit tests across 15 files and 15 Playwright tests, all green against a production build on 2026-09-26. Lint and typecheck are clean. `pnpm check` fails only on `.impeccable/hook.cache.json`, a plugin cache (see [Environment landmines](#environment-landmines--all-hit-all-real)).
 
-**Both plans are finished.** What remains is the user's own content and the deploy work — see [Open items](#open-items-for-the-user).
+## Projects + burst (done, 2026-09-26)
+
+Plan: `C:/Users/crizt/.claude/plans/after-the-square-section-proud-cascade.md` (owner-approved). DESIGN.md "Compress and burst" and "Projects" describe the result; CLAUDE.md "Sliding window" and "Scene" describe the engine.
+
+- **Owner decisions:** placeholder cards first; editable in the editor with images by path (`/projects/*.webp|avif|png|jpg`) or https URL, no upload; compress follows the scroll and the burst plays by itself; theme reseeded dark.
+- **Theme:** seeds are dark and the local `site_content` row was updated with one guarded `jsonb_set` (only if it still held the light seeds).
+- **Why the canvas slides instead of growing:** one more viewport of canvas drops a 1440x900@2 laptop from DPR 2 to 1.5. The window keeps today's size and translates in whole device pixels once `#project` is on screen.
+- **Verified:** 229 unit tests; 19 e2e against a production build on :3100; zero-pixel diff (DPR 1 and 2) of the hero at rest, the reduced-motion hero and the reduced-motion quote against `cef4bb8` built in a throwaway worktree; RAF at 0 fps at rest in Projects on desktop and phone.
+- **Tuning found by screenshot, not reasoning:** the burst point moved from mid-screen to 30% (the first card's opaque plate hid the knot), dust opacity 0.3 → 0.45 (invisible at DPR 1), and the heading's in-view margin −65% → −40% (it never revealed until the sticky column pinned). Frame dots settle at 75%, not the plan's 100%, so a frame never outshouts its title.
+- **Found on the way, not fixed:** `next build` replays a year-old cached PostgREST response for the published document (see CLAUDE.md Gotchas). Deleting `.next/cache/fetch-cache` fixes a build; the proper fix is to tag the read and `revalidateTag` on publish, or make it uncached (which makes `/` dynamic). That is the owner's call.
+- **Open:** real projects and screenshots; whether frame dots should react to the pointer or light the card nearest the centre (deferred on purpose); `--radius: 0` and the remaining OS-scheme tokens (DESIGN.md Known drift).
+
+## Next: the section after the quote
+
+The page order is `#home` → `#quote` → `#project` → `#about` → `#services` → `#blog` → `#contact`, so the next section in the scroll is **Project**. The owner only said "the next section", so confirm which one before building.
+
+### Ask the owner first
+
+- **The real content.** PRODUCT.md forbids inventing projects, clients, metrics, quotes or images. For Project, that means asking which projects to show, and for each one its title, one-line description, stack, links, images and outcomes. Ask for these; never fill the gaps with plausible fakes.
+  - If the owner wants the layout before the content exists, seed obviously placeholder copy, the way the quote seeds "Your quote about life goes here."
+- **Owner-editable or hard-coded?** PRODUCT.md principle 5 says owner-editable by default. The quote went through the schema and the editor. A list of projects would too, as an array field. The old `disciplines` array lesson under Part B applies: empty slots must not fail the schema.
+- **Reseed the dark theme first?** This is strongly recommended; see the next heading.
+
+### Recommended first step: reseed the theme dark
+
+Every section below the stage renders in the owner theme, which is seeded light (`#ffffff` page, `#252525` text). Two symptoms are visible today:
+
+- a hard black-to-white edge where the stage ends
+- a pale grey solid header over the black stage after 120px of scroll
+
+DESIGN.md "Known drift" already specifies the fix:
+
+- **New seed values.** Reseed the five owner tokens in `src/data/site-content.data.ts`:
+  - page background → `#000000`
+  - body text → `#ffffff`
+  - muted text → `#999999`
+  - accent → `#ffffff`
+  - border → `#666666`
+- **Stop the OS switch.** The public wrapper must stop inheriting the `.dark` / `:root` switch (the Always-Night Rule).
+- **Trap: the defaults don't change stored documents.** The seeded row is `{}`, but every editor save or publish writes the full theme explicitly, and every `editor.spec.ts` run does one. So the local draft and published rows almost certainly hold the light colours already. After reseeding, update the stored theme too, either in the editor or with `pnpm db:reset`. Note that `db:reset` also wipes `auth.users`.
+- **Until then, hard-code the colours in the stage.** Once the theme is dark, a new section can use `bg-background text-foreground` naturally. Until then, anything inside the stage must hard-code `bg-black text-white`, as the stage itself does.
+
+### How to add an owner-editable section: copy the quote
+
+The quote is the smallest complete example. In order:
+
+1. **Data.** In `src/data/site-content.data.ts`, add the defaults, the max lengths, and a `SITE_CONTENT_ENTRIES` entry `{ id, label, sectionId }`. The editor lists entries in array order, and `sectionId` is what the preview scrolls to.
+2. **Schema.** In `src/features/site-content/schemas/site-content.schema.ts`, add a `…ContentSchema` with `.default()` fields, and add it to `siteContentSchema` with **`.prefault({})`**. Rows saved before the key existed then get the defaults without a migration.
+3. **Types.** In `src/types/site-content.type.ts`, extend `SiteContentEntryId`. `SiteContent` is inferred.
+4. **Editor.** In `editor-config-panel.component.tsx`, add a `<div hidden={selectedEntry !== "…"}>` panel.
+   - Give every text field a `maxLength` that matches the schema. One over-long field fails the whole-form `safeParse`, which silently stalls preview and autosave for **every** panel.
+   - Labels must not contain "Name": `editor.spec.ts` uses `getByLabel("Name")`, a substring match that also counts hidden panels.
+5. **Component.** Add a presentational component in `src/features/portfolio/components/` and render it from `site-page.component.tsx` inside `<main>`. The placeholder map lives there today.
+6. **Tests.**
+   - schema defaults, limits and the missing-key case in `site-content-rules.test.ts`
+   - the new fields in `editor-config-panel.test.tsx`
+   - the component's semantics in its own test file
+
+### Design constraints for the section
+
+- **Headline size is set.** Use Antonio 700 uppercase, `clamp(1.75rem, 1rem + 3vw, 3.5rem)`, line-height 1.05, for the section title. `--font-heading` still points at the sans (known drift), so use `font-display`.
+- **The rest of the system applies.** Black ground, brightness-only hierarchy, zero radius, no shadows, tracked uppercase Geist for labels. DESIGN.md has the full rules. PRODUCT.md adds that every section should move a client toward `#contact`.
+- **Anchors.** Keep `scroll-mt-20` on new sections so anchors clear the 72px header, and keep `#contact` working.
+- **Motion.** Reuse the motion constants in `src/data/hero.data.ts` (`SIGNAL_EASE`, `LIFT_VARIANTS`, `INSTANT_TRANSITION`, and the quote reveal set). Always pass `INSTANT_TRANSITION` under `useReducedMotion()`: `MotionConfig reducedMotion="user"` stops transforms but not `clipPath` or opacity.
+
+### Don't break the stage
+
+- **One canvas.** Keep exactly **one `<canvas>` and one `[data-status]`** on the page. A second dot canvas breaks the strict locators in `hero.spec.ts` and `editor.spec.ts`. Another dot effect means extending the existing stage, not adding a canvas.
+- **Nothing between `#home` and `#quote`.** The morph's progress is measured from the hero's height to the top of the quote section.
+- **Placement.** `Hero` renders both `#home` and `#quote`. New sections go after `<Hero>` in `SitePage`.
+- **More dot shapes are not a small change.** DESIGN.md's reference mentions dots re-forming "into other shapes between sections", but the engine supports exactly one target shape today, the cube. A second target means generalising the morph: more attributes or a target index, a taller canvas or a second stage, and a progress range per section. Scope it with the owner before starting.
+
+### Owner decisions still open
+
+- the quote text (a placeholder is seeded)
+- a pause toggle for the constantly spinning cube (WCAG 2.2.2; the owner chose constant spin knowingly)
+- the theme reseed above
+- whether to add `.impeccable/` to `.prettierignore` so `pnpm check` passes
 
 ## Foundation — complete
 
@@ -77,6 +158,14 @@ The user reacts badly to violations of these. They are also in `plans/project-fo
 - **`/tmp` differs between bash and node** on this box. Bash's `/tmp` is `C:\Users\crizt\AppData\Local\Temp`; node resolves `/tmp` as `E:\tmp`. Use `process.env.TEMP` in node scripts.
 - **`UID` is readonly in bash.** A `UID=$(...)` capture silently fails. Cost a leaked test user once.
 - **`python` is not installed.** Use `node -e` for scripting.
+- **Running e2e against a production build while `pnpm dev` holds :3000.**
+  - Next 16 writes dev output to `.next/dev`, so `pnpm build` can run alongside the dev server. This is documented in `node_modules/next/dist/docs/01-app/03-api-reference/06-cli/next.md`.
+  - `playwright.config.ts` hard-codes :3000 and would silently reuse the dev server. Instead, serve the build on another port (`pnpm exec next start -p 3100`) and point a throwaway Playwright config at it: an absolute `testDir` to `tests/e2e`, `baseURL` `http://localhost:3100`, and no `webServer`.
+  - Every e2e run in the scroll-morph session was done this way, and the user's dev server was never touched.
+- **PowerShell 5.1 splits `git commit` messages at quotes.** An apostrophe in "Let's" turned a here-string message into pathspecs. Write the message to a file and use `git commit -F <file>`.
+- **`Set-Content -Encoding utf8` writes a BOM** in Windows PowerShell 5.1. Use the Edit and Write tools, or `[System.IO.File]::WriteAllText` with `UTF8Encoding($false)`.
+- **`pnpm check` fails on `.impeccable/hook.cache.json`.** The impeccable design plugin writes this cache. `.git/info/exclude` hides it from git, but Prettier does not read that file. Adding `.impeccable/` to `.prettierignore` fixes it; this is not done yet because the user has not asked.
+- **Diff visual regressions; don't eyeball them.** The scroll morph was verified by capturing the hero before and after and diffing the pixels with a throwaway Playwright script (a canvas `getImageData` comparison). That caught two sub-pixel changes that 100% screenshots hid: the MAX-blending seams and the fractional canvas CSS height. Keep the habit for any change to the stage.
 - **`supabase_vector` container crash-loops** (`ConnectionRefused` on the Docker socket). Cosmetic — it only feeds Studio's Logs pane. An earlier note here claimed it makes plain `supabase status` print nothing; that is **no longer true** on CLI 2.117.0, which prints JSON either way (verified 2026-09-20). Can be silenced with `[analytics] enabled = false` in `config.toml`; the user has not asked for this.
 
 ## Version facts that contradict training data
@@ -337,7 +426,7 @@ Two changes fix it, and both are worth keeping:
 - **The quote is a placeholder.** It is seeded as "Your quote about life goes here." with no author. Replace it in the editor (Quote entry). Nothing is invented.
 - **The theme drift is now in plain view.** After 120 px of scroll the header turns solid in the seeded light theme: a pale grey bar over the black cube section. The stage also ends in a hard edge into the white `#project` section. DESIGN.md already specifies the dark reseed.
 - **Without JavaScript the quote stays clipped,** the same as the hero tagline, because the reveal's initial state is server-rendered.
-- **Site metadata is placeholder** — `"Criztian — Portfolio"` / `"Personal portfolio and contact."` in `src/app/layout.tsx`. Hero copy is now database-driven and editable (`site_content.draft`); the Project / About / Services / Blog section bodies in `site-page.component.tsx` are still placeholders and are **not** yet editable — Part B covers the hero only.
+- **Site metadata is placeholder** — `"Criztian — Portfolio"` / `"Personal portfolio and contact."` in `src/app/layout.tsx`. The hero and the quote are now database-driven and editable (`site_content.draft`). The Project, About, Services and Blog section bodies in `site-page.component.tsx` are still placeholders and are **not** yet editable. The next section is the first of those; see [Next: the section after the quote](#next-the-section-after-the-quote).
 - **Commit author is `criztiandev`** (lowercase, guessed from the email when git had no identity). GitHub handle is `Criztiandev`. Offered a rewrite; the user has not decided.
 - **Browser walkthrough not fully confirmed.** Login is confirmed working from the user's own logs. The password-reset-through-Mailpit round trip and the contact form's rendered success state have been verified by HTTP/curl but not visually.
 - **The local Supabase has no users at all.** Listed on 2026-09-20 after Part B: `auth.users` is empty, so `criztiandev@gmail.com` cannot log in locally and `/dashboard/editor` is unreachable without recreating it. This was already the case before that session's cleanup, which deleted only its own two throwaway addresses (`editor-probe@`, `editor-e2e@`) and logged each. A likely cause is an earlier `pnpm db:reset`, which drops auth rows along with everything else. Recreate with the admin API, or sign up once with `[auth] enable_signup` temporarily true.

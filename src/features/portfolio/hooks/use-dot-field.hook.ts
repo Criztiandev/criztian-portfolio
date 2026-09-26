@@ -3,11 +3,16 @@
 import { useEffect, useRef } from "react"
 
 import {
+  BURST_FOLLOW_TUNING,
   CONTEXT_OPTIONS,
+  DOT_FRAME_RECT_STRIDE,
+  DOT_FRAME_SELECTOR,
   DOT_FIELD_MORPH_TUNING,
+  DOT_FIELD_SCENE_TUNING,
   DOT_FIELD_TUNING,
   HEIGHT_CHANGE_IGNORE_PX,
   HERO_INTRO_TIMING,
+  MAX_DOT_FRAMES,
   MAX_FRAME_DELTA_SECONDS,
   MORPH_LANDING_TOLERANCE_PX,
   REDUCED_MOTION_MORPH_PASSES,
@@ -27,12 +32,22 @@ import {
   buildFontShorthand,
   followMorphProgress,
   generateCubePoints,
+  generateScenePoints,
   parsePrimaryFontFamily,
   projectCubePoints,
+  resolveBurstState,
   resolveCanvasPixelRatio,
+  resolveCanvasWindowTop,
+  resolveClaimTarget,
+  resolveCompressedCube,
+  resolveFrameShare,
   resolveIntroFrame,
   resolveMorphState,
+  resolveSceneScroll,
+  resolveSceneTargets,
+  resolveSpinBoost,
   resolveStageProgress,
+  shouldLoopSleep,
   shouldRebuildPoints,
   stepDotPhysics,
 } from "@/features/portfolio/dot-field.rules"
@@ -58,8 +73,11 @@ import type {
   DotFieldLayoutElements,
   DotFieldPhysicsSpace,
   DotFieldPointer,
+  DotFieldRect,
   DotFieldRuntime,
+  DotFieldSceneScroll,
   DotFieldViewport,
+  HeroBurstState,
   HeroMorphState,
   UseDotFieldRequest,
 } from "@/types/hero.type"
@@ -77,10 +95,36 @@ function createPointer(): DotFieldPointer {
   }
 }
 
+function readFrameRects(
+  projects: HTMLElement,
+  stageRect: DOMRect
+): DotFieldRect[] {
+  const frames: DotFieldRect[] = []
+  const frameElements = projects.querySelectorAll(DOT_FRAME_SELECTOR)
+
+  for (const frameElement of frameElements) {
+    if (frames.length >= MAX_DOT_FRAMES) {
+      break
+    }
+
+    const frameRect = frameElement.getBoundingClientRect()
+
+    frames.push({
+      x: frameRect.left - stageRect.left,
+      y: frameRect.top - stageRect.top,
+      width: frameRect.width,
+      height: frameRect.height,
+    })
+  }
+
+  return frames
+}
+
 function readLayout(elements: DotFieldLayoutElements): DotFieldLayout {
   const stageRect = elements.stage.getBoundingClientRect()
   const wordRect = elements.wordmark.getBoundingClientRect()
   const cubeRect = elements.cube.getBoundingClientRect()
+  const projectsRect = elements.projects.getBoundingClientRect()
   const heroHeight = elements.hero.getBoundingClientRect().height
   const cubeBottom = cubeRect.bottom - stageRect.top
 
@@ -100,6 +144,10 @@ function readLayout(elements: DotFieldLayoutElements): DotFieldLayout {
     cubeSide: Math.min(cubeRect.width, cubeRect.height),
     morphStart: heroHeight * DOT_FIELD_MORPH_TUNING.morphStartRatio,
     morphEnd: heroHeight - MORPH_LANDING_TOLERANCE_PX,
+    stageHeight: stageRect.height,
+    projectsTop: projectsRect.top - stageRect.top,
+    projectsBottom: projectsRect.bottom - stageRect.top,
+    frames: readFrameRects(elements.projects, stageRect),
   }
 }
 
@@ -121,9 +169,26 @@ function isUsableLayout(layout: DotFieldLayout): boolean {
   return layout.width > 0 && layout.wordWidth > 0 && layout.wordHeight > 0
 }
 
-function readMorphTarget(stage: HTMLElement, layout: DotFieldLayout): number {
-  const scrolled = -stage.getBoundingClientRect().top
+function readScrolled(stage: HTMLElement): number {
+  return -stage.getBoundingClientRect().top
+}
 
+function readSceneScroll(
+  scrolled: number,
+  layout: DotFieldLayout
+): DotFieldSceneScroll {
+  return resolveSceneScroll(
+    {
+      scrolled,
+      viewportHeight: window.innerHeight,
+      projectsTop: layout.projectsTop,
+      stageWidth: layout.width,
+    },
+    DOT_FIELD_SCENE_TUNING
+  )
+}
+
+function resolveMorphTarget(scrolled: number, layout: DotFieldLayout): number {
   return resolveStageProgress(
     scrolled,
     layout.morphStart,
@@ -138,6 +203,7 @@ export function useDotField(request: UseDotFieldRequest): void {
     wordmarkRef,
     taglineRef,
     cubeRef,
+    projectsRef,
     canvasRef,
     text,
     fontFamily,
@@ -174,6 +240,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       const heroElement = heroRef.current
       const wordmarkElement = wordmarkRef.current
       const cubeElement = cubeRef.current
+      const projectsElement = projectsRef.current
       const canvasElement = canvasRef.current
 
       if (
@@ -181,6 +248,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         heroElement === null ||
         wordmarkElement === null ||
         cubeElement === null ||
+        projectsElement === null ||
         canvasElement === null
       ) {
         return
@@ -189,6 +257,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       const stage: HTMLElement = stageElement
       const wordmark: HTMLElement = wordmarkElement
       const cube: HTMLElement = cubeElement
+      const projects: HTMLElement = projectsElement
       const canvas: HTMLCanvasElement = canvasElement
       const tagline = taglineRef.current
       const layoutElements: DotFieldLayoutElements = {
@@ -196,6 +265,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         hero: heroElement,
         wordmark,
         cube,
+        projects,
       }
 
       if (mode === "text") {
@@ -215,6 +285,7 @@ export function useDotField(request: UseDotFieldRequest): void {
 
       if (context === null) {
         stage.dataset.status = "unsupported"
+        stage.dataset.burst = "off"
         unsupportedCallbackRef.current()
         return
       }
@@ -225,6 +296,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         runtime = createDotFieldRuntime(context)
       } catch {
         stage.dataset.status = "unsupported"
+        stage.dataset.burst = "off"
         unsupportedCallbackRef.current()
         return
       }
@@ -242,13 +314,28 @@ export function useDotField(request: UseDotFieldRequest): void {
       let isVisible = true
       let resizeHandle = 0
       let pixelRatio = 1
+      let canvasHeight = 0
       let layout = readLayout(layoutElements)
+      let scrolled = readScrolled(stage)
+      let sceneScroll = readSceneScroll(scrolled, layout)
       let morph = 0
       let morphTarget = 0
+      let compress = 0
+      let compressTarget = 0
+      let burst = 0
+      let burstTarget = 0
+      let windowTop = 0
+      const claims = new Float32Array(MAX_DOT_FRAMES)
+      const claimTargets = new Float32Array(MAX_DOT_FRAMES)
+      const frameRects = new Float32Array(
+        MAX_DOT_FRAMES * DOT_FRAME_RECT_STRIDE
+      )
       let spinYaw = 0
       let wobblePhase = 0
       let isFieldAtRest = true
+      let areClaimsResting = true
       let morphState: HeroMorphState = "name"
+      let burstState: HeroBurstState = "off"
 
       function applyCanvasSize(): void {
         pixelRatio = resolveCanvasPixelRatio(
@@ -263,13 +350,15 @@ export function useDotField(request: UseDotFieldRequest): void {
 
         canvas.width = deviceWidth
         canvas.height = deviceHeight
+        canvasHeight = deviceHeight / pixelRatio
         canvas.style.width = deviceWidth / pixelRatio + "px"
-        canvas.style.height = deviceHeight / pixelRatio + "px"
+        canvas.style.height = canvasHeight + "px"
 
         applyStaticUniforms(
           runtime,
           DOT_FIELD_TUNING,
           DOT_FIELD_MORPH_TUNING,
+          DOT_FIELD_SCENE_TUNING,
           pixelRatio
         )
         resizeDotField(runtime)
@@ -329,6 +418,36 @@ export function useDotField(request: UseDotFieldRequest): void {
         const bounds = boundsRef.current
         const isStatic = prefersReducedMotion()
         const tuning = DOT_FIELD_MORPH_TUNING
+        const sceneTuning = DOT_FIELD_SCENE_TUNING
+        const compressed = resolveCompressedCube(
+          {
+            slotCenter: {
+              x: layout.cubeCenter.x * pixelRatio,
+              y: layout.cubeCenter.y * pixelRatio,
+            },
+            burstPoint: {
+              x: sceneScroll.burstPoint.x * pixelRatio,
+              y: sceneScroll.burstPoint.y * pixelRatio,
+            },
+            halfSize: layout.cubeSide * tuning.cubeHalfSizeRatio * pixelRatio,
+            compress,
+          },
+          sceneTuning,
+          tuning.farLight
+        )
+        const dustHeight = layout.projectsBottom - sceneScroll.dustTop
+        const sparkReach = Math.max(layout.width, window.innerHeight)
+        const visibleCount = Math.min(
+          runtime.pointCount,
+          tuning.cubeEdgePointLimit
+        )
+        const frameShare = resolveFrameShare(
+          visibleCount,
+          layout.frames,
+          sceneTuning
+        )
+
+        writeFrameRects()
 
         let yaw = spinYaw + morph * tuning.morphSpin
         let pitch = tuning.cubePitch + tuning.cubeWobble * Math.sin(wobblePhase)
@@ -353,13 +472,29 @@ export function useDotField(request: UseDotFieldRequest): void {
             y: sampleHeight / 2,
           },
           wordBounds: bounds === null ? PLACEHOLDER_BOUNDS : bounds,
-          cubeCenter: {
-            x: layout.cubeCenter.x * pixelRatio,
-            y: layout.cubeCenter.y * pixelRatio,
-          },
-          cubeHalfSize: layout.cubeSide * tuning.cubeHalfSizeRatio * pixelRatio,
+          cubeCenter: compressed.center,
+          cubeHalfSize: compressed.halfSize,
           rotation: buildCubeRotation(yaw, pitch, roll),
           morphPasses,
+          windowTop: windowTop * pixelRatio,
+          burst,
+          farLight: compressed.farLight,
+          sparkRadius: sceneTuning.sparkRadiusRatio * sparkReach * pixelRatio,
+          dustRect: {
+            x: 0,
+            y: sceneScroll.dustTop * pixelRatio,
+            width: layout.width * pixelRatio,
+            height: Math.max(0, dustHeight) * pixelRatio,
+          },
+          shares: {
+            x: frameShare,
+            y: frameShare + sceneTuning.dustShare,
+          },
+          frameCount: layout.frames.length,
+          frameRects,
+          claims,
+          frameBand:
+            sceneTuning.frameBandViewport * window.innerHeight * pixelRatio,
         }
       }
 
@@ -368,7 +503,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       }
 
       function canPush(): boolean {
-        if (!hasSettledRef.current) {
+        if (!hasSettledRef.current || compress !== 0 || burst !== 0) {
           return false
         }
 
@@ -409,6 +544,166 @@ export function useDotField(request: UseDotFieldRequest): void {
         }
       }
 
+      function publishBurstState(): void {
+        const nextState = resolveBurstState(burstTarget, prefersReducedMotion())
+
+        if (nextState === burstState) {
+          return
+        }
+
+        burstState = nextState
+        stage.dataset.burst = nextState
+      }
+
+      function writeFrameRects(): void {
+        frameRects.fill(0)
+
+        let offset = 0
+
+        for (const frame of layout.frames) {
+          frameRects[offset] = frame.x * pixelRatio
+          frameRects[offset + 1] = frame.y * pixelRatio
+          frameRects[offset + 2] = frame.width * pixelRatio
+          frameRects[offset + 3] = frame.height * pixelRatio
+          offset += DOT_FRAME_RECT_STRIDE
+        }
+      }
+
+      function writeClaimTargets(): void {
+        claimTargets.fill(0)
+
+        let index = 0
+
+        for (const frame of layout.frames) {
+          claimTargets[index] = resolveClaimTarget(
+            {
+              frameTop: frame.y,
+              scrolled,
+              viewportHeight: window.innerHeight,
+              burst,
+            },
+            DOT_FIELD_SCENE_TUNING
+          )
+          index += 1
+        }
+      }
+
+      function followClaims(deltaSeconds: number): boolean {
+        let isResting = true
+
+        for (let index = 0; index < MAX_DOT_FRAMES; index += 1) {
+          claims[index] = followMorphProgress(
+            claims[index],
+            claimTargets[index],
+            deltaSeconds,
+            DOT_FIELD_MORPH_TUNING
+          )
+
+          if (claims[index] !== claimTargets[index]) {
+            isResting = false
+          }
+        }
+
+        return isResting
+      }
+
+      function advanceScene(deltaSeconds: number): void {
+        const targets = resolveSceneTargets(
+          {
+            rawCompress: sceneScroll.rawCompress,
+            isRearmed: sceneScroll.isRearmed,
+            compress,
+            burst,
+            burstTarget,
+          },
+          DOT_FIELD_SCENE_TUNING
+        )
+
+        compressTarget = targets.compressTarget
+        burstTarget = targets.burstTarget
+        compress = followMorphProgress(
+          compress,
+          compressTarget,
+          deltaSeconds,
+          DOT_FIELD_MORPH_TUNING
+        )
+        burst = followMorphProgress(
+          burst,
+          burstTarget,
+          deltaSeconds,
+          BURST_FOLLOW_TUNING
+        )
+        writeClaimTargets()
+        areClaimsResting = followClaims(deltaSeconds)
+      }
+
+      function snapScene(): void {
+        if (prefersReducedMotion()) {
+          compress = 0
+          compressTarget = 0
+          burst = 0
+          burstTarget = 0
+          claims.fill(0)
+          claimTargets.fill(0)
+          areClaimsResting = true
+          return
+        }
+
+        const targets = resolveSceneTargets(
+          {
+            rawCompress: sceneScroll.rawCompress,
+            isRearmed: sceneScroll.isRearmed,
+            compress: sceneScroll.rawCompress,
+            burst: 0,
+            burstTarget: 0,
+          },
+          DOT_FIELD_SCENE_TUNING
+        )
+
+        compressTarget = targets.compressTarget
+        compress = compressTarget
+        burstTarget = targets.burstTarget
+        burst = burstTarget
+        writeClaimTargets()
+        claims.set(claimTargets)
+        areClaimsResting = true
+      }
+
+      function syncCanvasWindow(): boolean {
+        const nextTop = resolveCanvasWindowTop(
+          {
+            scrolled,
+            viewportHeight: window.innerHeight,
+            canvasHeight,
+            stageHeight: layout.stageHeight,
+            projectsTop: layout.projectsTop,
+            pixelRatio,
+            isStatic: prefersReducedMotion(),
+          },
+          DOT_FIELD_SCENE_TUNING
+        )
+
+        if (nextTop === windowTop) {
+          return false
+        }
+
+        windowTop = nextTop
+
+        if (nextTop === 0) {
+          canvas.style.transform = ""
+        } else {
+          canvas.style.transform = "translate3d(0, " + nextTop + "px, 0)"
+        }
+
+        return true
+      }
+
+      function readScrollTargets(): void {
+        scrolled = readScrolled(stage)
+        morphTarget = resolveMorphTarget(scrolled, layout)
+        sceneScroll = readSceneScroll(scrolled, layout)
+      }
+
       function publishMorphState(progress: number): void {
         const nextState = resolveMorphState(progress)
 
@@ -442,8 +737,12 @@ export function useDotField(request: UseDotFieldRequest): void {
           notifySettled()
         }
 
-        if (morph > 0) {
-          spinYaw += DOT_FIELD_MORPH_TUNING.spinSpeed * deltaSeconds
+        advanceScene(deltaSeconds)
+
+        if (morph > 0 && burst < 1) {
+          const spinBoost = resolveSpinBoost(compress, DOT_FIELD_SCENE_TUNING)
+
+          spinYaw += DOT_FIELD_MORPH_TUNING.spinSpeed * spinBoost * deltaSeconds
           wobblePhase += DOT_FIELD_MORPH_TUNING.wobbleSpeed * deltaSeconds
         }
 
@@ -476,15 +775,21 @@ export function useDotField(request: UseDotFieldRequest): void {
 
         drawDotField(runtime, frame)
         publishMorphState(morph)
+        publishBurstState()
 
-        const isMorphResting = morph === morphTarget
+        const isLoopDone = shouldLoopSleep({
+          isFieldAtRest,
+          hasSettled: hasSettledRef.current,
+          isMorphResting: morph === morphTarget,
+          isSceneResting:
+            compress === compressTarget &&
+            burst === burstTarget &&
+            areClaimsResting,
+          morph,
+          burst,
+        })
 
-        if (
-          isFieldAtRest &&
-          hasSettledRef.current &&
-          isMorphResting &&
-          morph === 0
-        ) {
+        if (isLoopDone) {
           frameId = 0
           return
         }
@@ -514,18 +819,25 @@ export function useDotField(request: UseDotFieldRequest): void {
       }
 
       function syncMorphToScroll(): void {
-        morphTarget = readMorphTarget(stage, layout)
+        readScrollTargets()
         morph = morphTarget
+        snapScene()
+        syncCanvasWindow()
         publishMorphState(morph)
+        publishBurstState()
       }
 
       function onScroll(): void {
-        morphTarget = readMorphTarget(stage, layout)
+        readScrollTargets()
 
         if (prefersReducedMotion()) {
           morph = morphTarget
           publishMorphState(morph)
           return
+        }
+
+        if (syncCanvasWindow() && frameId === 0) {
+          drawSingleFrame()
         }
 
         startLoop()
@@ -568,6 +880,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         event.preventDefault()
         stopLoop()
         stage.dataset.status = "unsupported"
+        stage.dataset.burst = "off"
         unsupportedCallbackRef.current()
       }
 
@@ -600,7 +913,8 @@ export function useDotField(request: UseDotFieldRequest): void {
           rebuild()
         }
 
-        morphTarget = readMorphTarget(stage, layout)
+        readScrollTargets()
+        syncCanvasWindow()
         drawSingleFrame()
         startLoop()
       }
@@ -615,7 +929,8 @@ export function useDotField(request: UseDotFieldRequest): void {
         const isResized = hasLayoutSizeChanged(layout, nextLayout)
 
         layout = nextLayout
-        morphTarget = readMorphTarget(stage, layout)
+        readScrollTargets()
+        syncCanvasWindow()
 
         if (isResized) {
           window.clearTimeout(resizeHandle)
@@ -662,6 +977,7 @@ export function useDotField(request: UseDotFieldRequest): void {
 
       resizeObserver?.observe(stage)
       resizeObserver?.observe(wordmark)
+      resizeObserver?.observe(projects)
 
       if (tagline !== null) {
         resizeObserver?.observe(tagline)
@@ -721,7 +1037,16 @@ export function useDotField(request: UseDotFieldRequest): void {
         runtimeRef.current = null
       }
     },
-    [stageRef, heroRef, wordmarkRef, taglineRef, cubeRef, canvasRef, mode]
+    [
+      stageRef,
+      heroRef,
+      wordmarkRef,
+      taglineRef,
+      cubeRef,
+      projectsRef,
+      canvasRef,
+      mode,
+    ]
   )
 
   useEffect(
@@ -799,7 +1124,8 @@ export function useDotField(request: UseDotFieldRequest): void {
         uploadPoints(
           runtime,
           sample,
-          generateCubePoints(sample.count, DOT_FIELD_MORPH_TUNING)
+          generateCubePoints(sample.count, DOT_FIELD_MORPH_TUNING),
+          generateScenePoints(sample.count)
         )
         boundsRef.current = { left: sample.left, right: sample.right }
         sampledViewportRef.current = sampleViewport

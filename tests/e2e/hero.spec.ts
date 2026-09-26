@@ -40,6 +40,14 @@ async function scrollQuoteIntoView(page: Page) {
   })
 }
 
+async function scrollProjectsIntoView(page: Page) {
+  await page.evaluate(function showProjects() {
+    document
+      .querySelector("#project")
+      ?.scrollIntoView({ block: "start", behavior: "instant" })
+  })
+}
+
 test.describe("hero dot field", () => {
   test("renders the name as an accessible heading exactly once", async ({
     page,
@@ -197,6 +205,82 @@ test.describe("scroll morph", () => {
   })
 })
 
+test.describe("projects burst", () => {
+  test("bursts the cube into the projects and gathers it back", async ({
+    page,
+  }) => {
+    const problems = collectPageProblems(page)
+
+    await page.goto("/")
+
+    const stage = await waitForRunningStage(page)
+
+    await expect(stage).toHaveAttribute("data-burst", "idle")
+
+    await scrollProjectsIntoView(page)
+
+    await expect(stage).toHaveAttribute("data-burst", "open", {
+      timeout: 5000,
+    })
+    await expect(stage).toHaveAttribute("data-morph", "cube")
+    await expect(page.locator("canvas")).toHaveCount(1)
+    await expect(page.locator("#project h2")).toBeVisible()
+
+    await scrollQuoteIntoView(page)
+
+    await expect(stage).toHaveAttribute("data-burst", "idle", {
+      timeout: 5000,
+    })
+    await expect(stage).toHaveAttribute("data-morph", "cube")
+
+    await page.evaluate(function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: "instant" })
+    })
+
+    await expect(stage).toHaveAttribute("data-morph", "name", {
+      timeout: 5000,
+    })
+
+    expect(problems).toEqual([])
+  })
+
+  test("opens the burst when landing on the projects", async ({ page }) => {
+    const problems = collectPageProblems(page)
+
+    await page.goto("/#project")
+
+    const stage = await waitForRunningStage(page)
+
+    await expect(stage).toHaveAttribute("data-burst", "open", {
+      timeout: 10000,
+    })
+
+    expect(problems).toEqual([])
+  })
+})
+
+test.describe("projects burst with reduced motion", () => {
+  test.use({ reducedMotion: "reduce" })
+
+  test("keeps the frames drawn in hairlines and never bursts", async ({
+    page,
+  }) => {
+    const problems = collectPageProblems(page)
+
+    await page.goto("/#project")
+
+    const stage = await waitForRunningStage(page)
+
+    await expect(stage).toHaveAttribute("data-burst", "off")
+    await expect(page.locator("[data-dot-frame]").first()).toHaveCSS(
+      "border-top-color",
+      /\/ 0\.4\)$/
+    )
+
+    expect(problems).toEqual([])
+  })
+})
+
 test.describe("scroll morph with reduced motion", () => {
   test.use({ reducedMotion: "reduce" })
 
@@ -253,6 +337,18 @@ test.describe("hero dot field on a phone", () => {
 
     await expect(stage).toHaveAttribute("data-morph", "cube", {
       timeout: 5000,
+    })
+  })
+
+  test("bursts into the projects on a narrow touch viewport", async ({
+    page,
+  }) => {
+    await page.goto("/#project")
+
+    const stage = await waitForRunningStage(page)
+
+    await expect(stage).toHaveAttribute("data-burst", "open", {
+      timeout: 10000,
     })
   })
 })

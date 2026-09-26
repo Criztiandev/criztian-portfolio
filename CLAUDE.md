@@ -71,22 +71,24 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
 
 - **How it works:** raw WebGL2, no three.js or ogl. The sampler (Canvas2D) rasterises the name in Antonio and samples a dot grid. The renderer and GLSL in `shaders/` draw it. `dot-field.rules.ts` is the pure, unit-tested layer.
 - **Stage and scroll morph:**
-  - `Hero`'s root is the stage. It holds the one opaque canvas at `-z-10` inside `isolate`, then `#home`, then `QuoteSection` (`#quote`). The canvas runs from the stage top to the cube slot's bottom and scrolls with the document.
-  - Scrolling out of the hero morphs the name's dots into a spinning stippled cube in the quote's slot.
-  - Keep **exactly one `<canvas>` and one `[data-status]`** on the page; the e2e specs use strict locators.
+  - `Hero`'s root is the stage. It holds the one opaque canvas at `-z-10` inside `isolate`, then `#home`, then `QuoteSection` (`#quote`), then `ProjectsSection` (`#project`). The canvas is as tall as the stage top to the cube slot's bottom and scrolls with the document.
+  - Scrolling out of the hero morphs the name's dots into a spinning stippled cube in the quote's slot. Scrolling on compresses the cube and bursts it into Projects (dust, sparks, and a stippled frame around each `[data-dot-frame]` plate).
+  - Keep **exactly one `<canvas>` and one `[data-status]`** on the page; the e2e specs use strict locators. Any section that wants dots must live inside the stage.
+- **Sliding window:** the canvas never grows (that would cost the name its pixel ratio). `resolveCanvasWindowTop` slides it with `transform` in whole-device-pixel steps once `#project` is on screen, and stays 0 before that and under reduced motion. The shader's last line subtracts `uWindowTop`; homes, physics and the pointer stay in stage device px. The window is synced from `onScroll` even while the loop sleeps, because the IntersectionObserver only restarts the loop once the canvas is back on screen.
+- **Scene:** attribute 4 (`aScene`: u, v, along, key) from `generateScenePoints`, uploaded inside `uploadPoints` with the others. Compress is scroll-scrubbed; the burst is a time-based follow with a rearm hysteresis (`resolveSceneTargets`); frames are claimed per card by scroll (`resolveClaimTarget`, uniform arrays sized `MAX_DOT_FRAMES`). Only cube-edge dots (`aMorph.y`) take part. Every new term is an exact identity at burst 0 and window 0, which is why the hero and `/#quote` stay pixel-identical. The stage carries `data-burst` (`off | idle | open`); `data-morph` stays `cube` throughout.
 - **Coordinates:** home positions stay in the bleed box's local device px. Uniforms (`uWordOrigin`, rounded to whole device pixels, and `uWordCenter`) place them on the canvas. One pixel ratio from `resolveCanvasPixelRatio` feeds the canvas, the sampler and the pointer. The canvas CSS size is derived from its rounded backing size.
 - **Cube buffer:** attributes 2 and 3 come from `generateCubePoints`, always for the same count as the wordmark, and are uploaded inside `uploadPoints`.
 - **Blending:** dimness in the cube is opacity, not darkness, under source-over. Don't switch to MAX blending: it darkens the wordmark's seams.
 - **Tuning:** every tuning number lives in `src/data/hero.data.ts`. Tune there and nowhere else.
 - **Two effects in `use-dot-field.hook.ts`; never merge them.** One owns the GL context and animation loop, with stable deps (`[stageRef, heroRef, wordmarkRef, taglineRef, cubeRef, canvasRef, mode]`). The quote never enters the hook. The other resamples geometry on `[text, fontFamily]`. Merging them recreates a WebGL context on every editor keystroke. A third, tiny effect applies `dotColor` as a uniform; never put `dotColor` in the GL effect's deps, or a colour edit blanks the field.
 - **Physics:** each dot is a damped spring (`stepDotPhysics` in `dot-field.rules.ts`), stepped on the CPU and streamed to vertex attribute 1 as offsets from the static home positions. Radius and push scale with the wordmark's ink height.
-- **Pointer:** it pushes at morph 0 (the name) and at morph 1 (the cube), never while dots are in flight.
+- **Pointer:** it pushes at morph 0 (the name) and at morph 1 (the cube), never while dots are in flight, compressing or burst.
   - The pointer is kept in canvas device px.
   - For the cube, `projectCubePoints` recomputes the homes on the CPU with the shader's exact maths. The ink height becomes `cubeSide × cubeInkRatio`.
   - Offsets are added after the name-to-cube mix, so one spring drives both shapes.
 - **Loop:**
-  - The RAF loop stops once every dot is at rest and the morph is back at 0.
-  - While the cube shows (morph > 0) it spins constantly, by the owner's choice, and the loop runs as long as the canvas is visible.
+  - The RAF loop stops once every dot is at rest and either the morph is back at 0 or the burst is fully open (`shouldLoopSleep`).
+  - While the cube shows (morph > 0 and the burst not open) it spins constantly, by the owner's choice, and the loop runs as long as the canvas is visible.
   - Scroll and pointer input restart the loop, so a resize must always redraw.
   - The cube's orientation is `buildCubeRotation(yaw, pitch, roll)`. The pitch and roll wobble around `cubePitch` and `cubeRoll`. The IntersectionObserver watches the canvas: not the wordmark box, which would freeze the cube, and not the whole stage, which runs past the drawn area.
 - **No `useState` in the hook.** Status goes out as DOM attributes (`data-status` and `data-morph` on the stage, `data-point-count` on the canvas), which CSS and the e2e specs key off.
@@ -119,6 +121,7 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
   - Don't remove the flag, and don't re-diagnose this as antivirus.
   - Stop the dev server with Ctrl-C, never `taskkill /F`, which leaves locked handles on `.next`. If it happens anyway, delete `.next`.
 - **ESLint is pinned to 9.** ESLint 10 crashes `eslint-plugin-react`.
+- **`next build` replays a stale published document.** The published-content read is cached in Next's Data Cache (`.next/cache/fetch-cache`) for a year with no tags, and a fresh build reuses it, so a production build can render an old theme or old fields while the DB and dev server are right. Runtime publishes are fine (`revalidatePath`). Until the read is tagged or made uncached, delete `.next/cache/fetch-cache` before a build that must show current content.
 - **Never write a secret-shaped literal in a test,** even a fake one. GitHub push protection blocked a push once. Build fixtures from parts: `` `sb_secret_${"0".repeat(32)}` ``.
 - **e2e state:**
   - `tests/e2e/hero.spec.ts` asserts the published hero name is `Criztian`. Never leave a test value published; `editor.spec.ts` restores the name.

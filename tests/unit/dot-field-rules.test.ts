@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  BURST_FOLLOW_TUNING,
   CUBE_POINT_STRIDE,
   DOT_FIELD_MORPH_TUNING,
+  DOT_FIELD_SCENE_TUNING,
   DOT_FIELD_TUNING,
   MAX_CANVAS_PIXELS,
+  SCENE_POINT_STRIDE,
 } from "@/data/hero.data"
 import {
   buildCubeRotation,
@@ -13,15 +16,24 @@ import {
   createRandomSource,
   followMorphProgress,
   generateCubePoints,
+  generateScenePoints,
   isCubeEdgeIndex,
   parsePrimaryFontFamily,
   projectCubePoints,
+  resolveBurstState,
   resolveCanvasPixelRatio,
+  resolveCanvasWindowTop,
+  resolveClaimTarget,
+  resolveCompressedCube,
   resolveDotPitch,
   resolveFontSize,
+  resolveFrameShare,
   resolveMorphState,
   resolvePixelRatio,
+  resolveSceneScroll,
+  resolveSceneTargets,
   samplePixelGrid,
+  shouldLoopSleep,
   shouldRebuildPoints,
   stepDotPhysics,
 } from "@/features/portfolio/dot-field.rules"
@@ -612,5 +624,404 @@ describe("followMorphProgress", () => {
     expect(
       followMorphProgress(0.99999, 1, 1 / 60, DOT_FIELD_MORPH_TUNING)
     ).toBe(1)
+  })
+})
+
+const WINDOW_REQUEST = {
+  scrolled: 0,
+  viewportHeight: 900,
+  canvasHeight: 1422,
+  stageHeight: 6000,
+  projectsTop: 1800,
+  pixelRatio: 2,
+  isStatic: false,
+}
+
+describe("resolveCanvasWindowTop", () => {
+  it("stays at the stage top until the projects enter the viewport", () => {
+    expect(
+      resolveCanvasWindowTop(
+        { ...WINDOW_REQUEST, scrolled: 900 },
+        DOT_FIELD_SCENE_TUNING
+      )
+    ).toBe(0)
+  })
+
+  it("stays at the stage top under reduced motion", () => {
+    expect(
+      resolveCanvasWindowTop(
+        { ...WINDOW_REQUEST, scrolled: 3000, isStatic: true },
+        DOT_FIELD_SCENE_TUNING
+      )
+    ).toBe(0)
+  })
+
+  it("keeps the viewport inside the window with margin on both sides", () => {
+    const slack = WINDOW_REQUEST.canvasHeight - WINDOW_REQUEST.viewportHeight
+    const margin = (slack * 3) / 8 - 1
+
+    for (let scrolled = 901; scrolled < 4500; scrolled += 7) {
+      const windowTop = resolveCanvasWindowTop(
+        { ...WINDOW_REQUEST, scrolled },
+        DOT_FIELD_SCENE_TUNING
+      )
+      const bottomMargin =
+        windowTop +
+        WINDOW_REQUEST.canvasHeight -
+        (scrolled + WINDOW_REQUEST.viewportHeight)
+
+      expect(scrolled - windowTop).toBeGreaterThanOrEqual(margin)
+      expect(bottomMargin).toBeGreaterThanOrEqual(margin)
+    }
+  })
+
+  it("moves in whole device pixels", () => {
+    for (let scrolled = 901; scrolled < 4500; scrolled += 13) {
+      const windowTop = resolveCanvasWindowTop(
+        { ...WINDOW_REQUEST, scrolled, pixelRatio: 1.75 },
+        DOT_FIELD_SCENE_TUNING
+      )
+      const devicePixels = windowTop * 1.75
+
+      expect(Math.abs(devicePixels - Math.round(devicePixels))).toBeLessThan(
+        1e-6
+      )
+    }
+  })
+
+  it("never runs past the end of the stage", () => {
+    const windowTop = resolveCanvasWindowTop(
+      { ...WINDOW_REQUEST, scrolled: 20000 },
+      DOT_FIELD_SCENE_TUNING
+    )
+
+    expect(windowTop).toBe(
+      WINDOW_REQUEST.stageHeight - WINDOW_REQUEST.canvasHeight
+    )
+  })
+})
+
+const SCENE_SCROLL_REQUEST = {
+  scrolled: 0,
+  viewportHeight: 900,
+  projectsTop: 1800,
+  stageWidth: 1440,
+}
+
+function readCompressAt(scrolled: number): number {
+  return resolveSceneScroll(
+    { ...SCENE_SCROLL_REQUEST, scrolled },
+    DOT_FIELD_SCENE_TUNING
+  ).rawCompress
+}
+
+function readRearmedAt(scrolled: number): boolean {
+  return resolveSceneScroll(
+    { ...SCENE_SCROLL_REQUEST, scrolled },
+    DOT_FIELD_SCENE_TUNING
+  ).isRearmed
+}
+
+describe("resolveSceneScroll", () => {
+  it("compresses while the projects rise from 70% to 35% of the view", () => {
+    expect(readCompressAt(1000)).toBe(0)
+    expect(readCompressAt(1170)).toBe(0)
+    expect(readCompressAt(1327.5)).toBeCloseTo(0.5)
+    expect(readCompressAt(1485)).toBe(1)
+    expect(readCompressAt(2000)).toBe(1)
+  })
+
+  it("rearms the burst only well above the burst line", () => {
+    expect(readRearmedAt(1390)).toBe(true)
+    expect(readRearmedAt(1400)).toBe(false)
+    expect(readRearmedAt(1485)).toBe(false)
+  })
+
+  it("places the burst point above the projects when it fires", () => {
+    const scroll = resolveSceneScroll(
+      { ...SCENE_SCROLL_REQUEST, scrolled: 1485 },
+      DOT_FIELD_SCENE_TUNING
+    )
+
+    expect(scroll.burstPoint.x).toBe(720)
+    expect(scroll.burstPoint.y).toBe(1485 + 270)
+    expect(scroll.dustTop).toBe(1485)
+  })
+
+  it("does nothing without a viewport", () => {
+    const scroll = resolveSceneScroll(
+      { ...SCENE_SCROLL_REQUEST, scrolled: 5000, viewportHeight: 0 },
+      DOT_FIELD_SCENE_TUNING
+    )
+
+    expect(scroll.rawCompress).toBe(0)
+  })
+})
+
+const SCENE_TARGET_REQUEST = {
+  rawCompress: 0,
+  isRearmed: true,
+  compress: 0,
+  burst: 0,
+  burstTarget: 0,
+}
+
+describe("resolveSceneTargets", () => {
+  it("fires the burst once the knot has fully compressed", () => {
+    const early = resolveSceneTargets(
+      {
+        ...SCENE_TARGET_REQUEST,
+        rawCompress: 1,
+        isRearmed: false,
+        compress: 0.9,
+      },
+      DOT_FIELD_SCENE_TUNING
+    )
+    const ready = resolveSceneTargets(
+      {
+        ...SCENE_TARGET_REQUEST,
+        rawCompress: 1,
+        isRearmed: false,
+        compress: 0.99,
+      },
+      DOT_FIELD_SCENE_TUNING
+    )
+
+    expect(early.burstTarget).toBe(0)
+    expect(ready.burstTarget).toBe(1)
+  })
+
+  it("keeps the burst open inside the hysteresis band", () => {
+    const targets = resolveSceneTargets(
+      {
+        ...SCENE_TARGET_REQUEST,
+        rawCompress: 0.8,
+        isRearmed: false,
+        compress: 1,
+        burst: 1,
+        burstTarget: 1,
+      },
+      DOT_FIELD_SCENE_TUNING
+    )
+
+    expect(targets.burstTarget).toBe(1)
+    expect(targets.compressTarget).toBe(1)
+  })
+
+  it("holds the knot shut until the dots are home", () => {
+    const imploding = resolveSceneTargets(
+      {
+        ...SCENE_TARGET_REQUEST,
+        rawCompress: 0.2,
+        compress: 1,
+        burst: 0.5,
+        burstTarget: 1,
+      },
+      DOT_FIELD_SCENE_TUNING
+    )
+    const home = resolveSceneTargets(
+      {
+        ...SCENE_TARGET_REQUEST,
+        rawCompress: 0.2,
+        compress: 1,
+        burst: 0.01,
+        burstTarget: 0,
+      },
+      DOT_FIELD_SCENE_TUNING
+    )
+
+    expect(imploding.burstTarget).toBe(0)
+    expect(imploding.compressTarget).toBe(1)
+    expect(home.compressTarget).toBe(0.2)
+  })
+
+  it("bursts forward and reassembles backward without stalling", () => {
+    const scene = { compress: 0, burst: 0, burstTarget: 0 }
+
+    function runFrames(rawCompress: number, isRearmed: boolean): void {
+      for (let frame = 0; frame < 600; frame += 1) {
+        const targets = resolveSceneTargets(
+          { rawCompress, isRearmed, ...scene },
+          DOT_FIELD_SCENE_TUNING
+        )
+
+        scene.burstTarget = targets.burstTarget
+        scene.compress = followMorphProgress(
+          scene.compress,
+          targets.compressTarget,
+          1 / 60,
+          DOT_FIELD_MORPH_TUNING
+        )
+        scene.burst = followMorphProgress(
+          scene.burst,
+          targets.burstTarget,
+          1 / 60,
+          BURST_FOLLOW_TUNING
+        )
+      }
+    }
+
+    runFrames(1, false)
+    expect(scene.burst).toBe(1)
+
+    runFrames(0, true)
+    expect(scene.burst).toBe(0)
+    expect(scene.compress).toBe(0)
+
+    runFrames(1, false)
+    expect(scene.burst).toBe(1)
+  })
+})
+
+const COMPRESS_REQUEST = {
+  slotCenter: { x: 720, y: 1215 },
+  burstPoint: { x: 720, y: 1935 },
+  halfSize: 200,
+  compress: 0,
+}
+
+describe("resolveCompressedCube", () => {
+  it("is the resting cube when nothing is compressed", () => {
+    expect(
+      resolveCompressedCube(
+        COMPRESS_REQUEST,
+        DOT_FIELD_SCENE_TUNING,
+        DOT_FIELD_MORPH_TUNING.farLight
+      )
+    ).toEqual({
+      center: COMPRESS_REQUEST.slotCenter,
+      halfSize: 200,
+      spinBoost: 1,
+      farLight: DOT_FIELD_MORPH_TUNING.farLight,
+    })
+  })
+
+  it("shrinks into a bright knot at the burst point", () => {
+    const knot = resolveCompressedCube(
+      { ...COMPRESS_REQUEST, compress: 1 },
+      DOT_FIELD_SCENE_TUNING,
+      DOT_FIELD_MORPH_TUNING.farLight
+    )
+
+    expect(knot.center).toEqual(COMPRESS_REQUEST.burstPoint)
+    expect(knot.halfSize).toBeCloseTo(
+      200 * DOT_FIELD_SCENE_TUNING.compressedScale
+    )
+    expect(knot.spinBoost).toBe(1 + DOT_FIELD_SCENE_TUNING.compressSpinBoost)
+    expect(knot.farLight).toBe(DOT_FIELD_SCENE_TUNING.compressFarLight)
+  })
+})
+
+describe("generateScenePoints", () => {
+  it("is deterministic, four values per dot, all in [0, 1)", () => {
+    const first = generateScenePoints(500)
+    const second = generateScenePoints(500)
+
+    expect(first.length).toBe(500 * SCENE_POINT_STRIDE)
+    expect(Array.from(first)).toEqual(Array.from(second))
+
+    for (const value of first) {
+      expect(value).toBeGreaterThanOrEqual(0)
+      expect(value).toBeLessThan(1)
+    }
+  })
+
+  it("returns nothing for no dots", () => {
+    expect(generateScenePoints(0).length).toBe(0)
+  })
+})
+
+describe("resolveBurstState", () => {
+  it("reports off, idle and open", () => {
+    expect(resolveBurstState(1, true)).toBe("off")
+    expect(resolveBurstState(0, false)).toBe("idle")
+    expect(resolveBurstState(1, false)).toBe("open")
+  })
+})
+
+const LOOP_AT_REST = {
+  isFieldAtRest: true,
+  hasSettled: true,
+  isMorphResting: true,
+  isSceneResting: true,
+  morph: 0,
+  burst: 0,
+}
+
+describe("shouldLoopSleep", () => {
+  it("sleeps on the resting name and on settled dust", () => {
+    expect(shouldLoopSleep(LOOP_AT_REST)).toBe(true)
+    expect(shouldLoopSleep({ ...LOOP_AT_REST, morph: 1, burst: 1 })).toBe(true)
+  })
+
+  it("keeps the cube spinning while it is on screen", () => {
+    expect(shouldLoopSleep({ ...LOOP_AT_REST, morph: 1 })).toBe(false)
+  })
+
+  it("keeps running while anything is still moving", () => {
+    expect(shouldLoopSleep({ ...LOOP_AT_REST, isSceneResting: false })).toBe(
+      false
+    )
+    expect(shouldLoopSleep({ ...LOOP_AT_REST, isFieldAtRest: false })).toBe(
+      false
+    )
+  })
+})
+
+const DESKTOP_FRAME = { x: 600, y: 2000, width: 768, height: 538 }
+
+describe("resolveFrameShare", () => {
+  it("gives no dots to frames when there are none", () => {
+    expect(resolveFrameShare(7200, [], DOT_FIELD_SCENE_TUNING)).toBe(0)
+    expect(resolveFrameShare(0, [DESKTOP_FRAME], DOT_FIELD_SCENE_TUNING)).toBe(
+      0
+    )
+  })
+
+  it("asks for one dot per spacing step around each frame", () => {
+    const outset = DOT_FIELD_SCENE_TUNING.frameOutsetPx
+    const perimeter = 2 * (768 + 538 + 4 * outset)
+    const expected = perimeter / DOT_FIELD_SCENE_TUNING.frameDotSpacingPx / 7200
+
+    expect(
+      resolveFrameShare(7200, [DESKTOP_FRAME], DOT_FIELD_SCENE_TUNING)
+    ).toBeCloseTo(expected)
+  })
+
+  it("never takes more than its cap", () => {
+    const frames = [DESKTOP_FRAME, DESKTOP_FRAME, DESKTOP_FRAME, DESKTOP_FRAME]
+
+    expect(resolveFrameShare(1800, frames, DOT_FIELD_SCENE_TUNING)).toBe(
+      DOT_FIELD_SCENE_TUNING.maxFrameShare
+    )
+  })
+})
+
+const CLAIM_REQUEST = {
+  frameTop: 2000,
+  scrolled: 0,
+  viewportHeight: 900,
+  burst: 1,
+}
+
+function readClaimAt(scrolled: number, burst: number): number {
+  return resolveClaimTarget(
+    { ...CLAIM_REQUEST, scrolled, burst },
+    DOT_FIELD_SCENE_TUNING
+  )
+}
+
+describe("resolveClaimTarget", () => {
+  it("draws the frame as it rises from 95% to 60% of the view", () => {
+    expect(readClaimAt(2000 - 900, 1)).toBe(0)
+    expect(readClaimAt(2000 - 855, 1)).toBe(0)
+    expect(readClaimAt(2000 - 697.5, 1)).toBeCloseTo(0.5)
+    expect(readClaimAt(2000 - 540, 1)).toBe(1)
+    expect(readClaimAt(2000, 1)).toBe(1)
+  })
+
+  it("waits for the burst to carry the dots out first", () => {
+    expect(readClaimAt(2000, 0.5)).toBe(0)
+    expect(readClaimAt(2000, DOT_FIELD_SCENE_TUNING.claimGate)).toBe(1)
   })
 })

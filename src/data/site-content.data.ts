@@ -3,6 +3,8 @@ import type {
   EditorSaveState,
   EditorUiState,
   HeroTextField,
+  ProjectItem,
+  ProjectItemField,
   RichTextDocument,
   SiteContentEntry,
   ThemeColorField,
@@ -17,6 +19,119 @@ export const QUOTE_AUTHOR_MAX_LENGTH = 80
 export const DEFAULT_QUOTE_TEXT = "Your quote about life goes here."
 
 export const DEFAULT_QUOTE_AUTHOR = ""
+
+export const PROJECTS_MAX = 6
+
+export const PROJECTS_HEADING_MAX_LENGTH = 40
+
+export const PROJECTS_LEDE_MAX_LENGTH = 160
+
+export const PROJECT_TITLE_MAX_LENGTH = 60
+
+export const PROJECT_TAG_MAX_LENGTH = 24
+
+export const PROJECT_SUMMARY_MAX_LENGTH = 160
+
+export const PROJECT_STACK_MAX_LENGTH = 80
+
+export const PROJECT_LINK_MAX_LENGTH = 200
+
+export const PROJECT_IMAGE_MAX_LENGTH = 200
+
+export const PROJECT_IMAGE_ALT_MAX_LENGTH = 120
+
+export const DEFAULT_PROJECTS_HEADING = "Projects"
+
+export const DEFAULT_PROJECTS_LEDE = "A short intro to your projects goes here."
+
+export const DEFAULT_PROJECT_TAG = "Tag"
+
+export const DEFAULT_PROJECT_SUMMARY = "What you built and for whom goes here."
+
+export const DEFAULT_PROJECT_ITEMS: ProjectItem[] = [
+  {
+    title: "Project one",
+    tag: DEFAULT_PROJECT_TAG,
+    summary: DEFAULT_PROJECT_SUMMARY,
+    stack: "",
+    link: "",
+    image: "",
+    imageAlt: "",
+  },
+  {
+    title: "Project two",
+    tag: DEFAULT_PROJECT_TAG,
+    summary: DEFAULT_PROJECT_SUMMARY,
+    stack: "",
+    link: "",
+    image: "",
+    imageAlt: "",
+  },
+  {
+    title: "Project three",
+    tag: DEFAULT_PROJECT_TAG,
+    summary: DEFAULT_PROJECT_SUMMARY,
+    stack: "",
+    link: "",
+    image: "",
+    imageAlt: "",
+  },
+]
+
+export const NEW_PROJECT_ITEM: ProjectItem = {
+  title: "New project",
+  tag: "",
+  summary: "",
+  stack: "",
+  link: "",
+  image: "",
+  imageAlt: "",
+}
+
+export const PROJECT_ITEM_FIELDS: ProjectItemField[] = [
+  {
+    key: "title",
+    label: "title",
+    maxLength: PROJECT_TITLE_MAX_LENGTH,
+    multiline: false,
+  },
+  {
+    key: "tag",
+    label: "tag",
+    maxLength: PROJECT_TAG_MAX_LENGTH,
+    multiline: false,
+  },
+  {
+    key: "summary",
+    label: "summary",
+    maxLength: PROJECT_SUMMARY_MAX_LENGTH,
+    multiline: true,
+  },
+  {
+    key: "stack",
+    label: "stack",
+    maxLength: PROJECT_STACK_MAX_LENGTH,
+    multiline: false,
+  },
+  {
+    key: "link",
+    label: "link",
+    maxLength: PROJECT_LINK_MAX_LENGTH,
+    multiline: false,
+  },
+  {
+    key: "image",
+    label: "image",
+    maxLength: PROJECT_IMAGE_MAX_LENGTH,
+    multiline: false,
+  },
+  {
+    key: "imageAlt",
+    label: "alt text",
+    maxLength: PROJECT_IMAGE_ALT_MAX_LENGTH,
+    multiline: false,
+  },
+]
 
 export const RICH_TEXT_NODE_TYPES = [
   "doc",
@@ -53,15 +168,15 @@ export const DEFAULT_HERO_TAGLINE: RichTextDocument = {
   ],
 }
 
-export const DEFAULT_THEME_PAGE_BACKGROUND = "#ffffff"
+export const DEFAULT_THEME_PAGE_BACKGROUND = "#000000"
 
-export const DEFAULT_THEME_BODY_TEXT = "#252525"
+export const DEFAULT_THEME_BODY_TEXT = "#ffffff"
 
-export const DEFAULT_THEME_MUTED_TEXT = "#8e8e8e"
+export const DEFAULT_THEME_MUTED_TEXT = "#999999"
 
-export const DEFAULT_THEME_ACCENT = "#343434"
+export const DEFAULT_THEME_ACCENT = "#ffffff"
 
-export const DEFAULT_THEME_BORDER = "#ebebeb"
+export const DEFAULT_THEME_BORDER = "#666666"
 
 export const DEFAULT_THEME_HERO_DOT = "#ffffff"
 
@@ -75,6 +190,11 @@ export const SITE_CONTENT_ENTRIES: SiteContentEntry[] = [
     id: "quote",
     label: "Quote",
     sectionId: "quote",
+  },
+  {
+    id: "projects",
+    label: "Projects",
+    sectionId: "project",
   },
   {
     id: "theme",

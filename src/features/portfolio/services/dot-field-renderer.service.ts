@@ -9,6 +9,8 @@ import {
   OFFSET_STRIDE,
   POINT_ATTRIBUTE_LOCATION,
   POINT_STRIDE,
+  SCENE_ATTRIBUTE_LOCATION,
+  SCENE_POINT_STRIDE,
 } from "@/data/hero.data"
 import { hexToRgbTriplet } from "@/features/portfolio/dot-field.rules"
 import { DOT_FIELD_FRAGMENT_SHADER } from "@/features/portfolio/shaders/dot-field.fragment-shader"
@@ -18,6 +20,7 @@ import type {
   DotFieldMorphTuning,
   DotFieldRuntime,
   DotFieldSample,
+  DotFieldSceneTuning,
   DotFieldTuning,
   DotFieldUniforms,
 } from "@/types/hero.type"
@@ -117,6 +120,24 @@ function resolveUniformLocations(
     cameraDistance: context.getUniformLocation(program, "uCameraDistance"),
     farLight: context.getUniformLocation(program, "uFarLight"),
     cubeDotSize: context.getUniformLocation(program, "uCubeDotSize"),
+    windowTop: context.getUniformLocation(program, "uWindowTop"),
+    burst: context.getUniformLocation(program, "uBurst"),
+    burstStagger: context.getUniformLocation(program, "uBurstStagger"),
+    sparkRadius: context.getUniformLocation(program, "uSparkRadius"),
+    sparkFade: context.getUniformLocation(program, "uSparkFade"),
+    dustRect: context.getUniformLocation(program, "uDustRect"),
+    shares: context.getUniformLocation(program, "uShares"),
+    dustOpacity: context.getUniformLocation(program, "uDustOpacity"),
+    dustDotSize: context.getUniformLocation(program, "uDustDotSize"),
+    frameCount: context.getUniformLocation(program, "uFrameCount"),
+    frameRects: context.getUniformLocation(program, "uFrameRects"),
+    claims: context.getUniformLocation(program, "uClaims"),
+    frameBand: context.getUniformLocation(program, "uFrameBand"),
+    frameOutset: context.getUniformLocation(program, "uFrameOutset"),
+    frameJitter: context.getUniformLocation(program, "uFrameJitter"),
+    frameDotSize: context.getUniformLocation(program, "uFrameDotSize"),
+    frameOpacity: context.getUniformLocation(program, "uFrameOpacity"),
+    claimStagger: context.getUniformLocation(program, "uClaimStagger"),
   }
 }
 
@@ -150,12 +171,14 @@ export function createDotFieldRuntime(
   const buffer = context.createBuffer()
   const offsetBuffer = context.createBuffer()
   const cubeBuffer = context.createBuffer()
+  const sceneBuffer = context.createBuffer()
 
   if (
     vertexArray === null ||
     buffer === null ||
     offsetBuffer === null ||
-    cubeBuffer === null
+    cubeBuffer === null ||
+    sceneBuffer === null
   ) {
     context.deleteProgram(program)
 
@@ -209,6 +232,17 @@ export function createDotFieldRuntime(
     CUBE_POSITION_COMPONENTS * floatBytes
   )
 
+  context.bindBuffer(context.ARRAY_BUFFER, sceneBuffer)
+  context.enableVertexAttribArray(SCENE_ATTRIBUTE_LOCATION)
+  context.vertexAttribPointer(
+    SCENE_ATTRIBUTE_LOCATION,
+    SCENE_POINT_STRIDE,
+    context.FLOAT,
+    false,
+    0,
+    0
+  )
+
   context.bindVertexArray(null)
 
   context.disable(context.DEPTH_TEST)
@@ -223,6 +257,7 @@ export function createDotFieldRuntime(
     buffer,
     offsetBuffer,
     cubeBuffer,
+    sceneBuffer,
     uniforms: resolveUniformLocations(context, program),
     pointCount: 0,
     positions: new Float32Array(0),
@@ -239,6 +274,7 @@ export function applyStaticUniforms(
   runtime: DotFieldRuntime,
   tuning: DotFieldTuning,
   morphTuning: DotFieldMorphTuning,
+  sceneTuning: DotFieldSceneTuning,
   pixelRatio: number
 ): void {
   const { context, uniforms } = runtime
@@ -252,8 +288,22 @@ export function applyStaticUniforms(
   context.uniform1f(uniforms.morphJitter, morphTuning.morphJitter)
   context.uniform1f(uniforms.morphArc, morphTuning.morphArcPixels * pixelRatio)
   context.uniform1f(uniforms.cameraDistance, morphTuning.cameraDistance)
-  context.uniform1f(uniforms.farLight, morphTuning.farLight)
   context.uniform1f(uniforms.cubeDotSize, morphTuning.cubeDotSize)
+  context.uniform1f(uniforms.burstStagger, sceneTuning.burstStagger)
+  context.uniform1f(uniforms.sparkFade, sceneTuning.sparkFade)
+  context.uniform1f(uniforms.dustOpacity, sceneTuning.dustOpacity)
+  context.uniform1f(uniforms.dustDotSize, sceneTuning.dustDotSize)
+  context.uniform1f(
+    uniforms.frameOutset,
+    sceneTuning.frameOutsetPx * pixelRatio
+  )
+  context.uniform1f(
+    uniforms.frameJitter,
+    sceneTuning.frameJitterPx * pixelRatio
+  )
+  context.uniform1f(uniforms.frameDotSize, sceneTuning.frameDotSize)
+  context.uniform1f(uniforms.frameOpacity, sceneTuning.frameOpacity)
+  context.uniform1f(uniforms.claimStagger, sceneTuning.claimStagger)
 }
 
 export function applyDotColor(
@@ -280,7 +330,8 @@ export function resizeDotField(runtime: DotFieldRuntime): void {
 export function uploadPoints(
   runtime: DotFieldRuntime,
   sample: DotFieldSample,
-  cubePoints: Float32Array
+  cubePoints: Float32Array,
+  scenePoints: Float32Array
 ): void {
   const { context } = runtime
 
@@ -307,6 +358,9 @@ export function uploadPoints(
 
   context.bindBuffer(context.ARRAY_BUFFER, runtime.cubeBuffer)
   context.bufferData(context.ARRAY_BUFFER, cubePoints, context.STATIC_DRAW)
+
+  context.bindBuffer(context.ARRAY_BUFFER, runtime.sceneBuffer)
+  context.bufferData(context.ARRAY_BUFFER, scenePoints, context.STATIC_DRAW)
 
   runtime.pointCount = sample.count
 }
@@ -348,6 +402,22 @@ export function drawDotField(
   context.uniform2f(uniforms.cubeCenter, frame.cubeCenter.x, frame.cubeCenter.y)
   context.uniform1f(uniforms.cubeHalfSize, frame.cubeHalfSize)
   context.uniformMatrix3fv(uniforms.cubeRotation, false, frame.rotation)
+  context.uniform1f(uniforms.farLight, frame.farLight)
+  context.uniform1f(uniforms.windowTop, frame.windowTop)
+  context.uniform1f(uniforms.burst, frame.burst)
+  context.uniform1f(uniforms.sparkRadius, frame.sparkRadius)
+  context.uniform4f(
+    uniforms.dustRect,
+    frame.dustRect.x,
+    frame.dustRect.y,
+    frame.dustRect.width,
+    frame.dustRect.height
+  )
+  context.uniform2f(uniforms.shares, frame.shares.x, frame.shares.y)
+  context.uniform1f(uniforms.frameCount, frame.frameCount)
+  context.uniform4fv(uniforms.frameRects, frame.frameRects)
+  context.uniform1fv(uniforms.claims, frame.claims)
+  context.uniform1f(uniforms.frameBand, frame.frameBand)
 
   for (const morph of frame.morphPasses) {
     context.uniform1f(uniforms.morph, morph)
@@ -363,6 +433,7 @@ export function destroyRuntime(runtime: DotFieldRuntime): void {
   context.deleteBuffer(runtime.buffer)
   context.deleteBuffer(runtime.offsetBuffer)
   context.deleteBuffer(runtime.cubeBuffer)
+  context.deleteBuffer(runtime.sceneBuffer)
   context.deleteVertexArray(runtime.vertexArray)
   context.deleteProgram(runtime.program)
 }

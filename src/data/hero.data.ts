@@ -4,7 +4,9 @@ import type {
   CubeEdge,
   CubeFace,
   CubicBezier,
+  DotFieldFollowTuning,
   DotFieldMorphTuning,
+  DotFieldSceneTuning,
   DotFieldTuning,
   HeroIntroTiming,
 } from "@/types/hero.type"
@@ -40,6 +42,18 @@ export const CUBE_POSITION_ATTRIBUTE_LOCATION = 2
 export const CUBE_DETAIL_ATTRIBUTE_LOCATION = 3
 
 export const CUBE_SEED = 20260926
+
+export const SCENE_POINT_STRIDE = 4
+
+export const SCENE_ATTRIBUTE_LOCATION = 4
+
+export const SCENE_SEED = 20260927
+
+export const MAX_DOT_FRAMES = 6
+
+export const DOT_FRAME_RECT_STRIDE = 4
+
+export const DOT_FRAME_SELECTOR = "[data-dot-frame]"
 
 export const MAX_CANVAS_PIXELS = 10_000_000
 
@@ -97,6 +111,42 @@ export const DOT_FIELD_MORPH_TUNING: DotFieldMorphTuning = {
   farLight: 0.35,
   cubeDotSize: 3,
   cubeInkRatio: 0.65,
+}
+
+export const DOT_FIELD_SCENE_TUNING: DotFieldSceneTuning = {
+  compressStartViewport: 0.7,
+  compressEndViewport: 0.35,
+  burstPointViewport: 0.3,
+  compressedScale: 0.16,
+  compressSpinBoost: 5,
+  compressFarLight: 1,
+  burstGate: 0.98,
+  burstHold: 0.02,
+  burstFollowRate: 4,
+  rearmViewport: 0.1,
+  burstStagger: 0.3,
+  sparkRadiusRatio: 0.6,
+  sparkFade: 0.6,
+  dustShare: 0.25,
+  dustOpacity: 0.45,
+  dustDotSize: 2,
+  frameBandViewport: 0.3,
+  maxFrameShare: 0.6,
+  frameDotSpacingPx: 3,
+  frameOutsetPx: 10,
+  frameJitterPx: 2,
+  frameDotSize: 2.5,
+  frameOpacity: 0.75,
+  claimStartViewport: 0.95,
+  claimEndViewport: 0.6,
+  claimGate: 0.6,
+  claimStagger: 0.5,
+  windowStepRatio: 0.25,
+}
+
+export const BURST_FOLLOW_TUNING: DotFieldFollowTuning = {
+  morphFollowRate: DOT_FIELD_SCENE_TUNING.burstFollowRate,
+  morphSettleEpsilon: DOT_FIELD_MORPH_TUNING.morphSettleEpsilon,
 }
 
 export const CONTEXT_OPTIONS: WebGLContextAttributes = {

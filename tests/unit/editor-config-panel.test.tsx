@@ -2,8 +2,15 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
 import {
+  DEFAULT_PROJECT_ITEMS,
+  HERO_NAME_MAX_LENGTH,
   HERO_TEXT_FIELDS,
+  NEW_PROJECT_ITEM,
   PREVIEW_CONTENT_MESSAGE,
+  PROJECT_ITEM_FIELDS,
+  PROJECTS_HEADING_MAX_LENGTH,
+  PROJECTS_LEDE_MAX_LENGTH,
+  PROJECTS_MAX,
   THEME_COLOR_FIELDS,
 } from "@/data/site-content.data"
 import { EditorConfigPanel } from "@/features/site-content/components/editor-config-panel.component"
@@ -112,6 +119,136 @@ describe("EditorConfigPanel", () => {
     const lastCall = postMessage.mock.calls[postMessage.mock.calls.length - 1]
 
     expect(lastCall[0].payload.quote.text).toBe("Keep going.")
+  })
+
+  it("caps the name input at the schema limit", () => {
+    renderPanel()
+
+    expect(screen.getByLabelText("Name")).toHaveAttribute(
+      "maxLength",
+      String(HERO_NAME_MAX_LENGTH)
+    )
+  })
+
+  it("renders hidden project fields until the projects entry is selected", () => {
+    renderPanel()
+
+    expect(screen.getByLabelText("Heading").closest("[hidden]")).not.toBeNull()
+    expect(
+      screen.getByLabelText("Project 1 title").closest("[hidden]")
+    ).not.toBeNull()
+    expect(
+      screen.getByRole("button", { name: "Add project", hidden: true })
+    ).toBeInTheDocument()
+  })
+
+  it("renders every project field with its schema limit", () => {
+    renderPanel()
+
+    for (const itemField of PROJECT_ITEM_FIELDS) {
+      const input = screen.getByLabelText(`Project 1 ${itemField.label}`)
+
+      expect(input).toHaveAttribute("maxLength", String(itemField.maxLength))
+    }
+
+    expect(screen.getByLabelText("Heading")).toHaveAttribute(
+      "maxLength",
+      String(PROJECTS_HEADING_MAX_LENGTH)
+    )
+    expect(screen.getByLabelText("Intro")).toHaveAttribute(
+      "maxLength",
+      String(PROJECTS_LEDE_MAX_LENGTH)
+    )
+  })
+
+  it("posts an edited project title to the preview frame", async () => {
+    const { postMessage } = renderPanel()
+
+    fireEvent.change(screen.getByLabelText("Project 2 title"), {
+      target: { value: "Online shop" },
+    })
+
+    await waitFor(
+      function assertPosted() {
+        expect(postMessage).toHaveBeenCalled()
+      },
+      { timeout: 3000 }
+    )
+
+    const lastCall = postMessage.mock.calls[postMessage.mock.calls.length - 1]
+
+    expect(lastCall[0].payload.projects.items[1].title).toBe("Online shop")
+  })
+
+  it("appends a new project and posts it to the preview frame", async () => {
+    const { postMessage } = renderPanel()
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Add project", hidden: true })
+    )
+
+    expect(screen.getByLabelText("Project 4 title")).toHaveValue(
+      NEW_PROJECT_ITEM.title
+    )
+
+    await waitFor(
+      function assertPosted() {
+        expect(postMessage).toHaveBeenCalled()
+      },
+      { timeout: 3000 }
+    )
+
+    const lastCall = postMessage.mock.calls[postMessage.mock.calls.length - 1]
+
+    expect(lastCall[0].payload.projects.items).toHaveLength(4)
+    expect(lastCall[0].payload.projects.items[3]).toEqual(NEW_PROJECT_ITEM)
+  })
+
+  it("removes a project", () => {
+    renderPanel()
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove project 1", hidden: true })
+    )
+
+    expect(screen.queryByLabelText("Project 3 title")).toBeNull()
+    expect(screen.getByLabelText("Project 1 title")).toHaveValue("Project two")
+  })
+
+  it("moves a project up and never moves the first", () => {
+    renderPanel()
+
+    expect(
+      screen.getByRole("button", { name: "Move project 1 up", hidden: true })
+    ).toBeDisabled()
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Move project 2 up", hidden: true })
+    )
+
+    expect(screen.getByLabelText("Project 1 title")).toHaveValue("Project two")
+    expect(screen.getByLabelText("Project 2 title")).toHaveValue("Project one")
+  })
+
+  it("disables adding once the list is full", () => {
+    renderPanel()
+
+    const addButton = screen.getByRole("button", {
+      name: "Add project",
+      hidden: true,
+    })
+
+    for (
+      let count = DEFAULT_PROJECT_ITEMS.length;
+      count < PROJECTS_MAX;
+      count += 1
+    ) {
+      expect(addButton).toBeEnabled()
+      fireEvent.click(addButton)
+    }
+
+    expect(screen.getByLabelText(`Project ${PROJECTS_MAX} title`)).toBeTruthy()
+    expect(addButton).toBeDisabled()
   })
 
   it("keeps the publish button disabled while the live site is current", () => {

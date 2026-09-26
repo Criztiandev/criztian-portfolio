@@ -2,6 +2,8 @@ export type HeroWordmarkMode = "dots" | "text"
 
 export type HeroMorphState = "name" | "moving" | "cube"
 
+export type HeroBurstState = "off" | "idle" | "open"
+
 export type CubicBezier = [number, number, number, number]
 
 export type CubeVector = [number, number, number]
@@ -47,6 +49,116 @@ export type DotFieldMorphTuning = {
   cubeInkRatio: number
 }
 
+export type DotFieldSceneTuning = {
+  compressStartViewport: number
+  compressEndViewport: number
+  burstPointViewport: number
+  compressedScale: number
+  compressSpinBoost: number
+  compressFarLight: number
+  burstGate: number
+  burstHold: number
+  burstFollowRate: number
+  rearmViewport: number
+  burstStagger: number
+  sparkRadiusRatio: number
+  sparkFade: number
+  dustShare: number
+  dustOpacity: number
+  dustDotSize: number
+  frameBandViewport: number
+  maxFrameShare: number
+  frameDotSpacingPx: number
+  frameOutsetPx: number
+  frameJitterPx: number
+  frameDotSize: number
+  frameOpacity: number
+  claimStartViewport: number
+  claimEndViewport: number
+  claimGate: number
+  claimStagger: number
+  windowStepRatio: number
+}
+
+export type DotFieldFollowTuning = Pick<
+  DotFieldMorphTuning,
+  "morphFollowRate" | "morphSettleEpsilon"
+>
+
+export type DotFieldRect = {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export type DotFieldSceneScrollRequest = {
+  scrolled: number
+  viewportHeight: number
+  projectsTop: number
+  stageWidth: number
+}
+
+export type DotFieldSceneScroll = {
+  rawCompress: number
+  isRearmed: boolean
+  burstPoint: DotFieldVector
+  dustTop: number
+}
+
+export type DotFieldSceneTargetRequest = {
+  rawCompress: number
+  isRearmed: boolean
+  compress: number
+  burst: number
+  burstTarget: number
+}
+
+export type DotFieldSceneTargets = {
+  compressTarget: number
+  burstTarget: number
+}
+
+export type DotFieldCompressRequest = {
+  slotCenter: DotFieldVector
+  burstPoint: DotFieldVector
+  halfSize: number
+  compress: number
+}
+
+export type DotFieldCompressedCube = {
+  center: DotFieldVector
+  halfSize: number
+  spinBoost: number
+  farLight: number
+}
+
+export type DotFieldClaimRequest = {
+  frameTop: number
+  scrolled: number
+  viewportHeight: number
+  burst: number
+}
+
+export type DotFieldWindowRequest = {
+  scrolled: number
+  viewportHeight: number
+  canvasHeight: number
+  stageHeight: number
+  projectsTop: number
+  pixelRatio: number
+  isStatic: boolean
+}
+
+export type DotFieldLoopRestRequest = {
+  isFieldAtRest: boolean
+  hasSettled: boolean
+  isMorphResting: boolean
+  isSceneResting: boolean
+  morph: number
+  burst: number
+}
+
 export type CubeProjection = {
   center: DotFieldVector
   halfSize: number
@@ -64,6 +176,10 @@ export type DotFieldLayout = {
   cubeSide: number
   morphStart: number
   morphEnd: number
+  stageHeight: number
+  projectsTop: number
+  projectsBottom: number
+  frames: DotFieldRect[]
 }
 
 export type DotFieldLayoutElements = {
@@ -71,6 +187,7 @@ export type DotFieldLayoutElements = {
   hero: HTMLElement
   wordmark: HTMLElement
   cube: HTMLElement
+  projects: HTMLElement
 }
 
 export type DotFieldFrame = {
@@ -82,6 +199,16 @@ export type DotFieldFrame = {
   cubeHalfSize: number
   rotation: Float32Array
   morphPasses: number[]
+  windowTop: number
+  burst: number
+  farLight: number
+  sparkRadius: number
+  dustRect: DotFieldRect
+  shares: DotFieldVector
+  frameCount: number
+  frameRects: Float32Array
+  claims: Float32Array
+  frameBand: number
 }
 
 export type HeroIntroTiming = {
@@ -201,6 +328,24 @@ export type DotFieldUniforms = {
   cameraDistance: WebGLUniformLocation | null
   farLight: WebGLUniformLocation | null
   cubeDotSize: WebGLUniformLocation | null
+  windowTop: WebGLUniformLocation | null
+  burst: WebGLUniformLocation | null
+  burstStagger: WebGLUniformLocation | null
+  sparkRadius: WebGLUniformLocation | null
+  sparkFade: WebGLUniformLocation | null
+  dustRect: WebGLUniformLocation | null
+  shares: WebGLUniformLocation | null
+  dustOpacity: WebGLUniformLocation | null
+  dustDotSize: WebGLUniformLocation | null
+  frameCount: WebGLUniformLocation | null
+  frameRects: WebGLUniformLocation | null
+  claims: WebGLUniformLocation | null
+  frameBand: WebGLUniformLocation | null
+  frameOutset: WebGLUniformLocation | null
+  frameJitter: WebGLUniformLocation | null
+  frameDotSize: WebGLUniformLocation | null
+  frameOpacity: WebGLUniformLocation | null
+  claimStagger: WebGLUniformLocation | null
 }
 
 export type DotFieldRuntime = {
@@ -210,6 +355,7 @@ export type DotFieldRuntime = {
   buffer: WebGLBuffer
   offsetBuffer: WebGLBuffer
   cubeBuffer: WebGLBuffer
+  sceneBuffer: WebGLBuffer
   uniforms: DotFieldUniforms
   pointCount: number
   positions: Float32Array
@@ -240,6 +386,7 @@ export type UseDotFieldRequest = {
   wordmarkRef: React.RefObject<HTMLElement | null>
   taglineRef: React.RefObject<HTMLElement | null>
   cubeRef: React.RefObject<HTMLElement | null>
+  projectsRef: React.RefObject<HTMLElement | null>
   canvasRef: React.RefObject<HTMLCanvasElement | null>
   text: string
   fontFamily: string

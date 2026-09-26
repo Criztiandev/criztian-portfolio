@@ -34,7 +34,28 @@ export type SiteContent = z.output<typeof siteContentSchema>
 
 export type SiteContentThemeKey = keyof SiteContent["theme"]
 
-export type SiteContentEntryId = "hero" | "quote" | "theme"
+export type SiteContentProjects = SiteContent["projects"]
+
+export type ProjectItem = {
+  title: string
+  tag: string
+  summary: string
+  stack: string
+  link: string
+  image: string
+  imageAlt: string
+}
+
+export type ProjectItemKey = keyof ProjectItem
+
+export type ProjectItemField = {
+  key: ProjectItemKey
+  label: string
+  maxLength: number
+  multiline: boolean
+}
+
+export type SiteContentEntryId = "hero" | "quote" | "projects" | "theme"
 
 export type SiteContentEntry = {
   id: SiteContentEntryId

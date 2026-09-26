@@ -3,10 +3,17 @@ import { describe, expect, it } from "vitest"
 import {
   DEFAULT_HERO_NAME,
   DEFAULT_HERO_TAGLINE_TEXT,
+  DEFAULT_PROJECT_ITEMS,
+  DEFAULT_PROJECTS_HEADING,
+  DEFAULT_PROJECTS_LEDE,
   DEFAULT_QUOTE_AUTHOR,
   DEFAULT_QUOTE_TEXT,
   DEFAULT_THEME_HERO_DOT,
   DEFAULT_THEME_PAGE_BACKGROUND,
+  NEW_PROJECT_ITEM,
+  PROJECT_TITLE_MAX_LENGTH,
+  PROJECTS_HEADING_MAX_LENGTH,
+  PROJECTS_MAX,
   QUOTE_AUTHOR_MAX_LENGTH,
   QUOTE_TEXT_MAX_LENGTH,
 } from "@/data/site-content.data"
@@ -17,6 +24,7 @@ import {
   parseSiteContent,
   readPreviewWidthValue,
 } from "@/features/site-content/site-content.rules"
+import type { ProjectItem } from "@/types/site-content.type"
 
 describe("createDefaultSiteContent", () => {
   it("fills every hero field from an empty document", () => {
@@ -40,6 +48,19 @@ describe("createDefaultSiteContent", () => {
     expect(content.theme.pageBackground).toBe(DEFAULT_THEME_PAGE_BACKGROUND)
     expect(content.theme.heroDot).toBe(DEFAULT_THEME_HERO_DOT)
     expect(Object.keys(content.theme)).toHaveLength(6)
+  })
+
+  it("seeds the dark signal board theme", () => {
+    const content = createDefaultSiteContent()
+
+    expect(content.theme).toEqual({
+      pageBackground: "#000000",
+      bodyText: "#ffffff",
+      mutedText: "#999999",
+      accent: "#ffffff",
+      border: "#666666",
+      heroDot: "#ffffff",
+    })
   })
 })
 
@@ -130,6 +151,110 @@ describe("quote content", () => {
       quote: { author: "a".repeat(QUOTE_AUTHOR_MAX_LENGTH + 1) },
     })
 
+    expect(result.usedDefaults).toBe(true)
+  })
+})
+
+describe("projects content", () => {
+  it("seeds the placeholder heading, intro and three projects", () => {
+    const content = createDefaultSiteContent()
+
+    expect(content.projects.heading).toBe(DEFAULT_PROJECTS_HEADING)
+    expect(content.projects.lede).toBe(DEFAULT_PROJECTS_LEDE)
+    expect(content.projects.items).toEqual(DEFAULT_PROJECT_ITEMS)
+    expect(content.projects.items).toHaveLength(3)
+  })
+
+  it("fills the projects for a document saved before projects existed", () => {
+    const result = parseSiteContent({
+      hero: { name: "Ada" },
+      quote: { text: "Keep going." },
+      theme: {},
+    })
+
+    expect(result.usedDefaults).toBe(false)
+    expect(result.content.hero.name).toBe("Ada")
+    expect(result.content.projects.items).toEqual(DEFAULT_PROJECT_ITEMS)
+  })
+
+  it("fills every missing item field with a blank", () => {
+    const result = parseSiteContent({
+      projects: { items: [{ title: "Shop" }] },
+    })
+
+    expect(result.usedDefaults).toBe(false)
+    expect(result.content.projects.items).toEqual([
+      {
+        title: "Shop",
+        tag: "",
+        summary: "",
+        stack: "",
+        link: "",
+        image: "",
+        imageAlt: "",
+      },
+    ])
+  })
+
+  it("allows blank fields and an empty list", () => {
+    const blankItem = parseSiteContent({
+      projects: { heading: "", lede: "", items: [NEW_PROJECT_ITEM, {}] },
+    })
+    const emptyList = parseSiteContent({ projects: { items: [] } })
+
+    expect(blankItem.usedDefaults).toBe(false)
+    expect(blankItem.content.projects.items[1].title).toBe("")
+    expect(emptyList.usedDefaults).toBe(false)
+    expect(emptyList.content.projects.items).toEqual([])
+  })
+
+  it("keeps links and images as plain text for the renderer to check", () => {
+    const result = parseSiteContent({
+      projects: {
+        items: [{ title: "Shop", link: "javascript:alert(1)", image: "x" }],
+      },
+    })
+
+    expect(result.usedDefaults).toBe(false)
+    expect(result.content.projects.items[0].link).toBe("javascript:alert(1)")
+  })
+
+  it("collapses whitespace in project fields", () => {
+    const result = parseSiteContent({
+      projects: { items: [{ title: "  Online   shop  " }] },
+    })
+
+    expect(result.content.projects.items[0].title).toBe("Online shop")
+  })
+
+  it("rejects a project field over the limit", () => {
+    const result = parseSiteContent({
+      projects: {
+        items: [{ title: "a".repeat(PROJECT_TITLE_MAX_LENGTH + 1) }],
+      },
+    })
+
+    expect(result.usedDefaults).toBe(true)
+  })
+
+  it("rejects a heading over the limit", () => {
+    const result = parseSiteContent({
+      projects: { heading: "a".repeat(PROJECTS_HEADING_MAX_LENGTH + 1) },
+    })
+
+    expect(result.usedDefaults).toBe(true)
+  })
+
+  it("rejects more projects than the maximum", () => {
+    const items: ProjectItem[] = []
+
+    for (let position = 0; position <= PROJECTS_MAX; position += 1) {
+      items.push(NEW_PROJECT_ITEM)
+    }
+
+    const result = parseSiteContent({ projects: { items } })
+
+    expect(items).toHaveLength(7)
     expect(result.usedDefaults).toBe(true)
   })
 })

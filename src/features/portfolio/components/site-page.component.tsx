@@ -7,11 +7,6 @@ import type { SiteContent } from "@/types/site-content.type"
 
 const PLACEHOLDER_SECTIONS = [
   {
-    id: "project",
-    heading: "Project",
-    body: "Selected projects will go here.",
-  },
-  {
     id: "about",
     heading: "About",
     body: "A short introduction will go here.",

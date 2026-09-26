@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
 import { useEffect, useRef, useState } from "react"
-import { useForm, useWatch } from "react-hook-form"
+import { useFieldArray, useForm, useWatch } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -11,14 +11,22 @@ import {
   FieldError,
   FieldGroup,
   FieldLabel,
+  FieldLegend,
+  FieldSet,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
   DRAFT_SAVE_DEBOUNCE_MS,
+  HERO_NAME_MAX_LENGTH,
   HERO_TEXT_FIELDS,
+  NEW_PROJECT_ITEM,
   PREVIEW_CONTENT_DEBOUNCE_MS,
   PREVIEW_CONTENT_MESSAGE,
+  PROJECT_ITEM_FIELDS,
+  PROJECTS_HEADING_MAX_LENGTH,
+  PROJECTS_LEDE_MAX_LENGTH,
+  PROJECTS_MAX,
   QUOTE_AUTHOR_MAX_LENGTH,
   QUOTE_TEXT_MAX_LENGTH,
   SAVE_STATE_LABELS,
@@ -153,6 +161,12 @@ export function EditorConfigPanel({
 
   const { errors } = form.formState
   const theme = useWatch({ control: form.control, name: "theme" })
+  const {
+    fields: projectFields,
+    append: appendProject,
+    move: moveProject,
+    remove: removeProject,
+  } = useFieldArray({ control: form.control, name: "projects.items" })
 
   function onSubmit(values: SiteContent) {
     saveDraftMutate(values)
@@ -163,6 +177,10 @@ export function EditorConfigPanel({
       shouldDirty: true,
       shouldValidate: true,
     })
+  }
+
+  function handleAddProject() {
+    appendProject(NEW_PROJECT_ITEM)
   }
 
   function handlePublish() {
@@ -207,6 +225,7 @@ export function EditorConfigPanel({
                   <Input
                     id={`hero-${textField.key}`}
                     autoComplete="off"
+                    maxLength={HERO_NAME_MAX_LENGTH}
                     aria-invalid={
                       errors.hero?.[textField.key] ? true : undefined
                     }
@@ -253,6 +272,112 @@ export function EditorConfigPanel({
               />
               <FieldError errors={[errors.quote?.author]} />
             </Field>
+          </FieldGroup>
+        </div>
+
+        <div hidden={selectedEntry !== "projects"}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="projects-heading">Heading</FieldLabel>
+              <Input
+                id="projects-heading"
+                autoComplete="off"
+                maxLength={PROJECTS_HEADING_MAX_LENGTH}
+                aria-invalid={errors.projects?.heading ? true : undefined}
+                {...form.register("projects.heading")}
+              />
+              <FieldError errors={[errors.projects?.heading]} />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="projects-lede">Intro</FieldLabel>
+              <Textarea
+                id="projects-lede"
+                maxLength={PROJECTS_LEDE_MAX_LENGTH}
+                aria-invalid={errors.projects?.lede ? true : undefined}
+                {...form.register("projects.lede")}
+              />
+              <FieldError errors={[errors.projects?.lede]} />
+            </Field>
+
+            {projectFields.map(function renderProjectCard(projectField, index) {
+              const position = index + 1
+
+              return (
+                <FieldSet key={projectField.id} className="border-t pt-5">
+                  <FieldLegend variant="label">Project {position}</FieldLegend>
+
+                  {PROJECT_ITEM_FIELDS.map(
+                    function renderProjectField(itemField) {
+                      const fieldId = `project-${projectField.id}-${itemField.key}`
+                      const fieldError =
+                        errors.projects?.items?.[index]?.[itemField.key]
+                      const registration = form.register(
+                        `projects.items.${index}.${itemField.key}`
+                      )
+
+                      return (
+                        <Field key={itemField.key}>
+                          <FieldLabel htmlFor={fieldId}>
+                            {`Project ${position} ${itemField.label}`}
+                          </FieldLabel>
+                          {itemField.multiline ? (
+                            <Textarea
+                              id={fieldId}
+                              maxLength={itemField.maxLength}
+                              aria-invalid={fieldError ? true : undefined}
+                              {...registration}
+                            />
+                          ) : (
+                            <Input
+                              id={fieldId}
+                              autoComplete="off"
+                              maxLength={itemField.maxLength}
+                              aria-invalid={fieldError ? true : undefined}
+                              {...registration}
+                            />
+                          )}
+                          <FieldError errors={[fieldError]} />
+                        </Field>
+                      )
+                    }
+                  )}
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={index === 0}
+                      onClick={function moveProjectUp() {
+                        moveProject(index, index - 1)
+                      }}
+                    >
+                      {`Move project ${position} up`}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={function removeProjectCard() {
+                        removeProject(index)
+                      }}
+                    >
+                      {`Remove project ${position}`}
+                    </Button>
+                  </div>
+                </FieldSet>
+              )
+            })}
+
+            <Button
+              type="button"
+              variant="outline"
+              disabled={projectFields.length >= PROJECTS_MAX}
+              onClick={handleAddProject}
+            >
+              Add project
+            </Button>
           </FieldGroup>
         </div>
 

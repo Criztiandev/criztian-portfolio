@@ -20,6 +20,11 @@ typography:
     fontSize: "clamp(1.75rem, 1rem + 3vw, 3.5rem)"
     fontWeight: 700
     lineHeight: 1.05
+  title:
+    fontFamily: 'Antonio, "Antonio Fallback", sans-serif'
+    fontSize: "clamp(1.5rem, 1rem + 1.5vw, 2.25rem)"
+    fontWeight: 700
+    lineHeight: 1.05
   body:
     fontFamily: 'Geist, "Geist Fallback", sans-serif'
     fontSize: "1rem"
@@ -139,17 +144,8 @@ The palette is a set of brightness levels on black. Every colour is white at som
 
 **Known drift:**
 
-- The seeded owner-theme defaults in `src/data/site-content.data.ts` are still light (page `#ffffff`, body text `#252525`), so every section below the quote renders white, and the header turns into a pale grey bar once it goes solid over the black stage.
-- In an OS dark scheme the page mixes both worlds. `next-themes` darkens the body, while the owner theme forces `--background` to white inside the page wrapper, so the scrolled header renders as a pale grey bar over a dark page.
-- The five owner-editable tokens should seed as follows:
-  - page background → Unlit Black
-  - body text → Lamp White
-  - muted text → Dim Grey
-  - accent → Lamp White
-  - border → Wire Grey
-
-  The public wrapper should also stop inheriting the `.dark` / `:root` switch.
-
+- The five owner-editable tokens now seed dark (2026-09-26): page background Unlit Black, body text Lamp White, muted text Dim Grey, accent Lamp White, border Wire Grey. The page wrapper sets all five, so the header and every section read them.
+- The shadcn tokens outside those five (`--input`, `--ring`, `--card`) and the `body` background still follow the `.dark` / `:root` switch, so form fields and overscroll can pick up the OS scheme. The public wrapper should stop inheriting that switch.
 - Form errors currently use shadcn's destructive red. Under the monochrome rule an error must carry its meaning through wording and `role="alert"`, not hue. Whether red survives as a functional exception is an open decision.
 
 ## Typography
@@ -164,6 +160,7 @@ The palette is a set of brightness levels on black. Every colour is white at som
 
 - **Display** (Antonio 700, uppercase, `min(25vw, 40svh)` on mobile and `clamp(3rem, 18vw, 16rem)` from 768px, line-height 1, tracking 0.05em in the dot sampler): the name, and nothing else. It is the source shape the dot field samples.
 - **Headline** (Antonio 700, uppercase, `clamp(1.75rem, 1rem + 3vw, 3.5rem)`, line-height 1.05): section titles such as Project, About, Services, Blog and Contact, and the **statement quote** under the cube. The rem term keeps it growing under page zoom (WCAG 1.4.4). Keep it clearly below Display and clearly above everything in Geist.
+- **Title** (Antonio 700, uppercase, `clamp(1.5rem, 1rem + 1.5vw, 2.25rem)`, line-height 1.05): project card titles. One step below Headline, so a list of cards never outshouts its section title.
 - **Body** (Geist 400, 16px, line-height 1.5): paragraphs and form text. Keep lines to about 65–75ch.
 - **Lede** (Geist 400, uppercase, 14px/1.625 with 0.14em tracking from 768px; 13px/1.7 with 0.05em tracking on mobile): the hero tagline and other one-line statements under a headline. Maximum width is 34rem.
 - **Label** (Geist 400, uppercase, 12px, 0.025em tracking): nav links and the Contact action.
@@ -191,6 +188,7 @@ The layout is a single vertical scroll of full-width sections on one black groun
   - It has three zones on a `1fr auto 1fr` grid, so the nav stays truly centred: the brand wordmark at left (linking to `#home`), the primary nav (Project, Blog, About, Contact) in the centre, and the "Let's talk" action at right.
   - Below 768px the nav collapses behind a menu button into a full-width stacked panel.
 - **Quote (`#quote`):** directly after the hero, on the same black stage, and not in the nav. It is at least one viewport tall. A square cube slot, `min(80vw, 46svh, 36rem)`, is top-aligned under a `max(5.5rem, 12svh)` top pad, so its position never depends on the quote's length. The centred quote sits 32px below the slot (40px from 768px), at most 20ch wide and balanced. It has no scroll margin, so an anchored `#quote` lands exactly on the formed cube.
+- **Projects (`#project`):** directly after the quote, inside the same black stage so the dots can reach it. Two columns from 768px inside a 80rem container: a pinned left column (22.5rem at most, `sticky` at 7rem from the top) and a card list on the right (48rem at most) with 60px between cards. Below 768px it is one column and nothing pins. The top pad is `max(6rem, 16svh)`.
 - **Sections:** currently placeholder layout. Each is a centred column (max 896px, 16px gutters, 80px vertical padding) with an 80px scroll margin so anchored headings clear the header. Treat the scroll margin as fixed and the column as provisional.
 
 **The Stage Rule.** The hero owns the first viewport. Nothing else competes above the fold, not even a secondary call to action.
@@ -235,7 +233,15 @@ The name as a matrix of lit points. It is a single WebGL2 canvas that samples An
   - **Pointer:** the cube scatters and springs back exactly like the name, with the same spring and bounce. Its push radius is scaled to the cube's on-screen size, as the name's is to its ink height. Scattered dots ride the rotation home.
   - **Depth as light:** far edges are dimmer (down to 35%), never smaller or coloured. Dimness is expressed as opacity, so a far edge can never darken a near one where they cross.
   - **Constant spin with a lean:** the cube never stops turning, one revolution about every 21s. Its spin axis leans about 11° to the right and slowly circles a further 4° like a spinning top, once every 7s, so it never turns on a rigid, mechanical axis. Scrolling back reverses the morph, and dots in flight ignore the pointer.
-  - **Known gap:** endless motion with no pause control does not meet WCAG 2.2.2 (Pause, Stop, Hide). The owner chose constant rotation over the earlier spin-then-rest. Reduced motion still gets a still cube. A pause toggle is the fix if AA compliance is needed.
+  - **Known gap:** endless motion with no pause control does not meet WCAG 2.2.2 (Pause, Stop, Hide) while the cube is on screen. The owner chose constant rotation over the earlier spin-then-rest. The spin now ends at the burst, so nothing loops once Projects begins. Reduced motion still gets a still cube. A pause toggle is the fix if AA compliance is needed.
+- **Compress and burst ("spent into the work").** The cube stands for one whole product; past the quote it is spent into the proof.
+  - **Hold:** the cube spins over the quote until `#project` rises to 70% of the viewport.
+  - **Compress (scroll-scrubbed):** while `#project` rises from 70% to 35%, the cube shrinks to 16% of its size, sinks toward a point 30% down the screen (the open band above the section), spins up to six times faster, and its far edges brighten to full, so it reads as a glowing knot.
+  - **Burst (time-based):** once the knot is fully compressed it bursts on its own in about 0.75s, fast at first. Sparks fly out and burn out. A quarter of the dots settle as dust at 45% across the whole section. The Projects heading wipes in from the left on the same line.
+  - **Frames:** each card's share of the dots settles in a loose halo around it, then gathers into a stippled square frame 10px outside the plate as the card rises from 95% to 60% of the viewport, drawing clockwise and brightening to 75% (Lit, so the frame never outshouts the title). The CSS hairline on the plate hands over to the dots while the burst is open and comes back when it closes.
+  - **Reverse:** scrolling back above the burst line (with a small hysteresis) releases the frames and implodes the dots into the knot, which only then re-grows into the cube.
+  - **One canvas, never taller:** the canvas keeps its size and slides in whole-device-pixel steps to cover the viewport once Projects is on screen, so the name keeps its pixel ratio.
+  - **Reduced motion and no WebGL2:** no compress, burst or frames. The plates keep their Wire Grey hairline and every card is readable at once.
   - **Reduced motion:** no flight, spin or wobble. The name and the cube, leaning at its resting angle, are drawn still, each in its own place.
   - **No WebGL2:** the slot collapses and the quote moves up. The text `<h1>` and the quote carry all meaning either way.
   - It reuses the wordmark's points, so it adds none to the budget.
@@ -246,6 +252,14 @@ The one quote on the page, owner-editable in the dashboard (text plus an optiona
 
 - **Reveal:** once the quote is 20% into the viewport (about when the cube locks in), a clip wipe opens it left to right while the text slides 24px into place, over 0.9s on `cubic-bezier(0.65, 0, 0.35, 1)`. The author lifts in 0.6s later. It plays once.
 - **Reduced motion:** it appears instantly. The hidden state never uses opacity, so the text stays readable to assistive tech throughout.
+
+### Projects
+
+The proof section, modelled on a studio "works" list and translated into the system. Owner-editable in the dashboard (heading, intro and up to six projects). The seed is three visible placeholders; nothing is invented.
+
+- **Left column (pinned):** a Cue-type count in Dim Grey (`/ 03`, the live number of visible projects), the Headline, an owner-editable Lede in Lit Grey, and a square outlined "Let's talk" action to `#contact` (Wire Grey hairline, Lamp White text, the border lights to Lamp White on hover and focus, no fill, so the header action stays the brightest surface).
+- **Card:** a 10:7 plate (the image, `object-cover`, zooming 4% on hover under `motion-safe`; or a black plate labelled "Screenshot to come" in Cue type), then a row with the Title at Lit Grey (Lamp White on hover or focus) and a square tag (Wire Grey hairline, Dim Grey Label type), then an optional summary in Lit Grey body and an optional stack line in Cue type. With an https link the whole card is one link that opens a new tab.
+- **Never hidden:** cards are never opacity-hidden, so they read without JavaScript; the dots are their reveal.
 
 ### Navigation
 

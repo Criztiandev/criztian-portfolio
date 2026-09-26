@@ -50,13 +50,15 @@ Open decision: the seeded hero tagline ("Crafting timeless digital experiences t
 - Single page. The six anchors (`#home`, `#project`, `#about`, `#services`, `#blog`, `#contact`) are the navigation. `#contact` must keep working because the e2e suite depends on it.
 - Hero: the name rendered as a dot-matrix WebGL wordmark whose dots scatter from a cursor or a finger and spring back. It falls back to a real text `<h1>` when WebGL2 is unavailable; with reduced motion the dots render still.
 - Quote (`#quote`, not in the nav): scrolling out of the hero morphs the name's dots into a turning dot cube, above one owner-editable statement quote. The seed is a visible placeholder; the owner supplies the real quote.
+- Projects (`#project`): scrolling past the quote compresses the cube into a knot that bursts into the section. Its dots settle as dust and gather into a stippled frame around each project card as it arrives, so the cube is literally spent on the proof. A pinned left column carries the heading, an intro and a "Let's talk" action to `#contact`. The three seeded cards are visible placeholders ("Project one", "Screenshot to come").
 - Contact form anti-spam: a honeypot, a two-second minimum time-to-submit, and a limit of five submissions per hour per hashed IP. These are deliberate; do not weaken them.
 - Contact notifications are written as local HTML previews. No email is actually sent yet.
 
 **Owner side:**
 
 - Single owner account and public signup is disabled.
-- Editable today: the hero (name, and a rich-text tagline with bold and italic only), the quote (text, and an optional author) and a curated set of six theme colours.
+- Editable today: the hero (name, and a rich-text tagline with bold and italic only), the quote (text, and an optional author), the projects (heading, intro, and up to six projects, each with a title, tag, summary, stack line, https link, image and alt text) and a curated set of six theme colours.
+- Project images are referenced, not uploaded: a file committed to `public/projects/` (for example `/projects/shop.webp`) or an https URL. Anything else shows the placeholder plate.
 - Draft and published states only, with no version history.
 - The content schema is built so that making another section editable is a data change, not a rewrite.
 
@@ -83,7 +85,7 @@ The owner has all of the following, but **none of it is in the repo yet**:
 - testimonials and named clients
 - blog posts
 
-The Project, About, Services and Blog sections are still placeholder text in `src/features/portfolio/components/site-page.component.tsx`.
+The Project section is built and editable, seeded with three placeholder cards. About, Services and Blog are still placeholder text in `src/features/portfolio/components/site-page.component.tsx`.
 
 Future work must get the real material from the owner. Never invent project names, client names, quotes, logos, metrics or outcomes to fill these sections.
 

@@ -9,19 +9,34 @@ import {
   PIXEL_RATIO_STEPS,
   POINT_STRIDE,
   REFERENCE_FRAME_RATE,
+  SCENE_POINT_STRIDE,
+  SCENE_SEED,
 } from "@/data/hero.data"
 import type {
   CubeEdge,
   CubeFace,
   CubeProjection,
   DotFieldBounds,
+  DotFieldClaimRequest,
+  DotFieldCompressedCube,
+  DotFieldCompressRequest,
+  DotFieldFollowTuning,
   DotFieldIntroFrame,
+  DotFieldLoopRestRequest,
   DotFieldMorphTuning,
   DotFieldPhysicsRequest,
   DotFieldPointCloud,
+  DotFieldRect,
+  DotFieldSceneScroll,
+  DotFieldSceneScrollRequest,
+  DotFieldSceneTargetRequest,
+  DotFieldSceneTargets,
+  DotFieldSceneTuning,
   DotFieldSizeRequest,
   DotFieldTuning,
   DotFieldViewport,
+  DotFieldWindowRequest,
+  HeroBurstState,
   HeroIntroTiming,
   HeroMorphState,
   RandomSource,
@@ -515,7 +530,7 @@ export function followMorphProgress(
   current: number,
   target: number,
   deltaSeconds: number,
-  tuning: DotFieldMorphTuning
+  tuning: DotFieldFollowTuning
 ): number {
   const gap = target - current
 
@@ -538,4 +553,206 @@ export function resolveMorphState(progress: number): HeroMorphState {
   }
 
   return "moving"
+}
+
+export function resolveSceneScroll(
+  request: DotFieldSceneScrollRequest,
+  tuning: DotFieldSceneTuning
+): DotFieldSceneScroll {
+  const { scrolled, viewportHeight, projectsTop, stageWidth } = request
+
+  const compressStart =
+    projectsTop - tuning.compressStartViewport * viewportHeight
+  const compressEnd = projectsTop - tuning.compressEndViewport * viewportHeight
+  const rearmLine = compressEnd - tuning.rearmViewport * viewportHeight
+
+  let rawCompress = 0
+
+  if (viewportHeight > 0) {
+    rawCompress = resolveStageProgress(
+      scrolled,
+      compressStart,
+      compressEnd - compressStart
+    )
+  }
+
+  return {
+    rawCompress,
+    isRearmed: scrolled < rearmLine,
+    burstPoint: {
+      x: stageWidth / 2,
+      y: compressEnd + tuning.burstPointViewport * viewportHeight,
+    },
+    dustTop: compressEnd,
+  }
+}
+
+export function resolveSceneTargets(
+  request: DotFieldSceneTargetRequest,
+  tuning: DotFieldSceneTuning
+): DotFieldSceneTargets {
+  const { rawCompress, isRearmed, compress, burst, burstTarget } = request
+
+  let nextBurstTarget = burstTarget
+
+  if (isRearmed) {
+    nextBurstTarget = 0
+  } else if (rawCompress >= 1 && compress >= tuning.burstGate) {
+    nextBurstTarget = 1
+  }
+
+  let compressTarget = rawCompress
+
+  if (nextBurstTarget === 1 || burst > tuning.burstHold) {
+    compressTarget = 1
+  }
+
+  return {
+    compressTarget,
+    burstTarget: nextBurstTarget,
+  }
+}
+
+export function resolveSpinBoost(
+  compress: number,
+  tuning: DotFieldSceneTuning
+): number {
+  return 1 + tuning.compressSpinBoost * compress
+}
+
+export function resolveCompressedCube(
+  request: DotFieldCompressRequest,
+  tuning: DotFieldSceneTuning,
+  restingFarLight: number
+): DotFieldCompressedCube {
+  const { slotCenter, burstPoint, halfSize, compress } = request
+
+  const travel = easeInOutCubic(compress)
+  const scale = 1 - (1 - tuning.compressedScale) * compress
+
+  return {
+    center: {
+      x: slotCenter.x + (burstPoint.x - slotCenter.x) * travel,
+      y: slotCenter.y + (burstPoint.y - slotCenter.y) * travel,
+    },
+    halfSize: halfSize * scale,
+    spinBoost: resolveSpinBoost(compress, tuning),
+    farLight:
+      restingFarLight + (tuning.compressFarLight - restingFarLight) * compress,
+  }
+}
+
+export function resolveCanvasWindowTop(
+  request: DotFieldWindowRequest,
+  tuning: DotFieldSceneTuning
+): number {
+  const {
+    scrolled,
+    viewportHeight,
+    canvasHeight,
+    stageHeight,
+    projectsTop,
+    pixelRatio,
+    isStatic,
+  } = request
+
+  if (isStatic || scrolled + viewportHeight <= projectsTop) {
+    return 0
+  }
+
+  const slack = canvasHeight - viewportHeight
+  const step = Math.max(
+    1 / pixelRatio,
+    Math.round(slack * tuning.windowStepRatio * pixelRatio) / pixelRatio
+  )
+  const highest = Math.max(0, stageHeight - canvasHeight)
+  const anchored = Math.round((scrolled - slack / 2) / step) * step
+  const clamped = Math.min(Math.max(anchored, 0), highest)
+
+  return Math.round(clamped * pixelRatio) / pixelRatio
+}
+
+export function resolveFrameShare(
+  visibleCount: number,
+  frames: DotFieldRect[],
+  tuning: DotFieldSceneTuning
+): number {
+  if (visibleCount <= 0 || frames.length === 0) {
+    return 0
+  }
+
+  let perimeter = 0
+
+  for (const frame of frames) {
+    perimeter += 2 * (frame.width + frame.height + 4 * tuning.frameOutsetPx)
+  }
+
+  const needed = perimeter / tuning.frameDotSpacingPx
+
+  return Math.min(tuning.maxFrameShare, needed / visibleCount)
+}
+
+export function resolveClaimTarget(
+  request: DotFieldClaimRequest,
+  tuning: DotFieldSceneTuning
+): number {
+  const { frameTop, scrolled, viewportHeight, burst } = request
+
+  if (burst < tuning.claimGate || viewportHeight <= 0) {
+    return 0
+  }
+
+  const frameTopInView = frameTop - scrolled
+  const start = tuning.claimStartViewport * viewportHeight
+  const span =
+    (tuning.claimStartViewport - tuning.claimEndViewport) * viewportHeight
+
+  if (span <= 0) {
+    return 1
+  }
+
+  return clampProgress((start - frameTopInView) / span)
+}
+
+export function generateScenePoints(count: number): Float32Array {
+  const points = new Float32Array(Math.max(0, count) * SCENE_POINT_STRIDE)
+  const nextRandom = createRandomSource(SCENE_SEED)
+
+  for (let index = 0; index < points.length; index += 1) {
+    points[index] = nextRandom()
+  }
+
+  return points
+}
+
+export function resolveBurstState(
+  burstTarget: number,
+  isStatic: boolean
+): HeroBurstState {
+  if (isStatic) {
+    return "off"
+  }
+
+  if (burstTarget === 1) {
+    return "open"
+  }
+
+  return "idle"
+}
+
+export function shouldLoopSleep(request: DotFieldLoopRestRequest): boolean {
+  const {
+    isFieldAtRest,
+    hasSettled,
+    isMorphResting,
+    isSceneResting,
+    morph,
+    burst,
+  } = request
+
+  if (!isFieldAtRest || !hasSettled || !isMorphResting || !isSceneResting) {
+    return false
+  }
+
+  return morph === 0 || burst === 1
 }

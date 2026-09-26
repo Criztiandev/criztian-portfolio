@@ -12,6 +12,7 @@ import {
   LIFT_VARIANTS,
   SIGNAL_EASE,
 } from "@/data/hero.data"
+import { ProjectsSection } from "@/features/portfolio/components/projects-section.component"
 import { QuoteSection } from "@/features/portfolio/components/quote-section.component"
 import { useDotField } from "@/features/portfolio/hooks/use-dot-field.hook"
 import { renderRichTextHtml } from "@/features/site-content/services/rich-text-renderer.service"
@@ -88,6 +89,7 @@ export function Hero({
   const taglineRef = useRef<HTMLDivElement | null>(null)
   const cubeRef = useRef<HTMLDivElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const projectsRef = useRef<HTMLElement | null>(null)
   const [hasIntroSettled, setHasIntroSettled] = useState(false)
   const [isDotFieldUnsupported, setIsDotFieldUnsupported] = useState(false)
   const shouldReduceMotion = useReducedMotion() === true
@@ -108,6 +110,7 @@ export function Hero({
     wordmarkRef,
     taglineRef,
     cubeRef,
+    projectsRef,
     canvasRef,
     text: content.hero.name,
     fontFamily: displayFontFamily,
@@ -152,6 +155,7 @@ export function Hero({
       ref={stageRef}
       data-status="idle"
       data-morph="name"
+      data-burst="off"
       className="group relative isolate overflow-clip bg-black text-white"
     >
       <canvas
@@ -260,6 +264,8 @@ export function Hero({
       </section>
 
       <QuoteSection quote={content.quote} cubeRef={cubeRef} />
+
+      <ProjectsSection projects={content.projects} sectionRef={projectsRef} />
     </div>
   )
 }
