@@ -1,6 +1,16 @@
 export type HeroWordmarkMode = "dots" | "text"
 
-export type DotGeneratedShapeId = "cube" | "sphere" | "dust"
+export type LineArtShapeId =
+  | "branding"
+  | "web-design"
+  | "development"
+  | "listening"
+  | "planning"
+  | "visualising"
+  | "building"
+  | "delivery"
+
+export type DotGeneratedShapeId = "cube" | "sphere" | "dust" | LineArtShapeId
 
 export type DotShapeId = "name" | DotGeneratedShapeId
 
@@ -18,6 +28,42 @@ export type CubeEdge = {
 }
 
 export type RandomSource = () => number
+
+export type LineArtPolyline = {
+  kind: "polyline"
+  points: CubeVector[]
+}
+
+export type LineArtArc = {
+  kind: "arc"
+  center: CubeVector
+  radius: number
+  startAngle: number
+  endAngle: number
+  ripples: number
+  rippleDepth: number
+}
+
+export type LineArtStar = {
+  kind: "star"
+  center: CubeVector
+  outerRadius: number
+  innerRadius: number
+  tips: number
+}
+
+export type LineArtStroke = LineArtPolyline | LineArtArc | LineArtStar
+
+export type LineArtShape = {
+  seed: number
+  strokes: LineArtStroke[]
+}
+
+export type LineArtSegment = {
+  start: CubeVector
+  end: CubeVector
+  length: number
+}
 
 export type DotFieldVector = {
   x: number

@@ -5,15 +5,27 @@ const GL_PROBLEM_PATTERN = /INVALID_|GL_INVALID|WebGL: /
 
 const SCENE_WALK = [
   { selector: "#quote", scene: "cube" },
-  { selector: "#services", scene: "services" },
+  { selector: "#services", scene: "branding" },
   { selector: "#about", scene: "about" },
   { selector: "#project", scene: "project" },
-  { selector: "#process", scene: "process" },
+  { selector: "#process", scene: "listening" },
   { selector: "[data-dot-scene='dust']", scene: "dust" },
   { selector: "[data-dot-scene='footer']", scene: "footer" },
 ]
 
-const JUMP_SKIPPED_SCENES = ["cube", "services", "about", "project", "process"]
+const JUMP_SKIPPED_SCENES = [
+  "cube",
+  "branding",
+  "web-design",
+  "development",
+  "about",
+  "project",
+  "listening",
+  "planning",
+  "visualising",
+  "building",
+  "delivery",
+]
 
 const HEADER_LINE_PX = 72
 

@@ -855,7 +855,7 @@ describe("buildSceneKeyframes", () => {
     expect(keyframe?.end).toBe(keyframe?.start)
   })
 
-  it("splits a multi-step scene evenly with a morph gap between steps", () => {
+  it("centres each step on the copy pitch with the morph on each boundary", () => {
     const keyframes = buildSceneKeyframes(
       [
         buildScene({
@@ -874,9 +874,9 @@ describe("buildSceneKeyframes", () => {
     }
 
     expect(ranges).toEqual([
-      ["cube", 1000, 1160],
-      ["sphere", 1240, 1360],
-      ["dust", 1440, 1600],
+      ["cube", 1000, 1090],
+      ["sphere", 1210, 1390],
+      ["dust", 1510, 1600],
     ])
   })
 

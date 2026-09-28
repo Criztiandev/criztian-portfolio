@@ -595,6 +595,25 @@ Do this before Part 0, and record the results in the 3A done note.
   - reduced-motion screenshots show each shape formed in its own slot at 390, 820 and 1440 wide
   - unit tests per generator (planning review, corrected in the gap review): deterministic for a seed, exactly `SHAPE_POINTS` points, every point inside [-1,1]³, `w` in [0,1), and consecutive points adjacent along the path (gap below a bound)
 
+**Part 0 and Part 1 done notes (2026-09-28).**
+
+- **Pre-flight:** passed. See the result under "Pre-flight" above.
+- **Part 0:** built as specified, plus the two Lenis fixes recorded in its Loop and dot-engine bullets.
+  - Evidence: `smooth-scroll.spec.ts` (6 tests, including the half-pixel stall), the nav-jump spec asserting Lenis ended the flight, and 0 RAF at rest after a wheel.
+  - An adversarial review confirmed 4 of its 11 findings; all 4 are fixed.
+  - **Owner sign-off still open:** the wheel and trackpad feel (`SMOOTH_SCROLL_LERP`).
+- **Part 1:** built.
+  - **The step split** is realigned to the copy (owner decision above): pitch `pin/(n − 1)`, boundaries at `start + (k + 0.5)·pitch`, with transits centred on them.
+  - **Shapes as data.** The eight line-art shapes are strokes in `LINE_ART_SHAPES` (`hero.data.ts`): polylines, arcs (rippled for the seal) and stars, each with a seed. They share `FLAT_LINE_ART_TUNING` (no perspective, no spin, no wobble, so their rest pose is deterministic and the loop sleeps). `building` reuses the quote cube's tuning and spins.
+  - **One sampler.** `generateLineArtPoints` places `SHAPE_POINTS` along the total arc length with stratified-random spacing. That is strict pen order with the cube's stipple look.
+  - **Content choices to confirm by eye:** `visualising` is a UI wireframe (frame, header, image box with an X, text lines, a button), and `listening` is a ring with sound arcs on both sides.
+  - **Evidence:**
+    - `line-art-shapes.test.ts` (35 tests): determinism, count, bounds, rank, pen order (fails for random order), every tuned shape uploaded, and the scene wiring
+    - the e2e scene ids updated
+    - 48 e2e tests pass
+    - reduced-motion contact sheets at 390, 820 and 1440 show every shape formed in its slot
+    - the hero pixel diff is unchanged
+
 #### Part 2: dot choreography
 
 Make every morph an event, not a slide from one slot to the next.

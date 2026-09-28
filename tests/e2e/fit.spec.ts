@@ -299,7 +299,10 @@ test.describe("pinned scenes on a small phone", () => {
     const services = page.locator("#services")
 
     await expect(services).not.toHaveAttribute("data-fit")
-    await expect(services).toHaveAttribute("data-dot-shapes", "sphere")
+    await expect(services).toHaveAttribute(
+      "data-dot-shapes",
+      "branding web-design development"
+    )
     await expect(services.locator("[data-dot-slot]")).toHaveCount(1)
 
     expect(await readOverflowingSteps(page, "#services")).toEqual([])

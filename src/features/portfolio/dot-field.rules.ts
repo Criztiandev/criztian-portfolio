@@ -1,4 +1,5 @@
 import {
+  ARC_SEGMENTS_PER_TURN,
   CUBE_EDGE_JITTER,
   CUBE_EDGES,
   CUBE_SEED,
@@ -9,18 +10,23 @@ import {
   DUST_SEED,
   HIDDEN_RANK,
   IDENTITY_ROTATION,
+  LINE_ART_JITTER,
+  LINE_ART_SHAPES,
   MAX_CANVAS_PIXELS,
   MAX_PIXEL_RATIO,
+  MIN_ARC_SEGMENTS,
   OFFSET_STRIDE,
   PIXEL_RATIO_STEPS,
   POINT_STRIDE,
   REFERENCE_FRAME_RATE,
+  RIPPLE_SEGMENTS,
   SHAPE_POINTS,
   SHAPE_STRIDE,
   SPHERE_SEED,
 } from "@/data/hero.data"
 import type {
   CubeEdge,
+  CubeVector,
   DotFieldBounds,
   DotFieldFollowTuning,
   DotFieldIntroFrame,
@@ -42,6 +48,11 @@ import type {
   DotSphereTuning,
   DotTimelineSegment,
   HeroIntroTiming,
+  LineArtArc,
+  LineArtSegment,
+  LineArtShape,
+  LineArtStar,
+  LineArtStroke,
   RandomSource,
 } from "@/types/hero.type"
 
@@ -473,11 +484,188 @@ export function generateDustPoints(count: number): Float32Array {
   return points
 }
 
+function flattenArc(arc: LineArtArc): CubeVector[] {
+  const sweep = arc.endAngle - arc.startAngle
+  const turns = Math.abs(sweep) / (Math.PI * 2)
+  const segmentCount = Math.max(
+    MIN_ARC_SEGMENTS,
+    Math.ceil(turns * ARC_SEGMENTS_PER_TURN),
+    Math.ceil(turns * arc.ripples * RIPPLE_SEGMENTS)
+  )
+  const vertices: CubeVector[] = []
+
+  for (let step = 0; step <= segmentCount; step += 1) {
+    const angle = arc.startAngle + (sweep * step) / segmentCount
+    const radius = arc.radius + arc.rippleDepth * Math.sin(arc.ripples * angle)
+
+    vertices.push([
+      arc.center[0] + radius * Math.cos(angle),
+      arc.center[1] + radius * Math.sin(angle),
+      arc.center[2],
+    ])
+  }
+
+  return vertices
+}
+
+function flattenStar(star: LineArtStar): CubeVector[] {
+  const vertices: CubeVector[] = []
+  const cornerCount = star.tips * 2
+
+  for (let step = 0; step <= cornerCount; step += 1) {
+    const angle = Math.PI / 2 + (step * Math.PI) / star.tips
+    let radius = star.innerRadius
+
+    if (step % 2 === 0) {
+      radius = star.outerRadius
+    }
+
+    vertices.push([
+      star.center[0] + radius * Math.cos(angle),
+      star.center[1] + radius * Math.sin(angle),
+      star.center[2],
+    ])
+  }
+
+  return vertices
+}
+
+function flattenLineArtStroke(stroke: LineArtStroke): CubeVector[] {
+  if (stroke.kind === "polyline") {
+    return stroke.points
+  }
+
+  if (stroke.kind === "star") {
+    return flattenStar(stroke)
+  }
+
+  return flattenArc(stroke)
+}
+
+function measureDistance(start: CubeVector, end: CubeVector): number {
+  return Math.hypot(end[0] - start[0], end[1] - start[1], end[2] - start[2])
+}
+
+export function buildLineArtSegments(
+  strokes: LineArtStroke[]
+): LineArtSegment[] {
+  const segments: LineArtSegment[] = []
+
+  for (const stroke of strokes) {
+    const vertices = flattenLineArtStroke(stroke)
+
+    for (let index = 1; index < vertices.length; index += 1) {
+      const start = vertices[index - 1]
+      const end = vertices[index]
+
+      segments.push({ start, end, length: measureDistance(start, end) })
+    }
+  }
+
+  return segments
+}
+
+export function generateLineArtPoints(
+  shape: LineArtShape,
+  count: number,
+  jitter: number
+): Float32Array {
+  const points = new Float32Array(Math.max(0, count) * SHAPE_STRIDE)
+  const segments = buildLineArtSegments(shape.strokes)
+  let totalLength = 0
+
+  for (const segment of segments) {
+    totalLength += segment.length
+  }
+
+  if (count <= 0 || totalLength <= 0) {
+    return points
+  }
+
+  const nextRandom = createRandomSource(shape.seed)
+  let segmentIndex = 0
+  let segmentOffset = 0
+
+  for (let index = 0; index < count; index += 1) {
+    const target = ((index + nextRandom()) / count) * totalLength
+
+    while (
+      segmentIndex < segments.length - 1 &&
+      segmentOffset + segments[segmentIndex].length < target
+    ) {
+      segmentOffset += segments[segmentIndex].length
+      segmentIndex += 1
+    }
+
+    const segment = segments[segmentIndex]
+    let along = 0
+
+    if (segment.length > 0) {
+      along = clampProgress((target - segmentOffset) / segment.length)
+    }
+
+    const pointIndex = index * SHAPE_STRIDE
+
+    for (let axis = 0; axis < 3; axis += 1) {
+      const start = segment.start[axis]
+      const end = segment.end[axis]
+      const position =
+        start + (end - start) * along + resolveJitter(nextRandom, jitter)
+
+      points[pointIndex + axis] = Math.min(1, Math.max(-1, position))
+    }
+
+    points[pointIndex + 3] = nextRandom()
+  }
+
+  return points
+}
+
 export function buildShapeLibrary(): DotShapeLibrary {
   return {
     cube: generateCubePoints(SHAPE_POINTS, CUBE_EDGE_JITTER),
     sphere: generateSpherePoints(SHAPE_POINTS, DOT_SPHERE_TUNING),
     dust: generateDustPoints(SHAPE_POINTS),
+    branding: generateLineArtPoints(
+      LINE_ART_SHAPES.branding,
+      SHAPE_POINTS,
+      LINE_ART_JITTER
+    ),
+    "web-design": generateLineArtPoints(
+      LINE_ART_SHAPES["web-design"],
+      SHAPE_POINTS,
+      LINE_ART_JITTER
+    ),
+    development: generateLineArtPoints(
+      LINE_ART_SHAPES.development,
+      SHAPE_POINTS,
+      LINE_ART_JITTER
+    ),
+    listening: generateLineArtPoints(
+      LINE_ART_SHAPES.listening,
+      SHAPE_POINTS,
+      LINE_ART_JITTER
+    ),
+    planning: generateLineArtPoints(
+      LINE_ART_SHAPES.planning,
+      SHAPE_POINTS,
+      LINE_ART_JITTER
+    ),
+    visualising: generateLineArtPoints(
+      LINE_ART_SHAPES.visualising,
+      SHAPE_POINTS,
+      LINE_ART_JITTER
+    ),
+    building: generateLineArtPoints(
+      LINE_ART_SHAPES.building,
+      SHAPE_POINTS,
+      CUBE_EDGE_JITTER
+    ),
+    delivery: generateLineArtPoints(
+      LINE_ART_SHAPES.delivery,
+      SHAPE_POINTS,
+      LINE_ART_JITTER
+    ),
   }
 }
 
@@ -733,15 +921,15 @@ export function buildSceneKeyframes(
       continue
     }
 
-    const stepLength = (end - start) / scene.shapes.length
-    const halfGap = (stepLength * tuning.stepMorphShare) / 2
     const lastIndex = scene.shapes.length - 1
+    const stepPitch = (end - start) / lastIndex
+    const halfGap = (stepPitch * tuning.stepMorphShare) / 2
 
     let index = 0
 
     for (const shape of scene.shapes) {
-      let stepStart = start + index * stepLength + halfGap
-      let stepEnd = start + (index + 1) * stepLength - halfGap
+      let stepStart = start + (index - 0.5) * stepPitch + halfGap
+      let stepEnd = start + (index + 0.5) * stepPitch - halfGap
 
       if (index === 0) {
         stepStart = start

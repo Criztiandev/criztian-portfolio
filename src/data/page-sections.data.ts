@@ -11,11 +11,12 @@ export const OWNER_EMAIL_ADDRESS = "criztiandev@gmail.com"
 
 export const OWNER_EMAIL_HREF = `mailto:${OWNER_EMAIL_ADDRESS}`
 
-export const SERVICES_SCENE_SHAPES = "sphere"
+export const SERVICES_SCENE_SHAPES = "branding web-design development"
 
 export const ABOUT_SCENE_SHAPES = "sphere"
 
-export const PROCESS_SCENE_SHAPES = "sphere"
+export const PROCESS_SCENE_SHAPES =
+  "listening planning visualising building delivery"
 
 export const STEP_NUMBER_DIGITS = 2
 
