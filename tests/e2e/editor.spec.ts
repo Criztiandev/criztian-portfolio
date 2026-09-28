@@ -98,6 +98,9 @@ test("edits the hero live, autosaves the draft, and publishes it", async ({
   await expect(page.frameLocator(PREVIEW_FRAME).locator("h1")).toHaveText(
     editedName
   )
+  await expect(
+    page.frameLocator(PREVIEW_FRAME).locator("html")
+  ).not.toHaveClass(/\blenis\b/)
 
   await expect(page.locator("[data-save-state]")).toHaveAttribute(
     "data-save-state",

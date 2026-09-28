@@ -117,6 +117,11 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
 - **Env:** `src/config/env.server.ts` / `env.public.ts` validate at import and fail fast. They reject legacy `eyJ…` Supabase keys.
 - **Email:** `EmailAdapter` has only a preview implementation, which writes HTML to `.local/email-previews/`. Nothing is sent.
 - **Global UI state:** `@tanstack/react-store` (`useSelector`, not the deprecated `useStore`).
+- **Smooth scroll:** core `lenis` 1.x (never `lenis/react`, never 2.x), mounted by `SmoothScroll` in `src/app/page.tsx` only, so the editor preview and the dashboard never get it.
+  - It runs only for fine pointers and without reduced motion. Its own RAF loop sleeps when Lenis stops smoothing; keep it separate from the dot hook's loop.
+  - It owns every in-page anchor scroll. It scrolls the real window, so never give it a wrapper element or import `lenis/dist/lenis.css`.
+  - Never add `scroll-padding-top`: focus clearance comes from `scroll-mt-18` on each focusable (DOM contract rule 9).
+  - Nested scrollers opt out with `data-lenis-prevent`. Never scroll programmatically on mount; a long programmatic scroll goes through an in-page anchor click so the timeline snap is set.
 
 ## Code conventions (the user enforces these)
 

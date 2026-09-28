@@ -136,6 +136,7 @@ export function ContactForm() {
           </FieldLabel>
           <Textarea
             id="contact-message"
+            data-lenis-prevent=""
             className="scroll-mt-18 dark:bg-transparent"
             required
             rows={6}

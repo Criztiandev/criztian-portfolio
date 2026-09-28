@@ -21,6 +21,10 @@ const DISPLAY_FONT_FAMILY = `"Antonio", "Antonio Fallback"`
 
 const UNLABELLED_SECTION_IDS = ["home", "quote"]
 
+const LINKED_PROJECT_URL = "https://example.com/project"
+
+const IN_SCENE_FOCUSABLE_SELECTOR = `[data-dot-scene] :is(a[href], button, summary, input, textarea, select):not([tabindex="-1"]):not([aria-hidden="true"])`
+
 const SCENE_ORDER = [
   "name",
   "cube",
@@ -109,6 +113,33 @@ describe("SitePage", () => {
       }
 
       expect(element.className, element.id).toContain("scroll-mt-18")
+    }
+  })
+
+  it("keeps every focusable inside a scene clear of the fixed header", () => {
+    const content = createDefaultSiteContent()
+    const firstProject = content.projects.items[0]
+
+    if (firstProject === undefined) {
+      throw new Error("the default content has no project")
+    }
+
+    firstProject.link = LINKED_PROJECT_URL
+
+    const { container } = render(
+      <SitePage content={content} displayFontFamily={DISPLAY_FONT_FAMILY} />
+    )
+    const focusables = container.querySelectorAll(IN_SCENE_FOCUSABLE_SELECTOR)
+
+    expect(focusables.length).toBeGreaterThan(0)
+    expect(
+      container.querySelector(`a[href="${LINKED_PROJECT_URL}"]`)
+    ).not.toBeNull()
+
+    for (const focusable of focusables) {
+      expect(focusable.className, focusable.outerHTML.slice(0, 80)).toContain(
+        "scroll-mt-18"
+      )
     }
   })
 

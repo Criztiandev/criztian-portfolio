@@ -229,8 +229,10 @@ export function SectionNavigation() {
         id={MOBILE_PANEL_ID}
         aria-label="Sections"
         hidden={!isOpen}
+        data-lenis-prevent=""
         className={cn(
           "flex max-h-[calc(100svh_-_4.5rem)] flex-col gap-1 overflow-y-auto",
+          "overscroll-contain",
           "border-t bg-background px-6 py-3 md:px-10 lg:hidden"
         )}
       >

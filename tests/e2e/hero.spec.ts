@@ -15,6 +15,12 @@ const SCENE_WALK = [
 
 const JUMP_SKIPPED_SCENES = ["cube", "services", "about", "project", "process"]
 
+const HEADER_LINE_PX = 72
+
+function readLocationHash() {
+  return window.location.hash
+}
+
 function collectPageProblems(page: Page): string[] {
   const problems: string[] = []
 
@@ -224,44 +230,66 @@ test.describe("scroll timeline", () => {
     await page.goto("/")
     await waitForRunningStage(page)
 
-    const trail = await page.evaluate(function followJump() {
-      return new Promise<string[]>(function record(resolve) {
-        const stage = document.querySelector("[data-status]")
-        const scenes: string[] = []
-        const observer = new MutationObserver(function onSceneChange() {
-          const scene = stage?.getAttribute("data-scene") ?? ""
-
-          scenes.push(scene)
-
-          if (scene === "dust") {
-            observer.disconnect()
-            resolve(scenes)
-          }
-        })
-
-        window.setTimeout(function giveUp() {
-          observer.disconnect()
-          resolve(scenes)
-        }, 5000)
-
-        if (stage !== null) {
-          observer.observe(stage, {
-            attributes: true,
-            attributeFilter: ["data-scene"],
+    const jump = await page.evaluate(function followJump() {
+      return new Promise<{ scenes: string[]; endedByLenis: boolean }>(
+        function record(resolve) {
+          const stage = document.querySelector("[data-status]")
+          const scenes: string[] = []
+          let endedByLenis = false
+          const observer = new MutationObserver(function onSceneChange() {
+            scenes.push(stage?.getAttribute("data-scene") ?? "")
           })
+
+          function finish() {
+            observer.disconnect()
+            window.removeEventListener("scrollend", onScrollEnd)
+            resolve({ scenes, endedByLenis })
+          }
+
+          function onScrollEnd(event: Event) {
+            if (event instanceof CustomEvent && event.detail?.lenisScrollEnd) {
+              endedByLenis = true
+              finish()
+            }
+          }
+
+          window.addEventListener("scrollend", onScrollEnd)
+          window.setTimeout(finish, 5000)
+
+          if (stage !== null) {
+            observer.observe(stage, {
+              attributes: true,
+              attributeFilter: ["data-scene"],
+            })
+          }
+
+          document
+            .querySelector<HTMLAnchorElement>("header a[href='#contact']")
+            ?.click()
         }
-
-        document
-          .querySelector<HTMLAnchorElement>("header a[href='#contact']")
-          ?.click()
-      })
+      )
     })
+    const trail = jump.scenes
 
+    expect(jump.endedByLenis).toBe(true)
     expect(trail).toContain("dust")
 
     for (const skipped of JUMP_SKIPPED_SCENES) {
       expect(trail).not.toContain(skipped)
     }
+
+    const firstDust = trail.indexOf("dust")
+
+    for (const scene of trail.slice(firstDust)) {
+      expect(scene).toBe("dust")
+    }
+
+    const contactTop = await page.evaluate(function readContactTop() {
+      return document.querySelector("#contact")?.getBoundingClientRect().top
+    })
+
+    expect(Math.abs((contactTop ?? 0) - HEADER_LINE_PX)).toBeLessThanOrEqual(1)
+    expect(await page.evaluate(readLocationHash)).toBe("#contact")
     expect(problems).toEqual([])
   })
 
@@ -435,5 +463,15 @@ test.describe("hero dot field on a phone", () => {
     await expect(stage).toHaveAttribute("data-scene", "project", {
       timeout: 10000,
     })
+  })
+
+  test("leaves touch scrolling native with no smooth scroller", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    await waitForRunningStage(page)
+    await page.waitForTimeout(1000)
+
+    await expect(page.locator("html")).not.toHaveClass(/\blenis\b/)
   })
 })

@@ -80,7 +80,7 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className={cn(
-                    "outline-none after:absolute after:inset-0",
+                    "scroll-mt-18 outline-none after:absolute after:inset-0",
                     "focus-visible:outline-hidden",
                     "focus-visible:after:ring-[3px]",
                     "focus-visible:after:ring-foreground/50"
@@ -185,7 +185,8 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
           <a
             href={PORTFOLIO_ACTION_NAVIGATION.href}
             className={cn(
-              "hidden h-10 items-center gap-2 self-start px-5 md:inline-flex",
+              "hidden h-10 scroll-mt-18 items-center gap-2 self-start px-5",
+              "md:inline-flex",
               "border border-border text-foreground outline-none",
               "text-xs tracking-[0.025em] uppercase transition-colors",
               "hover:border-foreground focus-visible:border-foreground",

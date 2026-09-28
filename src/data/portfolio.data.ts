@@ -38,7 +38,7 @@ export const PROJECTS_CUE_CLASS =
 export const FOOTER_NAVIGATION_LABEL = "Footer"
 
 export const FOOTER_LINK_CLASS =
-  "inline-flex items-center gap-2 py-1 transition-colors outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:outline-hidden focus-visible:ring-foreground/50"
+  "inline-flex scroll-mt-18 items-center gap-2 py-1 transition-colors outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:outline-hidden focus-visible:ring-foreground/50"
 
 export const FOOTER_YEAR = new Date().getFullYear()
 

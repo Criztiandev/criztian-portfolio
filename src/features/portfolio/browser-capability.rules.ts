@@ -1,3 +1,5 @@
+import { FINE_POINTER_QUERY } from "@/data/motion.data"
+
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)"
 
 function matchesMediaQuery(query: string): boolean {
@@ -38,6 +40,10 @@ export function hasFontLoadingApi(): boolean {
 
 export function prefersReducedMotion(): boolean {
   return matchesMediaQuery(REDUCED_MOTION_QUERY)
+}
+
+export function prefersFinePointer(): boolean {
+  return matchesMediaQuery(FINE_POINTER_QUERY)
 }
 
 export function readReducedMotionQuery(): MediaQueryList | null {
