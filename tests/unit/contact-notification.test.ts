@@ -6,6 +6,7 @@ import type { ContactValues } from "@/types/contact.type"
 const BASE_VALUES: ContactValues = {
   name: "Ada Lovelace",
   email: "ada@example.test",
+  service: "web_design",
   message: "Hello there, I have a project in mind.",
   website: "",
   renderedAt: 1_700_000_000_000,
@@ -17,6 +18,16 @@ describe("buildContactNotification", () => {
 
     expect(message.to).toBe("owner@example.test")
     expect(message.replyTo).toBe("ada@example.test")
+  })
+
+  it("names the chosen service by its label, not its slug", () => {
+    const message = buildContactNotification(BASE_VALUES, "owner@example.test")
+
+    expect(message.html).toContain(
+      "<p><strong>Service:</strong> Web design</p>"
+    )
+    expect(message.text).toContain("Service: Web design")
+    expect(message.text).not.toContain("web_design")
   })
 
   it("never lets a visitor inject markup through the message body", () => {

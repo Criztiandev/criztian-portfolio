@@ -44,6 +44,7 @@ export type Database = {
           name: string
           notified_at: string | null
           notify_error: string | null
+          service: string | null
         }
         Insert: {
           created_at?: string
@@ -54,6 +55,7 @@ export type Database = {
           name: string
           notified_at?: string | null
           notify_error?: string | null
+          service?: string | null
         }
         Update: {
           created_at?: string
@@ -64,6 +66,31 @@ export type Database = {
           name?: string
           notified_at?: string | null
           notify_error?: string | null
+          service?: string | null
+        }
+        Relationships: []
+      }
+      site_content: {
+        Row: {
+          draft: Json
+          draft_updated_at: string
+          id: number
+          published: Json | null
+          published_at: string | null
+        }
+        Insert: {
+          draft?: Json
+          draft_updated_at?: string
+          id?: never
+          published?: Json | null
+          published_at?: string | null
+        }
+        Update: {
+          draft?: Json
+          draft_updated_at?: string
+          id?: never
+          published?: Json | null
+          published_at?: string | null
         }
         Relationships: []
       }

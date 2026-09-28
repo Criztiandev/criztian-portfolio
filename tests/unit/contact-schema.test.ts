@@ -5,6 +5,7 @@ import { contactSchema } from "@/features/contact/schemas/contact.schema"
 const valid = {
   name: "Ada Lovelace",
   email: "ada@example.test",
+  service: "web_design",
   message: "Hello, I would like to talk about a project.",
   website: "",
   renderedAt: 1_700_000_000_000,
@@ -54,6 +55,35 @@ describe("contactSchema", () => {
       message: "x".repeat(5001),
     })
     expect(result.success).toBe(false)
+  })
+
+  it("accepts each of the four services", () => {
+    const services = ["branding", "web_design", "development", "something_else"]
+
+    for (const service of services) {
+      const result = contactSchema.safeParse({ ...valid, service })
+      expect(result.success).toBe(true)
+    }
+  })
+
+  it("rejects a missing service", () => {
+    const { service, ...withoutService } = valid
+    void service
+
+    expect(contactSchema.safeParse(withoutService).success).toBe(false)
+  })
+
+  it("rejects the empty prompt value with a prompt to choose", () => {
+    const result = contactSchema.safeParse({ ...valid, service: "" })
+
+    expect(result.success).toBe(false)
+    expect(result.error?.issues[0]?.message).toBe("Choose a service")
+  })
+
+  it("rejects an unknown service", () => {
+    expect(contactSchema.safeParse({ ...valid, service: "seo" }).success).toBe(
+      false
+    )
   })
 
   it("rejects a missing renderedAt so timing cannot be skipped", () => {

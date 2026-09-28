@@ -1,17 +1,17 @@
 import type { z } from "zod"
 
+import type { CONTACT_SERVICES } from "@/data/contact.data"
 import type { contactSchema } from "@/features/contact/schemas/contact.schema"
-import type { Database } from "@/types/database.type"
 
 export type ContactInput = z.input<typeof contactSchema>
 
 export type ContactValues = z.output<typeof contactSchema>
 
-export type ContactMessageRow =
-  Database["public"]["Tables"]["contact_messages"]["Row"]
+export type ContactService = (typeof CONTACT_SERVICES)[number]
 
-export type ContactMessageInsert =
-  Database["public"]["Tables"]["contact_messages"]["Insert"]
+export type ContactFieldErrorProps = {
+  message: string | undefined
+}
 
 export type ContactSubmitResult = {
   received: true

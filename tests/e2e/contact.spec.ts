@@ -23,8 +23,9 @@ test("accepts a message sent from the public contact section", async ({
 
   await page.getByLabel("Name").fill("Playwright Tester")
   await page.getByLabel("Email").fill("playwright.tester@example.test")
+  await page.getByLabel("Service needed").selectOption("development")
   await page
-    .getByLabel("Message")
+    .getByLabel("What can I help you with?")
     .fill("Sent by the end-to-end suite to verify the contact pipeline.")
 
   await page.waitForTimeout(WAIT_BEFORE_SUBMIT_MS)

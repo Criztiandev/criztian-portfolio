@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { CONTACT_SERVICE_PROMPT, CONTACT_SERVICES } from "@/data/contact.data"
+
 const NAME_MAX_LENGTH = 100
 
 const EMAIL_MAX_LENGTH = 254
@@ -34,6 +36,9 @@ export const contactSchema = z.object({
     .string()
     .transform(normalizeEmail)
     .pipe(z.email("Enter a valid email address").max(EMAIL_MAX_LENGTH)),
+  service: z
+    .string(CONTACT_SERVICE_PROMPT)
+    .pipe(z.enum(CONTACT_SERVICES, CONTACT_SERVICE_PROMPT)),
   message: z
     .string()
     .transform(trimOnly)

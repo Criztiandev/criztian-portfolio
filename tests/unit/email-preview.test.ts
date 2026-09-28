@@ -10,6 +10,7 @@ const HOSTILE_NAME = '<img src=x onerror="alert(1)">'
 const BASE_VALUES: ContactValues = {
   name: "Ada Lovelace",
   email: "ada@example.test",
+  service: "web_design",
   message: "Hello there.",
   website: "",
   renderedAt: 1_700_000_000_000,

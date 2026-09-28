@@ -10,13 +10,7 @@ import type {
 export function createPortfolioUiStore(
   initialState: PortfolioUiState = INITIAL_PORTFOLIO_UI_STATE
 ): PortfolioUiStore {
-  return createStore(initialState, ({ setState }) => {
-    function openMobileNav() {
-      setState(function open(state) {
-        return { ...state, isMobileNavOpen: true }
-      })
-    }
-
+  return createStore(initialState, function defineActions({ setState }) {
     function closeMobileNav() {
       setState(function close(state) {
         return { ...state, isMobileNavOpen: false }
@@ -36,7 +30,6 @@ export function createPortfolioUiStore(
     }
 
     return {
-      openMobileNav,
       closeMobileNav,
       toggleMobileNav,
       selectSection,

@@ -1,3 +1,4 @@
+import { CONTACT_SERVICE_LABELS } from "@/data/contact.data"
 import { escapeHtml } from "@/lib/html/escape-html.util"
 import type { ContactValues, EmailMessage } from "@/types/contact.type"
 
@@ -18,10 +19,12 @@ export function buildContactNotification(
 ): EmailMessage {
   const safeName = escapeHtml(values.name)
   const safeEmail = escapeHtml(values.email)
+  const serviceLabel = CONTACT_SERVICE_LABELS[values.service]
 
   const html = [
     "<h2>New contact message</h2>",
     `<p><strong>From:</strong> ${safeName} &lt;${safeEmail}&gt;</p>`,
+    `<p><strong>Service:</strong> ${escapeHtml(serviceLabel)}</p>`,
     "<hr />",
     toParagraphs(values.message),
   ].join("\n")
@@ -29,6 +32,7 @@ export function buildContactNotification(
   const text = [
     "New contact message",
     `From: ${values.name} <${values.email}>`,
+    `Service: ${serviceLabel}`,
     "",
     values.message,
   ].join("\n")
