@@ -2,11 +2,9 @@
 
 import { ArrowUpRight } from "lucide-react"
 import { motion, useReducedMotion } from "motion/react"
-import type { Transition } from "motion/react"
 import Image from "next/image"
 
 import {
-  INSTANT_TRANSITION,
   QUOTE_REVEAL_TRANSITION,
   QUOTE_REVEAL_VARIANTS,
 } from "@/data/hero.data"
@@ -25,6 +23,7 @@ import {
   resolveProjectImage,
   selectVisibleProjects,
 } from "@/features/portfolio/projects.rules"
+import { resolveMotionTransition } from "@/features/portfolio/motion.rules"
 import { cn } from "@/lib/utils"
 import type { ProjectsSectionProps } from "@/types/portfolio.type"
 import type { ProjectItem } from "@/types/site-content.type"
@@ -32,14 +31,6 @@ import type { ProjectItem } from "@/types/site-content.type"
 export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
   const shouldReduceMotion = useReducedMotion() === true
   const visibleProjects = selectVisibleProjects(projects.items)
-
-  function resolveTransition(transition: Transition): Transition {
-    if (shouldReduceMotion) {
-      return INSTANT_TRANSITION
-    }
-
-    return transition
-  }
 
   function renderProject(project: ProjectItem, index: number) {
     const href = resolveProjectHref(project.link)
@@ -50,8 +41,8 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
         <article className="group/card relative">
           <div
             className={cn(
-              "relative aspect-[10/7] w-full overflow-hidden bg-black",
-              "border border-white/40"
+              "relative aspect-[10/7] w-full overflow-hidden bg-background",
+              "border border-border"
             )}
           >
             {image !== null ? (
@@ -77,10 +68,10 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
           <div className="mt-6 flex items-start justify-between gap-4">
             <h3
               className={cn(
-                "font-display font-bold text-white/75 uppercase",
+                "font-display font-bold text-foreground/75 uppercase",
                 "text-[clamp(1.5rem,1rem+1.5vw,2.25rem)] leading-[1.05]",
-                "transition-colors group-focus-within/card:text-white",
-                "group-hover/card:text-white"
+                "transition-colors group-focus-within/card:text-foreground",
+                "group-hover/card:text-foreground"
               )}
             >
               {href !== null ? (
@@ -90,8 +81,9 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
                   rel="noopener noreferrer"
                   className={cn(
                     "outline-none after:absolute after:inset-0",
+                    "focus-visible:outline-hidden",
                     "focus-visible:after:ring-[3px]",
-                    "focus-visible:after:ring-white/50"
+                    "focus-visible:after:ring-foreground/50"
                   )}
                 >
                   {project.title}{" "}
@@ -105,8 +97,8 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
             <span
               hidden={project.tag === ""}
               className={cn(
-                "shrink-0 border border-white/40 px-3 py-1.5",
-                "text-xs tracking-[0.025em] text-white/60 uppercase"
+                "shrink-0 border border-border px-3 py-1.5",
+                "text-xs tracking-[0.025em] text-muted-foreground uppercase"
               )}
             >
               {project.tag}
@@ -115,7 +107,7 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
 
           <p
             hidden={project.summary === ""}
-            className="mt-3 max-w-[60ch] text-white/75"
+            className="mt-3 max-w-[60ch] text-foreground/75"
           >
             {project.summary}
           </p>
@@ -138,7 +130,7 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
       data-dot-shapes="sphere"
       aria-labelledby={PROJECTS_HEADING_ID}
       className={cn(
-        "mx-auto flex max-w-[80rem] scroll-mt-18 flex-col px-6 text-white",
+        "mx-auto flex max-w-[80rem] scroll-mt-18 flex-col px-6 text-foreground",
         "md:grid md:grid-cols-[minmax(16rem,22.5rem)_minmax(0,48rem)]",
         "md:justify-between md:gap-x-16 md:px-10"
       )}
@@ -146,23 +138,28 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
       <div
         className={cn(
           "sticky top-18 flex h-[calc(100svh_-_4.5rem)] flex-col gap-8",
-          "pt-[max(2rem,10svh)] pb-8 md:self-start"
+          "pt-[max(2rem,10svh)] pb-8 md:self-start",
+          "[@media(max-height:30rem)]:gap-4 [@media(max-height:30rem)]:pt-4"
         )}
       >
-        <header className="flex flex-col gap-6">
-          <p className={PROJECTS_CUE_CLASS}>
-            {formatProjectCount(visibleProjects.length)}
-          </p>
-
+        <header
+          className={cn(
+            "flex flex-col gap-6",
+            "[@media(max-height:30rem)]:gap-3"
+          )}
+        >
           <motion.h2
             id={PROJECTS_HEADING_ID}
             initial="hidden"
             whileInView="visible"
             viewport={PROJECTS_HEADING_VIEWPORT}
             variants={QUOTE_REVEAL_VARIANTS}
-            transition={resolveTransition(QUOTE_REVEAL_TRANSITION)}
+            transition={resolveMotionTransition(
+              QUOTE_REVEAL_TRANSITION,
+              shouldReduceMotion
+            )}
             className={cn(
-              "font-display font-bold text-white uppercase",
+              "scroll-mt-18 font-display font-bold text-foreground uppercase",
               "text-[clamp(1.75rem,1rem+3vw,3.5rem)] leading-[1.05]",
               "wrap-break-word"
             )}
@@ -172,7 +169,7 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
 
           <p
             className={cn(
-              "max-w-[34rem] text-white/75 uppercase",
+              "max-w-[34rem] text-foreground/75 uppercase",
               "[@media(max-height:30rem)]:hidden",
               "text-[0.8125rem] leading-[1.7] tracking-[0.05em]",
               "md:text-sm md:leading-relaxed md:tracking-[0.14em]"
@@ -181,14 +178,19 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
             {projects.lede}
           </p>
 
+          <p className={PROJECTS_CUE_CLASS}>
+            {formatProjectCount(visibleProjects.length)}
+          </p>
+
           <a
             href={PORTFOLIO_ACTION_NAVIGATION.href}
             className={cn(
               "hidden h-10 items-center gap-2 self-start px-5 md:inline-flex",
-              "border border-white/40 text-white outline-none",
+              "border border-border text-foreground outline-none",
               "text-xs tracking-[0.025em] uppercase transition-colors",
-              "hover:border-white focus-visible:border-white",
-              "focus-visible:ring-[3px] focus-visible:ring-white/50"
+              "hover:border-foreground focus-visible:border-foreground",
+              "focus-visible:ring-[3px] focus-visible:ring-foreground/50",
+              "focus-visible:outline-hidden"
             )}
           >
             {PORTFOLIO_ACTION_NAVIGATION.label}
@@ -210,7 +212,7 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
 
       <ol
         className={cn(
-          "relative z-[1] flex flex-col gap-10 bg-black pb-[max(5rem,12svh)]",
+          "relative z-[1] flex flex-col gap-10 bg-background pb-[max(5rem,12svh)]",
           "md:z-auto md:gap-15 md:bg-transparent md:pt-[max(6rem,16svh)]"
         )}
       >

@@ -1,84 +1,75 @@
-import { ContactForm } from "@/features/contact/components/contact.form"
+import { PUBLIC_TOKEN_OVERRIDES } from "@/data/portfolio.data"
+import { AboutSection } from "@/features/portfolio/components/about-section.component"
+import { BlogSection } from "@/features/portfolio/components/blog-section.component"
+import { ConnectSection } from "@/features/portfolio/components/connect-section.component"
+import { ContactSection } from "@/features/portfolio/components/contact-section.component"
+import { FaqSection } from "@/features/portfolio/components/faq-section.component"
 import { Hero } from "@/features/portfolio/components/hero.component"
+import { ProcessSection } from "@/features/portfolio/components/process-section.component"
+import { ProjectsSection } from "@/features/portfolio/components/projects-section.component"
+import { QuoteSection } from "@/features/portfolio/components/quote-section.component"
 import { SectionNavigation } from "@/features/portfolio/components/section-navigation.component"
+import { ServicesSection } from "@/features/portfolio/components/services-section.component"
 import { SiteFooter } from "@/features/portfolio/components/site-footer.component"
+import { TestimonialsSection } from "@/features/portfolio/components/testimonials-section.component"
 import { buildThemeStyle } from "@/features/site-content/site-content.rules"
 import { cn } from "@/lib/utils"
 import { PortfolioStoreProvider } from "@/providers/portfolio-store.provider"
 import type { SiteContent } from "@/types/site-content.type"
 
-const PLACEHOLDER_SECTIONS = [
-  {
-    id: "about",
-    heading: "About",
-    body: "A short introduction will go here.",
-  },
-  {
-    id: "services",
-    heading: "Services",
-    body: "What I can help with will go here.",
-  },
-  {
-    id: "blog",
-    heading: "Blog",
-    body: "Writing will go here.",
-  },
-]
-
 export function SitePage({
   content,
   displayFontFamily,
 }: Readonly<{ content: SiteContent; displayFontFamily: string }>) {
+  const stageStyle = {
+    ...buildThemeStyle(content.theme),
+    ...PUBLIC_TOKEN_OVERRIDES,
+  }
+
   return (
     <PortfolioStoreProvider>
       <div
         data-status="idle"
         data-scene="name"
-        className="group/stage isolate bg-background text-foreground"
-        style={buildThemeStyle(content.theme) as React.CSSProperties}
+        className={cn(
+          "group/stage dark isolate bg-background text-foreground scheme-dark",
+          "selection:bg-foreground selection:text-background"
+        )}
+        style={stageStyle as React.CSSProperties}
       >
         <SectionNavigation />
 
         <main>
           <Hero content={content} displayFontFamily={displayFontFamily} />
 
+          <QuoteSection quote={content.quote} />
+
+          <ServicesSection />
+
+          <AboutSection />
+
+          <ProjectsSection projects={content.projects} />
+
+          <ProcessSection />
+
           <div
             data-dot-scene="dust"
             data-dot-shapes="dust"
             className="scroll-mt-18"
           >
-            {PLACEHOLDER_SECTIONS.map(function renderSection(section) {
-              return (
-                <section
-                  key={section.id}
-                  id={section.id}
-                  className="mx-auto max-w-4xl scroll-mt-18 px-4 py-20"
-                >
-                  <h2 className="text-2xl font-semibold">{section.heading}</h2>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {section.body}
-                  </p>
-                </section>
-              )
-            })}
+            <ConnectSection />
 
-            <section
-              id="contact"
-              className={cn(
-                "mx-auto min-h-[calc(100svh_-_4.5rem)] max-w-4xl scroll-mt-18",
-                "px-4 py-20"
-              )}
-            >
-              <h2 className="text-2xl font-semibold">Contact</h2>
-              <p className="mt-2 mb-6 text-sm text-muted-foreground">
-                Send me a message and I will get back to you.
-              </p>
-              <ContactForm />
-            </section>
+            <TestimonialsSection />
+
+            <FaqSection />
+
+            <BlogSection />
+
+            <ContactSection />
           </div>
         </main>
 
-        <SiteFooter />
+        <SiteFooter name={content.hero.name} />
       </div>
     </PortfolioStoreProvider>
   )

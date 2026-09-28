@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   DEFAULT_PROJECT_ITEMS,
+  DEFAULT_PROJECTS_HEADING,
   NEW_PROJECT_ITEM,
 } from "@/data/site-content.data"
 import { ProjectsSection } from "@/features/portfolio/components/projects-section.component"
@@ -23,9 +24,11 @@ describe("ProjectsSection", () => {
   it("labels the section with an h2 and titles each project with an h3", () => {
     const { container } = renderProjects(DEFAULT_PROJECT_ITEMS)
 
-    expect(screen.getByRole("region", { name: "Projects" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("region", { name: DEFAULT_PROJECTS_HEADING })
+    ).toBeInTheDocument()
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-      "Projects"
+      "Featured projects"
     )
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(3)
     expect(container.querySelector("h1")).toBeNull()
@@ -38,10 +41,16 @@ describe("ProjectsSection", () => {
     expect(container.querySelector("section#project")).not.toBeNull()
   })
 
-  it("counts the visible projects in the eyebrow", () => {
-    renderProjects(DEFAULT_PROJECT_ITEMS)
+  it("counts the visible projects below the lede, never above the heading", () => {
+    const { container } = renderProjects(DEFAULT_PROJECT_ITEMS)
+    const header = container.querySelector("header")
+    const count = screen.getByText("/ 03")
+    const lede = screen.getByText(createDefaultSiteContent().projects.lede)
 
-    expect(screen.getByText("/ 03")).toBeInTheDocument()
+    expect(header?.firstElementChild?.tagName).toBe("H2")
+    expect(
+      lede.compareDocumentPosition(count) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
   })
 
   it("points the call to action at the contact form", () => {

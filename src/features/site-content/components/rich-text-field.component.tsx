@@ -66,7 +66,7 @@ export function RichTextField({
                 editor.chain().focus().toggleItalic().run()
               }}
               className={cn(
-                "size-7 rounded text-xs transition-colors",
+                "size-7 rounded-md text-xs transition-colors",
                 button.className,
                 isActive
                   ? "bg-accent text-accent-foreground"

@@ -33,4 +33,16 @@ export const PROJECT_NEW_TAB_LABEL = "(opens in a new tab)"
 export const FOOTER_BACK_TO_TOP_LABEL = "Back to top"
 
 export const PROJECTS_CUE_CLASS =
-  "text-[0.75rem] tracking-[0.12em] text-white/60 uppercase md:text-[0.6875rem] md:tracking-[0.22em]"
+  "text-[0.75rem] tracking-[0.12em] text-muted-foreground uppercase md:text-[0.6875rem] md:tracking-[0.22em]"
+
+export const FOOTER_NAVIGATION_LABEL = "Footer"
+
+export const FOOTER_LINK_CLASS =
+  "inline-flex items-center gap-2 py-1 transition-colors outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-[3px] focus-visible:outline-hidden focus-visible:ring-foreground/50"
+
+export const FOOTER_YEAR = new Date().getFullYear()
+
+export const PUBLIC_TOKEN_OVERRIDES: Record<string, string> = {
+  "--destructive": "var(--foreground)",
+  "--input": "var(--border)",
+}

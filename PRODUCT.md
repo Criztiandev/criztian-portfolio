@@ -22,7 +22,7 @@ Their job on the site is to judge, quickly, whether Criztian can take their proj
 
 ## Product Purpose
 
-A personal portfolio that wins freelance work. It is one public scrolling page (home, project, about, services, blog, contact) that ends in a contact form, and behind it a private owner dashboard for editing that content. Success means qualified clients leave convinced and send a message through the contact form.
+A personal portfolio that wins freelance work. It is one public scrolling page (home, quote, services, about, projects, process, connect, testimonials, FAQ, blog, contact) that ends in a contact form, and behind it a private owner dashboard for editing that content. Success means qualified clients leave convinced and send a message through the contact form.
 
 ## Positioning
 
@@ -38,19 +38,25 @@ Open decision: the seeded hero tagline ("Crafting timeless digital experiences t
 
 ## Capabilities and Constraints
 
-**Services offered to clients:**
+**Services offered to clients** (the owner's copy, 2026-09-28; it replaces the earlier four services):
 
-- full product builds (idea to launch)
-- web app and SaaS feature work inside existing products
-- marketing sites and landing pages
-- ongoing retainers for maintenance and iteration
+- Branding
+- Web design
+- Development
+
+The owner's own summary: "I specialize in crafting custom web solutions, including branding, web design and development tailored to meet your business." The full-stack framing under Positioning predates this copy; reconciling the two is the owner's call.
 
 **Public site:**
 
-- Single page. The six anchors (`#home`, `#project`, `#about`, `#services`, `#blog`, `#contact`) are the navigation. `#contact` must keep working because the e2e suite depends on it.
+- Single page. The anchors (`#home`, `#services`, `#about`, `#project`, `#process`, `#connect`, `#testimonials`, `#faq`, `#blog`, `#contact`) are the navigation. `#contact` must keep working because the e2e suite depends on it.
 - Hero: the name rendered as a dot-matrix WebGL wordmark whose dots scatter from a cursor or a finger and spring back. It falls back to a real text `<h1>` when WebGL2 is unavailable; with reduced motion the dots render still.
 - Quote (`#quote`, not in the nav): scrolling out of the hero morphs the name's dots into a turning dot cube, above one owner-editable statement quote. The seed is a visible placeholder; the owner supplies the real quote.
-- Projects (`#project`): scrolling past the quote compresses the cube into a knot that bursts into the section. Its dots settle as dust and gather into a stippled frame around each project card as it arrives, so the cube is literally spent on the proof. A pinned left column carries the heading, an intro and a "Let's talk" action to `#contact`. The three seeded cards are visible placeholders ("Project one", "Screenshot to come").
+- My services (`#services`): Branding, Web design and Development, each with the owner's paragraph and six items, as steps scrolling past a pinned dot shape.
+- Who am I (`#about`): "I am Criztian.", the owner's summary and three stats (5+ years experience, 500+ projects done, 140 happy clients).
+- Projects (`#project`): a pinned left column carries the heading, an intro and a "Let's talk" action to `#contact`, beside a placeholder dot sphere until the Phase 5 deck. The three seeded cards are visible placeholders ("Project one", "Screenshot to come").
+- How I work (`#process`): the owner's five numbered steps, scrolling past a pinned dot shape.
+- Let's connect (`#connect`, an "Email me" mailto action), Testimonials and Blog (visible placeholders: "Client quote to come", "Post to come"), FAQ (the owner's nine questions in native disclosures) and Get in touch (`#contact`, the form).
+- Contact form: name, email, a required "Service needed" select (Branding, Web design, Development, Something else) and "What can I help you with?". The service is stored with the message and shown in the notification.
 - Contact form anti-spam: a honeypot, a two-second minimum time-to-submit, and a limit of five submissions per hour per hashed IP. These are deliberate; do not weaken them.
 - Contact notifications are written as local HTML previews. No email is actually sent yet.
 
@@ -68,13 +74,14 @@ Open decision: the seeded hero tagline ("Crafting timeless digital experiences t
 - live email
 - reading contact messages in the dashboard
 - a blog rendering pipeline
+- editing the Services, About, Process, Connect, Testimonials, FAQ, Blog and Get in touch copy (hard-coded in `src/data/page-sections.data.ts` for now; the CMS for them comes later)
 
 **Terminology:** _owner_, _draft_, _published_, _section_, _site content_.
 
 ## Brand Commitments
 
 - The name **Criztian** is the hero wordmark and the site's identity.
-- Public copy is owner-controlled. It lives in the site-content record, with the seed defaults in `src/data/`.
+- Public copy is owner-controlled. The hero, quote, projects and theme copy lives in the site-content record (seed defaults in `src/data/`); the other sections are hard-coded in `src/data/page-sections.data.ts` until the CMS phase.
 
 ## Evidence on Hand
 
@@ -85,7 +92,7 @@ The owner has all of the following, but **none of it is in the repo yet**:
 - testimonials and named clients
 - blog posts
 
-The Project section is built and editable, seeded with three placeholder cards. About, Services and Blog are still placeholder text in `src/features/portfolio/components/site-page.component.tsx`.
+The Project section is built and editable, seeded with three placeholder cards. Services, About, Process and FAQ carry the owner's copy. Testimonials and Blog show visible placeholders until the owner supplies real material.
 
 Future work must get the real material from the owner. Never invent project names, client names, quotes, logos, metrics or outcomes to fill these sections.
 
@@ -93,7 +100,7 @@ Future work must get the real material from the owner. Never invent project name
 
 1. **Proof over claims.** Freelance clients hire on evidence. Shipped projects and case studies do the persuading, and the site's own engineering backs up the full-stack claim.
 2. **Never fabricate.** Every project, client, testimonial and number comes from the owner's real material. Gaps stay visible until they are filled.
-3. **One builder, whole stack.** Present the four services as one person owning a product end to end, not as a list of disconnected skills.
+3. **One builder, whole stack.** Present the three services as one person owning a product end to end, not as a list of disconnected skills.
 4. **Every path ends in a conversation.** Each section should move a qualified client toward the contact form.
 5. **Owner-editable by default.** New public content should go through the site-content schema so the owner can change it without touching code.
 

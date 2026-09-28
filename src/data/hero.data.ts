@@ -1,4 +1,4 @@
-import type { Transition, Variants } from "motion/react"
+import type { Transition, UseScrollOptions, Variants } from "motion/react"
 
 import type {
   CubeEdge,
@@ -218,6 +218,14 @@ export const HERO_INTRO_TIMING: HeroIntroTiming = {
   scrollCueDelayAfterSettleSeconds: 0.3,
   scrollCueDurationSeconds: 0.6,
 }
+
+export const HERO_COPY_FADE_SCROLL: UseScrollOptions = {
+  offset: ["start start", "end start"],
+}
+
+export const HERO_COPY_FADE_PROGRESS = [0.09, 0.3]
+
+export const HERO_COPY_FADE_OPACITY = [1, 0]
 
 export const TEXT_PADDING_PX = 8
 

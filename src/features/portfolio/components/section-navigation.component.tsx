@@ -2,7 +2,7 @@
 
 import { ArrowUpRight, Menu, X } from "lucide-react"
 import { motion, useMotionValueEvent, useScroll } from "motion/react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -56,6 +56,8 @@ export function SectionNavigation() {
   const activeSection = useActiveSection()
   const actions = usePortfolioUiActions()
   const [isSolid, setIsSolid] = useState(false)
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null)
+  const mobilePanelRef = useRef<HTMLElement | null>(null)
   const { scrollY } = useScroll()
 
   useMotionValueEvent(scrollY, "change", function onScrollChange(value) {
@@ -65,9 +67,17 @@ export function SectionNavigation() {
   useEffect(
     function closeOnEscape() {
       function onKeyDown(event: KeyboardEvent) {
-        if (event.key === "Escape") {
-          actions.closeMobileNav()
+        if (event.key !== "Escape") {
+          return
         }
+
+        const panel = mobilePanelRef.current
+
+        if (panel !== null && panel.contains(document.activeElement)) {
+          menuButtonRef.current?.focus()
+        }
+
+        actions.closeMobileNav()
       }
 
       window.addEventListener("keydown", onKeyDown)
@@ -94,11 +104,11 @@ export function SectionNavigation() {
         aria-current={isActive ? "true" : undefined}
         className={cn(
           "rounded-sm px-3 py-2 text-sm tracking-wide uppercase transition-colors",
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden",
           isSolid
             ? "text-muted-foreground hover:text-foreground"
-            : "text-white/70 hover:text-white",
-          isActive && (isSolid ? "text-foreground" : "text-white")
+            : "text-foreground/70 hover:text-foreground",
+          isActive && "text-foreground"
         )}
       >
         {item.label}
@@ -118,9 +128,9 @@ export function SectionNavigation() {
         href={item.href}
         onClick={onSelect}
         className={cn(
-          "inline-flex items-start gap-0.5 justify-self-start transition-colors",
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-          isSolid ? "text-foreground" : "text-white"
+          "inline-flex items-start gap-0.5 justify-self-start",
+          "text-foreground transition-colors",
+          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
         )}
       >
         <span className="font-display text-[1.75rem] leading-none font-bold uppercase">
@@ -130,7 +140,7 @@ export function SectionNavigation() {
           aria-hidden="true"
           className={cn(
             "text-[0.625rem] leading-none",
-            isSolid ? "text-muted-foreground" : "text-white/45"
+            isSolid ? "text-muted-foreground" : "text-foreground/45"
           )}
         >
           ©
@@ -153,10 +163,8 @@ export function SectionNavigation() {
         className={cn(
           "inline-flex items-center gap-2 px-5 py-2",
           "text-sm tracking-wide uppercase transition-colors",
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-          isSolid
-            ? "bg-foreground text-background hover:bg-foreground/80"
-            : "bg-white text-black hover:bg-white/80"
+          "bg-foreground text-background hover:bg-foreground/80",
+          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
         )}
       >
         {item.label}
@@ -177,8 +185,8 @@ export function SectionNavigation() {
     >
       <div
         className={cn(
-          "relative flex h-18 items-center justify-between px-6",
-          "md:grid md:grid-cols-[1fr_auto_1fr] md:px-10"
+          "relative flex h-18 items-center justify-between px-6 md:px-10",
+          "lg:grid lg:grid-cols-[1fr_auto_1fr]"
         )}
       >
         <motion.div variants={GROUP_VARIANTS} className="justify-self-start">
@@ -188,7 +196,7 @@ export function SectionNavigation() {
         <motion.nav
           aria-label="Primary"
           variants={GROUP_VARIANTS}
-          className="hidden items-center gap-4 md:flex"
+          className="hidden items-center gap-4 lg:flex"
         >
           {PORTFOLIO_PRIMARY_NAVIGATION.map(renderLink)}
         </motion.nav>
@@ -196,16 +204,17 @@ export function SectionNavigation() {
         <motion.nav
           aria-label="Secondary"
           variants={GROUP_VARIANTS}
-          className="hidden items-center justify-self-end md:flex"
+          className="hidden items-center justify-self-end lg:flex"
         >
           {renderActionLink()}
         </motion.nav>
 
         <Button
+          ref={menuButtonRef}
           type="button"
           variant="ghost"
           size="icon"
-          className={cn("md:hidden", isSolid ? "" : "text-white")}
+          className="lg:hidden"
           aria-expanded={isOpen}
           aria-controls={MOBILE_PANEL_ID}
           aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -216,12 +225,13 @@ export function SectionNavigation() {
       </div>
 
       <nav
+        ref={mobilePanelRef}
         id={MOBILE_PANEL_ID}
         aria-label="Sections"
         hidden={!isOpen}
         className={cn(
-          "flex flex-col gap-1 border-t px-6 py-3 md:hidden",
-          isSolid ? "bg-background" : "bg-black"
+          "flex max-h-[calc(100svh_-_4.5rem)] flex-col gap-1 overflow-y-auto",
+          "border-t bg-background px-6 py-3 md:px-10 lg:hidden"
         )}
       >
         {PORTFOLIO_NAVIGATION.map(renderLink)}

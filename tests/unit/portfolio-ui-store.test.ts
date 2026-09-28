@@ -10,19 +10,21 @@ describe("portfolio UI store", () => {
     })
   })
 
-  it("opens, closes and toggles the mobile nav", () => {
+  it("toggles and closes the mobile nav", () => {
     const store = createPortfolioUiStore()
-    store.actions.openMobileNav()
+    store.actions.toggleMobileNav()
     expect(store.state.isMobileNavOpen).toBe(true)
     store.actions.closeMobileNav()
     expect(store.state.isMobileNavOpen).toBe(false)
     store.actions.toggleMobileNav()
     expect(store.state.isMobileNavOpen).toBe(true)
+    store.actions.toggleMobileNav()
+    expect(store.state.isMobileNavOpen).toBe(false)
   })
 
   it("closes the panel when a section is selected", () => {
     const store = createPortfolioUiStore()
-    store.actions.openMobileNav()
+    store.actions.toggleMobileNav()
     store.actions.selectSection("contact")
     expect(store.state).toEqual({
       isMobileNavOpen: false,
@@ -33,7 +35,7 @@ describe("portfolio UI store", () => {
   it("gives each instance independent state", () => {
     const firstStore = createPortfolioUiStore()
     const secondStore = createPortfolioUiStore()
-    firstStore.actions.openMobileNav()
+    firstStore.actions.toggleMobileNav()
     expect(secondStore.state.isMobileNavOpen).toBe(false)
   })
 
@@ -41,7 +43,7 @@ describe("portfolio UI store", () => {
     const store = createPortfolioUiStore()
     const seen: boolean[] = []
     const sub = store.subscribe(() => seen.push(store.state.isMobileNavOpen))
-    store.actions.openMobileNav()
+    store.actions.toggleMobileNav()
     sub.unsubscribe()
     expect(seen).toContain(true)
   })

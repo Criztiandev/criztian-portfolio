@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { fireEvent, render, screen, within } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import { ContactForm } from "@/features/contact/components/contact.form"
@@ -27,6 +27,26 @@ function getMobilePanel(container: HTMLElement): HTMLElement {
   return panel as HTMLElement
 }
 
+function getMessageField(container: HTMLElement): HTMLTextAreaElement {
+  const field = container.querySelector("textarea")
+
+  if (field === null) {
+    throw new Error("message field not found")
+  }
+
+  return field
+}
+
+function readHrefs(links: NodeListOf<HTMLAnchorElement>): (string | null)[] {
+  const hrefs: (string | null)[] = []
+
+  for (const link of links) {
+    hrefs.push(link.getAttribute("href"))
+  }
+
+  return hrefs
+}
+
 describe("SectionNavigation", () => {
   it("starts with the mobile panel hidden", () => {
     const { container } = renderShell()
@@ -42,11 +62,54 @@ describe("SectionNavigation", () => {
     expect(getMobilePanel(container)).not.toHaveAttribute("hidden")
   })
 
+  it("links the five centre sections and the talk action", () => {
+    renderShell()
+
+    const primary = screen.getByRole("navigation", { name: "Primary" })
+    const labels: string[] = []
+
+    for (const link of within(primary).getAllByRole("link")) {
+      labels.push(link.textContent ?? "")
+    }
+
+    expect(labels).toEqual(["Services", "About", "Work", "Process", "Blog"])
+    expect(within(primary).getByRole("link", { name: "Work" })).toHaveAttribute(
+      "href",
+      "#project"
+    )
+
+    const secondary = screen.getByRole("navigation", { name: "Secondary" })
+
+    expect(
+      within(secondary).getByRole("link", { name: "Let's talk" })
+    ).toHaveAttribute("href", "#contact")
+  })
+
+  it("lists every section anchor in the mobile panel", () => {
+    const { container } = renderShell()
+
+    const panel = getMobilePanel(container)
+
+    expect(readHrefs(panel.querySelectorAll("a"))).toEqual([
+      "#home",
+      "#services",
+      "#about",
+      "#project",
+      "#process",
+      "#connect",
+      "#testimonials",
+      "#faq",
+      "#blog",
+      "#contact",
+    ])
+  })
+
   it("closes the mobile panel when a section is chosen, preserving form input", () => {
     const { container } = renderShell()
 
-    const message = screen.getByLabelText("Message")
-    fireEvent.change(message, { target: { value: "A message in progress" } })
+    fireEvent.change(getMessageField(container), {
+      target: { value: "A message in progress" },
+    })
 
     fireEvent.click(screen.getByRole("button", { name: "Open menu" }))
     const panel = getMobilePanel(container)
@@ -68,9 +131,7 @@ describe("SectionNavigation", () => {
     fireEvent.click(contactLink)
 
     expect(getMobilePanel(container)).toHaveAttribute("hidden")
-    expect(screen.getByLabelText("Message")).toHaveValue(
-      "A message in progress"
-    )
+    expect(getMessageField(container)).toHaveValue("A message in progress")
   })
 
   it("closes the mobile panel on Escape", () => {
@@ -80,6 +141,37 @@ describe("SectionNavigation", () => {
     fireEvent.keyDown(window, { key: "Escape" })
 
     expect(getMobilePanel(container)).toHaveAttribute("hidden")
+  })
+
+  it("returns focus to the menu button when Escape closes the panel", () => {
+    const { container } = renderShell()
+    const menuButton = screen.getByRole("button", { name: "Open menu" })
+
+    fireEvent.click(menuButton)
+
+    const firstLink = getMobilePanel(container).querySelector("a")
+
+    if (firstLink === null) {
+      throw new Error("mobile panel link not found")
+    }
+
+    firstLink.focus()
+    fireEvent.keyDown(window, { key: "Escape" })
+
+    expect(getMobilePanel(container)).toHaveAttribute("hidden")
+    expect(menuButton).toHaveFocus()
+  })
+
+  it("leaves focus outside the panel where it is on Escape", () => {
+    const { container } = renderShell()
+    const messageField = getMessageField(container)
+
+    fireEvent.click(screen.getByRole("button", { name: "Open menu" }))
+    messageField.focus()
+    fireEvent.keyDown(window, { key: "Escape" })
+
+    expect(getMobilePanel(container)).toHaveAttribute("hidden")
+    expect(messageField).toHaveFocus()
   })
 
   it("marks the chosen section as current", () => {

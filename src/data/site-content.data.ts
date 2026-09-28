@@ -40,9 +40,9 @@ export const PROJECT_IMAGE_MAX_LENGTH = 200
 
 export const PROJECT_IMAGE_ALT_MAX_LENGTH = 120
 
-export const DEFAULT_PROJECTS_HEADING = "Projects"
+export const DEFAULT_PROJECTS_HEADING = "Featured projects"
 
-export const DEFAULT_PROJECTS_LEDE = "A short intro to your projects goes here."
+export const DEFAULT_PROJECTS_LEDE = "Showcasing my most impactful work."
 
 export const DEFAULT_PROJECT_TAG = "Tag"
 

@@ -37,4 +37,15 @@ describe("QuoteSection", () => {
     expect(screen.queryByRole("heading")).toBeNull()
     expect(screen.getByText(QUOTE_TEXT).closest("[aria-hidden]")).toBeNull()
   })
+
+  it("pins the cube in one empty slot hidden from assistive tech", () => {
+    const { container } = renderQuote("")
+    const scene = container.querySelector("#quote[data-dot-scene='cube']")
+    const slots = container.querySelectorAll("[data-dot-slot]")
+
+    expect(scene).not.toBeNull()
+    expect(slots).toHaveLength(1)
+    expect(slots[0]).toHaveAttribute("aria-hidden", "true")
+    expect(slots[0]).toBeEmptyDOMElement()
+  })
 })

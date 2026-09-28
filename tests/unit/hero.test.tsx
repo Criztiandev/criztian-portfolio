@@ -1,6 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
+import { HERO_SCROLL_LABEL } from "@/data/hero.data"
+import { DEFAULT_HERO_TAGLINE_TEXT } from "@/data/site-content.data"
 import { Hero } from "@/features/portfolio/components/hero.component"
 import { createDefaultSiteContent } from "@/features/site-content/site-content.rules"
 
@@ -15,6 +17,20 @@ function renderHero() {
       />
     </div>
   )
+}
+
+async function readCopyFadeWrappers(): Promise<
+  [HTMLElement | null, HTMLElement | null]
+> {
+  await act(async function flushMotionRender() {})
+
+  const tagline = screen.getByText(DEFAULT_HERO_TAGLINE_TEXT)
+  const cue = screen.getByText(HERO_SCROLL_LABEL)
+
+  return [
+    tagline.parentElement?.parentElement ?? null,
+    cue.parentElement?.parentElement ?? null,
+  ]
 }
 
 describe("Hero", () => {
@@ -52,24 +68,49 @@ describe("Hero", () => {
     requestFrame.mockRestore()
   })
 
-  it("holds the hero, the quote and exactly one canvas in one stage", () => {
+  it("renders only the canvas layer and the home scene", () => {
     const { container } = renderHero()
     const stage = container.querySelector("[data-status]")
 
-    expect(container.querySelectorAll("[data-status]")).toHaveLength(1)
     expect(stage?.querySelector("#home")).not.toBeNull()
-    expect(stage?.querySelector("#quote")).not.toBeNull()
+    expect(stage?.querySelector("#quote")).toBeNull()
+    expect(stage?.querySelector("#project")).toBeNull()
     expect(container.querySelectorAll("canvas")).toHaveLength(1)
   })
 
-  it("renders the projects inside the stage without a second canvas", () => {
+  it("keeps the canvas outside every sticky frame", () => {
     const { container } = renderHero()
-    const stage = container.querySelector("[data-status]")
+    const canvas = container.querySelector("canvas")
 
-    expect(stage?.querySelector("#project")).not.toBeNull()
-    expect(container.querySelectorAll("[data-status]")).toHaveLength(1)
-    expect(container.querySelectorAll("canvas")).toHaveLength(1)
-    expect(container.querySelectorAll("h1")).toHaveLength(1)
+    expect(canvas?.closest("#home")).toBeNull()
+    expect(canvas?.closest("[data-dot-scene]")).toBeNull()
+  })
+
+  it("starts the tagline and cue fade at full opacity at scroll 0", async () => {
+    render(
+      <Hero
+        content={createDefaultSiteContent()}
+        displayFontFamily={DISPLAY_FONT_FAMILY}
+      />
+    )
+
+    const [taglineFade, cueFade] = await readCopyFadeWrappers()
+
+    expect(taglineFade?.style.opacity).toBe("1")
+    expect(cueFade?.style.opacity).toBe("1")
+  })
+
+  it("holds the tagline and cue at full opacity without webgl", async () => {
+    const { container } = renderHero()
+
+    const [taglineFade, cueFade] = await readCopyFadeWrappers()
+
+    expect(container.querySelector("[data-status]")).toHaveAttribute(
+      "data-status",
+      "unsupported"
+    )
+    expect(taglineFade?.style.opacity).toBe("1")
+    expect(cueFade?.style.opacity).toBe("1")
   })
 
   it("starts with the dots forming the name", () => {
@@ -81,15 +122,13 @@ describe("Hero", () => {
     )
   })
 
-  it("pins the name, the cube and the projects as dot scenes", () => {
+  it("pins the name as the one dot scene with one slot", () => {
     const { container } = renderHero()
     const scenes = container.querySelectorAll("[data-dot-scene]")
 
-    expect(scenes).toHaveLength(3)
-
-    for (const scene of scenes) {
-      expect(scene.querySelectorAll("[data-dot-slot]")).toHaveLength(1)
-    }
+    expect(scenes).toHaveLength(1)
+    expect(scenes[0]).toHaveAttribute("data-dot-scene", "name")
+    expect(scenes[0]?.querySelectorAll("[data-dot-slot]")).toHaveLength(1)
   })
 
   it("never starts an animation loop on scroll without a webgl context", () => {
@@ -101,13 +140,5 @@ describe("Hero", () => {
     expect(requestFrame).not.toHaveBeenCalled()
 
     requestFrame.mockRestore()
-  })
-
-  it("keeps the cube slot out of the accessibility tree", () => {
-    const { container } = renderHero()
-    const slot = container.querySelector("#quote [data-dot-slot]")
-
-    expect(slot).toHaveAttribute("aria-hidden", "true")
-    expect(slot).toBeEmptyDOMElement()
   })
 })

@@ -3,7 +3,16 @@ import type { Store } from "@tanstack/react-store"
 import type { SiteContentProjects } from "@/types/site-content.type"
 
 export type PortfolioSection =
-  "home" | "project" | "about" | "services" | "blog" | "contact"
+  | "home"
+  | "services"
+  | "about"
+  | "project"
+  | "process"
+  | "connect"
+  | "testimonials"
+  | "faq"
+  | "blog"
+  | "contact"
 
 export type PortfolioNavigationItem = {
   id: PortfolioSection
@@ -17,7 +26,6 @@ export type PortfolioUiState = {
 }
 
 export type PortfolioUiActions = {
-  openMobileNav: () => void
   closeMobileNav: () => void
   toggleMobileNav: () => void
   selectSection: (section: PortfolioSection) => void

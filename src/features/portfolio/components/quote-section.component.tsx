@@ -1,16 +1,15 @@
 "use client"
 
 import { motion, useReducedMotion } from "motion/react"
-import type { Transition } from "motion/react"
 
 import {
-  INSTANT_TRANSITION,
   LIFT_VARIANTS,
   QUOTE_AUTHOR_TRANSITION,
   QUOTE_REVEAL_TRANSITION,
   QUOTE_REVEAL_VARIANTS,
   QUOTE_VIEWPORT,
 } from "@/data/hero.data"
+import { resolveMotionTransition } from "@/features/portfolio/motion.rules"
 import { cn } from "@/lib/utils"
 import type { SiteContent } from "@/types/site-content.type"
 
@@ -21,28 +20,20 @@ export function QuoteSection({
 }>) {
   const shouldReduceMotion = useReducedMotion() === true
 
-  function resolveTransition(transition: Transition): Transition {
-    if (shouldReduceMotion) {
-      return INSTANT_TRANSITION
-    }
-
-    return transition
-  }
-
   return (
     <section
       id="quote"
       data-dot-scene="cube"
       data-dot-shapes="cube"
       className={cn(
-        "h-[calc(160svh_-_4.5rem)] scroll-mt-18 text-white",
-        "group-data-[status=unsupported]/stage:h-auto"
+        "min-h-[calc(160svh_-_4.5rem)] scroll-mt-18 text-foreground",
+        "group-data-[status=unsupported]/stage:min-h-0"
       )}
     >
       <div
         className={cn(
-          "sticky top-18 flex h-[calc(100svh_-_4.5rem)] flex-col items-center",
-          "px-5 pt-[max(1rem,12svh_-_4.5rem)] md:px-6"
+          "sticky top-18 flex min-h-[calc(100svh_-_4.5rem)] flex-col items-center",
+          "px-5 pt-[max(1rem,12svh_-_4.5rem)] pb-4 md:px-6"
         )}
       >
         <div
@@ -67,7 +58,10 @@ export function QuoteSection({
           <blockquote>
             <motion.p
               variants={QUOTE_REVEAL_VARIANTS}
-              transition={resolveTransition(QUOTE_REVEAL_TRANSITION)}
+              transition={resolveMotionTransition(
+                QUOTE_REVEAL_TRANSITION,
+                shouldReduceMotion
+              )}
               className={cn(
                 "max-w-[20ch] text-center font-display font-bold uppercase",
                 "text-[clamp(1.75rem,1rem+3vw,3.5rem)] leading-[1.05] text-balance",
@@ -81,9 +75,12 @@ export function QuoteSection({
           <motion.figcaption
             hidden={quote.author === ""}
             variants={LIFT_VARIANTS}
-            transition={resolveTransition(QUOTE_AUTHOR_TRANSITION)}
+            transition={resolveMotionTransition(
+              QUOTE_AUTHOR_TRANSITION,
+              shouldReduceMotion
+            )}
             className={cn(
-              "mt-6 text-white/60 uppercase",
+              "mt-6 text-muted-foreground uppercase",
               "text-[0.75rem] tracking-[0.12em]",
               "md:text-[0.6875rem] md:tracking-[0.22em]"
             )}

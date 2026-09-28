@@ -116,7 +116,7 @@ This file describes the public site. The owner surfaces (`/login`, `/dashboard`,
 **References (inspiration, not specs to clone):**
 
 - **[jeffmilanes.com](https://www.jeffmilanes.com/)**. Borrow **Scene 03**: outlines of a phone and a browser drawn in scattered dots, forming shapes as the story advances. Here, that becomes the scroll-morph transition described under Components. Nothing else from this site is adopted: no scene counter, film strip, monospace labels or photography treatment.
-- **[adriavale.framer.website](https://adriavale.framer.website/)**. The Framer template the hero descends from: the dot-matrix name on black, the six-item nav, and the square outlined Contact action. The dot field is an original WebGL implementation of the same technique, not the template's component. The seeded hero tagline and the nav labels currently match this template word for word. They are placeholders, not the owner's copy.
+- **[adriavale.framer.website](https://adriavale.framer.website/)**. The Framer template the hero descends from: the dot-matrix name on black, the six-item nav, and the square outlined Contact action. The dot field is an original WebGL implementation of the same technique, not the template's component. The seeded hero tagline still matches this template word for word. It is a placeholder, not the owner's copy.
 
 ## Colors
 
@@ -145,22 +145,21 @@ The palette is a set of brightness levels on black. Every colour is white at som
 **Known drift:**
 
 - The five owner-editable tokens now seed dark (2026-09-26): page background Unlit Black, body text Lamp White, muted text Dim Grey, accent Lamp White, border Wire Grey. The page wrapper sets all five, so the header and every section read them.
-- The shadcn tokens outside those five (`--input`, `--ring`, `--card`) and the `body` background still follow the `.dark` / `:root` switch, so form fields and overscroll can pick up the OS scheme. The public wrapper should stop inheriting that switch.
-- Form errors currently use shadcn's destructive red. Under the monochrome rule an error must carry its meaning through wording and `role="alert"`, not hue. Whether red survives as a functional exception is an open decision.
+- The public stage carries `dark` and `scheme-dark`, so the shadcn tokens outside those five (`--input`, `--ring`, `--card`) and native controls resolve dark in every OS scheme, and `html:has([data-status])` keeps the page scrollbar dark. Only the `body` background still follows the `.dark` / `:root` switch. Overscroll is off, so it shows only where the stage does not cover.
+- Form errors are monochrome. The stage sets `--destructive: var(--foreground)` inline, so an error outlines the field in half-strength Lamp White and its message carries the meaning in words, with a warning glyph and `role="alert"`. No red.
 
 ## Typography
 
 **Display Font:** Antonio (with a metric-matched Arial fallback), loaded through `next/font` with `display: block`.
 **Body Font:** Geist (with Geist Fallback).
-**Mono:** Geist Mono is loaded as `--font-mono` but has no role on the public site.
 
 **Character:** a tall, condensed poster face beside a clean, neutral grotesque. Antonio shouts in uppercase and Geist keeps its voice low.
 
 ### Hierarchy
 
 - **Display** (Antonio 700, uppercase, `min(25vw, 40svh)` on mobile and `clamp(3rem, 18vw, 16rem)` from 768px, line-height 1, tracking 0.05em in the dot sampler): the name, and nothing else. It is the source shape the dot field samples.
-- **Headline** (Antonio 700, uppercase, `clamp(1.75rem, 1rem + 3vw, 3.5rem)`, line-height 1.05): section titles such as Project, About, Services, Blog and Contact, and the **statement quote** under the cube. The rem term keeps it growing under page zoom (WCAG 1.4.4). Keep it clearly below Display and clearly above everything in Geist.
-- **Title** (Antonio 700, uppercase, `clamp(1.5rem, 1rem + 1.5vw, 2.25rem)`, line-height 1.05): project card titles. One step below Headline, so a list of cards never outshouts its section title.
+- **Headline** (Antonio 700, uppercase, `clamp(1.75rem, 1rem + 3vw, 3.5rem)`, line-height 1.05): every section title (My services, Who am I, Featured projects, How I work and the dust sections), and the **statement quote** under the cube. The rem term keeps it growing under page zoom (WCAG 1.4.4). Keep it clearly below Display and clearly above everything in Geist.
+- **Title** (Antonio 700, uppercase, `clamp(1.5rem, 1rem + 1.5vw, 2.25rem)`, line-height 1.05): project card titles, service and process step titles, process step numbers, the About intro and the stat values. One step below Headline, so a list of cards never outshouts its section title.
 - **Body** (Geist 400, 16px, line-height 1.5): paragraphs and form text. Keep lines to about 65–75ch.
 - **Lede** (Geist 400, uppercase, 14px/1.625 with 0.14em tracking from 768px; 13px/1.7 with 0.05em tracking on mobile): the hero tagline and other one-line statements under a headline. Maximum width is 34rem.
 - **Label** (Geist 400, uppercase, 12px, 0.025em tracking): nav links and the Contact action.
@@ -172,29 +171,33 @@ The palette is a set of brightness levels on black. Every colour is white at som
 
 **The Tracked Signage Rule.** Uppercase Geist is always tracked out. Uppercase text at default tracking reads as shouting, not signage.
 
-**Known drift:** section headings are still Geist 600 at 24px, and `--font-heading` still points at the sans. Point `--font-heading` at `--font-display` to apply the Two-Voice Rule in one place.
+`--font-heading` points at `--font-display`, so the Two-Voice Rule holds for shadcn headings too.
 
 ## Layout
 
-The layout is a single vertical scroll of full-width sections on one black ground, navigated by anchors (`#home`, `#project`, `#about`, `#services`, `#blog`, `#contact`). There is one breakpoint, at 768px.
+The layout is a single vertical scroll of full-width sections on one black ground, navigated by anchors (`#home`, `#services`, `#about`, `#project`, `#process`, `#connect`, `#testimonials`, `#faq`, `#blog`, `#contact`; `#quote` is not in the nav). The main breakpoint is 768px. Pinned scenes choose their layout with the `split` variant (`min-width: 48rem`, or `max-height: 30rem` from 34rem wide), so a landscape phone gets side-by-side columns while 400% zoom stays single-column. The `short` variant tightens step type and the shape band on short screens, so small phones (375×548) keep the pinned layout. The header nav switches at 1024px.
 
 - **Hero stage:**
   - At every width it fills exactly one viewport (`100svh`) and centres its content.
   - The wordmark box is `min(40vw, 45svh)` tall on mobile and `min(clamp(380px, 23.4vw + 200px, 500px), 70svh)` from 768px. The name spans 92% of the width on mobile and 78% from 768px.
   - The pointer box bleeds 25% above and below the wordmark box.
   - The one dot canvas is fixed to the viewport behind every section, so scattered and travelling dots are never clipped along an invisible line. Its backing store is capped at `MAX_CANVAS_PIXELS`.
-  - The hero pins for its first 10svh of scroll, so the name and tagline stay together until the dots leave.
+  - The hero pins for its first 10svh of scroll, so the name and tagline stay together until the dots leave. The tagline and scroll cue fade out as it unpins.
   - The scroll cue is pinned 40px from the bottom of the stage at every width, and hidden when the viewport is under 30rem tall (landscape phones).
 - **Header:**
   - Fixed and 72px tall, with 24px side gutters on mobile and 40px on desktop.
-  - It has three zones on a `1fr auto 1fr` grid, so the nav stays truly centred: the brand wordmark at left (linking to `#home`), the primary nav (Project, Blog, About, Contact) in the centre, and the "Let's talk" action at right.
-  - Below 768px the nav collapses behind a menu button into a full-width stacked panel.
-- **Quote (`#quote`):** directly after the hero, on the same black stage, and not in the nav. It is at least one viewport tall. A square cube slot, `min(80vw, 46svh, 36rem)`, is top-aligned under a `max(5.5rem, 12svh)` top pad, so its position never depends on the quote's length. The centred quote sits 32px below the slot (40px from 768px), at most 20ch wide and balanced. It has no scroll margin, so an anchored `#quote` lands exactly on the formed cube.
+  - It has three zones on a `1fr auto 1fr` grid, so the nav stays truly centred: the brand wordmark at left (linking to `#home`), the primary nav (Services, About, Work, Process, Blog) in the centre, and the "Let's talk" action at right.
+  - Below 1024px the nav collapses behind a menu button into a full-width stacked panel of every anchor, capped at the viewport height and scrollable.
+- **Quote (`#quote`):** directly after the hero, on the same black stage, and not in the nav. It is at least one viewport tall. A square cube slot, `min(80vw, 46svh, 36rem)`, is top-aligned under a `max(5.5rem, 12svh)` top pad, so its position never depends on the quote's length. The centred quote sits 32px below the slot (40px from 768px), at most 20ch wide and balanced. Its 72px scroll margin equals the header, so an anchored `#quote` lands where the cube pins.
 - **Projects (`#project`), a placeholder until the Phase 5 deck:**
   - A pinned left frame holds the header and a stippled sphere slot.
   - The card list on the right scrolls past it (48rem at most, 60px between cards).
   - Below 768px the black card list rises over the pinned frame like a curtain.
-- **Sections:** currently placeholder layout. Each is a centred column (max 896px, 16px gutters, 80px vertical padding) with an 80px scroll margin so anchored headings clear the header. Treat the scroll margin as fixed and the column as provisional.
+- **Sections:** every section shares the Projects width (80rem at most) and the 24px / 40px gutters. Every anchor except `#home` has a 72px scroll margin, equal to the header, so an anchor jump lands exactly where its scene pins.
+  - **Step scenes (My services, How I work):** a pinned frame holds the heading and the shape slot, and the steps scroll past it, one frame-height step per shape. In `split` the frame is the left column and each step is centred in the right. On a portrait phone the slot is a band under the header and each step sticks, on an opaque black ground, directly below the band. When a step's copy cannot fit its box (WCAG text spacing, 400% zoom, an extreme size), the scene drops to a plain reading list over dust; the copy is never clipped or covered.
+  - **Who am I (`#about`):** pinned. The slot sits left and the copy and stats right in `split`; on a portrait phone the slot stacks above the copy.
+  - **Dust (Let's connect, Testimonials, FAQ, Blog, Get in touch):** normal flow under one dust scene, with more space above each heading than below it. Get in touch is at least one frame tall, so `#contact` lands on dust.
+  - **Footer:** pinned. The name re-forms in its slot above a Cue-type bar (©, the footer nav, the email and Back to top) that is one row from 1024px and stacked and centred below.
 
 **The Stage Rule.** The hero owns the first viewport. Nothing else competes above the fold, not even a secondary call to action.
 
@@ -210,7 +213,7 @@ Every corner is square. Buttons, inputs, cards, image frames and focus rings are
 
 **The Square Signal Rule.** Zero radius everywhere. The only round thing on the site is a dot.
 
-**How to apply:** the vendored shadcn components (`src/components/ui/`) must not be hand-edited, and they derive every radius from `--radius`. Setting `--radius: 0` in `src/app/globals.css` squares all of them at once, including the owner surfaces. Today it is `0.625rem`, so inputs and buttons render with soft 10px corners. That is known drift.
+**How to apply:** the vendored shadcn components (`src/components/ui/`) must not be hand-edited, and they derive every radius from `--radius`. `--radius` is `0rem` in `src/app/globals.css`, which squares all of them at once, including the owner surfaces. It carries a unit because shadcn compares it with pixel lengths in `min()`.
 
 ## Components
 
@@ -242,9 +245,10 @@ The name as a matrix of lit points. It is a single WebGL2 canvas that samples An
 - **Scene timeline.** The burst into Projects is retired. Every section is now a scene on one scroll timeline (see `plans/handoff.md`).
   - A formed shape sits in a pinned slot while its section is stuck under the header.
   - Between scenes, the dots fly from one slot to the next with the same staggered sweep and arc as the name-to-cube morph.
-  - Today the page runs name, then cube, then a placeholder sphere in Projects, then quiet dust behind the reading sections, then the name again in the footer.
+  - Today the page runs name, then cube, then a placeholder sphere in My services, Who am I, Projects and How I work (until their own shapes land in Phases 3 to 5), then quiet dust behind the reading sections, then the name again in the footer.
   - **Reduced motion:** no flight, spin or wobble. Each shape is drawn still, in its resting pose, only while its section is pinned. Between scenes the canvas is empty.
   - **No WebGL2:** slots collapse and the scenes stop pinning. The text `<h1>` and the quote carry all meaning either way.
+  - **Frames grow:** the Quote, About and footer frames and the split steps use a minimum height, so zoom or text spacing lengthens the pin instead of clipping the copy.
   - **Dot count:** every shape uses the same dots, at least 7,200, or the wordmark's count if it is larger.
 
 ### Statement Quote
@@ -258,19 +262,19 @@ The one quote on the page, owner-editable in the dashboard (text plus an optiona
 
 The proof section, modelled on a studio "works" list and translated into the system. Owner-editable in the dashboard (heading, intro and up to six projects). The seed is three visible placeholders; nothing is invented.
 
-- **Left column (pinned):** a Cue-type count in Dim Grey (`/ 03`, the live number of visible projects), the Headline, an owner-editable Lede in Lit Grey, and a square outlined "Let's talk" action to `#contact` (Wire Grey hairline, Lamp White text, the border lights to Lamp White on hover and focus, no fill, so the header action stays the brightest surface).
+- **Left column (pinned):** the Headline, an owner-editable Lede in Lit Grey, a Cue-type count in Dim Grey beneath it (`/ 03`, the live number of visible projects; never above the heading), and a square outlined "Let's talk" action to `#contact` (Wire Grey hairline, Lamp White text, the border lights to Lamp White on hover and focus, no fill, so the header action stays the brightest surface).
 - **Card:** a 10:7 plate (the image, `object-cover`, zooming 4% on hover under `motion-safe`; or a black plate labelled "Screenshot to come" in Cue type), then a row with the Title at Lit Grey (Lamp White on hover or focus) and a square tag (Wire Grey hairline, Dim Grey Label type), then an optional summary in Lit Grey body and an optional stack line in Cue type. With an https link the whole card is one link that opens a new tab.
 - **Never hidden:** cards are never opacity-hidden, so they read without JavaScript; the dots are their reveal.
 
 ### Navigation
 
-Uppercase 14px Geist links, tracked out, at Lit Grey over the hero, lighting to Lamp White on hover and for the current section (`aria-current`). They sit in the centre zone in a 16px-gapped row with 12px × 8px hit padding. Once the header turns solid, the links step down to muted text and hover to full foreground. The header drops in 24px on load (0.6s) and its groups stagger in 0.06s apart. On mobile, a ghost icon button toggles a stacked panel of all six links, and Escape closes it.
+Uppercase 14px Geist links, tracked out, at Lit Grey over the hero, lighting to Lamp White on hover and for the current section (`aria-current`). They sit in the centre zone in a 16px-gapped row with 12px × 8px hit padding. Once the header turns solid, the links step down to muted text and hover to full foreground. The header drops in 24px on load (0.6s) and its groups stagger in 0.06s apart. Below 1024px, a ghost icon button toggles a stacked panel of all ten anchors, and Escape closes it.
 
 **Brand (placeholder):** the name in Antonio 700 uppercase at 28px, Lamp White, with a small Ghost Grey © at its top right. It stands in until the owner's own logo (planned as a cursive mark) replaces it.
 
 ### Contact Action
 
-The one call to action in the header: a square Lamp White button with Unlit Black 14px uppercase text reading "Let's talk" and a 16px up-right arrow, 20px × 8px padding. On hover the fill dims to 80%. It is the brightest interactive surface on the page, it links to `#contact`, and it is hidden below 768px, where the menu panel carries Contact.
+The one call to action in the header: a square Lamp White button with Unlit Black 14px uppercase text reading "Let's talk" and a 16px up-right arrow, 20px × 8px padding. On hover the fill dims to 80%. It is the brightest interactive surface on the page, it links to `#contact`, and it is hidden below 1024px, where the menu panel carries Contact.
 
 ### Buttons
 
@@ -282,7 +286,8 @@ The one call to action in the header: a square Lamp White button with Unlit Blac
 
 - **Style:** square, 32px tall, transparent on black, Wire Grey hairline, Lamp White text, placeholder in Dim Grey.
 - **Focus:** the border brightens and a 3px half-strength ring appears.
-- **Error:** `aria-invalid` switches the border and ring to the error treatment. The message sits below the field with `role="alert"`.
+- **Select:** the native `<select>` ("Service needed") matches the input, with `appearance-none` and a Dim Grey chevron. Its empty prompt shows in Dim Grey, and its option list renders dark through `scheme-dark`.
+- **Error:** monochrome. `aria-invalid` switches the border and ring to half-strength Lamp White. The message sits below the field after a warning glyph, with `role="alert"`, and its wording carries the meaning.
 - **Labels:** Geist 500 at 14px, sitting above the field.
 
 ### Scroll Cue
@@ -307,4 +312,4 @@ Cue type in Dim Grey with a 14px down-right arrow. It lifts in (16px, 0.6s) 0.3s
 - **Don't** use shadows or raised cards. Brightness, not elevation, brings things forward.
 - **Don't** put readable text in Ghost Grey (#737373). It fails AA at body sizes.
 - **Don't** let the public page follow the OS light or dark scheme.
-- **Don't** lift copy, layouts or components verbatim from the reference sites. The seeded tagline and nav labels that match adriavale.framer.website are placeholders to replace with the owner's own words.
+- **Don't** lift copy, layouts or components verbatim from the reference sites. The seeded tagline that matches adriavale.framer.website is a placeholder to replace with the owner's own words.

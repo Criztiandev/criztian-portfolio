@@ -8,10 +8,10 @@ const HOME_ITEM: PortfolioNavigationItem = {
   href: "#home",
 }
 
-const PROJECT_ITEM: PortfolioNavigationItem = {
-  id: "project",
-  label: "Project",
-  href: "#project",
+const SERVICES_ITEM: PortfolioNavigationItem = {
+  id: "services",
+  label: "Services",
+  href: "#services",
 }
 
 const ABOUT_ITEM: PortfolioNavigationItem = {
@@ -20,10 +20,34 @@ const ABOUT_ITEM: PortfolioNavigationItem = {
   href: "#about",
 }
 
-const SERVICES_ITEM: PortfolioNavigationItem = {
-  id: "services",
-  label: "Services",
-  href: "#services",
+const WORK_ITEM: PortfolioNavigationItem = {
+  id: "project",
+  label: "Work",
+  href: "#project",
+}
+
+const PROCESS_ITEM: PortfolioNavigationItem = {
+  id: "process",
+  label: "Process",
+  href: "#process",
+}
+
+const CONNECT_ITEM: PortfolioNavigationItem = {
+  id: "connect",
+  label: "Connect",
+  href: "#connect",
+}
+
+const TESTIMONIALS_ITEM: PortfolioNavigationItem = {
+  id: "testimonials",
+  label: "Testimonials",
+  href: "#testimonials",
+}
+
+const FAQ_ITEM: PortfolioNavigationItem = {
+  id: "faq",
+  label: "FAQ",
+  href: "#faq",
 }
 
 const BLOG_ITEM: PortfolioNavigationItem = {
@@ -41,10 +65,11 @@ const CONTACT_ITEM: PortfolioNavigationItem = {
 export const PORTFOLIO_HOME_NAVIGATION = HOME_ITEM
 
 export const PORTFOLIO_PRIMARY_NAVIGATION: PortfolioNavigationItem[] = [
-  PROJECT_ITEM,
-  BLOG_ITEM,
+  SERVICES_ITEM,
   ABOUT_ITEM,
-  CONTACT_ITEM,
+  WORK_ITEM,
+  PROCESS_ITEM,
+  BLOG_ITEM,
 ]
 
 export const PORTFOLIO_ACTION_NAVIGATION: PortfolioNavigationItem = {
@@ -55,9 +80,13 @@ export const PORTFOLIO_ACTION_NAVIGATION: PortfolioNavigationItem = {
 
 export const PORTFOLIO_NAVIGATION: PortfolioNavigationItem[] = [
   HOME_ITEM,
-  PROJECT_ITEM,
-  ABOUT_ITEM,
   SERVICES_ITEM,
+  ABOUT_ITEM,
+  WORK_ITEM,
+  PROCESS_ITEM,
+  CONNECT_ITEM,
+  TESTIMONIALS_ITEM,
+  FAQ_ITEM,
   BLOG_ITEM,
   CONTACT_ITEM,
 ]

@@ -5,10 +5,15 @@ const GL_PROBLEM_PATTERN = /INVALID_|GL_INVALID|WebGL: /
 
 const SCENE_WALK = [
   { selector: "#quote", scene: "cube" },
+  { selector: "#services", scene: "services" },
+  { selector: "#about", scene: "about" },
   { selector: "#project", scene: "project" },
+  { selector: "#process", scene: "process" },
   { selector: "[data-dot-scene='dust']", scene: "dust" },
   { selector: "[data-dot-scene='footer']", scene: "footer" },
 ]
+
+const JUMP_SKIPPED_SCENES = ["cube", "services", "about", "project", "process"]
 
 function collectPageProblems(page: Page): string[] {
   const problems: string[] = []
@@ -253,8 +258,10 @@ test.describe("scroll timeline", () => {
     })
 
     expect(trail).toContain("dust")
-    expect(trail).not.toContain("cube")
-    expect(trail).not.toContain("project")
+
+    for (const skipped of JUMP_SKIPPED_SCENES) {
+      expect(trail).not.toContain(skipped)
+    }
     expect(problems).toEqual([])
   })
 

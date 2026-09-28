@@ -1,20 +1,21 @@
 "use client"
 
 import { ArrowDownRight } from "lucide-react"
-import { motion, useReducedMotion } from "motion/react"
+import { motion, useReducedMotion, useScroll, useTransform } from "motion/react"
 import type { Transition, Variants } from "motion/react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import {
+  HERO_COPY_FADE_OPACITY,
+  HERO_COPY_FADE_PROGRESS,
+  HERO_COPY_FADE_SCROLL,
   HERO_INTRO_TIMING,
   HERO_SCROLL_LABEL,
-  INSTANT_TRANSITION,
   LIFT_VARIANTS,
   SIGNAL_EASE,
 } from "@/data/hero.data"
-import { ProjectsSection } from "@/features/portfolio/components/projects-section.component"
-import { QuoteSection } from "@/features/portfolio/components/quote-section.component"
 import { useDotField } from "@/features/portfolio/hooks/use-dot-field.hook"
+import { resolveMotionTransition } from "@/features/portfolio/motion.rules"
 import { renderRichTextHtml } from "@/features/site-content/services/rich-text-renderer.service"
 import { cn } from "@/lib/utils"
 import type { HeroWordmarkMode } from "@/types/hero.type"
@@ -83,12 +84,22 @@ export function Hero({
   content,
   displayFontFamily,
 }: Readonly<{ content: SiteContent; displayFontFamily: string }>) {
+  const sceneRef = useRef<HTMLDivElement | null>(null)
   const wordmarkRef = useRef<HTMLDivElement | null>(null)
   const taglineRef = useRef<HTMLDivElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [hasIntroSettled, setHasIntroSettled] = useState(false)
   const [isDotFieldUnsupported, setIsDotFieldUnsupported] = useState(false)
   const shouldReduceMotion = useReducedMotion() === true
+  const { scrollYProgress } = useScroll({
+    ...HERO_COPY_FADE_SCROLL,
+    target: sceneRef,
+  })
+  const copyOpacity = useTransform(
+    scrollYProgress,
+    HERO_COPY_FADE_PROGRESS,
+    HERO_COPY_FADE_OPACITY
+  )
 
   const markIntroSettled = useCallback(function markSettled() {
     setHasIntroSettled(true)
@@ -134,14 +145,7 @@ export function Hero({
   const taglineHtml = renderRichTextHtml(content.hero.tagline)
   const wordmarkTarget = isTextWordmark ? "visible" : "hidden"
   const introTarget = hasIntroSettled ? "visible" : "hidden"
-
-  function resolveTransition(transition: Transition): Transition {
-    if (shouldReduceMotion) {
-      return INSTANT_TRANSITION
-    }
-
-    return transition
-  }
+  const copyFadeOpacity = isDotFieldUnsupported ? 1 : copyOpacity
 
   return (
     <>
@@ -158,9 +162,10 @@ export function Hero({
       </div>
 
       <div
+        ref={sceneRef}
         data-dot-scene="name"
         data-dot-shapes="name"
-        className="h-[110svh] text-white group-data-[status=unsupported]/stage:h-auto"
+        className="h-[110svh] text-foreground group-data-[status=unsupported]/stage:h-auto"
       >
         <section
           id="home"
@@ -180,7 +185,10 @@ export function Hero({
                 initial="hidden"
                 animate={wordmarkTarget}
                 variants={WORDMARK_VARIANTS}
-                transition={resolveTransition(WORDMARK_TRANSITION)}
+                transition={resolveMotionTransition(
+                  WORDMARK_TRANSITION,
+                  shouldReduceMotion
+                )}
                 className="absolute inset-0 flex items-center justify-center px-4"
               >
                 <div className="relative max-w-full">
@@ -188,7 +196,7 @@ export function Hero({
                     aria-hidden="true"
                     className={cn(
                       "absolute top-[22%] right-0 translate-x-[60%]",
-                      "text-white/45",
+                      "text-foreground/45",
                       "text-[clamp(0.6rem,2.6vw,0.8rem)] md:text-[1.35rem]"
                     )}
                   >
@@ -208,7 +216,10 @@ export function Hero({
 
                   <motion.h1
                     variants={SWEEP_VARIANTS}
-                    transition={resolveTransition(SWEEP_TRANSITION)}
+                    transition={resolveMotionTransition(
+                      SWEEP_TRANSITION,
+                      shouldReduceMotion
+                    )}
                     style={{ fontFamily: displayFontFamily }}
                     className={cn(WORDMARK_TEXT_CLASS, "absolute inset-0")}
                   >
@@ -224,43 +235,52 @@ export function Hero({
               />
             </div>
 
-            <motion.div
-              ref={taglineRef}
-              initial="hidden"
-              animate={introTarget}
-              variants={LIFT_VARIANTS}
-              transition={resolveTransition(TAGLINE_TRANSITION)}
-              className={cn(
-                "relative max-w-[21rem] px-5 md:max-w-[34rem] md:px-6",
-                "text-center uppercase",
-                "text-[0.8125rem] leading-[1.7] tracking-[0.05em] text-white/70",
-                "md:text-sm md:leading-relaxed md:tracking-[0.14em] md:text-white/75"
-              )}
-              dangerouslySetInnerHTML={{ __html: taglineHtml }}
-            />
+            <motion.div style={{ opacity: copyFadeOpacity }}>
+              <motion.div
+                ref={taglineRef}
+                initial="hidden"
+                animate={introTarget}
+                variants={LIFT_VARIANTS}
+                transition={resolveMotionTransition(
+                  TAGLINE_TRANSITION,
+                  shouldReduceMotion
+                )}
+                className={cn(
+                  "relative max-w-[21rem] px-5 md:max-w-[34rem] md:px-6",
+                  "text-center uppercase",
+                  "text-[0.8125rem] leading-[1.7] tracking-[0.05em] text-foreground/70",
+                  "md:text-sm md:leading-relaxed md:tracking-[0.14em] md:text-foreground/75"
+                )}
+                dangerouslySetInnerHTML={{ __html: taglineHtml }}
+              />
+            </motion.div>
 
             <motion.div
-              initial="hidden"
-              animate={introTarget}
-              variants={LIFT_VARIANTS}
-              transition={resolveTransition(SCROLL_CUE_TRANSITION)}
-              className={cn(
-                "absolute inset-x-0 bottom-10 flex items-center justify-center gap-2",
-                "text-white/60 uppercase [@media(max-height:30rem)]:hidden",
-                "text-[0.75rem] tracking-[0.12em]",
-                "md:text-[0.6875rem] md:tracking-[0.22em]"
-              )}
+              style={{ opacity: copyFadeOpacity }}
+              className="absolute inset-x-0 bottom-10 [@media(max-height:30rem)]:hidden"
             >
-              <span>{HERO_SCROLL_LABEL}</span>
-              <ArrowDownRight aria-hidden="true" className="size-3.5" />
+              <motion.div
+                initial="hidden"
+                animate={introTarget}
+                variants={LIFT_VARIANTS}
+                transition={resolveMotionTransition(
+                  SCROLL_CUE_TRANSITION,
+                  shouldReduceMotion
+                )}
+                className={cn(
+                  "flex items-center justify-center gap-2",
+                  "text-muted-foreground uppercase",
+                  "text-[0.75rem] tracking-[0.12em]",
+                  "md:text-[0.6875rem] md:tracking-[0.22em]"
+                )}
+              >
+                <span>{HERO_SCROLL_LABEL}</span>
+                <ArrowDownRight aria-hidden="true" className="size-3.5" />
+              </motion.div>
             </motion.div>
           </div>
         </section>
       </div>
-
-      <QuoteSection quote={content.quote} />
-
-      <ProjectsSection projects={content.projects} />
     </>
   )
 }

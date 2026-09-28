@@ -2,7 +2,7 @@
 
 > **For:** the next Claude Code session picking up this build.
 >
-> **Current phase:** **Phase 2, page structure and content.** Phases 0 and 1 are done (2026-09-28). Phase 1 is committed as `3f58984`.
+> **Current phase:** **Phase 3, shapes, dot choreography and section motion.** Phases 0–2 are done (2026-09-28). Phase 1 is committed as `3f58984`. Phase 2 is the commit on `project/portfolio` after `99b3538`. Start Phase 3 with the hero pixel diff against `0a3c97a`.
 >
 > **Branch:** `project/portfolio`. **Baseline for pixel diffs:** `0a3c97a`.
 >
@@ -224,13 +224,25 @@ Every section that takes part in the timeline follows these rules. The engine tr
 5. **Overflow.** Ancestors of sticky elements use `overflow: visible` or `clip` only. `hidden`, `auto` and `overflow-x-hidden` silently stop the pin.
 6. **Named groups only.** Tailwind groups are named (`group/stage`). An unnamed `group` on the page wrapper would make every unnamed `group-*` react to the whole page.
 7. **Coverage.** Every section belongs to a scene; dust counts. No transit may stretch across unassigned sections as a half-formed smear.
-8. **The mobile band.** Below `md`, the slot is a band just below the header at `top-18`, and the step blocks are `sticky` directly below the band on an opaque black ground, so copy never enters the band. Conditions:
+8. **The mobile band.** In the portrait layout, the slot is a band just below the header at `top-18`, and the step blocks are `sticky` directly below the band on an opaque ground, so copy never enters the band. Conditions:
    - The step list ends where the container ends, or the last step unsticks into the band.
-   - Each step's height is at most `svh − band − 72`. Choose the layout by height as well as width: a landscape phone (740×360) is below `md` with about 300px of height.
+   - Each step's height is at most `svh − band − 72`.
+   - Choose the layout by height as well as width, with the custom variants in `globals.css`, never `md:`:
+     - `split` is `(min-width: 48rem), (max-height: 30rem) and (min-width: 34rem)`. A 740×360 landscape phone is split; 320×256 (400% zoom) is portrait.
+     - `short` is `(max-height: 30rem), (width < 48rem) and (max-height: 38rem)`. It tightens the step type and the band, so small phones (375×548, 360×560) stay pinned.
    - No links inside steps. A covered link could still take focus (WCAG 2.4.11).
+   - `StepScene` implements this. Its maths: the frame and the list share one grid cell, the list starts `--band` below the top, each step is `F − band` tall, and step `k` sticks at `k·(F − band)`. The last step unsticks together with the frame. Split uses the same pitch with `F`-tall steps in the second column.
 9. **In-scene anchors.** Every `id` inside a scene has `scroll-margin-top` equal to that scene's `stickyTop` (`scroll-mt-18`). A larger margin lands before the pin starts. `data-scene` then reads `moving`, and if a spinning shape is the outgoing one, the loop never sleeps.
 10. **Dust scene endings.** The last section of a dust scene is at least one frame tall (`min-h-[calc(100svh_-_4.5rem)]`). Otherwise its anchor lands in the transit to the next scene, with a half-formed shape over it. `#contact` needed this.
 11. **Reveals on pinned elements.** A pinned element never moves, so a `whileInView` margin must already hold at its pinned position. The projects heading sat at 65% of a phone screen behind a −40% margin and never revealed; it is now −10%.
+12. **Frames that can grow, grow.** A single-frame scene (Quote, About, footer) and a split step use `min-h-[…]`, never a fixed `h-[…]`, and so does its container. Zoom or WCAG text spacing then lengthens the pin instead of clipping or overlapping the copy. The engine re-reads frame and container heights on every measure.
+13. **The fit gate.** A portrait band step cannot grow: it is sticky, and a taller step is covered by the next one. So `StepScene` renders `SceneFitGate` (a hidden `<span>`) as its **last** child. The frame stays first. How it works:
+    - It checks every `[data-fit-box]` step.
+    - If one overflows, it sets `data-fit="flow"` on the container, removes `data-dot-slot` from the slot and sets `data-dot-shapes="dust"`. The engine re-reads both attributes on its next measure, so the scene becomes a plain dust scene. It never sees a hidden 0×0 slot.
+    - When everything fits again, it restores both attributes.
+    - The check runs in `requestAnimationFrame`, scheduled by a ResizeObserver and by `document.fonts.ready`. It never mutates layout inside the observer callback, because that raises ResizeObserver loop errors, which the e2e specs count as page errors.
+    - The `unpinned` variant styles flow mode and the no-WebGL path with one class list.
+    - Any new sticky, fixed-height copy box must join the gate or follow rule 12.
 
 In-page anchor clicks snap the timeline to the destination scene (`onAnchorClick` in the hook). A smooth nav scroll therefore does not flash through every shape on the way. The snap is cleared on arrival, `scrollend`, wheel, touch or a key press.
 
@@ -317,7 +329,7 @@ Tuning points found by eye, left for later phases:
 - **Mobile Projects is a placeholder.** The black card list rises over the pinned frame like a curtain. The sphere shows first, and the "Let's talk" button is hidden below `md`. Phase 5 replaces it.
 - **Hard-coded white text on a theme-coloured ground.** The hero, quote, projects and footer still hard-code `text-white` / `white/xx`, while the canvas now clears to the theme's page background. A light theme would put white text on light. Fold this into Phase 2's token pass.
 
-### Phase 2: page structure, content and system (no new shapes)
+### Phase 2: page structure, content and system (done, 2026-09-28)
 
 **Scope:**
 
@@ -355,11 +367,134 @@ Tuning points found by eye, left for later phases:
 - **Contact:** the contact e2e submits with a service.
 - **Strict counts:** still one canvas, one `[data-status]` and one `<h1>`.
 
-### Phase 3: the shape library for Services and Process
+**Done note (2026-09-28).** Everything in scope is built. Three items are still open:
+
+- **Database steps.** Docker was down, so the migration is written but not applied, and `database.type.ts` is hand-edited. See "Open owner decisions".
+- **The contact, editor and dashboard e2e specs** have not run, because they need Supabase.
+- **The hero pixel diff against `0a3c97a`** was not re-run. It is the first check of Phase 3. Phase 2 changed only token classes (same computed colours) and added fade wrappers held at opacity 1 at rest.
+
+What shipped:
+
+- **Sections.** Every section is built, in the final order, with the owner's copy verbatim.
+  - My services and How I work are `StepScene`s.
+  - Who am I is a pinned split with the stats as a `<dl>`.
+  - Let's connect, Testimonials, FAQ, Blog and Get in touch share one dust scene.
+  - The footer has the name slot, nav, email and ©.
+  - Services, About and Process hold the placeholder `sphere` until Phases 3–4. `parseSceneShapes` silently skips unknown ids, so each shape is swapped by changing one constant in `src/data/page-sections.data.ts`.
+- **Nav and forms.**
+  - Five centre links plus "Let's talk", moved to `lg`, because the links need about 845px. The mobile panel lists all ten anchors and scrolls when it is taller than the viewport.
+  - A required native "Service needed" select, with monochrome errors (glyph plus `role="alert"`, and `--destructive` set to the foreground on the stage).
+- **Token pass.**
+  - `--radius: 0`, `--font-heading` pointing at Antonio, and no hard-coded white or black on the public page.
+  - The stage carries `dark` and `scheme-dark`, and `html:has([data-status])` keeps the root scrollbar dark.
+  - `--input` is set to `--border`, so field outlines pass 3:1.
+- **Hero.** The tagline and cue fade as the hero unpins, which was the Phase 1 tuning point. They stay at opacity 1 without WebGL2.
+- **Height-aware layout and the fit gate** (rules 8, 12 and 13): the `split`, `short` and `unpinned` variants, `min-h` frames, and `SceneFitGate`.
+  - The gate scroll-anchors its own flips, so a deep link below a flipping scene lands.
+  - `html:has([data-status="idle"]) { scroll-behavior: auto }` keeps the page-load hash jump instant, because a smooth load scroll can't be redirected after the gate flips.
+- **Deletions:**
+  - `PLACEHOLDER_SECTIONS`
+  - `openMobileNav`
+  - the unused contact row and insert types
+  - `fontMono`
+  - three `resolveTransition` copies, now `resolveMotionTransition` in `motion.rules.ts`
+
+Evidence:
+
+- **Checks:** `pnpm typecheck` and `pnpm lint` are clean, and 271 unit tests pass. The Prettier check warns only on `.impeccable/hook.cache.json`, which is an open owner decision.
+- **e2e:** `hero.spec.ts`, `anchors.spec.ts` and `fit.spec.ts` pass 36/36 against a production build on :3100.
+- **Measurement:** measured at 13 sizes, plus the WCAG 1.4.12 stylesheet at three of them, using the list in "Landmines". The result is 0 never-visible lines, 0 text overlaps, 0 clipped text, no horizontal overflow and no errors. The required phone sizes stay pinned with at least 27.8px spare. 400% zoom and text spacing flow.
+- **Reviews:**
+  - A five-lens adversarial review (contract, a11y, conventions, fidelity, data), with every finding verified by a skeptic: 14 confirmed (4 major), all fixed.
+  - The impeccable finish review: recapture, then fix (the project count sat above the heading; it now sits below the lede), then ship. The ship covers that fix and the reviewed captures.
+  - Captures are in `.impeccable/review/`, which is not committed.
+
+### Phase 3: shapes, dot choreography and section motion
+
+**The owner's direction (2026-09-28, after seeing Phase 2).** The layout is right, but the page feels static.
+
+- The dot transitions must feel "wow and professional".
+- Every section needs its own motion, sliding and award-level transitions, so the page feels alive.
+- The dots stay the main show. Section motion supports them and never competes with them.
+- Section motion moves here from Phase 6, so this phase is where the page comes alive.
+
+**Splitting.** If this is too big for one conversation, split it at the part boundary:
+
+- 3A: parts 1 and 2 (the dots)
+- 3B: part 3 (the sections)
+
+Ask the owner to confirm the motion choices below before building part 3. They are a proposal, not a sign-off.
+
+#### Part 1: the shape library
 
 - **Generators:** seeded, pure line-art generators that stipple along paths, like `generateCubePoints` along the cube's edges: the three service shapes and the five process shapes.
+- **Swap:** change the scene shape constants in `src/data/page-sections.data.ts` (`services` → `branding web-design development`, `process` → its five ids) and add the ids to `DOT_SHAPE_IDS`. An id the engine doesn't know is silently skipped (see the Phase 2 note).
 - **Tuning:** every number goes in `hero.data.ts`.
 - **Acceptance:** reduced-motion screenshots show each shape formed in its own slot at 390, 820 and 1440 wide.
+
+#### Part 2: dot choreography
+
+Make every morph an event, not a slide from one slot to the next.
+
+- **Draw-on formation.** Each line-art generator ranks its points by arc length along the stroke (`w` = path order plus a little jitter). The arrival stagger uses that rank, so a shape draws itself like a pen:
+  - the seal traces its ring
+  - the browser draws its frame, then its bar
+  - the brackets write left to right
+
+  Departure keeps today's left-to-right dissolve.
+
+- **Burst and gather.** Mid-flight, add a seeded curl-noise displacement that peaks at `t = 0.5` and is zero at both ends. The dots loosen into a drifting cloud between shapes instead of sliding on clean arcs. Bound it so no dot leaves the viewport.
+- **Depth swell.** Dots lift toward the camera mid-flight: size and brightness rise a little. Dimness stays opacity, never MAX blending.
+- **Arrival strike.** On landing, a brief brightness flash that decays over about 300ms, like a lamp striking. Also give a small spring impulse through `stepDotPhysics`, so a formed shape settles with the same bounce as the pointer scatter.
+- **Direction-aware sweep:** the dissolve direction follows the scroll direction.
+- **Copy crossings** (the Phase 1 tuning point): transit dots must not cross the incoming or outgoing copy column at full brightness. Either dim dots over text boxes or bias the arcs toward the slot side.
+- **Step and shape sync.** With the equal pin split, each shape is still fully formed at the scroll where its copy is aligned. But for Process's five steps, the first and last shape handovers land about 0.14 of a step (about 116px at 1440×900) away from the copy handovers. Decide before wiring the five shapes: accept that skew, or change the split:
+  - put multi-step boundaries at `start + (k + 0.5)·pin/(n − 1)`
+  - make the first and last intervals half length
+
+  The change matches the copy pitch in both layouts and still measures no step rects. If you make it, update the rules tests.
+
+- **Transits hidden behind opaque steps.** On portrait phones, the services → about transit runs entirely behind the last services step, which is opaque by design (rule 8), so the flight is invisible there. Choreograph around it: start the transit as the last step unsticks, or route the flight through the band.
+- **Engine follow-ups from the Phase 2 fit work** (the engine was off-limits then):
+  - `resolveViewportHeight` takes the tallest `frameHeight + stickyTop`. A frame that grows past `F` (text spacing, 400% zoom) therefore shifts dust boundaries, and `data-scene` reads `moving` early near them. The text stays readable.
+  - Split steps that grow at short landscapes (740×304, 740×280) stretch the pin, so copy and shape drift apart in the tallest steps.
+- **Invariants:** every number lives in `hero.data.ts`. Reduced motion is unchanged: no flight, and still shapes only inside pin ranges. The loop still sleeps at rest.
+- **Acceptance:**
+  - frame captures of name → cube → each service → about → each process step, at 1440 and 390
+  - RAF at 0 fps at rest
+  - no transit frame over 16ms on a mid-range Android (Phase 4's measuring method)
+
+#### Part 3: section motion
+
+One motion grammar, authored once, in the signal-board world: things power on like lamps, lines draw like wire, and copy wipes in like the quote. No per-section novelty.
+
+- **Headline power-on.** Every section `<h2>` lights up the way the wordmark does. It starts at the 14% ghost, and a feathered sweep (26px feather, `SIGNAL_EASE`, about 0.9s) lights it left to right as it enters.
+  - Use a CSS mask on the heading itself. Don't split it into letters, so screen readers still read it whole.
+- **Copy slides in.** Paragraphs rise line by line from behind a clip (100% up), staggered 60–80ms.
+- **Hairlines draw** left to right, staggered: the service items, the stats rule, the FAQ rows, the testimonial and blog rules. Use scaleX from the left on a dedicated rule element or a pseudo-element.
+- **Step handovers** (Services, Process). The outgoing step's copy wipes out and the incoming one wipes in at the same scroll position as the shape morph, so copy and dots change together. In the portrait band, the incoming sticky step's content slides up 24px and wipes in as it docks.
+- **About:** the stats count up (0 → 5+, 500+, 140) once the scene pins. Give the number a fixed width so the row doesn't jitter.
+- **Let's connect:** the heading powers on, then the "Email me" action wipes in. The address flickers on character by character, like a departure board.
+- **FAQ:** answers open with an eased height where supported (`interpolate-size: allow-keywords` or a `::details-content` transition) and snap elsewhere. The plus turns into a cross.
+- **Testimonial and blog placeholders:** the plates wipe open from the bottom (`clip-path` inset), staggered.
+- **Reading sections:** scroll-linked parallax on the inner columns. The heading column and the content column drift at slightly different rates, 40px at most, so the reading sections feel layered over the dust.
+- **Nav:** a single lit dot slides under the active centre link as the page scrolls (scroll-spy). The only round thing on the site is a dot.
+- **Footer:** the bar's links power on in a stagger while the name re-forms.
+- **Constraints** (the DOM contract still binds):
+  - Animate inner elements only: never a scene container, a frame, an ancestor of a slot, or an ancestor of the canvas (rule 4).
+  - Animate `transform`, `clip-path`, `mask` and `opacity` only.
+  - Motion lives in small client leaf components, so the sections stay server components.
+  - Under `useReducedMotion()`, every effect renders its final state (`INSTANT_TRANSITION`).
+  - Content must be visible without JavaScript. Reveals arm only after hydration, never from a server-rendered hidden state, and text is never opacity-hidden from assistive tech.
+  - Reveals play once.
+  - A `whileInView` margin must already hold at the element's pinned position (rule 11).
+- **Tuning:** every duration, stagger and feather goes in a new `src/data/motion.data.ts`. Use the impeccable skill's `animate` reference for the pass.
+- **Acceptance:**
+  - screen recordings of a full scroll at 1440 and 390
+  - reduced-motion screenshots identical to the Phase 2 layout
+  - a no-JavaScript render shows all copy
+  - the hero at rest still pixel-identical to `0a3c97a`
+  - CLS 0, and e2e green
 
 ### Phase 4: the bust (Who am I)
 
@@ -370,6 +505,7 @@ Tuning points found by eye, left for later phases:
   - Fetch the file lazily after the first draw. A procedural latitude/longitude head stands in until it loads.
   - A slow yaw oscillation.
 - **Performance:** measure physics, projection and uploads while pushing the bust on a mid-range Android. Phones jump from about 1.5k name points to `SHAPE_POINTS`.
+- **Motion:** the bust forms with Phase 3's choreography. Its draw-on rank follows the edge loops from the face outward.
 
 ### Phase 5: the Featured Projects deck
 
@@ -377,16 +513,11 @@ Tuning points found by eye, left for later phases:
 - **Dot frame:** the dots frame the plate as a `frame` shape: the rect's perimeter, with a non-uniform scale.
 - **Accessibility:** cards stay in DOM order for screen readers. Under reduced motion, or without JavaScript, the deck is a plain list.
 - **Reuse:** keep `projects.rules.ts` (https-only links and images, visible-project selection).
+- **Motion:** the active project swaps with Phase 3's wipe grammar, and the frame's dots draw around the plate in path order.
 
 ### Phase 6: polish and proof
 
-- **Motion pass:**
-  - heading reveals
-  - a stat count-up
-  - FAQ easing
-
-  Every one passes `INSTANT_TRANSITION` under `useReducedMotion()`.
-
+- **Motion polish:** tune what Phase 3 authored, on real devices. The heading reveals, the stat count-up and the FAQ easing moved to Phase 3.
 - **Checks:**
   - mobile tuning
   - the editor-preview check (its iframe is about 686px wide, so "Desktop" shows the mobile layout)
@@ -416,6 +547,14 @@ These are the ones CLAUDE.md doesn't already cover:
 - **`pnpm check` fails on `.impeccable/hook.cache.json`,** a design-plugin cache. Adding `.impeccable/` to `.prettierignore` fixes it; the owner hasn't asked for that yet.
 - **The local Supabase may have no users.** `auth.users` was empty on 2026-09-20. Logged-in specs create their own throwaway user; never ask for the owner's password.
 - **Turbopack flags one build warning:** `path.join(process.cwd(), …)` in `email-preview.adapter.ts`. It is harmless locally; fix it before deploying.
+- **Capture in full Chromium, not the headless shell.** Playwright's default `chromium-headless-shell` (SwiftShader) paints alpha-0 holes wherever an opaque sticky step overlaps the fixed canvas inside the isolated stage, so they look like white blocks. Use `channel: "chromium"` for screenshots and pixel checks. The e2e specs pass on either.
+- **Measure fit at real heights, not only nominal sizes.** Phase 2 passed at 360×640 and 740×360, then failed on an iPhone SE's real svh (about 548) and a landscape phone with its URL bar (740×304). Every layout change to a pinned scene is re-measured at all of these:
+  - 375×548, 360×560 and 390×664
+  - 740×304, 740×280 and 667×320
+  - 320×256 (400% zoom)
+  - 360×640, 740×360 and 1440×900 with a WCAG 1.4.12 text-spacing stylesheet injected
+
+  `tests/e2e/fit.spec.ts` covers the gate.
 
 ## Open owner decisions
 
@@ -425,3 +564,10 @@ These are the ones CLAUDE.md doesn't already cover:
 - **Real material:** projects, screenshots, testimonials and blog posts.
 - **The published-content read is cached** for a year. Tag it and call `revalidateTag` on publish, or make it uncached (which makes `/` dynamic).
 - **`.impeccable/` in `.prettierignore`.**
+- **Positioning.** PRODUCT.md still says "Full-stack product builder", while the owner's new copy positions branding, web design and development. The owner decides; don't rewrite it unasked.
+- **Projects heading in the live record.** The seed defaults are now "Featured projects" and "Showcasing my most impactful work.", but the published site-content row keeps its old text until the owner sets it in the editor.
+- **Database steps for the service field** (Docker was down in Phase 2):
+  1. Apply `20260928120000_contact_messages_service.sql`.
+  2. Run `pnpm db:types` and confirm it matches the hand-edited `service` lines in `database.type.ts`.
+  3. Run the contact, editor and dashboard e2e specs.
+- **Send message button voice.** It is the only action not in the uppercase, tracked Label voice of "Let's talk" and "Email me". DESIGN.md documents the sentence-case primary button, so changing it is a system change for the owner (finish review ceiling item).

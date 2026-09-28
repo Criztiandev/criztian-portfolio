@@ -80,6 +80,8 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
 - **Scenes and timeline:**
   - Every section belongs to a `[data-dot-scene]` container, with shapes in `data-dot-shapes`.
   - A formed shape lives only in a pinned `[data-dot-slot]` inside the container's first child, a sticky frame. Dust scenes have no slot and fill the viewport.
+  - Pinned layouts choose by height as well as width with the `split` and `short` variants in `globals.css`, never `md:`.
+  - Frames that can grow use `min-h`. Sticky fixed-height copy boxes (the portrait step blocks) go through `SceneFitGate`, which drops the scene to dust when the copy can't fit. See DOM contract rules 12–13 in `plans/handoff.md`.
   - `buildSceneKeyframes` turns the measured scenes into keyframes. `resolveTimelinePosition` maps `scrollY` to one position `p` (keyframe index plus transit progress), which the loop smooths (`followTimelineProgress`, snapping jumps longer than one segment).
   - The stage's `data-scene` is the formed keyframe id or `moving`.
 - **Shapes:**

@@ -125,6 +125,7 @@ export async function submitContactMessage(
     .insert({
       name: values.name,
       email: values.email,
+      service: values.service,
       message: values.message,
       ip_hash: ipHash,
     })
