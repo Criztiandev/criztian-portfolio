@@ -2,7 +2,7 @@
 
 > **For:** the next Claude Code session picking up this build.
 >
-> **Current phase:** **Phase 2, page structure and content.** Phases 0 and 1 are done (2026-09-28). Phase 1 is in the working tree and **not committed**; the owner has not asked for a commit.
+> **Current phase:** **Phase 2, page structure and content.** Phases 0 and 1 are done (2026-09-28). Phase 1 is committed as `3f58984`.
 >
 > **Branch:** `project/portfolio`. **Baseline for pixel diffs:** `0a3c97a`.
 >
