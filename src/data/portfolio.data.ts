@@ -12,7 +12,7 @@ export const PROJECTS_HEADING_ID = "project-heading"
 export const PROJECTS_HEADING_VIEWPORT = {
   once: true,
   amount: 0,
-  margin: "0px 0px -40% 0px",
+  margin: "0px 0px -10% 0px",
 }
 
 export const PROJECT_COUNT_PREFIX = "/ "
@@ -29,6 +29,8 @@ export const PROJECT_IMAGE_SIZES = "(min-width: 768px) 48rem, 100vw"
 export const PROJECT_IMAGE_PLACEHOLDER_LABEL = "Screenshot to come"
 
 export const PROJECT_NEW_TAB_LABEL = "(opens in a new tab)"
+
+export const FOOTER_BACK_TO_TOP_LABEL = "Back to top"
 
 export const PROJECTS_CUE_CLASS =
   "text-[0.75rem] tracking-[0.12em] text-white/60 uppercase md:text-[0.6875rem] md:tracking-[0.22em]"

@@ -1,44 +1,47 @@
 import {
+  CUBE_EDGE_JITTER,
   CUBE_EDGES,
-  CUBE_FACES,
-  CUBE_POINT_STRIDE,
   CUBE_SEED,
+  DOT_FIELD_MORPH_TUNING,
+  DOT_SHAPE_IDS,
+  DOT_SHAPE_TUNING,
+  DOT_SPHERE_TUNING,
+  DUST_SEED,
+  HIDDEN_RANK,
+  IDENTITY_ROTATION,
   MAX_CANVAS_PIXELS,
   MAX_PIXEL_RATIO,
   OFFSET_STRIDE,
   PIXEL_RATIO_STEPS,
   POINT_STRIDE,
   REFERENCE_FRAME_RATE,
-  SCENE_POINT_STRIDE,
-  SCENE_SEED,
+  SHAPE_POINTS,
+  SHAPE_STRIDE,
+  SPHERE_SEED,
 } from "@/data/hero.data"
 import type {
   CubeEdge,
-  CubeFace,
-  CubeProjection,
   DotFieldBounds,
-  DotFieldClaimRequest,
-  DotFieldCompressedCube,
-  DotFieldCompressRequest,
   DotFieldFollowTuning,
   DotFieldIntroFrame,
   DotFieldLoopRestRequest,
   DotFieldMorphTuning,
   DotFieldPhysicsRequest,
+  DotFieldPlacement,
+  DotFieldPlacementRequest,
   DotFieldPointCloud,
   DotFieldRect,
-  DotFieldSceneScroll,
-  DotFieldSceneScrollRequest,
-  DotFieldSceneTargetRequest,
-  DotFieldSceneTargets,
-  DotFieldSceneTuning,
   DotFieldSizeRequest,
   DotFieldTuning,
+  DotFieldVector,
   DotFieldViewport,
-  DotFieldWindowRequest,
-  HeroBurstState,
+  DotSceneKeyframe,
+  DotSceneMeasure,
+  DotShapeId,
+  DotShapeLibrary,
+  DotSphereTuning,
+  DotTimelineSegment,
   HeroIntroTiming,
-  HeroMorphState,
   RandomSource,
 } from "@/types/hero.type"
 
@@ -398,77 +401,138 @@ function writeEdgePoint(
   }
 }
 
-function writeFacePoint(
-  points: Float32Array,
-  pointIndex: number,
-  face: CubeFace,
-  nextRandom: RandomSource
-): void {
-  for (let axis = 0; axis < 3; axis += 1) {
-    if (axis === face.axis) {
-      points[pointIndex + axis] = face.side
-      continue
-    }
-
-    points[pointIndex + axis] = nextRandom() * 2 - 1
-  }
-}
-
-export function isCubeEdgeIndex(
-  index: number,
-  count: number,
-  edgeCount: number
-): boolean {
-  const before = Math.floor((index * edgeCount) / count)
-  const after = Math.floor(((index + 1) * edgeCount) / count)
-
-  return after > before
-}
-
 export function generateCubePoints(
   count: number,
-  tuning: DotFieldMorphTuning
+  jitter: number
 ): Float32Array {
-  const points = new Float32Array(Math.max(0, count) * CUBE_POINT_STRIDE)
-
-  if (count <= 0) {
-    return points
-  }
-
+  const points = new Float32Array(Math.max(0, count) * SHAPE_STRIDE)
   const nextRandom = createRandomSource(CUBE_SEED)
-  const edgeCount = Math.min(count, tuning.cubeEdgePointLimit)
-
-  let edgeOrdinal = 0
-  let faceOrdinal = 0
 
   for (let index = 0; index < count; index += 1) {
-    const pointIndex = index * CUBE_POINT_STRIDE
+    const pointIndex = index * SHAPE_STRIDE
+    const edge = CUBE_EDGES[index % CUBE_EDGES.length]
 
     points[pointIndex + 3] = nextRandom()
-
-    if (isCubeEdgeIndex(index, count, edgeCount)) {
-      const edge = CUBE_EDGES[edgeOrdinal % CUBE_EDGES.length]
-
-      writeEdgePoint(
-        points,
-        pointIndex,
-        edge,
-        nextRandom,
-        tuning.cubeEdgeJitter
-      )
-      points[pointIndex + 4] = 1
-      edgeOrdinal += 1
-      continue
-    }
-
-    const face = CUBE_FACES[faceOrdinal % CUBE_FACES.length]
-
-    writeFacePoint(points, pointIndex, face, nextRandom)
-    points[pointIndex + 4] = tuning.cubeFaceAlpha
-    faceOrdinal += 1
+    writeEdgePoint(points, pointIndex, edge, nextRandom, jitter)
   }
 
   return points
+}
+
+export function generateSpherePoints(
+  count: number,
+  tuning: DotSphereTuning
+): Float32Array {
+  const points = new Float32Array(Math.max(0, count) * SHAPE_STRIDE)
+  const nextRandom = createRandomSource(SPHERE_SEED)
+  const lineCount = tuning.rings + tuning.meridians
+
+  for (let index = 0; index < count; index += 1) {
+    const pointIndex = index * SHAPE_STRIDE
+    const line = index % lineCount
+    const around = nextRandom() * Math.PI * 2
+
+    points[pointIndex + 3] = nextRandom()
+
+    let latitude = around
+    let longitude = (Math.PI * (line - tuning.rings)) / tuning.meridians
+
+    if (line < tuning.rings) {
+      latitude = (Math.PI * (line + 1)) / (tuning.rings + 1) - Math.PI / 2
+      longitude = around
+    }
+
+    const ringRadius = Math.cos(latitude)
+
+    points[pointIndex] =
+      ringRadius * Math.cos(longitude) +
+      resolveJitter(nextRandom, tuning.jitter)
+    points[pointIndex + 1] =
+      Math.sin(latitude) + resolveJitter(nextRandom, tuning.jitter)
+    points[pointIndex + 2] =
+      ringRadius * Math.sin(longitude) +
+      resolveJitter(nextRandom, tuning.jitter)
+  }
+
+  return points
+}
+
+export function generateDustPoints(count: number): Float32Array {
+  const points = new Float32Array(Math.max(0, count) * SHAPE_STRIDE)
+  const nextRandom = createRandomSource(DUST_SEED)
+
+  for (let index = 0; index < count; index += 1) {
+    const pointIndex = index * SHAPE_STRIDE
+
+    points[pointIndex] = nextRandom() * 2 - 1
+    points[pointIndex + 1] = nextRandom() * 2 - 1
+    points[pointIndex + 2] = 0
+    points[pointIndex + 3] = nextRandom()
+  }
+
+  return points
+}
+
+export function buildShapeLibrary(): DotShapeLibrary {
+  return {
+    cube: generateCubePoints(SHAPE_POINTS, CUBE_EDGE_JITTER),
+    sphere: generateSpherePoints(SHAPE_POINTS, DOT_SPHERE_TUNING),
+    dust: generateDustPoints(SHAPE_POINTS),
+  }
+}
+
+export function resolvePointTotal(nameCount: number): number {
+  return Math.max(nameCount, SHAPE_POINTS)
+}
+
+export function padNamePoints(
+  positions: Float32Array,
+  count: number,
+  total: number
+): Float32Array {
+  const padded = new Float32Array(total * POINT_STRIDE)
+
+  if (count <= 0) {
+    return padded
+  }
+
+  padded.set(positions.subarray(0, count * POINT_STRIDE))
+
+  for (let index = count; index < total; index += 1) {
+    const sourceIndex = (index % count) * POINT_STRIDE
+    const targetIndex = index * POINT_STRIDE
+
+    padded[targetIndex] = positions[sourceIndex]
+    padded[targetIndex + 1] = positions[sourceIndex + 1]
+    padded[targetIndex + 2] = 0
+  }
+
+  return padded
+}
+
+export function padShapePoints(
+  points: Float32Array,
+  total: number
+): Float32Array {
+  const padded = new Float32Array(total * SHAPE_STRIDE)
+  const count = points.length / SHAPE_STRIDE
+
+  if (count <= 0) {
+    return padded
+  }
+
+  for (let index = 0; index < total; index += 1) {
+    const sourceIndex = (index % count) * SHAPE_STRIDE
+    const targetIndex = index * SHAPE_STRIDE
+
+    padded[targetIndex] = points[sourceIndex]
+    padded[targetIndex + 1] = points[sourceIndex + 1]
+    padded[targetIndex + 2] = points[sourceIndex + 2]
+    padded[targetIndex + 3] =
+      index < count ? points[sourceIndex + 3] : HIDDEN_RANK
+  }
+
+  return padded
 }
 
 export function buildCubeRotation(
@@ -496,33 +560,64 @@ export function buildCubeRotation(
   ])
 }
 
-export function projectCubePoints(
-  cubePoints: Float32Array,
-  projection: CubeProjection,
+export function projectShapePoints(
+  points: Float32Array,
+  placement: DotFieldPlacement,
   target: Float32Array
 ): void {
-  const { center, halfSize, cameraDistance, rotation } = projection
-  const count = cubePoints.length / CUBE_POINT_STRIDE
+  const { center, halfSize, cameraDistance, rotation } = placement
+  const count = Math.min(
+    points.length / SHAPE_STRIDE,
+    target.length / POINT_STRIDE
+  )
 
   for (let index = 0; index < count; index += 1) {
-    const sourceIndex = index * CUBE_POINT_STRIDE
+    const sourceIndex = index * SHAPE_STRIDE
     const targetIndex = index * POINT_STRIDE
-    const cubeX = cubePoints[sourceIndex]
-    const cubeY = cubePoints[sourceIndex + 1]
-    const cubeZ = cubePoints[sourceIndex + 2]
+    const shapeX = points[sourceIndex]
+    const shapeY = points[sourceIndex + 1]
+    const shapeZ = points[sourceIndex + 2]
 
     const rotatedX =
-      rotation[0] * cubeX + rotation[3] * cubeY + rotation[6] * cubeZ
+      rotation[0] * shapeX + rotation[3] * shapeY + rotation[6] * shapeZ
     const rotatedY =
-      rotation[1] * cubeX + rotation[4] * cubeY + rotation[7] * cubeZ
+      rotation[1] * shapeX + rotation[4] * shapeY + rotation[7] * shapeZ
     const rotatedZ =
-      rotation[2] * cubeX + rotation[5] * cubeY + rotation[8] * cubeZ
-    const perspective =
-      cameraDistance / Math.max(cameraDistance - rotatedZ, 0.5)
+      rotation[2] * shapeX + rotation[5] * shapeY + rotation[8] * shapeZ
 
-    target[targetIndex] = center.x + rotatedX * perspective * halfSize
-    target[targetIndex + 1] = center.y - rotatedY * perspective * halfSize
+    let perspective = 1
+
+    if (cameraDistance > 0) {
+      perspective = cameraDistance / Math.max(cameraDistance - rotatedZ, 0.5)
+    }
+
+    target[targetIndex] = center.x + rotatedX * perspective * halfSize.x
+    target[targetIndex + 1] = center.y - rotatedY * perspective * halfSize.y
     target[targetIndex + 2] = 0
+  }
+}
+
+export function writeNameHomes(
+  positions: Float32Array,
+  placement: DotFieldPlacement,
+  wordCenter: DotFieldVector,
+  target: Float32Array
+): void {
+  const scale = placement.halfSize.x
+  const count = Math.min(positions.length, target.length) / POINT_STRIDE
+
+  for (let index = 0; index < count; index += 1) {
+    const pointIndex = index * POINT_STRIDE
+
+    target[pointIndex] =
+      placement.center.x +
+      wordCenter.x +
+      (positions[pointIndex] - wordCenter.x) * scale
+    target[pointIndex + 1] =
+      placement.center.y +
+      wordCenter.y +
+      (positions[pointIndex + 1] - wordCenter.y) * scale
+    target[pointIndex + 2] = 0
   }
 }
 
@@ -543,221 +638,374 @@ export function followMorphProgress(
   return current + gap * blend
 }
 
-export function resolveMorphState(progress: number): HeroMorphState {
-  if (progress <= 0) {
-    return "name"
+export function followTimelineProgress(
+  current: number,
+  target: number,
+  deltaSeconds: number,
+  tuning: DotFieldFollowTuning
+): number {
+  if (Math.abs(target - current) > 1) {
+    return target
   }
 
-  if (progress >= 1) {
-    return "cube"
-  }
-
-  return "moving"
+  return followMorphProgress(current, target, deltaSeconds, tuning)
 }
 
-export function resolveSceneScroll(
-  request: DotFieldSceneScrollRequest,
-  tuning: DotFieldSceneTuning
-): DotFieldSceneScroll {
-  const { scrolled, viewportHeight, projectsTop, stageWidth } = request
+export function parseSceneShapes(value: string | undefined): DotShapeId[] {
+  const shapes: DotShapeId[] = []
 
-  const compressStart =
-    projectsTop - tuning.compressStartViewport * viewportHeight
-  const compressEnd = projectsTop - tuning.compressEndViewport * viewportHeight
-  const rearmLine = compressEnd - tuning.rearmViewport * viewportHeight
+  if (value === undefined) {
+    return shapes
+  }
 
-  let rawCompress = 0
+  for (const token of value.split(/\s+/)) {
+    for (const shape of DOT_SHAPE_IDS) {
+      if (shape === token) {
+        shapes.push(shape)
+      }
+    }
+  }
 
-  if (viewportHeight > 0) {
-    rawCompress = resolveStageProgress(
-      scrolled,
-      compressStart,
-      compressEnd - compressStart
+  return shapes
+}
+
+export function parseCssPixels(value: string): number {
+  const parsed = Number.parseFloat(value)
+
+  if (!Number.isFinite(parsed)) {
+    return 0
+  }
+
+  return parsed
+}
+
+export function resolveViewportHeight(
+  scenes: DotSceneMeasure[],
+  fallback: number
+): number {
+  let height = 0
+
+  for (const scene of scenes) {
+    if (scene.slot !== null) {
+      height = Math.max(height, scene.frameHeight + scene.stickyTop)
+    }
+  }
+
+  if (height <= 0) {
+    return fallback
+  }
+
+  return height
+}
+
+export function buildSceneKeyframes(
+  scenes: DotSceneMeasure[],
+  viewportHeight: number,
+  tuning: DotFieldMorphTuning
+): DotSceneKeyframe[] {
+  const keyframes: DotSceneKeyframe[] = []
+
+  for (const scene of scenes) {
+    const firstShape = scene.shapes[0]
+
+    if (firstShape === undefined) {
+      continue
+    }
+
+    const start = scene.containerTop - scene.stickyTop
+
+    let end = scene.containerBottom - viewportHeight
+
+    if (scene.slot !== null) {
+      end = scene.containerBottom - scene.frameHeight - scene.stickyTop
+    }
+
+    end = Math.max(start, end)
+
+    if (scene.shapes.length === 1) {
+      keyframes.push({
+        id: scene.id,
+        shape: firstShape,
+        start,
+        end,
+        slot: scene.slot,
+      })
+      continue
+    }
+
+    const stepLength = (end - start) / scene.shapes.length
+    const halfGap = (stepLength * tuning.stepMorphShare) / 2
+    const lastIndex = scene.shapes.length - 1
+
+    let index = 0
+
+    for (const shape of scene.shapes) {
+      let stepStart = start + index * stepLength + halfGap
+      let stepEnd = start + (index + 1) * stepLength - halfGap
+
+      if (index === 0) {
+        stepStart = start
+      }
+
+      if (index === lastIndex) {
+        stepEnd = end
+      }
+
+      keyframes.push({
+        id: shape,
+        shape,
+        start: stepStart,
+        end: stepEnd,
+        slot: scene.slot,
+      })
+      index += 1
+    }
+  }
+
+  return keyframes
+}
+
+export function resolveTimelinePosition(
+  keyframes: DotSceneKeyframe[],
+  scrolled: number,
+  landingTolerance: number
+): number {
+  let index = 0
+
+  for (const keyframe of keyframes) {
+    if (scrolled > keyframe.end) {
+      index += 1
+      continue
+    }
+
+    const previous = keyframes[index - 1]
+
+    if (previous === undefined || scrolled >= keyframe.start) {
+      return index
+    }
+
+    const arrival = keyframe.start - landingTolerance
+
+    if (arrival <= previous.end) {
+      return index - 1
+    }
+
+    return (
+      index -
+      1 +
+      clampProgress((scrolled - previous.end) / (arrival - previous.end))
     )
   }
 
-  return {
-    rawCompress,
-    isRearmed: scrolled < rearmLine,
-    burstPoint: {
-      x: stageWidth / 2,
-      y: compressEnd + tuning.burstPointViewport * viewportHeight,
-    },
-    dustTop: compressEnd,
-  }
+  return Math.max(0, keyframes.length - 1)
 }
 
-export function resolveSceneTargets(
-  request: DotFieldSceneTargetRequest,
-  tuning: DotFieldSceneTuning
-): DotFieldSceneTargets {
-  const { rawCompress, isRearmed, compress, burst, burstTarget } = request
+export function resolveTimelineSegment(
+  progress: number,
+  keyframeCount: number
+): DotTimelineSegment {
+  const lastIndex = Math.max(0, keyframeCount - 1)
+  const clamped = Math.min(Math.max(progress, 0), lastIndex)
+  const fromIndex = Math.floor(clamped)
 
-  let nextBurstTarget = burstTarget
-
-  if (isRearmed) {
-    nextBurstTarget = 0
-  } else if (rawCompress >= 1 && compress >= tuning.burstGate) {
-    nextBurstTarget = 1
-  }
-
-  let compressTarget = rawCompress
-
-  if (nextBurstTarget === 1 || burst > tuning.burstHold) {
-    compressTarget = 1
+  if (fromIndex >= lastIndex) {
+    return {
+      fromIndex: lastIndex,
+      toIndex: lastIndex,
+      progress: 0,
+    }
   }
 
   return {
-    compressTarget,
-    burstTarget: nextBurstTarget,
+    fromIndex,
+    toIndex: fromIndex + 1,
+    progress: clamped - fromIndex,
   }
 }
 
-export function resolveSpinBoost(
-  compress: number,
-  tuning: DotFieldSceneTuning
+export function resolveStaticKeyframe(
+  keyframes: DotSceneKeyframe[],
+  scrolled: number,
+  landingTolerance: number
 ): number {
-  return 1 + tuning.compressSpinBoost * compress
-}
+  let index = 0
 
-export function resolveCompressedCube(
-  request: DotFieldCompressRequest,
-  tuning: DotFieldSceneTuning,
-  restingFarLight: number
-): DotFieldCompressedCube {
-  const { slotCenter, burstPoint, halfSize, compress } = request
+  for (const keyframe of keyframes) {
+    const isAfterStart = scrolled >= keyframe.start - landingTolerance
+    const isBeforeEnd = scrolled <= keyframe.end + landingTolerance
 
-  const travel = easeInOutCubic(compress)
-  const scale = 1 - (1 - tuning.compressedScale) * compress
+    if (isAfterStart && isBeforeEnd) {
+      return index
+    }
 
-  return {
-    center: {
-      x: slotCenter.x + (burstPoint.x - slotCenter.x) * travel,
-      y: slotCenter.y + (burstPoint.y - slotCenter.y) * travel,
-    },
-    halfSize: halfSize * scale,
-    spinBoost: resolveSpinBoost(compress, tuning),
-    farLight:
-      restingFarLight + (tuning.compressFarLight - restingFarLight) * compress,
+    index += 1
   }
+
+  return -1
 }
 
-export function resolveCanvasWindowTop(
-  request: DotFieldWindowRequest,
-  tuning: DotFieldSceneTuning
-): number {
-  const {
-    scrolled,
-    viewportHeight,
-    canvasHeight,
-    stageHeight,
-    projectsTop,
-    pixelRatio,
-    isStatic,
-    isSceneActive,
-  } = request
+export function resolveSceneState(
+  keyframes: DotSceneKeyframe[],
+  progress: number
+): string {
+  if (!Number.isInteger(progress)) {
+    return "moving"
+  }
 
-  if (isStatic) {
+  const keyframe = keyframes[progress]
+
+  if (keyframe === undefined) {
+    return "moving"
+  }
+
+  return keyframe.id
+}
+
+export function resolveVisibleFraction(
+  pointsPerArea: number,
+  area: number,
+  shapePoints: number
+): number {
+  if (shapePoints <= 0 || area <= 0) {
     return 0
   }
 
-  if (!isSceneActive && scrolled + viewportHeight <= projectsTop) {
-    return 0
-  }
-
-  const slack = canvasHeight - viewportHeight
-  const step = Math.max(
-    1 / pixelRatio,
-    Math.round(slack * tuning.windowStepRatio * pixelRatio) / pixelRatio
-  )
-  const highest = Math.max(0, stageHeight - canvasHeight)
-  const anchored = Math.round((scrolled - slack / 2) / step) * step
-  const clamped = Math.min(Math.max(anchored, 0), highest)
-
-  return Math.round(clamped * pixelRatio) / pixelRatio
+  return Math.min(1, (pointsPerArea * area) / shapePoints)
 }
 
-export function resolveFrameShare(
-  visibleCount: number,
-  frames: DotFieldRect[],
-  tuning: DotFieldSceneTuning
-): number {
-  if (visibleCount <= 0 || frames.length === 0) {
-    return 0
-  }
-
-  let perimeter = 0
-
-  for (const frame of frames) {
-    perimeter += 2 * (frame.width + frame.height + 4 * tuning.frameOutsetPx)
-  }
-
-  const needed = perimeter / tuning.frameDotSpacingPx
-
-  return Math.min(tuning.maxFrameShare, needed / visibleCount)
-}
-
-export function resolveClaimTarget(
-  request: DotFieldClaimRequest,
-  tuning: DotFieldSceneTuning
-): number {
-  const { frameTop, scrolled, viewportHeight, burst } = request
-
-  if (burst < tuning.claimGate || viewportHeight <= 0) {
-    return 0
-  }
-
-  const frameTopInView = frameTop - scrolled
-  const start = tuning.claimStartViewport * viewportHeight
-  const span =
-    (tuning.claimStartViewport - tuning.claimEndViewport) * viewportHeight
-
-  if (span <= 0) {
-    return 1
-  }
-
-  return clampProgress((start - frameTopInView) / span)
-}
-
-export function generateScenePoints(count: number): Float32Array {
-  const points = new Float32Array(Math.max(0, count) * SCENE_POINT_STRIDE)
-  const nextRandom = createRandomSource(SCENE_SEED)
-
-  for (let index = 0; index < points.length; index += 1) {
-    points[index] = nextRandom()
-  }
-
-  return points
-}
-
-export function resolveBurstState(
-  burstTarget: number,
-  isStatic: boolean
-): HeroBurstState {
-  if (isStatic) {
-    return "off"
-  }
-
-  if (burstTarget === 1) {
-    return "open"
-  }
-
-  return "idle"
-}
-
-export function shouldLoopSleep(request: DotFieldLoopRestRequest): boolean {
-  const {
-    isFieldAtRest,
-    hasSettled,
-    isMorphResting,
-    isSceneResting,
-    morph,
-    burst,
-  } = request
-
-  if (!isFieldAtRest || !hasSettled || !isMorphResting || !isSceneResting) {
+export function isShapeSpinning(shape: DotShapeId): boolean {
+  if (shape === "name") {
     return false
   }
 
-  return morph === 0 || burst === 1
+  return DOT_SHAPE_TUNING[shape].spinSpeed > 0
+}
+
+function resolveKeyframeSlot(
+  keyframe: DotSceneKeyframe,
+  viewport: DotFieldViewport
+): DotFieldRect {
+  if (keyframe.slot !== null) {
+    return keyframe.slot
+  }
+
+  return {
+    x: 0,
+    y: 0,
+    width: viewport.width,
+    height: viewport.height,
+  }
+}
+
+export function resolvePlacement(
+  request: DotFieldPlacementRequest
+): DotFieldPlacement {
+  const {
+    keyframe,
+    viewport,
+    nameSample,
+    introScale,
+    spinSeconds,
+    yawOffset,
+    isStatic,
+  } = request
+
+  const slot = resolveKeyframeSlot(keyframe, viewport)
+  const pixelRatio = viewport.pixelRatio
+  const slotCenterX = (slot.x + slot.width / 2) * pixelRatio
+  const slotCenterY = (slot.y + slot.height / 2) * pixelRatio
+
+  if (keyframe.shape === "name") {
+    const inkWidth = Math.max(
+      nameSample.bounds.right - nameSample.bounds.left,
+      1
+    )
+    const inkHeight = Math.max(nameSample.inkHeight, 1)
+    const fit = Math.min(
+      1,
+      (slot.width * pixelRatio) / inkWidth,
+      (slot.height * pixelRatio) / inkHeight
+    )
+    const scale = fit * introScale
+
+    return {
+      isName: true,
+      shape: "name",
+      center: {
+        x: Math.round(slotCenterX - nameSample.width / 2),
+        y: Math.round(slotCenterY - nameSample.height / 2),
+      },
+      halfSize: { x: scale, y: scale },
+      rotation: IDENTITY_ROTATION,
+      cameraDistance: 0,
+      visible: 1,
+      farLight: 1,
+      depthRadius: 1,
+      dotSize: 0,
+      opacity: 1,
+      inkHeight: nameSample.inkHeight * scale,
+    }
+  }
+
+  const tuning = DOT_SHAPE_TUNING[keyframe.shape]
+  const shortSide = Math.min(slot.width, slot.height)
+
+  let halfSize = {
+    x: shortSide * tuning.sizeRatio * pixelRatio,
+    y: shortSide * tuning.sizeRatio * pixelRatio,
+  }
+
+  if (tuning.fit === "fill") {
+    halfSize = {
+      x: (slot.width / 2) * pixelRatio,
+      y: (slot.height / 2) * pixelRatio,
+    }
+  }
+
+  let rotation: Float32Array = IDENTITY_ROTATION
+  let cameraDistance = 0
+
+  if (tuning.hasPerspective) {
+    const wobblePhase = spinSeconds * DOT_FIELD_MORPH_TUNING.wobbleSpeed
+
+    cameraDistance = DOT_FIELD_MORPH_TUNING.cameraDistance
+    rotation = buildCubeRotation(
+      spinSeconds * tuning.spinSpeed + yawOffset,
+      tuning.pitch + tuning.wobble * Math.sin(wobblePhase),
+      tuning.roll + tuning.wobble * Math.cos(wobblePhase)
+    )
+
+    if (isStatic) {
+      rotation = buildCubeRotation(tuning.staticYaw, tuning.pitch, tuning.roll)
+    }
+  }
+
+  return {
+    isName: false,
+    shape: keyframe.shape,
+    center: { x: slotCenterX, y: slotCenterY },
+    halfSize,
+    rotation,
+    cameraDistance,
+    visible: resolveVisibleFraction(
+      tuning.pointsPerArea,
+      slot.width * slot.height,
+      SHAPE_POINTS
+    ),
+    farLight: tuning.farLight,
+    depthRadius: tuning.depthRadius,
+    dotSize: tuning.dotSize,
+    opacity: tuning.opacity,
+    inkHeight: shortSide * tuning.inkRatio * pixelRatio,
+  }
+}
+
+export function shouldLoopSleep(request: DotFieldLoopRestRequest): boolean {
+  const { isFieldAtRest, hasSettled, isProgressResting, isSpinning } = request
+
+  if (!isFieldAtRest || !hasSettled || !isProgressResting) {
+    return false
+  }
+
+  return !isSpinning
 }

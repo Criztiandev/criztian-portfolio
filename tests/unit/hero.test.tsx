@@ -8,10 +8,12 @@ const DISPLAY_FONT_FAMILY = `"Antonio", "Antonio Fallback"`
 
 function renderHero() {
   return render(
-    <Hero
-      content={createDefaultSiteContent()}
-      displayFontFamily={DISPLAY_FONT_FAMILY}
-    />
+    <div data-status="idle" data-scene="name" className="group/stage">
+      <Hero
+        content={createDefaultSiteContent()}
+        displayFontFamily={DISPLAY_FONT_FAMILY}
+      />
+    </div>
   )
 }
 
@@ -74,9 +76,20 @@ describe("Hero", () => {
     const { container } = renderHero()
 
     expect(container.querySelector("[data-status]")).toHaveAttribute(
-      "data-morph",
+      "data-scene",
       "name"
     )
+  })
+
+  it("pins the name, the cube and the projects as dot scenes", () => {
+    const { container } = renderHero()
+    const scenes = container.querySelectorAll("[data-dot-scene]")
+
+    expect(scenes).toHaveLength(3)
+
+    for (const scene of scenes) {
+      expect(scene.querySelectorAll("[data-dot-slot]")).toHaveLength(1)
+    }
   })
 
   it("never starts an animation loop on scroll without a webgl context", () => {
@@ -92,7 +105,7 @@ describe("Hero", () => {
 
   it("keeps the cube slot out of the accessibility tree", () => {
     const { container } = renderHero()
-    const slot = container.querySelector("#quote > div")
+    const slot = container.querySelector("#quote [data-dot-slot]")
 
     expect(slot).toHaveAttribute("aria-hidden", "true")
     expect(slot).toBeEmptyDOMElement()

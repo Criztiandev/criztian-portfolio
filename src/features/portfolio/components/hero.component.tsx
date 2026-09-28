@@ -83,13 +83,9 @@ export function Hero({
   content,
   displayFontFamily,
 }: Readonly<{ content: SiteContent; displayFontFamily: string }>) {
-  const stageRef = useRef<HTMLDivElement | null>(null)
-  const heroRef = useRef<HTMLElement | null>(null)
   const wordmarkRef = useRef<HTMLDivElement | null>(null)
   const taglineRef = useRef<HTMLDivElement | null>(null)
-  const cubeRef = useRef<HTMLDivElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const projectsRef = useRef<HTMLElement | null>(null)
   const [hasIntroSettled, setHasIntroSettled] = useState(false)
   const [isDotFieldUnsupported, setIsDotFieldUnsupported] = useState(false)
   const shouldReduceMotion = useReducedMotion() === true
@@ -105,16 +101,13 @@ export function Hero({
   const wordmarkMode: HeroWordmarkMode = isDotFieldUnsupported ? "text" : "dots"
 
   useDotField({
-    stageRef,
-    heroRef,
     wordmarkRef,
     taglineRef,
-    cubeRef,
-    projectsRef,
     canvasRef,
     text: content.hero.name,
     fontFamily: displayFontFamily,
     dotColor: content.theme.heroDot,
+    backgroundColor: content.theme.pageBackground,
     mode: wordmarkMode,
     onIntroSettled: markIntroSettled,
     onUnsupported: markDotFieldUnsupported,
@@ -151,121 +144,123 @@ export function Hero({
   }
 
   return (
-    <div
-      ref={stageRef}
-      data-status="idle"
-      data-morph="name"
-      data-burst="off"
-      className="group relative isolate overflow-clip bg-black text-white"
-    >
-      <canvas
-        ref={canvasRef}
-        aria-hidden="true"
-        data-point-count="0"
-        className={cn(
-          "pointer-events-none absolute top-0 left-0 -z-10 opacity-0",
-          "transition-opacity duration-500 group-data-[status=running]:opacity-100"
-        )}
-      />
+    <>
+      <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-lvh">
+        <canvas
+          ref={canvasRef}
+          aria-hidden="true"
+          data-point-count="0"
+          className={cn(
+            "absolute top-0 left-0 opacity-0 transition-opacity duration-500",
+            "group-data-[status=running]/stage:opacity-100"
+          )}
+        />
+      </div>
 
-      <section
-        ref={heroRef}
-        id="home"
-        className={cn(
-          "relative flex h-svh w-full flex-col items-center justify-center",
-          "overflow-hidden"
-        )}
+      <div
+        data-dot-scene="name"
+        data-dot-shapes="name"
+        className="h-[110svh] text-white group-data-[status=unsupported]/stage:h-auto"
       >
-        <div className="flex w-full flex-col items-center">
-          <div
-            className={cn(
-              "relative h-[min(40vw,45svh)] w-full",
-              "md:h-[min(clamp(380px,23.4vw_+_200px,500px),70svh)]"
-            )}
-          >
+        <section
+          id="home"
+          className={cn(
+            "sticky top-0 flex h-svh w-full flex-col items-center justify-center",
+            "overflow-hidden"
+          )}
+        >
+          <div className="flex w-full flex-col items-center">
+            <div
+              className={cn(
+                "relative h-[min(40vw,45svh)] w-full",
+                "md:h-[min(clamp(380px,23.4vw_+_200px,500px),70svh)]"
+              )}
+            >
+              <motion.div
+                initial="hidden"
+                animate={wordmarkTarget}
+                variants={WORDMARK_VARIANTS}
+                transition={resolveTransition(WORDMARK_TRANSITION)}
+                className="absolute inset-0 flex items-center justify-center px-4"
+              >
+                <div className="relative max-w-full">
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute top-[22%] right-0 translate-x-[60%]",
+                      "text-white/45",
+                      "text-[clamp(0.6rem,2.6vw,0.8rem)] md:text-[1.35rem]"
+                    )}
+                  >
+                    ©
+                  </span>
+
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      fontFamily: displayFontFamily,
+                      opacity: HERO_INTRO_TIMING.dimAlpha,
+                    }}
+                    className={WORDMARK_TEXT_CLASS}
+                  >
+                    {content.hero.name}
+                  </span>
+
+                  <motion.h1
+                    variants={SWEEP_VARIANTS}
+                    transition={resolveTransition(SWEEP_TRANSITION)}
+                    style={{ fontFamily: displayFontFamily }}
+                    className={cn(WORDMARK_TEXT_CLASS, "absolute inset-0")}
+                  >
+                    {content.hero.name}
+                  </motion.h1>
+                </div>
+              </motion.div>
+
+              <div
+                ref={wordmarkRef}
+                data-dot-slot=""
+                className="absolute inset-x-0 -inset-y-1/4 touch-pan-y touch-pinch-zoom"
+              />
+            </div>
+
+            <motion.div
+              ref={taglineRef}
+              initial="hidden"
+              animate={introTarget}
+              variants={LIFT_VARIANTS}
+              transition={resolveTransition(TAGLINE_TRANSITION)}
+              className={cn(
+                "relative max-w-[21rem] px-5 md:max-w-[34rem] md:px-6",
+                "text-center uppercase",
+                "text-[0.8125rem] leading-[1.7] tracking-[0.05em] text-white/70",
+                "md:text-sm md:leading-relaxed md:tracking-[0.14em] md:text-white/75"
+              )}
+              dangerouslySetInnerHTML={{ __html: taglineHtml }}
+            />
+
             <motion.div
               initial="hidden"
-              animate={wordmarkTarget}
-              variants={WORDMARK_VARIANTS}
-              transition={resolveTransition(WORDMARK_TRANSITION)}
-              className="absolute inset-0 flex items-center justify-center px-4"
+              animate={introTarget}
+              variants={LIFT_VARIANTS}
+              transition={resolveTransition(SCROLL_CUE_TRANSITION)}
+              className={cn(
+                "absolute inset-x-0 bottom-10 flex items-center justify-center gap-2",
+                "text-white/60 uppercase [@media(max-height:30rem)]:hidden",
+                "text-[0.75rem] tracking-[0.12em]",
+                "md:text-[0.6875rem] md:tracking-[0.22em]"
+              )}
             >
-              <div className="relative max-w-full">
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "absolute top-[22%] right-0 translate-x-[60%]",
-                    "text-white/45",
-                    "text-[clamp(0.6rem,2.6vw,0.8rem)] md:text-[1.35rem]"
-                  )}
-                >
-                  ©
-                </span>
-
-                <span
-                  aria-hidden="true"
-                  style={{
-                    fontFamily: displayFontFamily,
-                    opacity: HERO_INTRO_TIMING.dimAlpha,
-                  }}
-                  className={WORDMARK_TEXT_CLASS}
-                >
-                  {content.hero.name}
-                </span>
-
-                <motion.h1
-                  variants={SWEEP_VARIANTS}
-                  transition={resolveTransition(SWEEP_TRANSITION)}
-                  style={{ fontFamily: displayFontFamily }}
-                  className={cn(WORDMARK_TEXT_CLASS, "absolute inset-0")}
-                >
-                  {content.hero.name}
-                </motion.h1>
-              </div>
+              <span>{HERO_SCROLL_LABEL}</span>
+              <ArrowDownRight aria-hidden="true" className="size-3.5" />
             </motion.div>
-
-            <div
-              ref={wordmarkRef}
-              className="absolute inset-x-0 -inset-y-1/4 touch-pan-y touch-pinch-zoom"
-            />
           </div>
+        </section>
+      </div>
 
-          <motion.div
-            ref={taglineRef}
-            initial="hidden"
-            animate={introTarget}
-            variants={LIFT_VARIANTS}
-            transition={resolveTransition(TAGLINE_TRANSITION)}
-            className={cn(
-              "relative max-w-[21rem] px-5 md:max-w-[34rem] md:px-6",
-              "text-center uppercase",
-              "text-[0.8125rem] leading-[1.7] tracking-[0.05em] text-white/70",
-              "md:text-sm md:leading-relaxed md:tracking-[0.14em] md:text-white/75"
-            )}
-            dangerouslySetInnerHTML={{ __html: taglineHtml }}
-          />
+      <QuoteSection quote={content.quote} />
 
-          <motion.div
-            initial="hidden"
-            animate={introTarget}
-            variants={LIFT_VARIANTS}
-            transition={resolveTransition(SCROLL_CUE_TRANSITION)}
-            className={cn(
-              "absolute inset-x-0 bottom-10 flex items-center justify-center gap-2",
-              "text-white/60 uppercase [@media(max-height:30rem)]:hidden",
-              "text-[0.75rem] tracking-[0.12em]",
-              "md:text-[0.6875rem] md:tracking-[0.22em]"
-            )}
-          >
-            <span>{HERO_SCROLL_LABEL}</span>
-            <ArrowDownRight aria-hidden="true" className="size-3.5" />
-          </motion.div>
-        </div>
-      </section>
-
-      <QuoteSection quote={content.quote} cubeRef={cubeRef} />
-
-      <ProjectsSection projects={content.projects} sectionRef={projectsRef} />
-    </div>
+      <ProjectsSection projects={content.projects} />
+    </>
   )
 }

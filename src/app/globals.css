@@ -127,6 +127,7 @@
   html {
     @apply font-sans;
     scroll-behavior: smooth;
+    overscroll-behavior-y: none;
   }
 
   @media (prefers-reduced-motion: reduce) {

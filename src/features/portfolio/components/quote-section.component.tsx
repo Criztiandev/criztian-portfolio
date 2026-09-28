@@ -16,10 +16,8 @@ import type { SiteContent } from "@/types/site-content.type"
 
 export function QuoteSection({
   quote,
-  cubeRef,
 }: Readonly<{
   quote: SiteContent["quote"]
-  cubeRef: React.RefObject<HTMLDivElement | null>
 }>) {
   const shouldReduceMotion = useReducedMotion() === true
 
@@ -34,54 +32,67 @@ export function QuoteSection({
   return (
     <section
       id="quote"
+      data-dot-scene="cube"
+      data-dot-shapes="cube"
       className={cn(
-        "flex min-h-svh flex-col items-center",
-        "px-5 pt-[max(5.5rem,12svh)] pb-16 md:px-6"
+        "h-[calc(160svh_-_4.5rem)] scroll-mt-18 text-white",
+        "group-data-[status=unsupported]/stage:h-auto"
       )}
     >
       <div
-        ref={cubeRef}
-        aria-hidden="true"
         className={cn(
-          "size-[min(80vw,46svh,36rem)] shrink-0 touch-pan-y touch-pinch-zoom",
-          "group-data-[status=unsupported]:hidden"
+          "sticky top-18 flex h-[calc(100svh_-_4.5rem)] flex-col items-center",
+          "px-5 pt-[max(1rem,12svh_-_4.5rem)] md:px-6"
         )}
-      />
-
-      <motion.figure
-        initial="hidden"
-        whileInView="visible"
-        viewport={QUOTE_VIEWPORT}
-        className="mt-8 flex flex-col items-center md:mt-10"
       >
-        <blockquote>
-          <motion.p
-            variants={QUOTE_REVEAL_VARIANTS}
-            transition={resolveTransition(QUOTE_REVEAL_TRANSITION)}
-            className={cn(
-              "max-w-[20ch] text-center font-display font-bold uppercase",
-              "text-[clamp(1.75rem,1rem+3vw,3.5rem)] leading-[1.05] text-balance",
-              "wrap-break-word"
-            )}
-          >
-            {quote.text}
-          </motion.p>
-        </blockquote>
-
-        <motion.figcaption
-          hidden={quote.author === ""}
-          variants={LIFT_VARIANTS}
-          transition={resolveTransition(QUOTE_AUTHOR_TRANSITION)}
+        <div
+          data-dot-slot=""
+          aria-hidden="true"
           className={cn(
-            "mt-6 text-white/60 uppercase",
-            "text-[0.75rem] tracking-[0.12em]",
-            "md:text-[0.6875rem] md:tracking-[0.22em]"
+            "size-[min(80vw,46svh,36rem)] shrink-0 touch-pan-y touch-pinch-zoom",
+            "[@media(max-height:30rem)]:size-[min(80vw,34svh)]",
+            "group-data-[status=unsupported]/stage:hidden"
+          )}
+        />
+
+        <motion.figure
+          initial="hidden"
+          whileInView="visible"
+          viewport={QUOTE_VIEWPORT}
+          className={cn(
+            "mt-8 flex flex-col items-center md:mt-10",
+            "[@media(max-height:30rem)]:mt-4"
           )}
         >
-          <span aria-hidden="true">— </span>
-          {quote.author}
-        </motion.figcaption>
-      </motion.figure>
+          <blockquote>
+            <motion.p
+              variants={QUOTE_REVEAL_VARIANTS}
+              transition={resolveTransition(QUOTE_REVEAL_TRANSITION)}
+              className={cn(
+                "max-w-[20ch] text-center font-display font-bold uppercase",
+                "text-[clamp(1.75rem,1rem+3vw,3.5rem)] leading-[1.05] text-balance",
+                "wrap-break-word"
+              )}
+            >
+              {quote.text}
+            </motion.p>
+          </blockquote>
+
+          <motion.figcaption
+            hidden={quote.author === ""}
+            variants={LIFT_VARIANTS}
+            transition={resolveTransition(QUOTE_AUTHOR_TRANSITION)}
+            className={cn(
+              "mt-6 text-white/60 uppercase",
+              "text-[0.75rem] tracking-[0.12em]",
+              "md:text-[0.6875rem] md:tracking-[0.22em]"
+            )}
+          >
+            <span aria-hidden="true">— </span>
+            {quote.author}
+          </motion.figcaption>
+        </motion.figure>
+      </div>
     </section>
   )
 }

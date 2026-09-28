@@ -1,42 +1,58 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  BURST_FOLLOW_TUNING,
-  CUBE_POINT_STRIDE,
+  CUBE_EDGE_JITTER,
   DOT_FIELD_MORPH_TUNING,
-  DOT_FIELD_SCENE_TUNING,
   DOT_FIELD_TUNING,
+  DOT_SHAPE_TUNING,
+  DOT_SPHERE_TUNING,
+  HIDDEN_RANK,
   MAX_CANVAS_PIXELS,
-  SCENE_POINT_STRIDE,
+  SHAPE_POINTS,
+  SHAPE_STRIDE,
 } from "@/data/hero.data"
 import {
   buildCubeRotation,
   buildFontShorthand,
+  buildSceneKeyframes,
   clampFontSize,
   createRandomSource,
   followMorphProgress,
+  followTimelineProgress,
   generateCubePoints,
-  generateScenePoints,
-  isCubeEdgeIndex,
+  generateDustPoints,
+  generateSpherePoints,
+  isShapeSpinning,
+  padNamePoints,
+  padShapePoints,
+  parseCssPixels,
   parsePrimaryFontFamily,
-  projectCubePoints,
-  resolveBurstState,
+  parseSceneShapes,
+  projectShapePoints,
   resolveCanvasPixelRatio,
-  resolveCanvasWindowTop,
-  resolveClaimTarget,
-  resolveCompressedCube,
   resolveDotPitch,
   resolveFontSize,
-  resolveFrameShare,
-  resolveMorphState,
   resolvePixelRatio,
-  resolveSceneScroll,
-  resolveSceneTargets,
+  resolvePlacement,
+  resolvePointTotal,
+  resolveSceneState,
+  resolveStaticKeyframe,
+  resolveTimelinePosition,
+  resolveTimelineSegment,
+  resolveViewportHeight,
+  resolveVisibleFraction,
   samplePixelGrid,
   shouldLoopSleep,
   shouldRebuildPoints,
   stepDotPhysics,
+  writeNameHomes,
 } from "@/features/portfolio/dot-field.rules"
+import type {
+  DotFieldPlacement,
+  DotFieldPlacementRequest,
+  DotSceneKeyframe,
+  DotSceneMeasure,
+} from "@/types/hero.type"
 
 const IMAGE_SIZE = 8
 
@@ -324,18 +340,12 @@ describe("clampFontSize", () => {
   })
 })
 
-const FACE_TUNING = {
-  ...DOT_FIELD_MORPH_TUNING,
-  cubeEdgePointLimit: 120,
-  cubeFaceAlpha: 0.25,
-}
+const JITTER_BOUND = CUBE_EDGE_JITTER * 1.5 + 0.000001
 
-const JITTER_BOUND = FACE_TUNING.cubeEdgeJitter * 1.5 + 0.000001
+function readShapePoint(points: Float32Array, index: number): number[] {
+  const start = index * SHAPE_STRIDE
 
-function readCubePoint(points: Float32Array, index: number): number[] {
-  const start = index * CUBE_POINT_STRIDE
-
-  return Array.from(points.subarray(start, start + CUBE_POINT_STRIDE))
+  return Array.from(points.subarray(start, start + SHAPE_STRIDE))
 }
 
 function countCoordinatesNearFace(coordinates: number[]): number {
@@ -360,6 +370,72 @@ function transformColumnMajor(matrix: Float32Array, vector: number[]) {
   ]
 }
 
+function buildPlacement(
+  overrides: Partial<DotFieldPlacement>
+): DotFieldPlacement {
+  return {
+    isName: false,
+    shape: "cube",
+    center: { x: 400, y: 300 },
+    halfSize: { x: 100, y: 100 },
+    rotation: buildCubeRotation(0, 0, 0),
+    cameraDistance: 5,
+    visible: 1,
+    farLight: 1,
+    depthRadius: 1,
+    dotSize: 3,
+    opacity: 1,
+    inkHeight: 100,
+    ...overrides,
+  }
+}
+
+const SLOT = { x: 100, y: 200, width: 400, height: 400 }
+
+function buildScene(overrides: Partial<DotSceneMeasure>): DotSceneMeasure {
+  return {
+    id: "cube",
+    shapes: ["cube"],
+    containerTop: 1000,
+    containerBottom: 2500,
+    stickyTop: 72,
+    frameHeight: 828,
+    slot: SLOT,
+    ...overrides,
+  }
+}
+
+const TIMELINE: DotSceneKeyframe[] = [
+  { id: "name", shape: "name", start: 0, end: 90, slot: SLOT },
+  { id: "cube", shape: "cube", start: 900, end: 1500, slot: SLOT },
+  { id: "dust", shape: "dust", start: 2000, end: 3000, slot: null },
+]
+
+const VIEWPORT = { width: 1440, height: 900, pixelRatio: 2 }
+
+const NAME_SAMPLE = {
+  width: 2880,
+  height: 1500,
+  bounds: { left: 320, right: 2560 },
+  inkHeight: 800,
+}
+
+function buildPlacementRequest(
+  keyframe: DotSceneKeyframe,
+  overrides: Partial<DotFieldPlacementRequest>
+): DotFieldPlacementRequest {
+  return {
+    keyframe,
+    viewport: VIEWPORT,
+    nameSample: NAME_SAMPLE,
+    introScale: 1,
+    spinSeconds: 0,
+    yawOffset: 0,
+    isStatic: false,
+    ...overrides,
+  }
+}
+
 describe("createRandomSource", () => {
   it("repeats the same sequence for the same seed", () => {
     const first = createRandomSource(7)
@@ -375,96 +451,128 @@ describe("createRandomSource", () => {
   })
 })
 
-describe("isCubeEdgeIndex", () => {
-  it("selects exactly the requested number of edge dots", () => {
-    let selected = 0
-
-    for (let index = 0; index < 1000; index += 1) {
-      if (isCubeEdgeIndex(index, 1000, 137)) {
-        selected += 1
-      }
-    }
-
-    expect(selected).toBe(137)
-  })
-})
-
 describe("generateCubePoints", () => {
-  it("returns five values per dot and repeats for the same count", () => {
-    const first = generateCubePoints(500, FACE_TUNING)
-    const second = generateCubePoints(500, FACE_TUNING)
+  it("returns four values per dot and repeats for the same count", () => {
+    const first = generateCubePoints(500, CUBE_EDGE_JITTER)
+    const second = generateCubePoints(500, CUBE_EDGE_JITTER)
 
-    expect(first).toHaveLength(500 * CUBE_POINT_STRIDE)
+    expect(first).toHaveLength(500 * SHAPE_STRIDE)
     expect(Array.from(first)).toEqual(Array.from(second))
   })
 
   it("returns an empty buffer for zero dots", () => {
-    expect(generateCubePoints(0, FACE_TUNING)).toHaveLength(0)
+    expect(generateCubePoints(0, CUBE_EDGE_JITTER)).toHaveLength(0)
   })
 
-  it("puts the edge limit on edges and the rest on faces", () => {
-    const points = generateCubePoints(500, FACE_TUNING)
-
-    let edgeDots = 0
-    let faceDots = 0
+  it("keeps every dot on an edge within the jitter bound", () => {
+    const points = generateCubePoints(500, CUBE_EDGE_JITTER)
 
     for (let index = 0; index < 500; index += 1) {
-      const brightness = readCubePoint(points, index)[4]
-
-      if (brightness === 1) {
-        edgeDots += 1
-      }
-
-      if (brightness === FACE_TUNING.cubeFaceAlpha) {
-        faceDots += 1
-      }
-    }
-
-    expect(edgeDots).toBe(FACE_TUNING.cubeEdgePointLimit)
-    expect(faceDots).toBe(500 - FACE_TUNING.cubeEdgePointLimit)
-  })
-
-  it("puts every dot on an edge when there are few dots", () => {
-    const points = generateCubePoints(60, FACE_TUNING)
-
-    for (let index = 0; index < 60; index += 1) {
-      expect(readCubePoint(points, index)[4]).toBe(1)
-    }
-  })
-
-  it("keeps edge dots on an edge within the jitter bound", () => {
-    const points = generateCubePoints(500, FACE_TUNING)
-
-    for (let index = 0; index < 500; index += 1) {
-      const point = readCubePoint(points, index)
-      const coordinates = point.slice(0, 3)
+      const coordinates = readShapePoint(points, index).slice(0, 3)
 
       for (const coordinate of coordinates) {
         expect(Math.abs(coordinate)).toBeLessThanOrEqual(1 + JITTER_BOUND)
       }
 
-      if (point[4] === 1) {
-        expect(countCoordinatesNearFace(coordinates)).toBeGreaterThanOrEqual(2)
-      }
+      expect(countCoordinatesNearFace(coordinates)).toBeGreaterThanOrEqual(2)
     }
   })
 
-  it("draws edge dots from the whole index range", () => {
-    const count = 1000
-    const points = generateCubePoints(count, FACE_TUNING)
+  it("ranks every dot in [0, 1)", () => {
+    const points = generateCubePoints(200, CUBE_EDGE_JITTER)
 
-    let firstEdge = count
-    let lastEdge = -1
+    for (let index = 0; index < 200; index += 1) {
+      const rank = readShapePoint(points, index)[3] as number
 
-    for (let index = 0; index < count; index += 1) {
-      if (readCubePoint(points, index)[4] === 1) {
-        firstEdge = Math.min(firstEdge, index)
-        lastEdge = Math.max(lastEdge, index)
-      }
+      expect(rank).toBeGreaterThanOrEqual(0)
+      expect(rank).toBeLessThan(1)
     }
+  })
+})
 
-    expect(firstEdge).toBeLessThan(count * 0.1)
-    expect(lastEdge).toBeGreaterThan(count * 0.9)
+describe("generateSpherePoints", () => {
+  it("stipples rings and meridians on the unit sphere", () => {
+    const points = generateSpherePoints(600, DOT_SPHERE_TUNING)
+    const bound = DOT_SPHERE_TUNING.jitter * 1.5 * Math.sqrt(3) + 0.000001
+
+    expect(points).toHaveLength(600 * SHAPE_STRIDE)
+
+    for (let index = 0; index < 600; index += 1) {
+      const [pointX, pointY, pointZ, rank] = readShapePoint(points, index) as [
+        number,
+        number,
+        number,
+        number,
+      ]
+
+      expect(Math.abs(Math.hypot(pointX, pointY, pointZ) - 1)).toBeLessThan(
+        bound
+      )
+      expect(rank).toBeGreaterThanOrEqual(0)
+      expect(rank).toBeLessThan(1)
+    }
+  })
+})
+
+describe("generateDustPoints", () => {
+  it("scatters flat dots across the unit square", () => {
+    const points = generateDustPoints(300)
+
+    for (let index = 0; index < 300; index += 1) {
+      const [pointX, pointY, pointZ] = readShapePoint(points, index) as [
+        number,
+        number,
+        number,
+      ]
+
+      expect(Math.abs(pointX)).toBeLessThanOrEqual(1)
+      expect(Math.abs(pointY)).toBeLessThanOrEqual(1)
+      expect(pointZ).toBe(0)
+    }
+  })
+})
+
+describe("padNamePoints", () => {
+  it("keeps the sampled dots and hides the repeats", () => {
+    const positions = new Float32Array([1, 2, 0.5, 3, 4, 0.75])
+
+    expect(Array.from(padNamePoints(positions, 2, 5))).toEqual([
+      1, 2, 0.5, 3, 4, 0.75, 1, 2, 0, 3, 4, 0, 1, 2, 0,
+    ])
+  })
+
+  it("returns hidden dots when nothing was sampled", () => {
+    expect(Array.from(padNamePoints(new Float32Array(0), 0, 2))).toEqual([
+      0, 0, 0, 0, 0, 0,
+    ])
+  })
+})
+
+describe("padShapePoints", () => {
+  it("repeats the shape and hides every repeat", () => {
+    const points = new Float32Array([1, 0, 0, 0.25, 0, 1, 0, 0.5])
+
+    expect(Array.from(padShapePoints(points, 3))).toEqual([
+      1,
+      0,
+      0,
+      0.25,
+      0,
+      1,
+      0,
+      0.5,
+      1,
+      0,
+      0,
+      HIDDEN_RANK,
+    ])
+  })
+})
+
+describe("resolvePointTotal", () => {
+  it("never drops below the shape budget", () => {
+    expect(resolvePointTotal(100)).toBe(SHAPE_POINTS)
+    expect(resolvePointTotal(SHAPE_POINTS + 5)).toBe(SHAPE_POINTS + 5)
   })
 })
 
@@ -532,45 +640,54 @@ describe("buildCubeRotation", () => {
   })
 })
 
-describe("projectCubePoints", () => {
-  const projection = {
-    center: { x: 400, y: 300 },
-    halfSize: 100,
-    cameraDistance: 5,
-    rotation: buildCubeRotation(0, 0, 0),
-  }
-
-  function projectOne(cubeX: number, cubeY: number, cubeZ: number) {
-    const cubePoints = new Float32Array([cubeX, cubeY, cubeZ, 0, 1])
+describe("projectShapePoints", () => {
+  function projectOne(
+    placement: DotFieldPlacement,
+    shapeX: number,
+    shapeY: number,
+    shapeZ: number
+  ) {
+    const points = new Float32Array([shapeX, shapeY, shapeZ, 0])
     const target = new Float32Array(3)
 
-    projectCubePoints(cubePoints, projection, target)
+    projectShapePoints(points, placement, target)
 
     return Array.from(target)
   }
 
-  it("puts the cube centre on the projection centre", () => {
-    expect(projectOne(0, 0, 0)).toEqual([400, 300, 0])
+  const placement = buildPlacement({})
+
+  it("puts the shape centre on the placement centre", () => {
+    expect(projectOne(placement, 0, 0, 0)).toEqual([400, 300, 0])
   })
 
-  it("maps cube x to the right and cube y upward on the canvas", () => {
-    expect(projectOne(1, 0, 0)).toEqual([500, 300, 0])
-    expect(projectOne(0, 1, 0)).toEqual([400, 200, 0])
+  it("maps shape x to the right and shape y upward on the canvas", () => {
+    expect(projectOne(placement, 1, 0, 0)).toEqual([500, 300, 0])
+    expect(projectOne(placement, 0, 1, 0)).toEqual([400, 200, 0])
   })
 
   it("enlarges points nearer the viewer by the perspective", () => {
-    const [nearX] = projectOne(1, 0, 1) as [number]
-    const [farX] = projectOne(1, 0, -1) as [number]
+    const [nearX] = projectOne(placement, 1, 0, 1) as [number]
+    const [farX] = projectOne(placement, 1, 0, -1) as [number]
 
     expect(nearX - 400).toBeCloseTo(100 * (5 / 4), 3)
     expect(farX - 400).toBeCloseTo(100 * (5 / 6), 3)
   })
 
-  it("writes one stride-three home per cube point", () => {
-    const cubePoints = generateCubePoints(40, FACE_TUNING)
+  it("stays flat without a camera and stretches with an uneven half size", () => {
+    const flat = buildPlacement({
+      cameraDistance: 0,
+      halfSize: { x: 200, y: 50 },
+    })
+
+    expect(projectOne(flat, 1, 1, 1)).toEqual([600, 250, 0])
+  })
+
+  it("writes one stride-three home per shape point", () => {
+    const points = generateCubePoints(40, CUBE_EDGE_JITTER)
     const target = new Float32Array(40 * 3)
 
-    projectCubePoints(cubePoints, projection, target)
+    projectShapePoints(points, placement, target)
 
     for (let index = 0; index < 40; index += 1) {
       expect(Number.isFinite(target[index * 3])).toBe(true)
@@ -579,10 +696,39 @@ describe("projectCubePoints", () => {
   })
 })
 
+describe("writeNameHomes", () => {
+  it("places the sampled name at its origin and scale", () => {
+    const positions = new Float32Array([10, 20, 1])
+    const target = new Float32Array(3)
+    const wordCenter = { x: 30, y: 40 }
+
+    writeNameHomes(
+      positions,
+      buildPlacement({ center: { x: 100, y: 50 }, halfSize: { x: 1, y: 1 } }),
+      wordCenter,
+      target
+    )
+
+    expect(Array.from(target)).toEqual([110, 70, 0])
+
+    writeNameHomes(
+      positions,
+      buildPlacement({
+        center: { x: 100, y: 50 },
+        halfSize: { x: 0.5, y: 0.5 },
+      }),
+      wordCenter,
+      target
+    )
+
+    expect(Array.from(target)).toEqual([120, 80, 0])
+  })
+})
+
 describe("resolveCanvasPixelRatio", () => {
   it("passes the device ratio through when the canvas fits the budget", () => {
-    expect(resolveCanvasPixelRatio(1440, 1400, 2, 16384)).toBe(2)
-    expect(resolveCanvasPixelRatio(390, 1300, 1.5, 16384)).toBe(1.5)
+    expect(resolveCanvasPixelRatio(1440, 900, 2, 16384)).toBe(2)
+    expect(resolveCanvasPixelRatio(390, 844, 1.5, 16384)).toBe(1.5)
   })
 
   it("steps the ratio down to stay under the pixel budget", () => {
@@ -603,15 +749,6 @@ describe("resolveCanvasPixelRatio", () => {
   })
 })
 
-describe("resolveMorphState", () => {
-  it("names the resting and moving states", () => {
-    expect(resolveMorphState(-0.1)).toBe("name")
-    expect(resolveMorphState(0)).toBe("name")
-    expect(resolveMorphState(0.5)).toBe("moving")
-    expect(resolveMorphState(1)).toBe("cube")
-  })
-})
-
 describe("followMorphProgress", () => {
   it("moves toward the target without overshooting", () => {
     const next = followMorphProgress(0, 1, 1 / 60, DOT_FIELD_MORPH_TUNING)
@@ -627,420 +764,331 @@ describe("followMorphProgress", () => {
   })
 })
 
-const WINDOW_REQUEST = {
-  scrolled: 0,
-  viewportHeight: 900,
-  canvasHeight: 1422,
-  stageHeight: 6000,
-  projectsTop: 1800,
-  pixelRatio: 2,
-  isStatic: false,
-  isSceneActive: false,
-}
+describe("followTimelineProgress", () => {
+  it("eases within one segment", () => {
+    const next = followTimelineProgress(1, 1.8, 1 / 60, DOT_FIELD_MORPH_TUNING)
 
-describe("resolveCanvasWindowTop", () => {
-  it("stays at the stage top until the projects enter the viewport", () => {
-    expect(
-      resolveCanvasWindowTop(
-        { ...WINDOW_REQUEST, scrolled: 900 },
-        DOT_FIELD_SCENE_TUNING
-      )
-    ).toBe(0)
+    expect(next).toBeGreaterThan(1)
+    expect(next).toBeLessThan(1.8)
   })
 
-  it("keeps following the burst while it plays above the projects", () => {
-    const resting = resolveCanvasWindowTop(
-      { ...WINDOW_REQUEST, scrolled: 800 },
-      DOT_FIELD_SCENE_TUNING
-    )
-    const imploding = resolveCanvasWindowTop(
-      { ...WINDOW_REQUEST, scrolled: 800, isSceneActive: true },
-      DOT_FIELD_SCENE_TUNING
-    )
-
-    expect(resting).toBe(0)
-    expect(imploding).toBeGreaterThan(0)
-    expect(800 - imploding).toBeGreaterThanOrEqual(0)
-    expect(
-      imploding + WINDOW_REQUEST.canvasHeight - (800 + 900)
-    ).toBeGreaterThanOrEqual(0)
-  })
-
-  it("stays at the stage top under reduced motion", () => {
-    expect(
-      resolveCanvasWindowTop(
-        { ...WINDOW_REQUEST, scrolled: 3000, isStatic: true },
-        DOT_FIELD_SCENE_TUNING
-      )
-    ).toBe(0)
-  })
-
-  it("keeps the viewport inside the window with margin on both sides", () => {
-    const slack = WINDOW_REQUEST.canvasHeight - WINDOW_REQUEST.viewportHeight
-    const margin = (slack * 3) / 8 - 1
-
-    for (let scrolled = 901; scrolled < 4500; scrolled += 7) {
-      const windowTop = resolveCanvasWindowTop(
-        { ...WINDOW_REQUEST, scrolled },
-        DOT_FIELD_SCENE_TUNING
-      )
-      const bottomMargin =
-        windowTop +
-        WINDOW_REQUEST.canvasHeight -
-        (scrolled + WINDOW_REQUEST.viewportHeight)
-
-      expect(scrolled - windowTop).toBeGreaterThanOrEqual(margin)
-      expect(bottomMargin).toBeGreaterThanOrEqual(margin)
-    }
-  })
-
-  it("moves in whole device pixels", () => {
-    for (let scrolled = 901; scrolled < 4500; scrolled += 13) {
-      const windowTop = resolveCanvasWindowTop(
-        { ...WINDOW_REQUEST, scrolled, pixelRatio: 1.75 },
-        DOT_FIELD_SCENE_TUNING
-      )
-      const devicePixels = windowTop * 1.75
-
-      expect(Math.abs(devicePixels - Math.round(devicePixels))).toBeLessThan(
-        1e-6
-      )
-    }
-  })
-
-  it("never runs past the end of the stage", () => {
-    const windowTop = resolveCanvasWindowTop(
-      { ...WINDOW_REQUEST, scrolled: 20000 },
-      DOT_FIELD_SCENE_TUNING
-    )
-
-    expect(windowTop).toBe(
-      WINDOW_REQUEST.stageHeight - WINDOW_REQUEST.canvasHeight
-    )
+  it("snaps when the target is more than one segment away", () => {
+    expect(followTimelineProgress(0, 3, 1 / 60, DOT_FIELD_MORPH_TUNING)).toBe(3)
   })
 })
 
-const SCENE_SCROLL_REQUEST = {
-  scrolled: 0,
-  viewportHeight: 900,
-  projectsTop: 1800,
-  stageWidth: 1440,
-}
-
-function readCompressAt(scrolled: number): number {
-  return resolveSceneScroll(
-    { ...SCENE_SCROLL_REQUEST, scrolled },
-    DOT_FIELD_SCENE_TUNING
-  ).rawCompress
-}
-
-function readRearmedAt(scrolled: number): boolean {
-  return resolveSceneScroll(
-    { ...SCENE_SCROLL_REQUEST, scrolled },
-    DOT_FIELD_SCENE_TUNING
-  ).isRearmed
-}
-
-describe("resolveSceneScroll", () => {
-  it("compresses while the projects rise from 70% to 35% of the view", () => {
-    expect(readCompressAt(1000)).toBe(0)
-    expect(readCompressAt(1170)).toBe(0)
-    expect(readCompressAt(1327.5)).toBeCloseTo(0.5)
-    expect(readCompressAt(1485)).toBe(1)
-    expect(readCompressAt(2000)).toBe(1)
-  })
-
-  it("rearms the burst only well above the burst line", () => {
-    expect(readRearmedAt(1390)).toBe(true)
-    expect(readRearmedAt(1400)).toBe(false)
-    expect(readRearmedAt(1485)).toBe(false)
-  })
-
-  it("places the burst point above the projects when it fires", () => {
-    const scroll = resolveSceneScroll(
-      { ...SCENE_SCROLL_REQUEST, scrolled: 1485 },
-      DOT_FIELD_SCENE_TUNING
-    )
-
-    expect(scroll.burstPoint.x).toBe(720)
-    expect(scroll.burstPoint.y).toBe(1485 + 270)
-    expect(scroll.dustTop).toBe(1485)
-  })
-
-  it("does nothing without a viewport", () => {
-    const scroll = resolveSceneScroll(
-      { ...SCENE_SCROLL_REQUEST, scrolled: 5000, viewportHeight: 0 },
-      DOT_FIELD_SCENE_TUNING
-    )
-
-    expect(scroll.rawCompress).toBe(0)
+describe("parseSceneShapes", () => {
+  it("keeps known shapes in order and drops the rest", () => {
+    expect(parseSceneShapes("cube  bogus sphere")).toEqual(["cube", "sphere"])
+    expect(parseSceneShapes(undefined)).toEqual([])
   })
 })
 
-const SCENE_TARGET_REQUEST = {
-  rawCompress: 0,
-  isRearmed: true,
-  compress: 0,
-  burst: 0,
-  burstTarget: 0,
-}
-
-describe("resolveSceneTargets", () => {
-  it("fires the burst once the knot has fully compressed", () => {
-    const early = resolveSceneTargets(
-      {
-        ...SCENE_TARGET_REQUEST,
-        rawCompress: 1,
-        isRearmed: false,
-        compress: 0.9,
-      },
-      DOT_FIELD_SCENE_TUNING
-    )
-    const ready = resolveSceneTargets(
-      {
-        ...SCENE_TARGET_REQUEST,
-        rawCompress: 1,
-        isRearmed: false,
-        compress: 0.99,
-      },
-      DOT_FIELD_SCENE_TUNING
-    )
-
-    expect(early.burstTarget).toBe(0)
-    expect(ready.burstTarget).toBe(1)
-  })
-
-  it("keeps the burst open inside the hysteresis band", () => {
-    const targets = resolveSceneTargets(
-      {
-        ...SCENE_TARGET_REQUEST,
-        rawCompress: 0.8,
-        isRearmed: false,
-        compress: 1,
-        burst: 1,
-        burstTarget: 1,
-      },
-      DOT_FIELD_SCENE_TUNING
-    )
-
-    expect(targets.burstTarget).toBe(1)
-    expect(targets.compressTarget).toBe(1)
-  })
-
-  it("holds the knot shut until the dots are home", () => {
-    const imploding = resolveSceneTargets(
-      {
-        ...SCENE_TARGET_REQUEST,
-        rawCompress: 0.2,
-        compress: 1,
-        burst: 0.5,
-        burstTarget: 1,
-      },
-      DOT_FIELD_SCENE_TUNING
-    )
-    const home = resolveSceneTargets(
-      {
-        ...SCENE_TARGET_REQUEST,
-        rawCompress: 0.2,
-        compress: 1,
-        burst: 0.01,
-        burstTarget: 0,
-      },
-      DOT_FIELD_SCENE_TUNING
-    )
-
-    expect(imploding.burstTarget).toBe(0)
-    expect(imploding.compressTarget).toBe(1)
-    expect(home.compressTarget).toBe(0.2)
-  })
-
-  it("bursts forward and reassembles backward without stalling", () => {
-    const scene = { compress: 0, burst: 0, burstTarget: 0 }
-
-    function runFrames(rawCompress: number, isRearmed: boolean): void {
-      for (let frame = 0; frame < 600; frame += 1) {
-        const targets = resolveSceneTargets(
-          { rawCompress, isRearmed, ...scene },
-          DOT_FIELD_SCENE_TUNING
-        )
-
-        scene.burstTarget = targets.burstTarget
-        scene.compress = followMorphProgress(
-          scene.compress,
-          targets.compressTarget,
-          1 / 60,
-          DOT_FIELD_MORPH_TUNING
-        )
-        scene.burst = followMorphProgress(
-          scene.burst,
-          targets.burstTarget,
-          1 / 60,
-          BURST_FOLLOW_TUNING
-        )
-      }
-    }
-
-    runFrames(1, false)
-    expect(scene.burst).toBe(1)
-
-    runFrames(0, true)
-    expect(scene.burst).toBe(0)
-    expect(scene.compress).toBe(0)
-
-    runFrames(1, false)
-    expect(scene.burst).toBe(1)
+describe("parseCssPixels", () => {
+  it("reads a pixel length and treats anything else as zero", () => {
+    expect(parseCssPixels("72px")).toBe(72)
+    expect(parseCssPixels("auto")).toBe(0)
   })
 })
 
-const COMPRESS_REQUEST = {
-  slotCenter: { x: 720, y: 1215 },
-  burstPoint: { x: 720, y: 1935 },
-  halfSize: 200,
-  compress: 0,
-}
+describe("resolveViewportHeight", () => {
+  it("reads the small viewport from the tallest pinned frame", () => {
+    const scenes = [
+      buildScene({ stickyTop: 0, frameHeight: 900 }),
+      buildScene({ stickyTop: 72, frameHeight: 828 }),
+      buildScene({ slot: null, frameHeight: 0 }),
+    ]
 
-describe("resolveCompressedCube", () => {
-  it("is the resting cube when nothing is compressed", () => {
-    expect(
-      resolveCompressedCube(
-        COMPRESS_REQUEST,
-        DOT_FIELD_SCENE_TUNING,
-        DOT_FIELD_MORPH_TUNING.farLight
-      )
-    ).toEqual({
-      center: COMPRESS_REQUEST.slotCenter,
-      halfSize: 200,
-      spinBoost: 1,
-      farLight: DOT_FIELD_MORPH_TUNING.farLight,
+    expect(resolveViewportHeight(scenes, 1000)).toBe(900)
+  })
+
+  it("falls back when nothing is pinned", () => {
+    expect(resolveViewportHeight([buildScene({ slot: null })], 1000)).toBe(1000)
+  })
+})
+
+describe("buildSceneKeyframes", () => {
+  it("pins a slotted scene from its sticky top to its last full frame", () => {
+    const [keyframe] = buildSceneKeyframes(
+      [buildScene({})],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+
+    expect(keyframe).toEqual({
+      id: "cube",
+      shape: "cube",
+      start: 928,
+      end: 1600,
+      slot: SLOT,
     })
   })
 
-  it("shrinks into a bright knot at the burst point", () => {
-    const knot = resolveCompressedCube(
-      { ...COMPRESS_REQUEST, compress: 1 },
-      DOT_FIELD_SCENE_TUNING,
-      DOT_FIELD_MORPH_TUNING.farLight
+  it("spans a dust scene until its bottom meets the viewport's", () => {
+    const [keyframe] = buildSceneKeyframes(
+      [
+        buildScene({
+          id: "dust",
+          shapes: ["dust"],
+          containerTop: 3000,
+          containerBottom: 5000,
+          frameHeight: 0,
+          slot: null,
+        }),
+      ],
+      900,
+      DOT_FIELD_MORPH_TUNING
     )
 
-    expect(knot.center).toEqual(COMPRESS_REQUEST.burstPoint)
-    expect(knot.halfSize).toBeCloseTo(
-      200 * DOT_FIELD_SCENE_TUNING.compressedScale
-    )
-    expect(knot.spinBoost).toBe(1 + DOT_FIELD_SCENE_TUNING.compressSpinBoost)
-    expect(knot.farLight).toBe(DOT_FIELD_SCENE_TUNING.compressFarLight)
+    expect(keyframe?.start).toBe(2928)
+    expect(keyframe?.end).toBe(4100)
+    expect(keyframe?.slot).toBeNull()
   })
-})
 
-describe("generateScenePoints", () => {
-  it("is deterministic, four values per dot, all in [0, 1)", () => {
-    const first = generateScenePoints(500)
-    const second = generateScenePoints(500)
+  it("never ends a scene before it starts", () => {
+    const [keyframe] = buildSceneKeyframes(
+      [buildScene({ containerBottom: 1100 })],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
 
-    expect(first.length).toBe(500 * SCENE_POINT_STRIDE)
-    expect(Array.from(first)).toEqual(Array.from(second))
+    expect(keyframe?.end).toBe(keyframe?.start)
+  })
 
-    for (const value of first) {
-      expect(value).toBeGreaterThanOrEqual(0)
-      expect(value).toBeLessThan(1)
+  it("splits a multi-step scene evenly with a morph gap between steps", () => {
+    const keyframes = buildSceneKeyframes(
+      [
+        buildScene({
+          id: "services",
+          shapes: ["cube", "sphere", "dust"],
+          containerTop: 1072,
+        }),
+      ],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+    const ranges: (string | number)[][] = []
+
+    for (const keyframe of keyframes) {
+      ranges.push([keyframe.id, keyframe.start, keyframe.end])
     }
+
+    expect(ranges).toEqual([
+      ["cube", 1000, 1160],
+      ["sphere", 1240, 1360],
+      ["dust", 1440, 1600],
+    ])
   })
 
-  it("returns nothing for no dots", () => {
-    expect(generateScenePoints(0).length).toBe(0)
+  it("skips a scene without a known shape", () => {
+    expect(
+      buildSceneKeyframes(
+        [buildScene({ shapes: [] })],
+        900,
+        DOT_FIELD_MORPH_TUNING
+      )
+    ).toEqual([])
   })
 })
 
-describe("resolveBurstState", () => {
-  it("reports off, idle and open", () => {
-    expect(resolveBurstState(1, true)).toBe("off")
-    expect(resolveBurstState(0, false)).toBe("idle")
-    expect(resolveBurstState(1, false)).toBe("open")
+describe("resolveTimelinePosition", () => {
+  it("holds a formed keyframe across its range", () => {
+    expect(resolveTimelinePosition(TIMELINE, 50, 1)).toBe(0)
+    expect(resolveTimelinePosition(TIMELINE, 900, 1)).toBe(1)
+    expect(resolveTimelinePosition(TIMELINE, 1200, 1)).toBe(1)
+    expect(resolveTimelinePosition(TIMELINE, 3000, 1)).toBe(2)
+  })
+
+  it("travels between keyframes", () => {
+    expect(resolveTimelinePosition(TIMELINE, 90 + 809 / 2, 1)).toBeCloseTo(
+      0.5,
+      6
+    )
+  })
+
+  it("lands one tolerance before the next keyframe starts", () => {
+    expect(resolveTimelinePosition(TIMELINE, 899, 1)).toBe(1)
+    expect(resolveTimelinePosition(TIMELINE, 898, 1)).toBeLessThan(1)
+  })
+
+  it("stays on the last keyframe past the end", () => {
+    expect(resolveTimelinePosition(TIMELINE, 9999, 1)).toBe(2)
+  })
+
+  it("switches without travelling when two keyframes touch", () => {
+    const touching: DotSceneKeyframe[] = [
+      { id: "name", shape: "name", start: 0, end: 1000, slot: SLOT },
+      { id: "cube", shape: "cube", start: 1000.5, end: 1600, slot: SLOT },
+    ]
+
+    expect(resolveTimelinePosition(touching, 1000.2, 1)).toBe(0)
+    expect(resolveTimelinePosition(touching, 1000.5, 1)).toBe(1)
+  })
+
+  it("rests at zero without keyframes", () => {
+    expect(resolveTimelinePosition([], 500, 1)).toBe(0)
   })
 })
 
-const LOOP_AT_REST = {
-  isFieldAtRest: true,
-  hasSettled: true,
-  isMorphResting: true,
-  isSceneResting: true,
-  morph: 0,
-  burst: 0,
-}
+describe("resolveTimelineSegment", () => {
+  it("pairs a keyframe with the next", () => {
+    expect(resolveTimelineSegment(0.25, 3)).toEqual({
+      fromIndex: 0,
+      toIndex: 1,
+      progress: 0.25,
+    })
+  })
+
+  it("rests on the last keyframe", () => {
+    const resting = { fromIndex: 2, toIndex: 2, progress: 0 }
+
+    expect(resolveTimelineSegment(2, 3)).toEqual(resting)
+    expect(resolveTimelineSegment(5, 3)).toEqual(resting)
+  })
+
+  it("handles an empty timeline", () => {
+    expect(resolveTimelineSegment(0, 0)).toEqual({
+      fromIndex: 0,
+      toIndex: 0,
+      progress: 0,
+    })
+  })
+})
+
+describe("resolveStaticKeyframe", () => {
+  it("finds the keyframe whose range holds the scroll", () => {
+    expect(resolveStaticKeyframe(TIMELINE, 1200, 1)).toBe(1)
+    expect(resolveStaticKeyframe(TIMELINE, 899.5, 1)).toBe(1)
+    expect(resolveStaticKeyframe(TIMELINE, 500, 1)).toBe(-1)
+  })
+})
+
+describe("resolveSceneState", () => {
+  it("names a formed keyframe and reports travel", () => {
+    expect(resolveSceneState(TIMELINE, 1)).toBe("cube")
+    expect(resolveSceneState(TIMELINE, 1.5)).toBe("moving")
+    expect(resolveSceneState(TIMELINE, -1)).toBe("moving")
+  })
+})
+
+describe("resolveVisibleFraction", () => {
+  it("scales the visible dots with the slot area", () => {
+    expect(resolveVisibleFraction(0.042, 500 * 500, 7200)).toBe(1)
+    expect(resolveVisibleFraction(0.042, 200 * 200, 7200)).toBeCloseTo(
+      1680 / 7200,
+      6
+    )
+    expect(resolveVisibleFraction(0.042, 0, 7200)).toBe(0)
+  })
+})
+
+describe("resolvePlacement", () => {
+  const nameKeyframe: DotSceneKeyframe = {
+    id: "name",
+    shape: "name",
+    start: 0,
+    end: 90,
+    slot: { x: 0, y: 75, width: 1440, height: 750 },
+  }
+
+  it("puts the name at the rounded centre of its slot, full size", () => {
+    const placement = resolvePlacement(buildPlacementRequest(nameKeyframe, {}))
+
+    expect(placement.isName).toBe(true)
+    expect(placement.center).toEqual({ x: 0, y: 150 })
+    expect(placement.halfSize).toEqual({ x: 1, y: 1 })
+  })
+
+  it("shrinks the name to fit a smaller slot and applies the intro", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        {
+          ...nameKeyframe,
+          slot: { x: 0, y: 0, width: 720, height: 750 },
+        },
+        { introScale: 0.5 }
+      )
+    )
+
+    expect(placement.halfSize.x).toBeCloseTo((1440 / 2240) * 0.5, 6)
+  })
+
+  it("fits a contained shape to the slot's short side", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        {
+          id: "cube",
+          shape: "cube",
+          start: 900,
+          end: 1500,
+          slot: { x: 100, y: 200, width: 400, height: 300 },
+        },
+        {}
+      )
+    )
+    const halfSide = 300 * DOT_SHAPE_TUNING.cube.sizeRatio * 2
+
+    expect(placement.center).toEqual({ x: 600, y: 700 })
+    expect(placement.halfSize.x).toBeCloseTo(halfSide, 6)
+    expect(placement.halfSize.y).toBeCloseTo(halfSide, 6)
+    expect(placement.cameraDistance).toBe(DOT_FIELD_MORPH_TUNING.cameraDistance)
+  })
+
+  it("fills the viewport with flat dust", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(TIMELINE[2] as DotSceneKeyframe, {})
+    )
+
+    expect(placement.center).toEqual({ x: 1440, y: 900 })
+    expect(placement.halfSize).toEqual({ x: 1440, y: 900 })
+    expect(placement.cameraDistance).toBe(0)
+    expect(Array.from(placement.rotation)).toEqual([1, 0, 0, 0, 1, 0, 0, 0, 1])
+  })
+
+  it("holds the resting pose under reduced motion", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(TIMELINE[1] as DotSceneKeyframe, {
+        isStatic: true,
+        spinSeconds: 12,
+      })
+    )
+    const tuning = DOT_SHAPE_TUNING.cube
+
+    expect(Array.from(placement.rotation)).toEqual(
+      Array.from(buildCubeRotation(tuning.staticYaw, tuning.pitch, tuning.roll))
+    )
+  })
+})
+
+describe("isShapeSpinning", () => {
+  it("turns the cube and leaves the name and dust still", () => {
+    expect(isShapeSpinning("cube")).toBe(true)
+    expect(isShapeSpinning("name")).toBe(false)
+    expect(isShapeSpinning("dust")).toBe(false)
+  })
+})
 
 describe("shouldLoopSleep", () => {
-  it("sleeps on the resting name and on settled dust", () => {
-    expect(shouldLoopSleep(LOOP_AT_REST)).toBe(true)
-    expect(shouldLoopSleep({ ...LOOP_AT_REST, morph: 1, burst: 1 })).toBe(true)
+  const resting = {
+    isFieldAtRest: true,
+    hasSettled: true,
+    isProgressResting: true,
+    isSpinning: false,
+  }
+
+  it("sleeps once everything rests", () => {
+    expect(shouldLoopSleep(resting)).toBe(true)
   })
 
-  it("keeps the cube spinning while it is on screen", () => {
-    expect(shouldLoopSleep({ ...LOOP_AT_REST, morph: 1 })).toBe(false)
+  it("keeps a spinning shape turning", () => {
+    expect(shouldLoopSleep({ ...resting, isSpinning: true })).toBe(false)
   })
 
   it("keeps running while anything is still moving", () => {
-    expect(shouldLoopSleep({ ...LOOP_AT_REST, isSceneResting: false })).toBe(
+    expect(shouldLoopSleep({ ...resting, isFieldAtRest: false })).toBe(false)
+    expect(shouldLoopSleep({ ...resting, hasSettled: false })).toBe(false)
+    expect(shouldLoopSleep({ ...resting, isProgressResting: false })).toBe(
       false
     )
-    expect(shouldLoopSleep({ ...LOOP_AT_REST, isFieldAtRest: false })).toBe(
-      false
-    )
-  })
-})
-
-const DESKTOP_FRAME = { x: 600, y: 2000, width: 768, height: 538 }
-
-describe("resolveFrameShare", () => {
-  it("gives no dots to frames when there are none", () => {
-    expect(resolveFrameShare(7200, [], DOT_FIELD_SCENE_TUNING)).toBe(0)
-    expect(resolveFrameShare(0, [DESKTOP_FRAME], DOT_FIELD_SCENE_TUNING)).toBe(
-      0
-    )
-  })
-
-  it("asks for one dot per spacing step around each frame", () => {
-    const outset = DOT_FIELD_SCENE_TUNING.frameOutsetPx
-    const perimeter = 2 * (768 + 538 + 4 * outset)
-    const expected = perimeter / DOT_FIELD_SCENE_TUNING.frameDotSpacingPx / 7200
-
-    expect(
-      resolveFrameShare(7200, [DESKTOP_FRAME], DOT_FIELD_SCENE_TUNING)
-    ).toBeCloseTo(expected)
-  })
-
-  it("never takes more than its cap", () => {
-    const frames = [DESKTOP_FRAME, DESKTOP_FRAME, DESKTOP_FRAME, DESKTOP_FRAME]
-
-    expect(resolveFrameShare(1800, frames, DOT_FIELD_SCENE_TUNING)).toBe(
-      DOT_FIELD_SCENE_TUNING.maxFrameShare
-    )
-  })
-})
-
-const CLAIM_REQUEST = {
-  frameTop: 2000,
-  scrolled: 0,
-  viewportHeight: 900,
-  burst: 1,
-}
-
-function readClaimAt(scrolled: number, burst: number): number {
-  return resolveClaimTarget(
-    { ...CLAIM_REQUEST, scrolled, burst },
-    DOT_FIELD_SCENE_TUNING
-  )
-}
-
-describe("resolveClaimTarget", () => {
-  it("draws the frame as it rises from 95% to 60% of the view", () => {
-    expect(readClaimAt(2000 - 900, 1)).toBe(0)
-    expect(readClaimAt(2000 - 855, 1)).toBe(0)
-    expect(readClaimAt(2000 - 697.5, 1)).toBeCloseTo(0.5)
-    expect(readClaimAt(2000 - 540, 1)).toBe(1)
-    expect(readClaimAt(2000, 1)).toBe(1)
-  })
-
-  it("waits for the burst to carry the dots out first", () => {
-    expect(readClaimAt(2000, 0.5)).toBe(0)
-    expect(readClaimAt(2000, DOT_FIELD_SCENE_TUNING.claimGate)).toBe(1)
   })
 })

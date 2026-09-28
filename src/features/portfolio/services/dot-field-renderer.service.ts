@@ -1,28 +1,33 @@
 import {
-  CUBE_DETAIL_ATTRIBUTE_LOCATION,
-  CUBE_DETAIL_COMPONENTS,
-  CUBE_POINT_STRIDE,
-  CUBE_POSITION_ATTRIBUTE_LOCATION,
-  CUBE_POSITION_COMPONENTS,
   FALLBACK_MAX_DIMENSION,
+  FROM_ATTRIBUTE_LOCATION,
+  GENERATED_SHAPE_IDS,
   OFFSET_ATTRIBUTE_LOCATION,
   OFFSET_STRIDE,
   POINT_ATTRIBUTE_LOCATION,
   POINT_STRIDE,
-  SCENE_ATTRIBUTE_LOCATION,
-  SCENE_POINT_STRIDE,
+  SHAPE_STRIDE,
+  TO_ATTRIBUTE_LOCATION,
 } from "@/data/hero.data"
-import { hexToRgbTriplet } from "@/features/portfolio/dot-field.rules"
+import {
+  hexToRgbTriplet,
+  padNamePoints,
+  padShapePoints,
+  resolvePointTotal,
+} from "@/features/portfolio/dot-field.rules"
 import { DOT_FIELD_FRAGMENT_SHADER } from "@/features/portfolio/shaders/dot-field.fragment-shader"
 import { DOT_FIELD_VERTEX_SHADER } from "@/features/portfolio/shaders/dot-field.vertex-shader"
 import type {
   DotFieldFrame,
   DotFieldMorphTuning,
+  DotFieldPlacement,
+  DotFieldPlacementUniforms,
   DotFieldRuntime,
   DotFieldSample,
-  DotFieldSceneTuning,
   DotFieldTuning,
   DotFieldUniforms,
+  DotGeneratedShapeId,
+  DotShapeLibrary,
 } from "@/types/hero.type"
 
 function compileShader(
@@ -92,6 +97,28 @@ export function createDotFieldProgram(
   return program
 }
 
+function resolvePlacementUniforms(
+  context: WebGL2RenderingContext,
+  program: WebGLProgram,
+  name: string
+): DotFieldPlacementUniforms {
+  return {
+    isName: context.getUniformLocation(program, `${name}.isName`),
+    center: context.getUniformLocation(program, `${name}.center`),
+    halfSize: context.getUniformLocation(program, `${name}.halfSize`),
+    rotation: context.getUniformLocation(program, `${name}.rotation`),
+    cameraDistance: context.getUniformLocation(
+      program,
+      `${name}.cameraDistance`
+    ),
+    visible: context.getUniformLocation(program, `${name}.visible`),
+    farLight: context.getUniformLocation(program, `${name}.farLight`),
+    depthRadius: context.getUniformLocation(program, `${name}.depthRadius`),
+    dotSize: context.getUniformLocation(program, `${name}.dotSize`),
+    opacity: context.getUniformLocation(program, `${name}.opacity`),
+  }
+}
+
 function resolveUniformLocations(
   context: WebGL2RenderingContext,
   program: WebGLProgram
@@ -103,41 +130,17 @@ function resolveUniformLocations(
     color: context.getUniformLocation(program, "uColor"),
     edgePixels: context.getUniformLocation(program, "uEdgePixels"),
     dotRoundness: context.getUniformLocation(program, "uDotRoundness"),
-    introScale: context.getUniformLocation(program, "uIntroScale"),
     introReveal: context.getUniformLocation(program, "uIntroReveal"),
     introSoftness: context.getUniformLocation(program, "uIntroSoftness"),
     introDim: context.getUniformLocation(program, "uIntroDim"),
-    wordOrigin: context.getUniformLocation(program, "uWordOrigin"),
     wordCenter: context.getUniformLocation(program, "uWordCenter"),
     wordBounds: context.getUniformLocation(program, "uWordBounds"),
     morph: context.getUniformLocation(program, "uMorph"),
     morphStagger: context.getUniformLocation(program, "uMorphStagger"),
     morphJitter: context.getUniformLocation(program, "uMorphJitter"),
     morphArc: context.getUniformLocation(program, "uMorphArc"),
-    cubeCenter: context.getUniformLocation(program, "uCubeCenter"),
-    cubeHalfSize: context.getUniformLocation(program, "uCubeHalfSize"),
-    cubeRotation: context.getUniformLocation(program, "uCubeRotation"),
-    cameraDistance: context.getUniformLocation(program, "uCameraDistance"),
-    farLight: context.getUniformLocation(program, "uFarLight"),
-    cubeDotSize: context.getUniformLocation(program, "uCubeDotSize"),
-    windowTop: context.getUniformLocation(program, "uWindowTop"),
-    burst: context.getUniformLocation(program, "uBurst"),
-    burstStagger: context.getUniformLocation(program, "uBurstStagger"),
-    sparkRadius: context.getUniformLocation(program, "uSparkRadius"),
-    sparkFade: context.getUniformLocation(program, "uSparkFade"),
-    dustRect: context.getUniformLocation(program, "uDustRect"),
-    shares: context.getUniformLocation(program, "uShares"),
-    dustOpacity: context.getUniformLocation(program, "uDustOpacity"),
-    dustDotSize: context.getUniformLocation(program, "uDustDotSize"),
-    frameCount: context.getUniformLocation(program, "uFrameCount"),
-    frameRects: context.getUniformLocation(program, "uFrameRects"),
-    claims: context.getUniformLocation(program, "uClaims"),
-    frameBand: context.getUniformLocation(program, "uFrameBand"),
-    frameOutset: context.getUniformLocation(program, "uFrameOutset"),
-    frameJitter: context.getUniformLocation(program, "uFrameJitter"),
-    frameDotSize: context.getUniformLocation(program, "uFrameDotSize"),
-    frameOpacity: context.getUniformLocation(program, "uFrameOpacity"),
-    claimStagger: context.getUniformLocation(program, "uClaimStagger"),
+    from: resolvePlacementUniforms(context, program, "uFrom"),
+    to: resolvePlacementUniforms(context, program, "uTo"),
   }
 }
 
@@ -163,30 +166,54 @@ function readMaxDimension(context: WebGL2RenderingContext): number {
   )
 }
 
+function createBuffer(context: WebGL2RenderingContext): WebGLBuffer {
+  const buffer = context.createBuffer()
+
+  if (buffer === null) {
+    throw new Error("dot_field_buffers_unavailable")
+  }
+
+  return buffer
+}
+
+function pointShapeAttribute(
+  context: WebGL2RenderingContext,
+  location: number,
+  buffer: WebGLBuffer
+): void {
+  context.bindBuffer(context.ARRAY_BUFFER, buffer)
+  context.enableVertexAttribArray(location)
+  context.vertexAttribPointer(
+    location,
+    SHAPE_STRIDE,
+    context.FLOAT,
+    false,
+    0,
+    0
+  )
+}
+
 export function createDotFieldRuntime(
-  context: WebGL2RenderingContext
+  context: WebGL2RenderingContext,
+  shapeLibrary: DotShapeLibrary
 ): DotFieldRuntime {
   const program = createDotFieldProgram(context)
   const vertexArray = context.createVertexArray()
-  const buffer = context.createBuffer()
-  const offsetBuffer = context.createBuffer()
-  const cubeBuffer = context.createBuffer()
-  const sceneBuffer = context.createBuffer()
 
-  if (
-    vertexArray === null ||
-    buffer === null ||
-    offsetBuffer === null ||
-    cubeBuffer === null ||
-    sceneBuffer === null
-  ) {
+  if (vertexArray === null) {
     context.deleteProgram(program)
 
     throw new Error("dot_field_buffers_unavailable")
   }
 
-  const floatBytes = Float32Array.BYTES_PER_ELEMENT
-  const cubeStrideBytes = CUBE_POINT_STRIDE * floatBytes
+  const buffer = createBuffer(context)
+  const offsetBuffer = createBuffer(context)
+  const blankBuffer = createBuffer(context)
+  const shapeBuffers: Record<DotGeneratedShapeId, WebGLBuffer> = {
+    cube: createBuffer(context),
+    sphere: createBuffer(context),
+    dust: createBuffer(context),
+  }
 
   context.bindVertexArray(vertexArray)
 
@@ -212,36 +239,8 @@ export function createDotFieldRuntime(
     0
   )
 
-  context.bindBuffer(context.ARRAY_BUFFER, cubeBuffer)
-  context.enableVertexAttribArray(CUBE_POSITION_ATTRIBUTE_LOCATION)
-  context.vertexAttribPointer(
-    CUBE_POSITION_ATTRIBUTE_LOCATION,
-    CUBE_POSITION_COMPONENTS,
-    context.FLOAT,
-    false,
-    cubeStrideBytes,
-    0
-  )
-  context.enableVertexAttribArray(CUBE_DETAIL_ATTRIBUTE_LOCATION)
-  context.vertexAttribPointer(
-    CUBE_DETAIL_ATTRIBUTE_LOCATION,
-    CUBE_DETAIL_COMPONENTS,
-    context.FLOAT,
-    false,
-    cubeStrideBytes,
-    CUBE_POSITION_COMPONENTS * floatBytes
-  )
-
-  context.bindBuffer(context.ARRAY_BUFFER, sceneBuffer)
-  context.enableVertexAttribArray(SCENE_ATTRIBUTE_LOCATION)
-  context.vertexAttribPointer(
-    SCENE_ATTRIBUTE_LOCATION,
-    SCENE_POINT_STRIDE,
-    context.FLOAT,
-    false,
-    0,
-    0
-  )
+  pointShapeAttribute(context, FROM_ATTRIBUTE_LOCATION, blankBuffer)
+  pointShapeAttribute(context, TO_ATTRIBUTE_LOCATION, blankBuffer)
 
   context.bindVertexArray(null)
 
@@ -256,16 +255,23 @@ export function createDotFieldRuntime(
     vertexArray,
     buffer,
     offsetBuffer,
-    cubeBuffer,
-    sceneBuffer,
+    blankBuffer,
+    shapeBuffers,
+    shapeLibrary,
+    shapePoints: {
+      cube: new Float32Array(0),
+      sphere: new Float32Array(0),
+      dust: new Float32Array(0),
+    },
+    boundFrom: blankBuffer,
+    boundTo: blankBuffer,
     uniforms: resolveUniformLocations(context, program),
     pointCount: 0,
     positions: new Float32Array(0),
     offsets: new Float32Array(0),
     velocities: new Float32Array(0),
+    homes: new Float32Array(0),
     inkHeight: 0,
-    cubePoints: new Float32Array(0),
-    cubeHomes: new Float32Array(0),
     maxDimension: readMaxDimension(context),
   }
 }
@@ -274,7 +280,6 @@ export function applyStaticUniforms(
   runtime: DotFieldRuntime,
   tuning: DotFieldTuning,
   morphTuning: DotFieldMorphTuning,
-  sceneTuning: DotFieldSceneTuning,
   pixelRatio: number
 ): void {
   const { context, uniforms } = runtime
@@ -287,23 +292,6 @@ export function applyStaticUniforms(
   context.uniform1f(uniforms.morphStagger, morphTuning.morphStagger)
   context.uniform1f(uniforms.morphJitter, morphTuning.morphJitter)
   context.uniform1f(uniforms.morphArc, morphTuning.morphArcPixels * pixelRatio)
-  context.uniform1f(uniforms.cameraDistance, morphTuning.cameraDistance)
-  context.uniform1f(uniforms.cubeDotSize, morphTuning.cubeDotSize)
-  context.uniform1f(uniforms.burstStagger, sceneTuning.burstStagger)
-  context.uniform1f(uniforms.sparkFade, sceneTuning.sparkFade)
-  context.uniform1f(uniforms.dustOpacity, sceneTuning.dustOpacity)
-  context.uniform1f(uniforms.dustDotSize, sceneTuning.dustDotSize)
-  context.uniform1f(
-    uniforms.frameOutset,
-    sceneTuning.frameOutsetPx * pixelRatio
-  )
-  context.uniform1f(
-    uniforms.frameJitter,
-    sceneTuning.frameJitterPx * pixelRatio
-  )
-  context.uniform1f(uniforms.frameDotSize, sceneTuning.frameDotSize)
-  context.uniform1f(uniforms.frameOpacity, sceneTuning.frameOpacity)
-  context.uniform1f(uniforms.claimStagger, sceneTuning.claimStagger)
 }
 
 export function applyDotColor(
@@ -317,6 +305,15 @@ export function applyDotColor(
   context.uniform3f(uniforms.color, red, green, blue)
 }
 
+export function applyClearColor(
+  runtime: DotFieldRuntime,
+  backgroundColor: string
+): void {
+  const [red, green, blue] = hexToRgbTriplet(backgroundColor)
+
+  runtime.context.clearColor(red, green, blue, 1)
+}
+
 export function resizeDotField(runtime: DotFieldRuntime): void {
   const { context, uniforms } = runtime
   const widthPx = context.drawingBufferWidth
@@ -327,42 +324,57 @@ export function resizeDotField(runtime: DotFieldRuntime): void {
   context.uniform2f(uniforms.resolution, widthPx, heightPx)
 }
 
-export function uploadPoints(
-  runtime: DotFieldRuntime,
-  sample: DotFieldSample,
-  cubePoints: Float32Array,
-  scenePoints: Float32Array
-): void {
+function uploadShapeBuffers(runtime: DotFieldRuntime, total: number): void {
   const { context } = runtime
 
-  runtime.positions = sample.positions
-  runtime.offsets = new Float32Array(sample.count * OFFSET_STRIDE)
-  runtime.velocities = new Float32Array(sample.count * OFFSET_STRIDE)
+  for (const shape of GENERATED_SHAPE_IDS) {
+    const padded = padShapePoints(runtime.shapeLibrary[shape], total)
+
+    runtime.shapePoints[shape] = padded
+    context.bindBuffer(context.ARRAY_BUFFER, runtime.shapeBuffers[shape])
+    context.bufferData(context.ARRAY_BUFFER, padded, context.STATIC_DRAW)
+  }
+
+  context.bindBuffer(context.ARRAY_BUFFER, runtime.blankBuffer)
+  context.bufferData(
+    context.ARRAY_BUFFER,
+    new Float32Array(total * SHAPE_STRIDE),
+    context.STATIC_DRAW
+  )
+}
+
+export function uploadPoints(
+  runtime: DotFieldRuntime,
+  sample: DotFieldSample
+): void {
+  const { context } = runtime
+  const total = resolvePointTotal(sample.count)
+
+  if (total !== runtime.pointCount) {
+    uploadShapeBuffers(runtime, total)
+    runtime.offsets = new Float32Array(total * OFFSET_STRIDE)
+    runtime.velocities = new Float32Array(total * OFFSET_STRIDE)
+    runtime.homes = new Float32Array(total * POINT_STRIDE)
+
+    context.bindBuffer(context.ARRAY_BUFFER, runtime.offsetBuffer)
+    context.bufferData(
+      context.ARRAY_BUFFER,
+      runtime.offsets,
+      context.DYNAMIC_DRAW
+    )
+  }
+
+  runtime.positions = padNamePoints(sample.positions, sample.count, total)
   runtime.inkHeight = sample.inkHeight
-  runtime.cubePoints = cubePoints
-  runtime.cubeHomes = new Float32Array(sample.count * POINT_STRIDE)
 
   context.bindBuffer(context.ARRAY_BUFFER, runtime.buffer)
   context.bufferData(
     context.ARRAY_BUFFER,
-    sample.positions,
+    runtime.positions,
     context.STATIC_DRAW
   )
 
-  context.bindBuffer(context.ARRAY_BUFFER, runtime.offsetBuffer)
-  context.bufferData(
-    context.ARRAY_BUFFER,
-    runtime.offsets,
-    context.DYNAMIC_DRAW
-  )
-
-  context.bindBuffer(context.ARRAY_BUFFER, runtime.cubeBuffer)
-  context.bufferData(context.ARRAY_BUFFER, cubePoints, context.STATIC_DRAW)
-
-  context.bindBuffer(context.ARRAY_BUFFER, runtime.sceneBuffer)
-  context.bufferData(context.ARRAY_BUFFER, scenePoints, context.STATIC_DRAW)
-
-  runtime.pointCount = sample.count
+  runtime.pointCount = total
 }
 
 export function uploadOffsets(runtime: DotFieldRuntime): void {
@@ -372,58 +384,94 @@ export function uploadOffsets(runtime: DotFieldRuntime): void {
   context.bufferSubData(context.ARRAY_BUFFER, 0, runtime.offsets)
 }
 
-export function drawDotField(
+function resolvePlacementBuffer(
+  runtime: DotFieldRuntime,
+  placement: DotFieldPlacement,
+  fallback: DotFieldPlacement
+): WebGLBuffer {
+  if (placement.shape !== "name") {
+    return runtime.shapeBuffers[placement.shape]
+  }
+
+  if (fallback.shape !== "name") {
+    return runtime.shapeBuffers[fallback.shape]
+  }
+
+  return runtime.blankBuffer
+}
+
+function bindPlacementBuffers(
   runtime: DotFieldRuntime,
   frame: DotFieldFrame
 ): void {
+  const { context } = runtime
+  const fromBuffer = resolvePlacementBuffer(runtime, frame.from, frame.to)
+  const toBuffer = resolvePlacementBuffer(runtime, frame.to, frame.from)
+
+  if (fromBuffer !== runtime.boundFrom) {
+    pointShapeAttribute(context, FROM_ATTRIBUTE_LOCATION, fromBuffer)
+    runtime.boundFrom = fromBuffer
+  }
+
+  if (toBuffer !== runtime.boundTo) {
+    pointShapeAttribute(context, TO_ATTRIBUTE_LOCATION, toBuffer)
+    runtime.boundTo = toBuffer
+  }
+}
+
+function applyPlacement(
+  context: WebGL2RenderingContext,
+  uniforms: DotFieldPlacementUniforms,
+  placement: DotFieldPlacement
+): void {
+  context.uniform1f(uniforms.isName, placement.isName ? 1 : 0)
+  context.uniform2f(uniforms.center, placement.center.x, placement.center.y)
+  context.uniform2f(
+    uniforms.halfSize,
+    placement.halfSize.x,
+    placement.halfSize.y
+  )
+  context.uniformMatrix3fv(uniforms.rotation, false, placement.rotation)
+  context.uniform1f(uniforms.cameraDistance, placement.cameraDistance)
+  context.uniform1f(uniforms.visible, placement.visible)
+  context.uniform1f(uniforms.farLight, placement.farLight)
+  context.uniform1f(uniforms.depthRadius, placement.depthRadius)
+  context.uniform1f(uniforms.dotSize, placement.dotSize)
+  context.uniform1f(uniforms.opacity, placement.opacity)
+}
+
+export function drawDotField(
+  runtime: DotFieldRuntime,
+  frame: DotFieldFrame | null
+): void {
   const { context, uniforms } = runtime
-  const { intro } = frame
 
   context.clear(context.COLOR_BUFFER_BIT)
 
-  if (runtime.pointCount === 0) {
+  if (runtime.pointCount === 0 || frame === null) {
     return
   }
 
+  const { intro } = frame
+
   context.useProgram(runtime.program)
   context.bindVertexArray(runtime.vertexArray)
+  bindPlacementBuffers(runtime, frame)
 
-  context.uniform1f(uniforms.introScale, intro.scale)
   context.uniform1f(uniforms.introReveal, intro.revealX)
   context.uniform1f(uniforms.introSoftness, intro.softness)
   context.uniform1f(uniforms.introDim, intro.dim)
-  context.uniform2f(uniforms.wordOrigin, frame.wordOrigin.x, frame.wordOrigin.y)
   context.uniform2f(uniforms.wordCenter, frame.wordCenter.x, frame.wordCenter.y)
   context.uniform2f(
     uniforms.wordBounds,
     frame.wordBounds.left,
     frame.wordBounds.right
   )
-  context.uniform2f(uniforms.cubeCenter, frame.cubeCenter.x, frame.cubeCenter.y)
-  context.uniform1f(uniforms.cubeHalfSize, frame.cubeHalfSize)
-  context.uniformMatrix3fv(uniforms.cubeRotation, false, frame.rotation)
-  context.uniform1f(uniforms.farLight, frame.farLight)
-  context.uniform1f(uniforms.windowTop, frame.windowTop)
-  context.uniform1f(uniforms.burst, frame.burst)
-  context.uniform1f(uniforms.sparkRadius, frame.sparkRadius)
-  context.uniform4f(
-    uniforms.dustRect,
-    frame.dustRect.x,
-    frame.dustRect.y,
-    frame.dustRect.width,
-    frame.dustRect.height
-  )
-  context.uniform2f(uniforms.shares, frame.shares.x, frame.shares.y)
-  context.uniform1f(uniforms.frameCount, frame.frameCount)
-  context.uniform4fv(uniforms.frameRects, frame.frameRects)
-  context.uniform1fv(uniforms.claims, frame.claims)
-  context.uniform1f(uniforms.frameBand, frame.frameBand)
+  context.uniform1f(uniforms.morph, frame.progress)
+  applyPlacement(context, uniforms.from, frame.from)
+  applyPlacement(context, uniforms.to, frame.to)
 
-  for (const morph of frame.morphPasses) {
-    context.uniform1f(uniforms.morph, morph)
-    context.drawArrays(context.POINTS, 0, runtime.pointCount)
-  }
-
+  context.drawArrays(context.POINTS, 0, runtime.pointCount)
   context.bindVertexArray(null)
 }
 
@@ -432,8 +480,12 @@ export function destroyRuntime(runtime: DotFieldRuntime): void {
 
   context.deleteBuffer(runtime.buffer)
   context.deleteBuffer(runtime.offsetBuffer)
-  context.deleteBuffer(runtime.cubeBuffer)
-  context.deleteBuffer(runtime.sceneBuffer)
+  context.deleteBuffer(runtime.blankBuffer)
+
+  for (const shape of GENERATED_SHAPE_IDS) {
+    context.deleteBuffer(runtime.shapeBuffers[shape])
+  }
+
   context.deleteVertexArray(runtime.vertexArray)
   context.deleteProgram(runtime.program)
 }

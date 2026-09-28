@@ -1,7 +1,9 @@
 import { ContactForm } from "@/features/contact/components/contact.form"
 import { Hero } from "@/features/portfolio/components/hero.component"
 import { SectionNavigation } from "@/features/portfolio/components/section-navigation.component"
+import { SiteFooter } from "@/features/portfolio/components/site-footer.component"
 import { buildThemeStyle } from "@/features/site-content/site-content.rules"
+import { cn } from "@/lib/utils"
 import { PortfolioStoreProvider } from "@/providers/portfolio-store.provider"
 import type { SiteContent } from "@/types/site-content.type"
 
@@ -30,7 +32,9 @@ export function SitePage({
   return (
     <PortfolioStoreProvider>
       <div
-        className="bg-background text-foreground"
+        data-status="idle"
+        data-scene="name"
+        className="group/stage isolate bg-background text-foreground"
         style={buildThemeStyle(content.theme) as React.CSSProperties}
       >
         <SectionNavigation />
@@ -38,32 +42,43 @@ export function SitePage({
         <main>
           <Hero content={content} displayFontFamily={displayFontFamily} />
 
-          {PLACEHOLDER_SECTIONS.map(function renderSection(section) {
-            return (
-              <section
-                key={section.id}
-                id={section.id}
-                className="mx-auto max-w-4xl scroll-mt-20 px-4 py-20"
-              >
-                <h2 className="text-2xl font-semibold">{section.heading}</h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {section.body}
-                </p>
-              </section>
-            )
-          })}
-
-          <section
-            id="contact"
-            className="mx-auto max-w-4xl scroll-mt-20 px-4 py-20"
+          <div
+            data-dot-scene="dust"
+            data-dot-shapes="dust"
+            className="scroll-mt-18"
           >
-            <h2 className="text-2xl font-semibold">Contact</h2>
-            <p className="mt-2 mb-6 text-sm text-muted-foreground">
-              Send me a message and I will get back to you.
-            </p>
-            <ContactForm />
-          </section>
+            {PLACEHOLDER_SECTIONS.map(function renderSection(section) {
+              return (
+                <section
+                  key={section.id}
+                  id={section.id}
+                  className="mx-auto max-w-4xl scroll-mt-18 px-4 py-20"
+                >
+                  <h2 className="text-2xl font-semibold">{section.heading}</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {section.body}
+                  </p>
+                </section>
+              )
+            })}
+
+            <section
+              id="contact"
+              className={cn(
+                "mx-auto min-h-[calc(100svh_-_4.5rem)] max-w-4xl scroll-mt-18",
+                "px-4 py-20"
+              )}
+            >
+              <h2 className="text-2xl font-semibold">Contact</h2>
+              <p className="mt-2 mb-6 text-sm text-muted-foreground">
+                Send me a message and I will get back to you.
+              </p>
+              <ContactForm />
+            </section>
+          </div>
         </main>
+
+        <SiteFooter />
       </div>
     </PortfolioStoreProvider>
   )

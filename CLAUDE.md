@@ -8,7 +8,9 @@ Read before working:
 
 - `AGENTS.md`: this is Next.js 16.3.4, which differs from training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing Next.js code.
 - `PRODUCT.md` (audience, positioning, what must not be fabricated) and `DESIGN.md` (visual system) before any UI work.
-- `plans/handoff.md` for the rationale behind non-obvious decisions. The plans in `plans/` are finished history, not open work.
+- `plans/handoff.md`: the redesign in progress. It covers the current phase, the owner's decisions, the fixed-canvas architecture and the DOM contract every dot scene follows.
+  - Rationale for the earlier hero, quote, burst and editor work is in `git show 0a3c97a:plans/handoff.md`.
+  - The other plans in `plans/` are finished history, not open work.
 
 ## Commands
 
@@ -67,33 +69,46 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
 - The preview uses a `ready` handshake. The iframe posts `ready` once its listener is attached, and the editor answers with the current content. Never post from the iframe's `onLoad`: it fires before hydration and the message is dropped.
 - Rich text is Tiptap JSON. The schema allowlists node and mark types, and those must match the extension list in `rich-text.extensions.ts`: `generateHTML` throws on anything unknown. Change both together.
 
-**Hero dot field** (`src/features/portfolio/`).
+**Hero dot field** (`src/features/portfolio/`). The full architecture and the DOM contract are in `plans/handoff.md`.
 
 - **How it works:** raw WebGL2, no three.js or ogl. The sampler (Canvas2D) rasterises the name in Antonio and samples a dot grid. The renderer and GLSL in `shaders/` draw it. `dot-field.rules.ts` is the pure, unit-tested layer.
-- **Stage and scroll morph:**
-  - `Hero`'s root is the stage. It holds the one opaque canvas at `-z-10` inside `isolate`, then `#home`, then `QuoteSection` (`#quote`), then `ProjectsSection` (`#project`). The canvas is as tall as the stage top to the cube slot's bottom and scrolls with the document.
-  - Scrolling out of the hero morphs the name's dots into a spinning stippled cube in the quote's slot. Scrolling on compresses the cube and bursts it into Projects (dust, sparks, and a stippled frame around each `[data-dot-frame]` plate).
-  - Keep **exactly one `<canvas>` and one `[data-status]`** on the page; the e2e specs use strict locators. Any section that wants dots must live inside the stage.
-- **Sliding window:** the canvas never grows (that would cost the name its pixel ratio). `resolveCanvasWindowTop` slides it with `transform` in whole-device-pixel steps once `#project` is on screen or the scene is still animating (so a fast scroll back never clips the implosion), and is 0 otherwise and under reduced motion. `renderFrame` resyncs it every frame. The shader's last line subtracts `uWindowTop`; homes, physics and the pointer stay in stage device px. A MutationObserver on the projects section re-reads the frame rects when cards change without resizing (a reorder in the editor). The window is synced from `onScroll` even while the loop sleeps, because the IntersectionObserver only restarts the loop once the canvas is back on screen.
-- **Scene:** attribute 4 (`aScene`: u, v, along, key) from `generateScenePoints`, uploaded inside `uploadPoints` with the others. Compress is scroll-scrubbed; the burst is a time-based follow with a rearm hysteresis (`resolveSceneTargets`); frames are claimed per card by scroll (`resolveClaimTarget`, uniform arrays sized `MAX_DOT_FRAMES`). Only cube-edge dots (`aMorph.y`) take part. Every new term is an exact identity at burst 0 and window 0, which is why the hero and `/#quote` stay pixel-identical. The stage carries `data-burst` (`off | idle | open`); `data-morph` stays `cube` throughout.
-- **Coordinates:** home positions stay in the bleed box's local device px. Uniforms (`uWordOrigin`, rounded to whole device pixels, and `uWordCenter`) place them on the canvas. One pixel ratio from `resolveCanvasPixelRatio` feeds the canvas, the sampler and the pointer. The canvas CSS size is derived from its rounded backing size.
-- **Cube buffer:** attributes 2 and 3 come from `generateCubePoints`, always for the same count as the wordmark, and are uploaded inside `uploadPoints`.
-- **Blending:** dimness in the cube is opacity, not darkness, under source-over. Don't switch to MAX blending: it darkens the wordmark's seams.
-- **Tuning:** every tuning number lives in `src/data/hero.data.ts`. Tune there and nowhere else.
-- **Two effects in `use-dot-field.hook.ts`; never merge them.** One owns the GL context and animation loop, with stable deps (`[stageRef, heroRef, wordmarkRef, taglineRef, cubeRef, canvasRef, mode]`). The quote never enters the hook. The other resamples geometry on `[text, fontFamily]`. Merging them recreates a WebGL context on every editor keystroke. A third, tiny effect applies `dotColor` as a uniform; never put `dotColor` in the GL effect's deps, or a colour edit blanks the field.
-- **Physics:** each dot is a damped spring (`stepDotPhysics` in `dot-field.rules.ts`), stepped on the CPU and streamed to vertex attribute 1 as offsets from the static home positions. Radius and push scale with the wordmark's ink height.
-- **Pointer:** it pushes at morph 0 (the name) and at morph 1 (the cube), never while dots are in flight, compressing or burst.
-  - The pointer is kept in canvas device px.
-  - For the cube, `projectCubePoints` recomputes the homes on the CPU with the shader's exact maths. The ink height becomes `cubeSide × cubeInkRatio`.
-  - Offsets are added after the name-to-cube mix, so one spring drives both shapes.
+- **One fixed canvas:**
+  - `Hero` renders the one opaque canvas inside a `fixed top-0 h-lvh -z-10` layer. It is always exactly the viewport, so no dot is ever clipped at a section edge.
+  - SitePage's wrapper is the stage: `isolate`, the named group `group/stage`, `data-status` and `data-scene`. The hook finds it with `canvas.closest("[data-status]")`.
+  - Nothing between the wrapper and the canvas may form a stacking context. That rules out `isolate`, `z-index`, and transform, opacity or filter animation. The canvas must never sit inside a sticky element.
+  - Keep **exactly one `<canvas>` and one `[data-status]`**; the e2e specs use strict locators.
+- **Scenes and timeline:**
+  - Every section belongs to a `[data-dot-scene]` container, with shapes in `data-dot-shapes`.
+  - A formed shape lives only in a pinned `[data-dot-slot]` inside the container's first child, a sticky frame. Dust scenes have no slot and fill the viewport.
+  - `buildSceneKeyframes` turns the measured scenes into keyframes. `resolveTimelinePosition` maps `scrollY` to one position `p` (keyframe index plus transit progress), which the loop smooths (`followTimelineProgress`, snapping jumps longer than one segment).
+  - The stage's `data-scene` is the formed keyframe id or `moving`.
+- **Shapes:**
+  - The name stays on attribute 0, pixel-identical to the pre-timeline build at rest.
+  - Every other shape comes from `buildShapeLibrary` (seeded, `SHAPE_POINTS` each), padded to the point total and uploaded once into its own buffer. Attributes 2 and 3 (`aFrom` and `aTo`) are re-pointed at the right buffers when the keyframe pair changes.
+  - `resolvePlacement` gives each keyframe a centre, half-size, rotation, camera and visible-rank threshold. The shader mixes from to with the staggered sweep and arc, then adds the spring offsets.
+- **Coordinates:**
+  - Name homes stay in the bleed box's local device px. The name placement's centre is rounded to whole device pixels.
+  - One pixel ratio from `resolveCanvasPixelRatio` feeds the canvas, the sampler and the pointer. The canvas CSS size is derived from its rounded backing size.
+- **Blending:** dimness is opacity, not darkness, under source-over. Don't switch to MAX blending: it darkens the wordmark's seams.
+- **Tuning:** every tuning number lives in `src/data/hero.data.ts` (`DOT_FIELD_MORPH_TUNING`, `DOT_SHAPE_TUNING`). Tune there and nowhere else.
+- **Two effects in `use-dot-field.hook.ts`; never merge them.**
+  - One owns the GL context and animation loop, with stable deps (`[canvasRef, wordmarkRef, taglineRef, mode]`).
+  - The other resamples geometry on `[text, fontFamily]`. Merging them recreates a WebGL context on every editor keystroke.
+  - A third, tiny effect applies `dotColor` as a uniform; never put `dotColor` in the GL effect's deps, or a colour edit blanks the field.
+- **Physics:**
+  - Each dot is a damped spring (`stepDotPhysics`), stepped on the CPU and streamed to attribute 1 as offsets.
+  - The pointer (canvas device px) pushes only while a slotted shape is formed. Homes come from `writeNameHomes` or `projectShapePoints`, which repeats the shader's maths.
 - **Loop:**
-  - The RAF loop stops once every dot is at rest and either the morph is back at 0 or the burst is fully open (`shouldLoopSleep`).
-  - While the cube shows (morph > 0 and the burst not open) it spins constantly, by the owner's choice, and the loop runs as long as the canvas is visible.
-  - Scroll and pointer input restart the loop, so a resize must always redraw.
-  - The cube's orientation is `buildCubeRotation(yaw, pitch, roll)`. The pitch and roll wobble around `cubePitch` and `cubeRoll`. The IntersectionObserver watches the canvas: not the wordmark box, which would freeze the cube, and not the whole stage, which runs past the drawn area.
-- **No `useState` in the hook.** Status goes out as DOM attributes (`data-status` and `data-morph` on the stage, `data-point-count` on the canvas), which CSS and the e2e specs key off.
+  - The RAF loop sleeps once the dots are at rest, `p` has reached its target, the intro has settled, and no spinning shape (the cube, the placeholder sphere) is formed or in transit (`shouldLoopSleep`).
+  - Scroll, pointer and resize input restart it. `visibilitychange` stops it.
+  - There is no IntersectionObserver, because a fixed canvas is always on screen.
+- **No `useState` in the hook.** Status goes out as DOM attributes (`data-status` and `data-scene` on the stage, `data-point-count` on the canvas), which CSS and the e2e specs key off.
 - **Font gate:** it must check only the primary family (`Antonio`), because `Antonio Fallback` (metric-adjusted Arial) always reports as loaded. Use `document.fonts.load()` followed by `check()`; `fonts.ready` alone is not enough.
-- **Fallbacks:** no WebGL2 (or a lost context) falls back to the text `<h1>`, and the cube slot collapses. Reduced motion draws the settled name and the still cube once, in two draw calls, and never starts the loop. There is no viewport gate; phones run the dots. `aria-hidden` goes on the canvas only.
+- **Fallbacks:**
+  - No WebGL2 (or a lost context) falls back to the text `<h1>`. Slots hide and scene containers drop their pin height.
+  - Reduced motion never starts the loop. It draws a keyframe only while the scroll is inside that keyframe's pin range, and clears the canvas between scenes.
+  - There is no viewport gate; phones run the dots.
+  - `aria-hidden` goes on the canvas and the empty slots only.
 
 **Other.**
 

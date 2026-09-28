@@ -3,56 +3,52 @@
 import { useEffect, useRef } from "react"
 
 import {
-  BURST_FOLLOW_TUNING,
   CONTEXT_OPTIONS,
-  DOT_FRAME_RECT_STRIDE,
-  DOT_FRAME_SELECTOR,
   DOT_FIELD_MORPH_TUNING,
-  DOT_FIELD_SCENE_TUNING,
   DOT_FIELD_TUNING,
+  DOT_SCENE_SELECTOR,
+  DOT_SLOT_SELECTOR,
+  DOT_STAGE_SELECTOR,
   HEIGHT_CHANGE_IGNORE_PX,
   HERO_INTRO_TIMING,
-  MAX_DOT_FRAMES,
+  IN_PAGE_ANCHOR_SELECTOR,
+  JUMP_CANCEL_EVENTS,
   MAX_FRAME_DELTA_SECONDS,
   MORPH_LANDING_TOLERANCE_PX,
-  PROJECTS_MUTATION_OPTIONS,
-  REDUCED_MOTION_MORPH_PASSES,
   RESIZE_DEBOUNCE_MS,
   SETTLED_INTRO_SECONDS,
-  VISIBILITY_ROOT_MARGIN,
 } from "@/data/hero.data"
 import {
   hasFontLoadingApi,
-  hasIntersectionObserver,
   hasResizeObserver,
   prefersReducedMotion,
   readReducedMotionQuery,
 } from "@/features/portfolio/browser-capability.rules"
 import {
-  buildCubeRotation,
   buildFontShorthand,
-  followMorphProgress,
-  generateCubePoints,
-  generateScenePoints,
+  buildSceneKeyframes,
+  buildShapeLibrary,
+  followTimelineProgress,
+  isShapeSpinning,
+  parseCssPixels,
   parsePrimaryFontFamily,
-  projectCubePoints,
-  resolveBurstState,
+  parseSceneShapes,
+  projectShapePoints,
   resolveCanvasPixelRatio,
-  resolveCanvasWindowTop,
-  resolveClaimTarget,
-  resolveCompressedCube,
-  resolveFrameShare,
   resolveIntroFrame,
-  resolveMorphState,
-  resolveSceneScroll,
-  resolveSceneTargets,
-  resolveSpinBoost,
-  resolveStageProgress,
+  resolvePlacement,
+  resolveSceneState,
+  resolveStaticKeyframe,
+  resolveTimelinePosition,
+  resolveTimelineSegment,
+  resolveViewportHeight,
   shouldLoopSleep,
   shouldRebuildPoints,
   stepDotPhysics,
+  writeNameHomes,
 } from "@/features/portfolio/dot-field.rules"
 import {
+  applyClearColor,
   applyDotColor,
   applyStaticUniforms,
   createDotFieldRuntime,
@@ -67,25 +63,28 @@ import {
   waitForDisplayFont,
 } from "@/features/portfolio/services/dot-field-sampler.service"
 import type {
-  DotFieldBounds,
   DotFieldFrame,
   DotFieldIntroFrame,
   DotFieldLayout,
-  DotFieldLayoutElements,
-  DotFieldPhysicsSpace,
+  DotFieldNameSample,
+  DotFieldPlacement,
   DotFieldPointer,
-  DotFieldRect,
   DotFieldRuntime,
-  DotFieldSceneScroll,
   DotFieldViewport,
-  HeroBurstState,
-  HeroMorphState,
+  DotSceneKeyframe,
+  DotSceneMeasure,
+  DotTimelineSegment,
   UseDotFieldRequest,
 } from "@/types/hero.type"
 
-const PLACEHOLDER_BOUNDS: DotFieldBounds = {
-  left: 0,
-  right: 1,
+const PLACEHOLDER_NAME_SAMPLE: DotFieldNameSample = {
+  width: 0,
+  height: 0,
+  bounds: {
+    left: 0,
+    right: 1,
+  },
+  inkHeight: 1,
 }
 
 function createPointer(): DotFieldPointer {
@@ -96,59 +95,88 @@ function createPointer(): DotFieldPointer {
   }
 }
 
-function readFrameRects(
-  projects: HTMLElement,
-  stageRect: DOMRect
-): DotFieldRect[] {
-  const frames: DotFieldRect[] = []
-  const frameElements = projects.querySelectorAll(DOT_FRAME_SELECTOR)
-
-  for (const frameElement of frameElements) {
-    if (frames.length >= MAX_DOT_FRAMES) {
-      break
-    }
-
-    const frameRect = frameElement.getBoundingClientRect()
-
-    frames.push({
-      x: frameRect.left - stageRect.left,
-      y: frameRect.top - stageRect.top,
-      width: frameRect.width,
-      height: frameRect.height,
-    })
+function warnOnContractBreach(
+  container: HTMLElement,
+  frame: Element,
+  slot: HTMLElement
+): void {
+  if (process.env.NODE_ENV === "production") {
+    return
   }
 
-  return frames
+  const style = getComputedStyle(container)
+  const hasPadding =
+    parseCssPixels(style.paddingTop) !== 0 ||
+    parseCssPixels(style.paddingBottom) !== 0
+
+  if (!frame.contains(slot) || hasPadding) {
+    console.warn(
+      `Dot scene "${container.dataset.dotScene}" breaks the DOM contract in plans/handoff.md`
+    )
+  }
 }
 
-function readLayout(elements: DotFieldLayoutElements): DotFieldLayout {
-  const stageRect = elements.stage.getBoundingClientRect()
-  const wordRect = elements.wordmark.getBoundingClientRect()
-  const cubeRect = elements.cube.getBoundingClientRect()
-  const projectsRect = elements.projects.getBoundingClientRect()
-  const heroHeight = elements.hero.getBoundingClientRect().height
-  const cubeBottom = cubeRect.bottom - stageRect.top
+function readSceneMeasure(
+  container: HTMLElement,
+  scrolled: number
+): DotSceneMeasure {
+  const containerRect = container.getBoundingClientRect()
+  const slot = container.querySelector<HTMLElement>(DOT_SLOT_SELECTOR)
+  const frame = container.firstElementChild
+  const measure: DotSceneMeasure = {
+    id: container.dataset.dotScene ?? "",
+    shapes: parseSceneShapes(container.dataset.dotShapes),
+    containerTop: containerRect.top + scrolled,
+    containerBottom: containerRect.bottom + scrolled,
+    stickyTop: parseCssPixels(getComputedStyle(container).scrollMarginTop),
+    frameHeight: 0,
+    slot: null,
+  }
+
+  if (slot === null || frame === null) {
+    return measure
+  }
+
+  warnOnContractBreach(container, frame, slot)
+
+  const frameRect = frame.getBoundingClientRect()
+  const slotRect = slot.getBoundingClientRect()
+  const stickyTop = parseCssPixels(getComputedStyle(frame).top)
 
   return {
-    width: stageRect.width,
-    height: Math.max(heroHeight, cubeBottom),
+    ...measure,
+    stickyTop,
+    frameHeight: frameRect.height,
+    slot: {
+      x: slotRect.left,
+      y: slotRect.top - frameRect.top + stickyTop,
+      width: slotRect.width,
+      height: slotRect.height,
+    },
+  }
+}
+
+function readLayout(
+  stage: HTMLElement,
+  layer: HTMLElement,
+  wordmark: HTMLElement
+): DotFieldLayout {
+  const layerRect = layer.getBoundingClientRect()
+  const wordRect = wordmark.getBoundingClientRect()
+  const scenes: DotSceneMeasure[] = []
+  const containers = stage.querySelectorAll<HTMLElement>(DOT_SCENE_SELECTOR)
+
+  for (const container of containers) {
+    scenes.push(readSceneMeasure(container, window.scrollY))
+  }
+
+  return {
+    width: layerRect.width,
+    height: layerRect.height,
     wordWidth: wordRect.width,
     wordHeight: wordRect.height,
-    wordCenter: {
-      x: wordRect.left + wordRect.width / 2 - stageRect.left,
-      y: wordRect.top + wordRect.height / 2 - stageRect.top,
-    },
-    cubeCenter: {
-      x: cubeRect.left + cubeRect.width / 2 - stageRect.left,
-      y: cubeRect.top + cubeRect.height / 2 - stageRect.top,
-    },
-    cubeSide: Math.min(cubeRect.width, cubeRect.height),
-    morphStart: heroHeight * DOT_FIELD_MORPH_TUNING.morphStartRatio,
-    morphEnd: heroHeight - MORPH_LANDING_TOLERANCE_PX,
-    stageHeight: stageRect.height,
-    projectsTop: projectsRect.top - stageRect.top,
-    projectsBottom: projectsRect.bottom - stageRect.top,
-    frames: readFrameRects(elements.projects, stageRect),
+    viewportHeight: resolveViewportHeight(scenes, layerRect.height),
+    scenes,
   }
 }
 
@@ -167,48 +195,30 @@ function hasLayoutSizeChanged(
 }
 
 function isUsableLayout(layout: DotFieldLayout): boolean {
-  return layout.width > 0 && layout.wordWidth > 0 && layout.wordHeight > 0
+  if (layout.width <= 0 || layout.height <= 0) {
+    return false
+  }
+
+  return layout.wordWidth > 0 && layout.wordHeight > 0
 }
 
-function readScrolled(stage: HTMLElement): number {
-  return -stage.getBoundingClientRect().top
-}
-
-function readSceneScroll(
-  scrolled: number,
-  layout: DotFieldLayout
-): DotFieldSceneScroll {
-  return resolveSceneScroll(
-    {
-      scrolled,
-      viewportHeight: window.innerHeight,
-      projectsTop: layout.projectsTop,
-      stageWidth: layout.width,
-    },
-    DOT_FIELD_SCENE_TUNING
-  )
-}
-
-function resolveMorphTarget(scrolled: number, layout: DotFieldLayout): number {
-  return resolveStageProgress(
-    scrolled,
-    layout.morphStart,
-    layout.morphEnd - layout.morphStart
+function buildKeyframes(layout: DotFieldLayout): DotSceneKeyframe[] {
+  return buildSceneKeyframes(
+    layout.scenes,
+    layout.viewportHeight,
+    DOT_FIELD_MORPH_TUNING
   )
 }
 
 export function useDotField(request: UseDotFieldRequest): void {
   const {
-    stageRef,
-    heroRef,
+    canvasRef,
     wordmarkRef,
     taglineRef,
-    cubeRef,
-    projectsRef,
-    canvasRef,
     text,
     fontFamily,
     dotColor,
+    backgroundColor,
     mode,
     onIntroSettled,
     onUnsupported,
@@ -217,13 +227,13 @@ export function useDotField(request: UseDotFieldRequest): void {
   const runtimeRef = useRef<DotFieldRuntime | null>(null)
   const pointerRef = useRef<DotFieldPointer>(createPointer())
   const viewportRef = useRef<DotFieldViewport | null>(null)
-  const sampledViewportRef = useRef<DotFieldViewport | null>(null)
+  const nameSampleRef = useRef<DotFieldNameSample | null>(null)
   const rebuildRef = useRef<(() => void) | null>(null)
   const redrawRef = useRef<(() => void) | null>(null)
-  const boundsRef = useRef<DotFieldBounds | null>(null)
   const introStartRef = useRef<number | null>(null)
   const hasSettledRef = useRef(false)
   const dotColorRef = useRef(dotColor)
+  const backgroundColorRef = useRef(backgroundColor)
   const settleCallbackRef = useRef(onIntroSettled)
   const unsupportedCallbackRef = useRef(onUnsupported)
 
@@ -237,37 +247,26 @@ export function useDotField(request: UseDotFieldRequest): void {
 
   useEffect(
     function initialiseDotField() {
-      const stageElement = stageRef.current
-      const heroElement = heroRef.current
-      const wordmarkElement = wordmarkRef.current
-      const cubeElement = cubeRef.current
-      const projectsElement = projectsRef.current
       const canvasElement = canvasRef.current
+      const wordmarkElement = wordmarkRef.current
 
-      if (
-        stageElement === null ||
-        heroElement === null ||
-        wordmarkElement === null ||
-        cubeElement === null ||
-        projectsElement === null ||
-        canvasElement === null
-      ) {
+      if (canvasElement === null || wordmarkElement === null) {
         return
       }
 
-      const stage: HTMLElement = stageElement
-      const wordmark: HTMLElement = wordmarkElement
-      const cube: HTMLElement = cubeElement
-      const projects: HTMLElement = projectsElement
-      const canvas: HTMLCanvasElement = canvasElement
-      const tagline = taglineRef.current
-      const layoutElements: DotFieldLayoutElements = {
-        stage,
-        hero: heroElement,
-        wordmark,
-        cube,
-        projects,
+      const stageElement =
+        canvasElement.closest<HTMLElement>(DOT_STAGE_SELECTOR)
+      const layerElement = canvasElement.parentElement
+
+      if (stageElement === null || layerElement === null) {
+        return
       }
+
+      const canvas: HTMLCanvasElement = canvasElement
+      const wordmark: HTMLElement = wordmarkElement
+      const stage: HTMLElement = stageElement
+      const layer: HTMLElement = layerElement
+      const tagline = taglineRef.current
 
       if (mode === "text") {
         return
@@ -282,61 +281,51 @@ export function useDotField(request: UseDotFieldRequest): void {
         settleCallbackRef.current()
       }
 
+      function markUnsupported(): void {
+        stage.dataset.status = "unsupported"
+        unsupportedCallbackRef.current()
+      }
+
       const context = canvas.getContext("webgl2", CONTEXT_OPTIONS)
 
       if (context === null) {
-        stage.dataset.status = "unsupported"
-        stage.dataset.burst = "off"
-        unsupportedCallbackRef.current()
+        markUnsupported()
         return
       }
 
       let runtime: DotFieldRuntime
 
       try {
-        runtime = createDotFieldRuntime(context)
+        runtime = createDotFieldRuntime(context, buildShapeLibrary())
       } catch {
-        stage.dataset.status = "unsupported"
-        stage.dataset.burst = "off"
-        unsupportedCallbackRef.current()
+        markUnsupported()
         return
       }
 
       runtimeRef.current = runtime
       applyDotColor(runtime, dotColorRef.current)
+      applyClearColor(runtime, backgroundColorRef.current)
 
       const pointer = pointerRef.current
-      const wordPointer = createPointer()
       const reducedMotionQuery = readReducedMotionQuery()
+      const slots = Array.from(
+        stage.querySelectorAll<HTMLElement>(DOT_SLOT_SELECTOR)
+      )
 
       let frameId = 0
       let previousTimestamp = 0
       let elapsedSeconds = 0
-      let isVisible = true
       let resizeHandle = 0
       let pixelRatio = 1
-      let canvasHeight = 0
-      let layout = readLayout(layoutElements)
-      let scrolled = readScrolled(stage)
-      let sceneScroll = readSceneScroll(scrolled, layout)
-      let morph = 0
-      let morphTarget = 0
-      let compress = 0
-      let compressTarget = 0
-      let burst = 0
-      let burstTarget = 0
-      let windowTop = 0
-      const claims = new Float32Array(MAX_DOT_FRAMES)
-      const claimTargets = new Float32Array(MAX_DOT_FRAMES)
-      const frameRects = new Float32Array(
-        MAX_DOT_FRAMES * DOT_FRAME_RECT_STRIDE
-      )
-      let spinYaw = 0
-      let wobblePhase = 0
+      let layout = readLayout(stage, layer, wordmark)
+      let keyframes = buildKeyframes(layout)
+      let progress = 0
+      let progressTarget = 0
+      let staticIndex = -1
+      let spinSeconds = 0
       let isFieldAtRest = true
-      let areClaimsResting = true
-      let morphState: HeroMorphState = "name"
-      let burstState: HeroBurstState = "off"
+      let sceneState = stage.dataset.scene ?? ""
+      let jumpScrollTop: number | null = null
 
       function applyCanvasSize(): void {
         pixelRatio = resolveCanvasPixelRatio(
@@ -351,15 +340,13 @@ export function useDotField(request: UseDotFieldRequest): void {
 
         canvas.width = deviceWidth
         canvas.height = deviceHeight
-        canvasHeight = deviceHeight / pixelRatio
         canvas.style.width = deviceWidth / pixelRatio + "px"
-        canvas.style.height = canvasHeight + "px"
+        canvas.style.height = deviceHeight / pixelRatio + "px"
 
         applyStaticUniforms(
           runtime,
           DOT_FIELD_TUNING,
           DOT_FIELD_MORPH_TUNING,
-          DOT_FIELD_SCENE_TUNING,
           pixelRatio
         )
         resizeDotField(runtime)
@@ -371,14 +358,24 @@ export function useDotField(request: UseDotFieldRequest): void {
         }
       }
 
-      function resolveIntro(): DotFieldIntroFrame {
-        const bounds = boundsRef.current
+      function resolveNameSample(): DotFieldNameSample {
+        const sample = nameSampleRef.current
 
-        if (bounds === null) {
+        if (sample === null) {
+          return PLACEHOLDER_NAME_SAMPLE
+        }
+
+        return sample
+      }
+
+      function resolveIntro(): DotFieldIntroFrame {
+        const sample = nameSampleRef.current
+
+        if (sample === null) {
           return resolveIntroFrame(
             SETTLED_INTRO_SECONDS,
             HERO_INTRO_TIMING,
-            PLACEHOLDER_BOUNDS,
+            PLACEHOLDER_NAME_SAMPLE.bounds,
             pixelRatio
           )
         }
@@ -389,7 +386,7 @@ export function useDotField(request: UseDotFieldRequest): void {
           return resolveIntroFrame(
             SETTLED_INTRO_SECONDS,
             HERO_INTRO_TIMING,
-            bounds,
+            sample.bounds,
             pixelRatio
           )
         }
@@ -401,7 +398,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         const frame = resolveIntroFrame(
           elapsedSeconds - introStartRef.current,
           HERO_INTRO_TIMING,
-          bounds,
+          sample.bounds,
           pixelRatio
         )
 
@@ -412,309 +409,138 @@ export function useDotField(request: UseDotFieldRequest): void {
         return frame
       }
 
-      function buildFrame(): DotFieldFrame {
-        const sampled = sampledViewportRef.current
-        const sampleWidth = sampled === null ? 0 : sampled.width
-        const sampleHeight = sampled === null ? 0 : sampled.height
-        const bounds = boundsRef.current
-        const isStatic = prefersReducedMotion()
-        const tuning = DOT_FIELD_MORPH_TUNING
-        const sceneTuning = DOT_FIELD_SCENE_TUNING
-        const compressed = resolveCompressedCube(
-          {
-            slotCenter: {
-              x: layout.cubeCenter.x * pixelRatio,
-              y: layout.cubeCenter.y * pixelRatio,
-            },
-            burstPoint: {
-              x: sceneScroll.burstPoint.x * pixelRatio,
-              y: sceneScroll.burstPoint.y * pixelRatio,
-            },
-            halfSize: layout.cubeSide * tuning.cubeHalfSizeRatio * pixelRatio,
-            compress,
-          },
-          sceneTuning,
-          tuning.farLight
-        )
-        const dustHeight = layout.projectsBottom - sceneScroll.dustTop
-        const sparkReach = Math.max(layout.width, window.innerHeight)
-        const visibleCount = Math.min(
-          runtime.pointCount,
-          tuning.cubeEdgePointLimit
-        )
-        const frameShare = resolveFrameShare(
-          visibleCount,
-          layout.frames,
-          sceneTuning
-        )
-
-        writeFrameRects()
-
-        let yaw = spinYaw + morph * tuning.morphSpin
-        let pitch = tuning.cubePitch + tuning.cubeWobble * Math.sin(wobblePhase)
-        let roll = tuning.cubeRoll + tuning.cubeWobble * Math.cos(wobblePhase)
-        let morphPasses = [morph]
-
-        if (isStatic) {
-          yaw = tuning.cubeStaticYaw
-          pitch = tuning.cubePitch
-          roll = tuning.cubeRoll
-          morphPasses = REDUCED_MOTION_MORPH_PASSES
+      function resolveSegment(): DotTimelineSegment {
+        if (!prefersReducedMotion()) {
+          return resolveTimelineSegment(progress, keyframes.length)
         }
 
         return {
-          intro: resolveIntro(),
-          wordOrigin: {
-            x: Math.round(layout.wordCenter.x * pixelRatio - sampleWidth / 2),
-            y: Math.round(layout.wordCenter.y * pixelRatio - sampleHeight / 2),
-          },
-          wordCenter: {
-            x: sampleWidth / 2,
-            y: sampleHeight / 2,
-          },
-          wordBounds: bounds === null ? PLACEHOLDER_BOUNDS : bounds,
-          cubeCenter: compressed.center,
-          cubeHalfSize: compressed.halfSize,
-          rotation: buildCubeRotation(yaw, pitch, roll),
-          morphPasses,
-          windowTop: windowTop * pixelRatio,
-          burst,
-          farLight: compressed.farLight,
-          sparkRadius: sceneTuning.sparkRadiusRatio * sparkReach * pixelRatio,
-          dustRect: {
-            x: 0,
-            y: sceneScroll.dustTop * pixelRatio,
-            width: layout.width * pixelRatio,
-            height: Math.max(0, dustHeight) * pixelRatio,
-          },
-          shares: {
-            x: frameShare,
-            y: frameShare + sceneTuning.dustShare,
-          },
-          frameCount: layout.frames.length,
-          frameRects,
-          claims,
-          frameBand:
-            sceneTuning.frameBandViewport * window.innerHeight * pixelRatio,
+          fromIndex: staticIndex,
+          toIndex: staticIndex,
+          progress: 0,
         }
+      }
+
+      function placeKeyframe(
+        keyframe: DotSceneKeyframe,
+        yawOffset: number,
+        introScale: number
+      ): DotFieldPlacement {
+        return resolvePlacement({
+          keyframe,
+          viewport: {
+            width: layout.width,
+            height: layout.height,
+            pixelRatio,
+          },
+          nameSample: resolveNameSample(),
+          introScale,
+          spinSeconds,
+          yawOffset,
+          isStatic: prefersReducedMotion(),
+        })
+      }
+
+      function buildFrame(): DotFieldFrame | null {
+        const segment = resolveSegment()
+        const fromKeyframe = keyframes[segment.fromIndex]
+        const toKeyframe = keyframes[segment.toIndex]
+
+        if (fromKeyframe === undefined || toKeyframe === undefined) {
+          return null
+        }
+
+        const intro = resolveIntro()
+        const nameSample = resolveNameSample()
+        const morphSpin = DOT_FIELD_MORPH_TUNING.morphSpin
+
+        return {
+          intro,
+          wordCenter: {
+            x: nameSample.width / 2,
+            y: nameSample.height / 2,
+          },
+          wordBounds: nameSample.bounds,
+          progress: segment.progress,
+          from: placeKeyframe(
+            fromKeyframe,
+            segment.progress * morphSpin,
+            intro.scale
+          ),
+          to: placeKeyframe(
+            toKeyframe,
+            (segment.progress - 1) * morphSpin,
+            intro.scale
+          ),
+        }
+      }
+
+      function publishSceneState(): void {
+        let nextState = resolveSceneState(keyframes, progress)
+
+        if (prefersReducedMotion()) {
+          nextState = resolveSceneState(keyframes, staticIndex)
+        }
+
+        if (nextState === sceneState) {
+          return
+        }
+
+        sceneState = nextState
+        stage.dataset.scene = nextState
       }
 
       function drawSingleFrame(): void {
         drawDotField(runtime, buildFrame())
+        publishSceneState()
       }
 
       function canPush(): boolean {
-        if (!hasSettledRef.current || compress !== 0 || burst !== 0) {
+        if (!hasSettledRef.current || prefersReducedMotion()) {
           return false
         }
 
-        return morph === 0 || morph === 1
-      }
-
-      function resolvePhysicsSpace(frame: DotFieldFrame): DotFieldPhysicsSpace {
-        if (morph === 1) {
-          projectCubePoints(
-            runtime.cubePoints,
-            {
-              center: frame.cubeCenter,
-              halfSize: frame.cubeHalfSize,
-              cameraDistance: DOT_FIELD_MORPH_TUNING.cameraDistance,
-              rotation: frame.rotation,
-            },
-            runtime.cubeHomes
-          )
-
-          return {
-            homes: runtime.cubeHomes,
-            inkHeight:
-              layout.cubeSide *
-              DOT_FIELD_MORPH_TUNING.cubeInkRatio *
-              pixelRatio,
-            pointer,
-          }
-        }
-
-        wordPointer.x = pointer.x - frame.wordOrigin.x
-        wordPointer.y = pointer.y - frame.wordOrigin.y
-        wordPointer.isActive = pointer.isActive
-
-        return {
-          homes: runtime.positions,
-          inkHeight: runtime.inkHeight,
-          pointer: wordPointer,
-        }
-      }
-
-      function publishBurstState(): void {
-        const nextState = resolveBurstState(burstTarget, prefersReducedMotion())
-
-        if (nextState === burstState) {
-          return
-        }
-
-        burstState = nextState
-        stage.dataset.burst = nextState
-      }
-
-      function writeFrameRects(): void {
-        frameRects.fill(0)
-
-        let offset = 0
-
-        for (const frame of layout.frames) {
-          frameRects[offset] = frame.x * pixelRatio
-          frameRects[offset + 1] = frame.y * pixelRatio
-          frameRects[offset + 2] = frame.width * pixelRatio
-          frameRects[offset + 3] = frame.height * pixelRatio
-          offset += DOT_FRAME_RECT_STRIDE
-        }
-      }
-
-      function writeClaimTargets(): void {
-        claimTargets.fill(0)
-
-        let index = 0
-
-        for (const frame of layout.frames) {
-          claimTargets[index] = resolveClaimTarget(
-            {
-              frameTop: frame.y,
-              scrolled,
-              viewportHeight: window.innerHeight,
-              burst,
-            },
-            DOT_FIELD_SCENE_TUNING
-          )
-          index += 1
-        }
-      }
-
-      function followClaims(deltaSeconds: number): boolean {
-        let isResting = true
-
-        for (let index = 0; index < MAX_DOT_FRAMES; index += 1) {
-          claims[index] = followMorphProgress(
-            claims[index],
-            claimTargets[index],
-            deltaSeconds,
-            DOT_FIELD_MORPH_TUNING
-          )
-
-          if (claims[index] !== claimTargets[index]) {
-            isResting = false
-          }
-        }
-
-        return isResting
-      }
-
-      function advanceScene(deltaSeconds: number): void {
-        const targets = resolveSceneTargets(
-          {
-            rawCompress: sceneScroll.rawCompress,
-            isRearmed: sceneScroll.isRearmed,
-            compress,
-            burst,
-            burstTarget,
-          },
-          DOT_FIELD_SCENE_TUNING
-        )
-
-        compressTarget = targets.compressTarget
-        burstTarget = targets.burstTarget
-        compress = followMorphProgress(
-          compress,
-          compressTarget,
-          deltaSeconds,
-          DOT_FIELD_MORPH_TUNING
-        )
-        burst = followMorphProgress(
-          burst,
-          burstTarget,
-          deltaSeconds,
-          BURST_FOLLOW_TUNING
-        )
-        writeClaimTargets()
-        areClaimsResting = followClaims(deltaSeconds)
-      }
-
-      function snapScene(): void {
-        if (prefersReducedMotion()) {
-          compress = 0
-          compressTarget = 0
-          burst = 0
-          burstTarget = 0
-          claims.fill(0)
-          claimTargets.fill(0)
-          areClaimsResting = true
-          return
-        }
-
-        const targets = resolveSceneTargets(
-          {
-            rawCompress: sceneScroll.rawCompress,
-            isRearmed: sceneScroll.isRearmed,
-            compress: sceneScroll.rawCompress,
-            burst: 0,
-            burstTarget: 0,
-          },
-          DOT_FIELD_SCENE_TUNING
-        )
-
-        compressTarget = targets.compressTarget
-        compress = compressTarget
-        burstTarget = targets.burstTarget
-        burst = burstTarget
-        writeClaimTargets()
-        claims.set(claimTargets)
-        areClaimsResting = true
-      }
-
-      function syncCanvasWindow(): boolean {
-        const nextTop = resolveCanvasWindowTop(
-          {
-            scrolled,
-            viewportHeight: window.innerHeight,
-            canvasHeight,
-            stageHeight: layout.stageHeight,
-            projectsTop: layout.projectsTop,
-            pixelRatio,
-            isStatic: prefersReducedMotion(),
-            isSceneActive: compress > 0 || burst > 0,
-          },
-          DOT_FIELD_SCENE_TUNING
-        )
-
-        if (nextTop === windowTop) {
+        if (!Number.isInteger(progress)) {
           return false
         }
 
-        windowTop = nextTop
+        const keyframe = keyframes[progress]
 
-        if (nextTop === 0) {
-          canvas.style.transform = ""
-        } else {
-          canvas.style.transform = "translate3d(0, " + nextTop + "px, 0)"
-        }
-
-        return true
+        return keyframe !== undefined && keyframe.slot !== null
       }
 
-      function readScrollTargets(): void {
-        scrolled = readScrolled(stage)
-        morphTarget = resolveMorphTarget(scrolled, layout)
-        sceneScroll = readSceneScroll(scrolled, layout)
-      }
+      function writeHomes(frame: DotFieldFrame): void {
+        const placement = frame.from
 
-      function publishMorphState(progress: number): void {
-        const nextState = resolveMorphState(progress)
-
-        if (nextState === morphState) {
+        if (placement.shape === "name") {
+          writeNameHomes(
+            runtime.positions,
+            placement,
+            frame.wordCenter,
+            runtime.homes
+          )
           return
         }
 
-        morphState = nextState
-        stage.dataset.morph = nextState
+        projectShapePoints(
+          runtime.shapePoints[placement.shape],
+          placement,
+          runtime.homes
+        )
+      }
+
+      function isSegmentSpinning(): boolean {
+        const segment = resolveTimelineSegment(progress, keyframes.length)
+        const fromKeyframe = keyframes[segment.fromIndex]
+        const toKeyframe = keyframes[segment.toIndex]
+        const isFromSpinning =
+          fromKeyframe !== undefined && isShapeSpinning(fromKeyframe.shape)
+        const isToSpinning =
+          segment.progress > 0 &&
+          toKeyframe !== undefined &&
+          isShapeSpinning(toKeyframe.shape)
+
+        return isFromSpinning || isToSpinning
       }
 
       function renderFrame(timestamp: number): void {
@@ -728,39 +554,38 @@ export function useDotField(request: UseDotFieldRequest): void {
         previousTimestamp = timestamp
         elapsedSeconds += deltaSeconds
 
-        morph = followMorphProgress(
-          morph,
-          morphTarget,
+        progress = followTimelineProgress(
+          progress,
+          progressTarget,
           deltaSeconds,
           DOT_FIELD_MORPH_TUNING
         )
 
-        if (morph >= 1) {
+        if (progress >= 1) {
           notifySettled()
         }
 
-        advanceScene(deltaSeconds)
-        syncCanvasWindow()
+        const isSpinning = isSegmentSpinning()
 
-        if (morph > 0 && burst < 1) {
-          const spinBoost = resolveSpinBoost(compress, DOT_FIELD_SCENE_TUNING)
-
-          spinYaw += DOT_FIELD_MORPH_TUNING.spinSpeed * spinBoost * deltaSeconds
-          wobblePhase += DOT_FIELD_MORPH_TUNING.wobbleSpeed * deltaSeconds
+        if (isSpinning) {
+          spinSeconds += deltaSeconds
         }
 
         const frame = buildFrame()
-        const isPushing = pointer.isActive && canPush()
+        const isPushing = frame !== null && pointer.isActive && canPush()
 
-        if (isPushing || !isFieldAtRest) {
-          const physicsSpace = resolvePhysicsSpace(frame)
+        if (frame !== null && (isPushing || !isFieldAtRest)) {
+          if (isPushing) {
+            writeHomes(frame)
+          }
+
           const motion = stepDotPhysics(
             {
-              homes: physicsSpace.homes,
+              homes: runtime.homes,
               offsets: runtime.offsets,
               velocities: runtime.velocities,
-              inkHeight: physicsSpace.inkHeight,
-              pointer: isPushing ? physicsSpace.pointer : null,
+              inkHeight: frame.from.inkHeight,
+              pointer: isPushing ? pointer : null,
               deltaSeconds,
             },
             DOT_FIELD_TUNING
@@ -777,19 +602,13 @@ export function useDotField(request: UseDotFieldRequest): void {
         }
 
         drawDotField(runtime, frame)
-        publishMorphState(morph)
-        publishBurstState()
+        publishSceneState()
 
         const isLoopDone = shouldLoopSleep({
           isFieldAtRest,
           hasSettled: hasSettledRef.current,
-          isMorphResting: morph === morphTarget,
-          isSceneResting:
-            compress === compressTarget &&
-            burst === burstTarget &&
-            areClaimsResting,
-          morph,
-          burst,
+          isProgressResting: progress === progressTarget,
+          isSpinning,
         })
 
         if (isLoopDone) {
@@ -808,7 +627,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       }
 
       function startLoop(): void {
-        if (frameId !== 0 || !isVisible) {
+        if (frameId !== 0 || document.visibilityState === "hidden") {
           return
         }
 
@@ -821,36 +640,109 @@ export function useDotField(request: UseDotFieldRequest): void {
         frameId = window.requestAnimationFrame(renderFrame)
       }
 
-      function syncMorphToScroll(): void {
+      function resolveScrollSource(): number {
+        const scrolled = window.scrollY
+
+        if (jumpScrollTop === null) {
+          return scrolled
+        }
+
+        if (Math.abs(scrolled - jumpScrollTop) <= MORPH_LANDING_TOLERANCE_PX) {
+          jumpScrollTop = null
+
+          return scrolled
+        }
+
+        return jumpScrollTop
+      }
+
+      function readScrollTargets(): boolean {
+        const scrolled = resolveScrollSource()
+        const nextStaticIndex = resolveStaticKeyframe(
+          keyframes,
+          scrolled,
+          MORPH_LANDING_TOLERANCE_PX
+        )
+        const hasStaticChanged = nextStaticIndex !== staticIndex
+
+        progressTarget = resolveTimelinePosition(
+          keyframes,
+          scrolled,
+          MORPH_LANDING_TOLERANCE_PX
+        )
+        staticIndex = nextStaticIndex
+
+        return hasStaticChanged
+      }
+
+      function syncToScroll(): void {
         readScrollTargets()
-        morph = morphTarget
-        snapScene()
-        syncCanvasWindow()
-        publishMorphState(morph)
-        publishBurstState()
+        progress = progressTarget
       }
 
       function onScroll(): void {
-        readScrollTargets()
+        const hasStaticChanged = readScrollTargets()
 
         if (prefersReducedMotion()) {
-          morph = morphTarget
-          publishMorphState(morph)
-          return
-        }
+          if (hasStaticChanged) {
+            drawSingleFrame()
+          }
 
-        if (syncCanvasWindow() && frameId === 0) {
-          drawSingleFrame()
+          return
         }
 
         startLoop()
       }
 
-      function onPointerMove(event: PointerEvent): void {
-        const stageRect = stage.getBoundingClientRect()
+      function onAnchorClick(event: MouseEvent): void {
+        const isModified =
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
 
-        pointer.x = (event.clientX - stageRect.left) * pixelRatio
-        pointer.y = (event.clientY - stageRect.top) * pixelRatio
+        if (isModified || !(event.target instanceof Element)) {
+          return
+        }
+
+        const anchor = event.target.closest<HTMLAnchorElement>(
+          IN_PAGE_ANCHOR_SELECTOR
+        )
+
+        if (anchor === null) {
+          return
+        }
+
+        const destination = document.getElementById(
+          decodeURIComponent(anchor.hash.slice(1))
+        )
+
+        if (destination === null) {
+          return
+        }
+
+        const margin = parseCssPixels(
+          getComputedStyle(destination).scrollMarginTop
+        )
+        const maxScroll =
+          document.documentElement.scrollHeight - window.innerHeight
+        const destinationTop =
+          destination.getBoundingClientRect().top + window.scrollY - margin
+
+        jumpScrollTop = Math.min(Math.max(destinationTop, 0), maxScroll)
+        onScroll()
+      }
+
+      function clearJump(): void {
+        jumpScrollTop = null
+      }
+
+      function onPointerMove(event: PointerEvent): void {
+        const layerRect = layer.getBoundingClientRect()
+
+        pointer.x = (event.clientX - layerRect.left) * pixelRatio
+        pointer.y = (event.clientY - layerRect.top) * pixelRatio
         pointer.isActive = true
 
         if (reducedMotionQuery?.matches === true || !canPush()) {
@@ -875,7 +767,12 @@ export function useDotField(request: UseDotFieldRequest): void {
 
       function onMotionPreferenceChanged(): void {
         stopLoop()
-        syncMorphToScroll()
+        pointer.isActive = false
+        isFieldAtRest = true
+        runtime.offsets.fill(0)
+        runtime.velocities.fill(0)
+        uploadOffsets(runtime)
+        syncToScroll()
         drawSingleFrame()
         startLoop()
       }
@@ -883,19 +780,18 @@ export function useDotField(request: UseDotFieldRequest): void {
       function onContextLost(event: Event): void {
         event.preventDefault()
         stopLoop()
-        stage.dataset.status = "unsupported"
-        stage.dataset.burst = "off"
-        unsupportedCallbackRef.current()
+        markUnsupported()
       }
 
       function applyResize(): void {
-        const nextLayout = readLayout(layoutElements)
+        const nextLayout = readLayout(stage, layer, wordmark)
 
         if (!isUsableLayout(nextLayout)) {
           return
         }
 
         layout = nextLayout
+        keyframes = buildKeyframes(layout)
 
         const previousViewport = viewportRef.current
 
@@ -918,13 +814,12 @@ export function useDotField(request: UseDotFieldRequest): void {
         }
 
         readScrollTargets()
-        syncCanvasWindow()
         drawSingleFrame()
         startLoop()
       }
 
       function onLayoutObserved(): void {
-        const nextLayout = readLayout(layoutElements)
+        const nextLayout = readLayout(stage, layer, wordmark)
 
         if (!isUsableLayout(nextLayout)) {
           return
@@ -933,8 +828,8 @@ export function useDotField(request: UseDotFieldRequest): void {
         const isResized = hasLayoutSizeChanged(layout, nextLayout)
 
         layout = nextLayout
+        keyframes = buildKeyframes(layout)
         readScrollTargets()
-        syncCanvasWindow()
 
         if (isResized) {
           window.clearTimeout(resizeHandle)
@@ -945,64 +840,41 @@ export function useDotField(request: UseDotFieldRequest): void {
         startLoop()
       }
 
-      function onCanvasVisibility(entries: IntersectionObserverEntry[]): void {
-        const entry = entries[0]
-
-        if (entry === undefined) {
-          return
-        }
-
-        isVisible = entry.isIntersecting
-
-        if (isVisible) {
-          startLoop()
-          return
-        }
-
-        stopLoop()
-      }
-
       applyCanvasSize()
-      syncMorphToScroll()
+      syncToScroll()
 
-      if (morphTarget > 0) {
+      if (progressTarget > 0) {
         notifySettled()
       }
 
       const resizeObserver = hasResizeObserver()
         ? new ResizeObserver(onLayoutObserved)
         : null
-      const intersectionObserver = hasIntersectionObserver()
-        ? new IntersectionObserver(onCanvasVisibility, {
-            threshold: 0,
-            rootMargin: VISIBILITY_ROOT_MARGIN,
-          })
-        : null
-
-      resizeObserver?.observe(stage)
-      resizeObserver?.observe(wordmark)
-      resizeObserver?.observe(projects)
-
-      const mutationObserver = new MutationObserver(onLayoutObserved)
-
-      mutationObserver.observe(projects, PROJECTS_MUTATION_OPTIONS)
+      const observedElements: HTMLElement[] = [stage, layer, wordmark]
 
       if (tagline !== null) {
-        resizeObserver?.observe(tagline)
+        observedElements.push(tagline)
       }
 
-      intersectionObserver?.observe(canvas)
+      for (const observedElement of observedElements) {
+        resizeObserver?.observe(observedElement)
+      }
 
-      const pointerTargets = [wordmark, cube]
-
-      for (const pointerTarget of pointerTargets) {
-        pointerTarget.addEventListener("pointermove", onPointerMove)
-        pointerTarget.addEventListener("pointerdown", onPointerMove)
-        pointerTarget.addEventListener("pointerleave", onPointerLeave)
-        pointerTarget.addEventListener("pointercancel", onPointerLeave)
+      for (const slot of slots) {
+        resizeObserver?.observe(slot)
+        slot.addEventListener("pointermove", onPointerMove)
+        slot.addEventListener("pointerdown", onPointerMove)
+        slot.addEventListener("pointerleave", onPointerLeave)
+        slot.addEventListener("pointercancel", onPointerLeave)
       }
 
       window.addEventListener("scroll", onScroll, { passive: true })
+      document.addEventListener("click", onAnchorClick, { capture: true })
+
+      for (const eventName of JUMP_CANCEL_EVENTS) {
+        window.addEventListener(eventName, clearJump, { passive: true })
+      }
+
       window.addEventListener("blur", onPointerLeave)
       document.addEventListener("visibilitychange", onVisibilityChanged)
       canvas.addEventListener("webglcontextlost", onContextLost)
@@ -1018,17 +890,21 @@ export function useDotField(request: UseDotFieldRequest): void {
         window.clearTimeout(resizeHandle)
 
         resizeObserver?.disconnect()
-        mutationObserver.disconnect()
-        intersectionObserver?.disconnect()
 
-        for (const pointerTarget of pointerTargets) {
-          pointerTarget.removeEventListener("pointermove", onPointerMove)
-          pointerTarget.removeEventListener("pointerdown", onPointerMove)
-          pointerTarget.removeEventListener("pointerleave", onPointerLeave)
-          pointerTarget.removeEventListener("pointercancel", onPointerLeave)
+        for (const slot of slots) {
+          slot.removeEventListener("pointermove", onPointerMove)
+          slot.removeEventListener("pointerdown", onPointerMove)
+          slot.removeEventListener("pointerleave", onPointerLeave)
+          slot.removeEventListener("pointercancel", onPointerLeave)
         }
 
         window.removeEventListener("scroll", onScroll)
+        document.removeEventListener("click", onAnchorClick, { capture: true })
+
+        for (const eventName of JUMP_CANCEL_EVENTS) {
+          window.removeEventListener(eventName, clearJump)
+        }
+
         window.removeEventListener("blur", onPointerLeave)
         document.removeEventListener("visibilitychange", onVisibilityChanged)
         canvas.removeEventListener("webglcontextlost", onContextLost)
@@ -1046,21 +922,13 @@ export function useDotField(request: UseDotFieldRequest): void {
         runtimeRef.current = null
       }
     },
-    [
-      stageRef,
-      heroRef,
-      wordmarkRef,
-      taglineRef,
-      cubeRef,
-      projectsRef,
-      canvasRef,
-      mode,
-    ]
+    [canvasRef, wordmarkRef, taglineRef, mode]
   )
 
   useEffect(
     function recolourDotField() {
       dotColorRef.current = dotColor
+      backgroundColorRef.current = backgroundColor
 
       const runtime = runtimeRef.current
 
@@ -1069,6 +937,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       }
 
       applyDotColor(runtime, dotColor)
+      applyClearColor(runtime, backgroundColor)
 
       const redraw = redrawRef.current
 
@@ -1076,7 +945,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         redraw()
       }
     },
-    [dotColor]
+    [dotColor, backgroundColor]
   )
 
   useEffect(
@@ -1085,10 +954,16 @@ export function useDotField(request: UseDotFieldRequest): void {
         return
       }
 
-      const stageElement = stageRef.current
       const canvasElement = canvasRef.current
 
-      if (stageElement === null || canvasElement === null) {
+      if (canvasElement === null) {
+        return
+      }
+
+      const stageElement =
+        canvasElement.closest<HTMLElement>(DOT_STAGE_SELECTOR)
+
+      if (stageElement === null) {
         return
       }
 
@@ -1130,14 +1005,16 @@ export function useDotField(request: UseDotFieldRequest): void {
           return
         }
 
-        uploadPoints(
-          runtime,
-          sample,
-          generateCubePoints(sample.count, DOT_FIELD_MORPH_TUNING),
-          generateScenePoints(sample.count)
-        )
-        boundsRef.current = { left: sample.left, right: sample.right }
-        sampledViewportRef.current = sampleViewport
+        uploadPoints(runtime, sample)
+        nameSampleRef.current = {
+          width: sampleViewport.width,
+          height: sampleViewport.height,
+          bounds: {
+            left: sample.left,
+            right: sample.right,
+          },
+          inkHeight: sample.inkHeight,
+        }
         canvas.dataset.pointCount = String(sample.count)
         stage.dataset.status = "running"
 
@@ -1189,6 +1066,6 @@ export function useDotField(request: UseDotFieldRequest): void {
         }
       }
     },
-    [stageRef, canvasRef, text, fontFamily, mode]
+    [canvasRef, text, fontFamily, mode]
   )
 }

@@ -10,10 +10,9 @@ import { createDefaultSiteContent } from "@/features/site-content/site-content.r
 import type { ProjectItem } from "@/types/site-content.type"
 
 function renderProjects(items: ProjectItem[]) {
-  const sectionRef = { current: null }
   const projects = { ...createDefaultSiteContent().projects, items }
 
-  return render(<ProjectsSection projects={projects} sectionRef={sectionRef} />)
+  return render(<ProjectsSection projects={projects} />)
 }
 
 function buildProject(overrides: Partial<ProjectItem>): ProjectItem {
@@ -65,14 +64,14 @@ describe("ProjectsSection", () => {
     expect(screen.getByText("/ 01")).toBeInTheDocument()
   })
 
-  it("draws one dot frame per visible project", () => {
-    const { container } = renderProjects([
-      buildProject({ title: "One" }),
-      buildProject({ title: "" }),
-      buildProject({ title: "Two" }),
-    ])
+  it("is a dot scene with one hidden slot for the dots to form in", () => {
+    const { container } = renderProjects(DEFAULT_PROJECT_ITEMS)
+    const slots = container.querySelectorAll("[data-dot-slot]")
 
-    expect(container.querySelectorAll("[data-dot-frame]")).toHaveLength(2)
+    expect(container.querySelector("section[data-dot-scene]")).not.toBeNull()
+    expect(slots).toHaveLength(1)
+    expect(slots[0]).toHaveAttribute("aria-hidden", "true")
+    expect(slots[0]).toBeEmptyDOMElement()
   })
 
   it("links the title to an https project in a new tab", () => {

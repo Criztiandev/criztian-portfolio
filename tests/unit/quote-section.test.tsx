@@ -6,11 +6,7 @@ import { QuoteSection } from "@/features/portfolio/components/quote-section.comp
 const QUOTE_TEXT = "Ship the whole thing."
 
 function renderQuote(author: string) {
-  const cubeRef = { current: null }
-
-  return render(
-    <QuoteSection quote={{ text: QUOTE_TEXT, author }} cubeRef={cubeRef} />
-  )
+  return render(<QuoteSection quote={{ text: QUOTE_TEXT, author }} />)
 }
 
 describe("QuoteSection", () => {

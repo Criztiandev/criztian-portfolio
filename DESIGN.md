@@ -181,14 +181,19 @@ The layout is a single vertical scroll of full-width sections on one black groun
 - **Hero stage:**
   - At every width it fills exactly one viewport (`100svh`) and centres its content.
   - The wordmark box is `min(40vw, 45svh)` tall on mobile and `min(clamp(380px, 23.4vw + 200px, 500px), 70svh)` from 768px. The name spans 92% of the width on mobile and 78% from 768px.
-  - The pointer box bleeds 25% above and below the wordmark box. The one dot canvas spans the whole stage (hero and quote) from its top to the cube slot's bottom, so scattered and travelling dots are never clipped along an invisible line. Its backing store is capped at `MAX_CANVAS_PIXELS`.
+  - The pointer box bleeds 25% above and below the wordmark box.
+  - The one dot canvas is fixed to the viewport behind every section, so scattered and travelling dots are never clipped along an invisible line. Its backing store is capped at `MAX_CANVAS_PIXELS`.
+  - The hero pins for its first 10svh of scroll, so the name and tagline stay together until the dots leave.
   - The scroll cue is pinned 40px from the bottom of the stage at every width, and hidden when the viewport is under 30rem tall (landscape phones).
 - **Header:**
   - Fixed and 72px tall, with 24px side gutters on mobile and 40px on desktop.
   - It has three zones on a `1fr auto 1fr` grid, so the nav stays truly centred: the brand wordmark at left (linking to `#home`), the primary nav (Project, Blog, About, Contact) in the centre, and the "Let's talk" action at right.
   - Below 768px the nav collapses behind a menu button into a full-width stacked panel.
 - **Quote (`#quote`):** directly after the hero, on the same black stage, and not in the nav. It is at least one viewport tall. A square cube slot, `min(80vw, 46svh, 36rem)`, is top-aligned under a `max(5.5rem, 12svh)` top pad, so its position never depends on the quote's length. The centred quote sits 32px below the slot (40px from 768px), at most 20ch wide and balanced. It has no scroll margin, so an anchored `#quote` lands exactly on the formed cube.
-- **Projects (`#project`):** directly after the quote, inside the same black stage so the dots can reach it. Two columns from 768px inside a 80rem container: a pinned left column (22.5rem at most, `sticky` at 7rem from the top) and a card list on the right (48rem at most) with 60px between cards. Below 768px it is one column and nothing pins. The top pad is `max(6rem, 16svh)`.
+- **Projects (`#project`), a placeholder until the Phase 5 deck:**
+  - A pinned left frame holds the header and a stippled sphere slot.
+  - The card list on the right scrolls past it (48rem at most, 60px between cards).
+  - Below 768px the black card list rises over the pinned frame like a curtain.
 - **Sections:** currently placeholder layout. Each is a centred column (max 896px, 16px gutters, 80px vertical padding) with an 80px scroll margin so anchored headings clear the header. Treat the scroll margin as fixed and the column as provisional.
 
 **The Stage Rule.** The hero owns the first viewport. Nothing else competes above the fold, not even a secondary call to action.
@@ -233,18 +238,14 @@ The name as a matrix of lit points. It is a single WebGL2 canvas that samples An
   - **Pointer:** the cube scatters and springs back exactly like the name, with the same spring and bounce. Its push radius is scaled to the cube's on-screen size, as the name's is to its ink height. Scattered dots ride the rotation home.
   - **Depth as light:** far edges are dimmer (down to 35%), never smaller or coloured. Dimness is expressed as opacity, so a far edge can never darken a near one where they cross.
   - **Constant spin with a lean:** the cube never stops turning, one revolution about every 21s. Its spin axis leans about 11° to the right and slowly circles a further 4° like a spinning top, once every 7s, so it never turns on a rigid, mechanical axis. Scrolling back reverses the morph, and dots in flight ignore the pointer.
-  - **Known gap:** endless motion with no pause control does not meet WCAG 2.2.2 (Pause, Stop, Hide) while the cube is on screen. The owner chose constant rotation over the earlier spin-then-rest. The spin now ends at the burst, so nothing loops once Projects begins. Reduced motion still gets a still cube. A pause toggle is the fix if AA compliance is needed.
-- **Compress and burst ("spent into the work").** The cube stands for one whole product; past the quote it is spent into the proof.
-  - **Hold:** the cube spins over the quote until `#project` rises to 70% of the viewport.
-  - **Compress (scroll-scrubbed):** while `#project` rises from 70% to 35%, the cube shrinks to 16% of its size, sinks toward a point 30% down the screen (the open band above the section), spins up to six times faster, and its far edges brighten to full, so it reads as a glowing knot.
-  - **Burst (time-based):** once the knot is fully compressed it bursts on its own in about 0.75s, fast at first. Sparks fly out and burn out. A quarter of the dots settle as dust at 45% across the whole section. The Projects heading wipes in from the left on the same line.
-  - **Frames:** each card's share of the dots settles in a loose halo around it, then gathers into a stippled square frame 10px outside the plate as the card rises from 95% to 60% of the viewport, drawing clockwise and brightening to 75% (Lit, so the frame never outshouts the title). The CSS hairline on the plate hands over to the dots while the burst is open and comes back when it closes.
-  - **Reverse:** scrolling back above the burst line (with a small hysteresis) releases the frames and implodes the dots into the knot, which only then re-grows into the cube.
-  - **One canvas, never taller:** the canvas keeps its size and slides in whole-device-pixel steps to cover the viewport once Projects is on screen, so the name keeps its pixel ratio.
-  - **Reduced motion and no WebGL2:** no compress, burst or frames. The plates keep their Wire Grey hairline and every card is readable at once.
-  - **Reduced motion:** no flight, spin or wobble. The name and the cube, leaning at its resting angle, are drawn still, each in its own place.
-  - **No WebGL2:** the slot collapses and the quote moves up. The text `<h1>` and the quote carry all meaning either way.
-  - It reuses the wordmark's points, so it adds none to the budget.
+  - **Known gap:** endless motion with no pause control does not meet WCAG 2.2.2 (Pause, Stop, Hide) while a spinning shape is on screen. The owner chose constant rotation. Reduced motion still gets a still shape. A pause toggle is the fix if AA compliance is needed; it is planned as an owner decision in Phase 6.
+- **Scene timeline.** The burst into Projects is retired. Every section is now a scene on one scroll timeline (see `plans/handoff.md`).
+  - A formed shape sits in a pinned slot while its section is stuck under the header.
+  - Between scenes, the dots fly from one slot to the next with the same staggered sweep and arc as the name-to-cube morph.
+  - Today the page runs name, then cube, then a placeholder sphere in Projects, then quiet dust behind the reading sections, then the name again in the footer.
+  - **Reduced motion:** no flight, spin or wobble. Each shape is drawn still, in its resting pose, only while its section is pinned. Between scenes the canvas is empty.
+  - **No WebGL2:** slots collapse and the scenes stop pinning. The text `<h1>` and the quote carry all meaning either way.
+  - **Dot count:** every shape uses the same dots, at least 7,200, or the wordmark's count if it is larger.
 
 ### Statement Quote
 

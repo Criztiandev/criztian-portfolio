@@ -32,5 +32,4 @@ export type ProjectImage = {
 
 export type ProjectsSectionProps = {
   projects: SiteContentProjects
-  sectionRef: React.RefObject<HTMLElement | null>
 }

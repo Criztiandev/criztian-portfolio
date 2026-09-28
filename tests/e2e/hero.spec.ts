@@ -3,6 +3,13 @@ import type { Page } from "@playwright/test"
 
 const GL_PROBLEM_PATTERN = /INVALID_|GL_INVALID|WebGL: /
 
+const SCENE_WALK = [
+  { selector: "#quote", scene: "cube" },
+  { selector: "#project", scene: "project" },
+  { selector: "[data-dot-scene='dust']", scene: "dust" },
+  { selector: "[data-dot-scene='footer']", scene: "footer" },
+]
+
 function collectPageProblems(page: Page): string[] {
   const problems: string[] = []
 
@@ -32,19 +39,63 @@ async function waitForRunningStage(page: Page) {
   return stage
 }
 
-async function scrollQuoteIntoView(page: Page) {
-  await page.evaluate(function centreQuote() {
+async function scrollSceneToPinStart(page: Page, selector: string) {
+  await page.evaluate(function scrollToScene(sceneSelector) {
     document
-      .querySelector("#quote blockquote")
-      ?.scrollIntoView({ block: "center", behavior: "instant" })
-  })
+      .querySelector(sceneSelector)
+      ?.scrollIntoView({ block: "start", behavior: "instant" })
+  }, selector)
 }
 
-async function scrollProjectsIntoView(page: Page) {
-  await page.evaluate(function showProjects() {
-    document
-      .querySelector("#project")
-      ?.scrollIntoView({ block: "start", behavior: "instant" })
+async function countLitPixels(page: Page, selector: string) {
+  const box = await page.locator(selector).boundingBox()
+
+  if (box === null) {
+    return 0
+  }
+
+  const image = await page.screenshot({ clip: box })
+
+  return page.evaluate(
+    async function countLit(source) {
+      const picture = new Image()
+
+      await new Promise(function waitForImage(resolve) {
+        picture.onload = resolve
+        picture.src = source
+      })
+
+      const canvas = document.createElement("canvas")
+
+      canvas.width = picture.width
+      canvas.height = picture.height
+
+      const context = canvas.getContext("2d", { willReadFrequently: true })
+
+      if (context === null) {
+        return 0
+      }
+
+      context.drawImage(picture, 0, 0)
+
+      const pixels = context.getImageData(0, 0, picture.width, picture.height)
+      let lit = 0
+
+      for (let index = 0; index < pixels.data.length; index += 4) {
+        if ((pixels.data[index] ?? 0) > 128) {
+          lit += 1
+        }
+      }
+
+      return lit
+    },
+    "data:image/png;base64," + image.toString("base64")
+  )
+}
+
+async function scrollToTop(page: Page) {
+  await page.evaluate(function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: "instant" })
   })
 }
 
@@ -63,25 +114,11 @@ test.describe("hero dot field", () => {
   test("starts the webgl field and samples the display font", async ({
     page,
   }) => {
-    const consoleErrors: string[] = []
-
-    page.on("pageerror", function onPageError(error) {
-      consoleErrors.push(error.message)
-    })
-
-    page.on("console", function onConsole(message) {
-      if (message.type() === "error") {
-        consoleErrors.push(message.text())
-      }
-    })
+    const problems = collectPageProblems(page)
 
     await page.goto("/")
 
-    const stage = page.locator("[data-status]").first()
-
-    await expect(stage).toHaveAttribute("data-status", "running", {
-      timeout: 15000,
-    })
+    await waitForRunningStage(page)
 
     const canvas = page.locator("canvas")
     const pointCount = Number(await canvas.getAttribute("data-point-count"))
@@ -93,17 +130,23 @@ test.describe("hero dot field", () => {
     expect(box?.width ?? 0).toBeGreaterThan(0)
     expect(box?.height ?? 0).toBeGreaterThan(0)
 
-    expect(consoleErrors).toEqual([])
+    expect(problems).toEqual([])
   })
 
   test("keeps the contact anchor reachable", async ({ page }) => {
     await page.goto("/#contact")
 
     await expect(page.locator("#contact")).toBeVisible()
+
+    const stage = await waitForRunningStage(page)
+
+    await expect(stage).toHaveAttribute("data-scene", "dust", {
+      timeout: 10000,
+    })
   })
 })
 
-test.describe("scroll morph", () => {
+test.describe("scroll timeline", () => {
   test("re-forms the name as a cube above the quote and back", async ({
     page,
   }) => {
@@ -113,11 +156,11 @@ test.describe("scroll morph", () => {
 
     const stage = await waitForRunningStage(page)
 
-    await expect(stage).toHaveAttribute("data-morph", "name")
+    await expect(stage).toHaveAttribute("data-scene", "name")
 
-    await scrollQuoteIntoView(page)
+    await scrollSceneToPinStart(page, "#quote")
 
-    await expect(stage).toHaveAttribute("data-morph", "cube", {
+    await expect(stage).toHaveAttribute("data-scene", "cube", {
       timeout: 5000,
     })
 
@@ -126,16 +169,92 @@ test.describe("scroll morph", () => {
     await expect(quote).toBeVisible()
     await expect(quote).not.toHaveText("")
     await expect(quote).toHaveCSS("clip-path", "inset(0%)", { timeout: 5000 })
+    await expect(page.locator("canvas")).toHaveCSS("opacity", "1")
+    await page.waitForTimeout(600)
+
+    expect(
+      await countLitPixels(page, "#quote [data-dot-slot]")
+    ).toBeGreaterThan(500)
     await expect(page.locator("canvas")).toHaveCount(1)
 
-    await page.evaluate(function scrollToTop() {
-      window.scrollTo({ top: 0, behavior: "instant" })
-    })
+    await scrollToTop(page)
 
-    await expect(stage).toHaveAttribute("data-morph", "name", {
+    await expect(stage).toHaveAttribute("data-scene", "name", {
       timeout: 5000,
     })
 
+    expect(problems).toEqual([])
+  })
+
+  test("walks every scene down the page and back", async ({ page }) => {
+    const problems = collectPageProblems(page)
+
+    await page.goto("/")
+
+    const stage = await waitForRunningStage(page)
+
+    for (const step of SCENE_WALK) {
+      await scrollSceneToPinStart(page, step.selector)
+
+      await expect(stage).toHaveAttribute("data-scene", step.scene, {
+        timeout: 5000,
+      })
+    }
+
+    await scrollToTop(page)
+
+    await expect(stage).toHaveAttribute("data-scene", "name", {
+      timeout: 5000,
+    })
+    await expect(page.locator("canvas")).toHaveCount(1)
+
+    expect(problems).toEqual([])
+  })
+
+  test("jumps straight to the destination scene from the nav", async ({
+    page,
+  }) => {
+    const problems = collectPageProblems(page)
+
+    await page.goto("/")
+    await waitForRunningStage(page)
+
+    const trail = await page.evaluate(function followJump() {
+      return new Promise<string[]>(function record(resolve) {
+        const stage = document.querySelector("[data-status]")
+        const scenes: string[] = []
+        const observer = new MutationObserver(function onSceneChange() {
+          const scene = stage?.getAttribute("data-scene") ?? ""
+
+          scenes.push(scene)
+
+          if (scene === "dust") {
+            observer.disconnect()
+            resolve(scenes)
+          }
+        })
+
+        window.setTimeout(function giveUp() {
+          observer.disconnect()
+          resolve(scenes)
+        }, 5000)
+
+        if (stage !== null) {
+          observer.observe(stage, {
+            attributes: true,
+            attributeFilter: ["data-scene"],
+          })
+        }
+
+        document
+          .querySelector<HTMLAnchorElement>("header a[href='#contact']")
+          ?.click()
+      })
+    })
+
+    expect(trail).toContain("dust")
+    expect(trail).not.toContain("cube")
+    expect(trail).not.toContain("project")
     expect(problems).toEqual([])
   })
 
@@ -146,10 +265,27 @@ test.describe("scroll morph", () => {
 
     const stage = await waitForRunningStage(page)
 
-    await expect(stage).toHaveAttribute("data-morph", "cube", {
+    await expect(stage).toHaveAttribute("data-scene", "cube", {
       timeout: 10000,
     })
     await expect(page.locator("#quote blockquote")).toBeVisible()
+
+    expect(problems).toEqual([])
+  })
+
+  test("lands on the projects scene when opened at the projects", async ({
+    page,
+  }) => {
+    const problems = collectPageProblems(page)
+
+    await page.goto("/#project")
+
+    const stage = await waitForRunningStage(page)
+
+    await expect(stage).toHaveAttribute("data-scene", "project", {
+      timeout: 10000,
+    })
+    await expect(page.locator("#project h2")).toBeVisible()
 
     expect(problems).toEqual([])
   })
@@ -163,11 +299,11 @@ test.describe("scroll morph", () => {
 
     const stage = await waitForRunningStage(page)
 
-    await expect(stage).toHaveAttribute("data-morph", "cube", {
+    await expect(stage).toHaveAttribute("data-scene", "cube", {
       timeout: 10000,
     })
 
-    const slot = await page.locator("#quote > div").first().boundingBox()
+    const slot = await page.locator("#quote [data-dot-slot]").boundingBox()
 
     expect(slot).not.toBeNull()
 
@@ -179,7 +315,7 @@ test.describe("scroll morph", () => {
       await page.waitForTimeout(500)
     }
 
-    await expect(stage).toHaveAttribute("data-morph", "cube")
+    await expect(stage).toHaveAttribute("data-scene", "cube")
     await expect(stage).toHaveAttribute("data-status", "running")
 
     expect(problems).toEqual([])
@@ -194,9 +330,9 @@ test.describe("scroll morph", () => {
 
     await page.setViewportSize({ width: 820, height: 900 })
     await page.waitForTimeout(600)
-    await scrollQuoteIntoView(page)
+    await scrollSceneToPinStart(page, "#quote")
 
-    await expect(stage).toHaveAttribute("data-morph", "cube", {
+    await expect(stage).toHaveAttribute("data-scene", "cube", {
       timeout: 5000,
     })
     await expect(stage).toHaveAttribute("data-status", "running")
@@ -205,83 +341,7 @@ test.describe("scroll morph", () => {
   })
 })
 
-test.describe("projects burst", () => {
-  test("bursts the cube into the projects and gathers it back", async ({
-    page,
-  }) => {
-    const problems = collectPageProblems(page)
-
-    await page.goto("/")
-
-    const stage = await waitForRunningStage(page)
-
-    await expect(stage).toHaveAttribute("data-burst", "idle")
-
-    await scrollProjectsIntoView(page)
-
-    await expect(stage).toHaveAttribute("data-burst", "open", {
-      timeout: 5000,
-    })
-    await expect(stage).toHaveAttribute("data-morph", "cube")
-    await expect(page.locator("canvas")).toHaveCount(1)
-    await expect(page.locator("#project h2")).toBeVisible()
-
-    await scrollQuoteIntoView(page)
-
-    await expect(stage).toHaveAttribute("data-burst", "idle", {
-      timeout: 5000,
-    })
-    await expect(stage).toHaveAttribute("data-morph", "cube")
-
-    await page.evaluate(function scrollToTop() {
-      window.scrollTo({ top: 0, behavior: "instant" })
-    })
-
-    await expect(stage).toHaveAttribute("data-morph", "name", {
-      timeout: 5000,
-    })
-
-    expect(problems).toEqual([])
-  })
-
-  test("opens the burst when landing on the projects", async ({ page }) => {
-    const problems = collectPageProblems(page)
-
-    await page.goto("/#project")
-
-    const stage = await waitForRunningStage(page)
-
-    await expect(stage).toHaveAttribute("data-burst", "open", {
-      timeout: 10000,
-    })
-
-    expect(problems).toEqual([])
-  })
-})
-
-test.describe("projects burst with reduced motion", () => {
-  test.use({ reducedMotion: "reduce" })
-
-  test("keeps the frames drawn in hairlines and never bursts", async ({
-    page,
-  }) => {
-    const problems = collectPageProblems(page)
-
-    await page.goto("/#project")
-
-    const stage = await waitForRunningStage(page)
-
-    await expect(stage).toHaveAttribute("data-burst", "off")
-    await expect(page.locator("[data-dot-frame]").first()).toHaveCSS(
-      "border-top-color",
-      /\/ 0\.4\)$/
-    )
-
-    expect(problems).toEqual([])
-  })
-})
-
-test.describe("scroll morph with reduced motion", () => {
+test.describe("scroll timeline with reduced motion", () => {
   test.use({ reducedMotion: "reduce" })
 
   test("shows the settled cube and the quote without animating", async ({
@@ -293,13 +353,35 @@ test.describe("scroll morph with reduced motion", () => {
 
     const stage = await waitForRunningStage(page)
 
-    await expect(stage).toHaveAttribute("data-morph", "cube", {
+    await expect(stage).toHaveAttribute("data-scene", "cube", {
       timeout: 10000,
     })
     await expect(page.locator("#quote blockquote p")).toHaveCSS(
       "clip-path",
       "inset(0%)"
     )
+
+    expect(problems).toEqual([])
+  })
+
+  test("draws no shape between two scenes", async ({ page }) => {
+    const problems = collectPageProblems(page)
+
+    await page.goto("/")
+
+    const stage = await waitForRunningStage(page)
+
+    await page.evaluate(function scrollBetweenHeroAndQuote() {
+      const quote = document.querySelector<HTMLElement>("#quote")
+
+      if (quote !== null) {
+        window.scrollTo({ top: quote.offsetTop * 0.6, behavior: "instant" })
+      }
+    })
+
+    await expect(stage).toHaveAttribute("data-scene", "moving", {
+      timeout: 5000,
+    })
 
     expect(problems).toEqual([])
   })
@@ -316,11 +398,7 @@ test.describe("hero dot field on a phone", () => {
   test("runs the webgl field on a narrow touch viewport", async ({ page }) => {
     await page.goto("/")
 
-    const stage = page.locator("[data-status]").first()
-
-    await expect(stage).toHaveAttribute("data-status", "running", {
-      timeout: 15000,
-    })
+    await waitForRunningStage(page)
 
     const canvas = page.locator("canvas")
     const pointCount = Number(await canvas.getAttribute("data-point-count"))
@@ -333,21 +411,21 @@ test.describe("hero dot field on a phone", () => {
 
     const stage = await waitForRunningStage(page)
 
-    await scrollQuoteIntoView(page)
+    await scrollSceneToPinStart(page, "#quote")
 
-    await expect(stage).toHaveAttribute("data-morph", "cube", {
+    await expect(stage).toHaveAttribute("data-scene", "cube", {
       timeout: 5000,
     })
   })
 
-  test("bursts into the projects on a narrow touch viewport", async ({
+  test("reaches the projects scene on a narrow touch viewport", async ({
     page,
   }) => {
     await page.goto("/#project")
 
     const stage = await waitForRunningStage(page)
 
-    await expect(stage).toHaveAttribute("data-burst", "open", {
+    await expect(stage).toHaveAttribute("data-scene", "project", {
       timeout: 10000,
     })
   })

@@ -29,10 +29,7 @@ import { cn } from "@/lib/utils"
 import type { ProjectsSectionProps } from "@/types/portfolio.type"
 import type { ProjectItem } from "@/types/site-content.type"
 
-export function ProjectsSection({
-  projects,
-  sectionRef,
-}: Readonly<ProjectsSectionProps>) {
+export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
   const shouldReduceMotion = useReducedMotion() === true
   const visibleProjects = selectVisibleProjects(projects.items)
 
@@ -52,11 +49,9 @@ export function ProjectsSection({
       <li key={index}>
         <article className="group/card relative">
           <div
-            data-dot-frame=""
             className={cn(
               "relative aspect-[10/7] w-full overflow-hidden bg-black",
-              "border border-white/40 transition-colors duration-700",
-              "group-data-[burst=open]:border-transparent"
+              "border border-white/40"
             )}
           >
             {image !== null ? (
@@ -138,22 +133,23 @@ export function ProjectsSection({
 
   return (
     <section
-      ref={sectionRef}
       id="project"
+      data-dot-scene="project"
+      data-dot-shapes="sphere"
       aria-labelledby={PROJECTS_HEADING_ID}
       className={cn(
-        "scroll-mt-20 px-6 md:px-10",
-        "pt-[max(6rem,16svh)] pb-[max(5rem,12svh)]"
+        "mx-auto flex max-w-[80rem] scroll-mt-18 flex-col px-6 text-white",
+        "md:grid md:grid-cols-[minmax(16rem,22.5rem)_minmax(0,48rem)]",
+        "md:justify-between md:gap-x-16 md:px-10"
       )}
     >
       <div
         className={cn(
-          "mx-auto flex max-w-[80rem] flex-col gap-15",
-          "md:grid md:grid-cols-[minmax(16rem,22.5rem)_minmax(0,48rem)]",
-          "md:justify-between md:gap-x-16"
+          "sticky top-18 flex h-[calc(100svh_-_4.5rem)] flex-col gap-8",
+          "pt-[max(2rem,10svh)] pb-8 md:self-start"
         )}
       >
-        <header className="flex flex-col gap-6 md:sticky md:top-28 md:self-start">
+        <header className="flex flex-col gap-6">
           <p className={PROJECTS_CUE_CLASS}>
             {formatProjectCount(visibleProjects.length)}
           </p>
@@ -177,6 +173,7 @@ export function ProjectsSection({
           <p
             className={cn(
               "max-w-[34rem] text-white/75 uppercase",
+              "[@media(max-height:30rem)]:hidden",
               "text-[0.8125rem] leading-[1.7] tracking-[0.05em]",
               "md:text-sm md:leading-relaxed md:tracking-[0.14em]"
             )}
@@ -187,7 +184,7 @@ export function ProjectsSection({
           <a
             href={PORTFOLIO_ACTION_NAVIGATION.href}
             className={cn(
-              "inline-flex h-10 items-center gap-2 self-start px-5",
+              "hidden h-10 items-center gap-2 self-start px-5 md:inline-flex",
               "border border-white/40 text-white outline-none",
               "text-xs tracking-[0.025em] uppercase transition-colors",
               "hover:border-white focus-visible:border-white",
@@ -199,10 +196,26 @@ export function ProjectsSection({
           </a>
         </header>
 
-        <ol className="flex flex-col gap-10 md:gap-15">
-          {visibleProjects.map(renderProject)}
-        </ol>
+        <div
+          data-dot-slot=""
+          aria-hidden="true"
+          className={cn(
+            "order-first aspect-square w-full max-w-[min(22.5rem,36svh)] shrink-0",
+            "md:order-none md:mt-auto [@media(max-height:30rem)]:max-w-[24svh]",
+            "touch-pan-y touch-pinch-zoom",
+            "group-data-[status=unsupported]/stage:hidden"
+          )}
+        />
       </div>
+
+      <ol
+        className={cn(
+          "relative z-[1] flex flex-col gap-10 bg-black pb-[max(5rem,12svh)]",
+          "md:z-auto md:gap-15 md:bg-transparent md:pt-[max(6rem,16svh)]"
+        )}
+      >
+        {visibleProjects.map(renderProject)}
+      </ol>
     </section>
   )
 }
