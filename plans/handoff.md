@@ -2,7 +2,9 @@
 
 > **For:** the next Claude Code session picking up this build.
 >
-> **Current phase:** **Phase 3, smooth scroll, shapes, dot choreography, section motion and the cursor.** Phases 0–2 are done (2026-09-28). Phase 1 is committed as `3f58984` and Phase 2 as `ba153d4`; both reached `main` in `5c2173c` (PR #1). Start Phase 3 with its pre-flight (the hero pixel diff against `0a3c97a`, the migration and the e2e baseline).
+> **Current phase:** **Phase 3, smooth scroll, shapes, dot choreography, section motion and the cursor.** Phases 0–2 are done (2026-09-28). Phase 1 is committed as `3f58984` and Phase 2 as `ba153d4`; both reached `main` in `5c2173c` (PR #1).
+>
+> **Phase 3 progress (2026-09-28):** the pre-flight, Part 0, Part 1 and the core of Part 2 are built and committed on `portfolio/phase-3`. **Resume with Part 2's open items** (see "Part 2 done note"), then 3B: Part 3, then Part 4. The done notes sit under Parts 1 and 2.
 >
 > **Branch:** `portfolio/phase-3`, cut from `main` at `5c2173c`. **Baseline for pixel diffs:** `0a3c97a`.
 >
@@ -660,6 +662,34 @@ Make every morph an event, not a slide from one slot to the next.
   - RAF at 0 fps at rest
   - the hero passes the pre-flight pixel diff. Part 2 rewrites the vertex shader and adds the strike, so 3A re-checks it rather than leaving a regression for 3B to find (gap review)
   - no transit frame over 16ms on a mid-range Android, and on desktop with a smoothed wheel (Part 0 puts the scroll on the main thread). Phase 4 names no method yet (planning review): use a Chrome Performance trace and count long frames, on the owner's phone.
+
+**Part 2 done note (2026-09-28): core built; open items listed.**
+
+- **Built:**
+  - **Pen draw-on.** The arrival key is `min(gl_VertexID / SHAPE_POINTS, 1)`, mixed with `randomKey` by `penJitter` (0.12). Departure keeps the screen-x sweep. Each dot flies over `[departKey·s, 1 − (1 − arriveKey)·s]`. Segments that touch the name keep today's `nameKey` sweep at both ends.
+  - **Burst and gather.** Curl noise from 2D value noise, amplitude `burstPixels` (34) and scale `burstScalePixels` (240), both times the pixel ratio. The per-dot `sin(π · eased)` envelope is the same one the arc uses, and a per-dot `randomKey` offset keeps a stroke from moving rigidly. It is clamped to the viewport by bounds that widen to include the dot's own position, so an off-screen dot never moves.
+  - **Depth swell.** Size times `1 + swell·flight` (0.35), and opacity lifted by half that, capped at 1.
+  - **Arrival strike.**
+    - `resolveArrivalStrike` returns `(1 − age/0.3)²` and exactly 0 at the end.
+    - It applies to landings on keyframes with a slot (`canPush`), at most one per `strikeMinIntervalSeconds` (0.5).
+    - Load, deep links and resize never strike: `syncToScroll` records the landed index.
+    - The flash is a dot-size pulse (`strikeSize` 0.5), because white at opacity 1 has no brightness headroom.
+    - `applyArrivalImpulse` gives each dot an outward kick from the shape centre (the name's centre adds `wordCenter`), scaled by ink height. The existing spring settles it.
+    - `shouldLoopSleep` takes `isStriking`.
+  - **Tuning:** every number is in `DOT_FIELD_MORPH_TUNING`.
+  - **At rest every new term is exactly neutral** (times 1.0, plus 0.0), so the hero pixel diff is unchanged.
+- **Evidence:**
+  - unit tests for the strike curve, the impulse and loop sleep while striking (321 total)
+  - 48/48 e2e (GL-error collectors included)
+  - pixel diff unchanged in all four cases
+  - a 1440 transit strip (branding → web-design) shows the seal loosening into a curl cloud and the browser drawing on frame-first
+- **Open, in this order:**
+  1. **Copy crossings.** Transit dots still cross copy columns at full brightness. Choose arc bias or dimming from captures.
+  2. **Transits hidden behind opaque steps.** The portrait services → about and process → dust exits aren't fixed yet.
+  3. **The engine follow-ups from the Phase 2 fit work** (`resolveViewportHeight` with grown frames, and split steps at short landscapes).
+  4. **Acceptance captures.** Frame captures of every transit, both directions, at 1440 and 390, tuned with Lenis on. Tune the strike size and impulse and the burst amplitude by eye, then ask the owner to sign off "wow and professional".
+  5. **The 16ms trace on the owner's phone.** Ask whether they have an Android phone with USB debugging.
+- **The capture harness is not committed.** Scratch scripts did the pixel diff (above), the reduced-motion shape contact sheets (scroll to `start + k·pitch` per step, clip the slot) and the transit strips (scroll to `start + (k + 0.3 + 0.4f)·pitch`, wait about 1.6s, then screenshot). Rewrite them from these notes.
 
 #### Part 3: section motion
 

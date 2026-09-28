@@ -1189,11 +1189,54 @@ export function resolvePlacement(
 }
 
 export function shouldLoopSleep(request: DotFieldLoopRestRequest): boolean {
-  const { isFieldAtRest, hasSettled, isProgressResting, isSpinning } = request
+  const {
+    isFieldAtRest,
+    hasSettled,
+    isProgressResting,
+    isSpinning,
+    isStriking,
+  } = request
 
   if (!isFieldAtRest || !hasSettled || !isProgressResting) {
     return false
   }
 
-  return !isSpinning
+  return !isSpinning && !isStriking
+}
+
+export function resolveArrivalStrike(
+  ageSeconds: number,
+  durationSeconds: number
+): number {
+  if (ageSeconds < 0 || ageSeconds >= durationSeconds) {
+    return 0
+  }
+
+  const remaining = 1 - ageSeconds / durationSeconds
+
+  return remaining * remaining
+}
+
+export function applyArrivalImpulse(
+  homes: Float32Array,
+  velocities: Float32Array,
+  center: DotFieldVector,
+  strength: number
+): void {
+  const count = velocities.length / OFFSET_STRIDE
+
+  for (let index = 0; index < count; index += 1) {
+    const homeIndex = index * POINT_STRIDE
+    const velocityIndex = index * OFFSET_STRIDE
+    const awayX = homes[homeIndex] - center.x
+    const awayY = homes[homeIndex + 1] - center.y
+    const distance = Math.hypot(awayX, awayY)
+
+    if (distance === 0) {
+      continue
+    }
+
+    velocities[velocityIndex] += (awayX / distance) * strength
+    velocities[velocityIndex + 1] += (awayY / distance) * strength
+  }
 }

@@ -80,6 +80,14 @@ export type DotFieldMorphTuning = {
   cameraDistance: number
   wobbleSpeed: number
   stepMorphShare: number
+  penJitter: number
+  burstPixels: number
+  burstScalePixels: number
+  swell: number
+  strikeSize: number
+  strikeSeconds: number
+  strikeMinIntervalSeconds: number
+  strikeImpulse: number
 }
 
 export type DotFieldFollowTuning = Pick<
@@ -146,6 +154,7 @@ export type DotFieldLoopRestRequest = {
   hasSettled: boolean
   isProgressResting: boolean
   isSpinning: boolean
+  isStriking: boolean
 }
 
 export type DotFieldPlacement = {
@@ -194,6 +203,7 @@ export type DotFieldFrame = {
   wordCenter: DotFieldVector
   wordBounds: DotFieldBounds
   progress: number
+  strike: number
   from: DotFieldPlacement
   to: DotFieldPlacement
 }
@@ -320,6 +330,12 @@ export type DotFieldUniforms = {
   morphStagger: WebGLUniformLocation | null
   morphJitter: WebGLUniformLocation | null
   morphArc: WebGLUniformLocation | null
+  penJitter: WebGLUniformLocation | null
+  burstPixels: WebGLUniformLocation | null
+  burstScale: WebGLUniformLocation | null
+  swell: WebGLUniformLocation | null
+  strikeSize: WebGLUniformLocation | null
+  strike: WebGLUniformLocation | null
   from: DotFieldPlacementUniforms
   to: DotFieldPlacementUniforms
 }

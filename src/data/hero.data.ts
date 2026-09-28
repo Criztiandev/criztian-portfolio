@@ -588,6 +588,14 @@ export const DOT_FIELD_MORPH_TUNING: DotFieldMorphTuning = {
   cameraDistance: 5,
   wobbleSpeed: 0.9,
   stepMorphShare: 0.4,
+  penJitter: 0.12,
+  burstPixels: 34,
+  burstScalePixels: 240,
+  swell: 0.35,
+  strikeSize: 0.5,
+  strikeSeconds: 0.3,
+  strikeMinIntervalSeconds: 0.5,
+  strikeImpulse: 1.6,
 }
 
 const FLAT_LINE_ART_TUNING: DotShapeTuning = {

@@ -25,6 +25,7 @@ import {
   readReducedMotionQuery,
 } from "@/features/portfolio/browser-capability.rules"
 import {
+  applyArrivalImpulse,
   buildFontShorthand,
   buildSceneKeyframes,
   buildShapeLibrary,
@@ -39,6 +40,7 @@ import {
   resolvePlacement,
   resolveSceneState,
   resolveStaticKeyframe,
+  resolveArrivalStrike,
   resolveTimelinePosition,
   resolveTimelineSegment,
   resolveViewportHeight,
@@ -70,6 +72,7 @@ import type {
   DotFieldPlacement,
   DotFieldPointer,
   DotFieldRuntime,
+  DotFieldVector,
   DotFieldViewport,
   DotSceneKeyframe,
   DotSceneMeasure,
@@ -326,6 +329,8 @@ export function useDotField(request: UseDotFieldRequest): void {
       let isFieldAtRest = true
       let sceneState = stage.dataset.scene ?? ""
       let jumpScrollTop: number | null = null
+      let landedIndex = -1
+      let strikeStartSeconds = Number.NEGATIVE_INFINITY
 
       function applyCanvasSize(): void {
         pixelRatio = resolveCanvasPixelRatio(
@@ -441,6 +446,63 @@ export function useDotField(request: UseDotFieldRequest): void {
         })
       }
 
+      function resolveStrike(): number {
+        if (prefersReducedMotion()) {
+          return 0
+        }
+
+        return resolveArrivalStrike(
+          elapsedSeconds - strikeStartSeconds,
+          DOT_FIELD_MORPH_TUNING.strikeSeconds
+        )
+      }
+
+      function resolveShapeCenter(frame: DotFieldFrame): DotFieldVector {
+        const placement = frame.from
+
+        if (placement.shape !== "name") {
+          return placement.center
+        }
+
+        return {
+          x: placement.center.x + frame.wordCenter.x,
+          y: placement.center.y + frame.wordCenter.y,
+        }
+      }
+
+      function strikeOnLanding(frame: DotFieldFrame): void {
+        if (!Number.isInteger(progress)) {
+          landedIndex = -1
+          return
+        }
+
+        if (progress === landedIndex) {
+          return
+        }
+
+        landedIndex = progress
+
+        const sinceLastStrike = elapsedSeconds - strikeStartSeconds
+
+        if (
+          !canPush() ||
+          sinceLastStrike < DOT_FIELD_MORPH_TUNING.strikeMinIntervalSeconds
+        ) {
+          return
+        }
+
+        strikeStartSeconds = elapsedSeconds
+        writeHomes(frame)
+        applyArrivalImpulse(
+          runtime.homes,
+          runtime.velocities,
+          resolveShapeCenter(frame),
+          (DOT_FIELD_MORPH_TUNING.strikeImpulse * frame.from.inkHeight) /
+            DOT_FIELD_TUNING.referenceInkHeight
+        )
+        isFieldAtRest = false
+      }
+
       function buildFrame(): DotFieldFrame | null {
         const segment = resolveSegment()
         const fromKeyframe = keyframes[segment.fromIndex]
@@ -462,6 +524,7 @@ export function useDotField(request: UseDotFieldRequest): void {
           },
           wordBounds: nameSample.bounds,
           progress: segment.progress,
+          strike: resolveStrike(),
           from: placeKeyframe(
             fromKeyframe,
             segment.progress * morphSpin,
@@ -571,7 +634,13 @@ export function useDotField(request: UseDotFieldRequest): void {
           spinSeconds += deltaSeconds
         }
 
-        const frame = buildFrame()
+        let frame = buildFrame()
+
+        if (frame !== null) {
+          strikeOnLanding(frame)
+          frame = { ...frame, strike: resolveStrike() }
+        }
+
         const isPushing = frame !== null && pointer.isActive && canPush()
 
         if (frame !== null && (isPushing || !isFieldAtRest)) {
@@ -609,6 +678,7 @@ export function useDotField(request: UseDotFieldRequest): void {
           hasSettled: hasSettledRef.current,
           isProgressResting: progress === progressTarget,
           isSpinning,
+          isStriking: frame !== null && frame.strike > 0,
         })
 
         if (isLoopDone) {
@@ -678,6 +748,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       function syncToScroll(): void {
         readScrollTargets()
         progress = progressTarget
+        landedIndex = Number.isInteger(progress) ? progress : -1
       }
 
       function onScroll(): void {

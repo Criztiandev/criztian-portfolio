@@ -42,6 +42,8 @@ import {
   resolveViewportHeight,
   resolveVisibleFraction,
   samplePixelGrid,
+  resolveArrivalStrike,
+  applyArrivalImpulse,
   shouldLoopSleep,
   shouldRebuildPoints,
   stepDotPhysics,
@@ -1068,12 +1070,38 @@ describe("isShapeSpinning", () => {
   })
 })
 
+describe("resolveArrivalStrike", () => {
+  it("starts at full strength and decays to exactly zero at its duration", () => {
+    expect(resolveArrivalStrike(0, 0.3)).toBe(1)
+    expect(resolveArrivalStrike(0.15, 0.3)).toBeCloseTo(0.25)
+    expect(resolveArrivalStrike(0.3, 0.3)).toBe(0)
+    expect(resolveArrivalStrike(5, 0.3)).toBe(0)
+  })
+
+  it("is zero before any strike has started", () => {
+    expect(resolveArrivalStrike(-1, 0.3)).toBe(0)
+    expect(resolveArrivalStrike(Number.NEGATIVE_INFINITY, 0.3)).toBe(0)
+  })
+})
+
+describe("applyArrivalImpulse", () => {
+  it("kicks every dot outward from the shape centre", () => {
+    const homes = new Float32Array([110, 100, 0, 100, 80, 0, 100, 100, 0])
+    const velocities = new Float32Array(6)
+
+    applyArrivalImpulse(homes, velocities, { x: 100, y: 100 }, 2)
+
+    expect(Array.from(velocities)).toEqual([2, 0, 0, -2, 0, 0])
+  })
+})
+
 describe("shouldLoopSleep", () => {
   const resting = {
     isFieldAtRest: true,
     hasSettled: true,
     isProgressResting: true,
     isSpinning: false,
+    isStriking: false,
   }
 
   it("sleeps once everything rests", () => {
@@ -1082,6 +1110,10 @@ describe("shouldLoopSleep", () => {
 
   it("keeps a spinning shape turning", () => {
     expect(shouldLoopSleep({ ...resting, isSpinning: true })).toBe(false)
+  })
+
+  it("keeps drawing until an arrival strike has decayed", () => {
+    expect(shouldLoopSleep({ ...resting, isStriking: true })).toBe(false)
   })
 
   it("keeps running while anything is still moving", () => {

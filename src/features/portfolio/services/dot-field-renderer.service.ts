@@ -139,6 +139,12 @@ function resolveUniformLocations(
     morphStagger: context.getUniformLocation(program, "uMorphStagger"),
     morphJitter: context.getUniformLocation(program, "uMorphJitter"),
     morphArc: context.getUniformLocation(program, "uMorphArc"),
+    penJitter: context.getUniformLocation(program, "uPenJitter"),
+    burstPixels: context.getUniformLocation(program, "uBurstPixels"),
+    burstScale: context.getUniformLocation(program, "uBurstScale"),
+    swell: context.getUniformLocation(program, "uSwell"),
+    strikeSize: context.getUniformLocation(program, "uStrikeSize"),
+    strike: context.getUniformLocation(program, "uStrike"),
     from: resolvePlacementUniforms(context, program, "uFrom"),
     to: resolvePlacementUniforms(context, program, "uTo"),
   }
@@ -308,6 +314,14 @@ export function applyStaticUniforms(
   context.uniform1f(uniforms.morphStagger, morphTuning.morphStagger)
   context.uniform1f(uniforms.morphJitter, morphTuning.morphJitter)
   context.uniform1f(uniforms.morphArc, morphTuning.morphArcPixels * pixelRatio)
+  context.uniform1f(uniforms.penJitter, morphTuning.penJitter)
+  context.uniform1f(uniforms.burstPixels, morphTuning.burstPixels * pixelRatio)
+  context.uniform1f(
+    uniforms.burstScale,
+    morphTuning.burstScalePixels * pixelRatio
+  )
+  context.uniform1f(uniforms.swell, morphTuning.swell)
+  context.uniform1f(uniforms.strikeSize, morphTuning.strikeSize)
 }
 
 export function applyDotColor(
@@ -484,6 +498,7 @@ export function drawDotField(
     frame.wordBounds.right
   )
   context.uniform1f(uniforms.morph, frame.progress)
+  context.uniform1f(uniforms.strike, frame.strike)
   applyPlacement(context, uniforms.from, frame.from)
   applyPlacement(context, uniforms.to, frame.to)
 
