@@ -190,14 +190,25 @@
   translate: calc((1 - var(--line-reveal)) * -24px) 0;
 }
 
-@utility orbit-turn {
-  animation-name: orbit-turn;
-  animation-duration: auto;
-  animation-timing-function: var(--signal-ease);
-  animation-fill-mode: both;
-  animation-timeline: --step-scene;
-  animation-range: exit-crossing calc(var(--in-from) * var(--pitch))
-    exit-crossing calc(var(--in-to) * var(--pitch));
+@utility orbit-step {
+  --orbit-assemble: clamp(
+    0,
+    1 + var(--thread-turn, 0) - max(0, var(--orbit-index) - 1),
+    1
+  );
+  --orbit-lit: clamp(
+    0,
+    1 -
+      max(
+        var(--thread-turn, 0) - var(--orbit-index),
+        var(--orbit-index) - var(--thread-turn, 0)
+      ),
+    1
+  );
+  rotate: calc(
+    (var(--orbit-index) - max(0, var(--thread-turn, 0))) *
+      var(--orbit-step-angle)
+  );
 }
 
 @utility orbit-spin {
@@ -211,57 +222,20 @@
 }
 
 @utility orbit-digit {
-  animation-name: orbit-digit;
-  animation-duration: auto;
-  animation-timing-function: var(--signal-ease);
-  animation-fill-mode: both;
-  animation-timeline: --step-scene;
-  animation-range: exit-crossing calc(var(--assemble-from) * var(--pitch))
-    exit-crossing calc(var(--assemble-to) * var(--pitch));
-}
-
-@utility orbit-reveal {
-  animation-name: orbit-reveal;
-  animation-duration: auto;
-  animation-timing-function: var(--signal-ease);
-  animation-fill-mode: both;
-  animation-timeline: --step-scene;
-  animation-range: exit-crossing calc(var(--assemble-from) * var(--pitch))
-    exit-crossing calc(var(--assemble-to) * var(--pitch));
-}
-
-@keyframes orbit-turn {
-  to {
-    rotate: calc(-1 * var(--orbit-step-angle));
-  }
+  opacity: var(--orbit-assemble);
+  translate: 0 calc((1 - var(--orbit-assemble)) * 0.4em);
+  rotate: calc((1 - var(--orbit-assemble)) * var(--orbit-tilt));
+  scale: calc(0.5 + 0.5 * var(--orbit-assemble))
+    calc(1.5 - 0.5 * var(--orbit-assemble));
 }
 
 @keyframes orbit-spin {
   from {
-    stroke-dashoffset: calc(var(--orbit-dash-from) * 1px);
+    stroke-dashoffset: 0px;
   }
 
   to {
-    stroke-dashoffset: calc((var(--orbit-dash-from) - var(--orbit-spin)) * 1px);
-  }
-}
-
-@keyframes orbit-digit {
-  from {
-    opacity: 0;
-    translate: 0 0.4em;
-    rotate: var(--orbit-tilt);
-    scale: 0.5 1.5;
-  }
-}
-
-@keyframes orbit-reveal {
-  from {
-    clip-path: inset(-20% 100% -20% 0);
-  }
-
-  to {
-    clip-path: inset(-20% -4% -20% 0);
+    stroke-dashoffset: calc(-1 * var(--orbit-spin));
   }
 }
 
@@ -278,4 +252,24 @@
 [data-caption="development"],
 [data-position="development"] {
   --caption-reveal: var(--reveal-development);
+}
+
+[data-position="listening"] {
+  --caption-reveal: var(--reveal-listening);
+}
+
+[data-position="planning"] {
+  --caption-reveal: var(--reveal-planning);
+}
+
+[data-position="visualising"] {
+  --caption-reveal: var(--reveal-visualising);
+}
+
+[data-position="building"] {
+  --caption-reveal: var(--reveal-building);
+}
+
+[data-position="delivery"] {
+  --caption-reveal: var(--reveal-delivery);
 }

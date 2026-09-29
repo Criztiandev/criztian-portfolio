@@ -68,6 +68,8 @@ export const THREAD_REVEAL_PROPERTY_PREFIX = "--reveal-"
 
 export const THREAD_REVEAL_DECIMALS = 3
 
+export const THREAD_TURN_PROPERTY = "--thread-turn"
+
 export const JUMP_CANCEL_EVENTS = [
   "wheel",
   "touchstart",
@@ -743,7 +745,8 @@ export const DOT_FIELD_MORPH_TUNING: DotFieldMorphTuning = {
 }
 
 export const DOT_SCENE_MOTION: Record<string, DotSceneMotion> = {
-  services: { share: 0.72, isThread: true },
+  services: { share: 0.72, isThread: true, hasTurn: false },
+  process: { share: 0.4, isThread: true, hasTurn: true },
 }
 
 const THREAD_LINE_ART_TUNING: DotShapeTuning = {
@@ -767,7 +770,7 @@ const THREAD_LINE_ART_TUNING: DotShapeTuning = {
 
 const PROCESS_LINE_ART_TUNING: DotShapeTuning = {
   fit: "contain",
-  sizeRatio: 0.45,
+  sizeRatio: 0.58,
   pointsPerArea: 0.05,
   pointCount: SHAPE_POINTS,
   hasPerspective: true,

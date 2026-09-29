@@ -31,6 +31,7 @@ import {
   generateCubePoints,
   generateDustPoints,
   isShapeSpinning,
+  isThreadSegment,
   padNamePoints,
   padShapePoints,
   parseCssPixels,
@@ -48,6 +49,7 @@ import {
   resolveStaticKeyframe,
   resolveThreadReveal,
   resolveThreadState,
+  resolveThreadTurn,
   resolveTimelinePosition,
   resolveTriggeredTarget,
   resolveTimelineSegment,
@@ -420,9 +422,23 @@ function buildScene(overrides: Partial<DotSceneMeasure>): DotSceneMeasure {
 }
 
 const TIMELINE: DotSceneKeyframe[] = [
-  { id: "name", shape: "name", start: 0, end: 90, slot: SLOT },
-  { id: "cube", shape: "cube", start: 900, end: 1500, slot: SLOT },
-  { id: "dust", shape: "dust", start: 2000, end: 3000, slot: null },
+  { id: "name", scene: "name", shape: "name", start: 0, end: 90, slot: SLOT },
+  {
+    id: "cube",
+    scene: "cube",
+    shape: "cube",
+    start: 900,
+    end: 1500,
+    slot: SLOT,
+  },
+  {
+    id: "dust",
+    scene: "dust",
+    shape: "dust",
+    start: 2000,
+    end: 3000,
+    slot: null,
+  },
 ]
 
 const VIEWPORT = { width: 1440, height: 900, pixelRatio: 2 }
@@ -803,6 +819,7 @@ describe("buildSceneKeyframes", () => {
 
     expect(keyframe).toEqual({
       id: "cube",
+      scene: "cube",
       shape: "cube",
       start: 928,
       end: 1600,
@@ -889,6 +906,29 @@ describe("buildSceneKeyframes", () => {
     }
   })
 
+  it("names each step's scene and threads How I work's steps too", () => {
+    const keyframes = buildSceneKeyframes(
+      [
+        buildScene({
+          id: "process",
+          shapes: ["listening", "planning", "visualising"],
+          containerTop: 1072,
+        }),
+      ],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+    const share = DOT_SCENE_MOTION.process?.share ?? 0
+    const halfGap = (300 * share) / 2
+
+    expect(keyframes[0]?.end).toBeCloseTo(1150 - halfGap, 6)
+
+    for (const keyframe of keyframes) {
+      expect(keyframe.scene).toBe("process")
+      expect(keyframe.isThread).toBe(true)
+    }
+  })
+
   it("never threads a single-shape scene", () => {
     const keyframes = buildSceneKeyframes(
       [buildScene({ id: "services", shapes: ["dust"] })],
@@ -911,9 +951,10 @@ describe("buildSceneKeyframes", () => {
 })
 
 const THREAD_TIMELINE: DotSceneKeyframe[] = [
-  { id: "cube", shape: "cube", start: 0, end: 100, slot: SLOT },
+  { id: "cube", scene: "cube", shape: "cube", start: 0, end: 100, slot: SLOT },
   {
     id: "branding",
+    scene: "services",
     shape: "branding",
     start: 500,
     end: 600,
@@ -922,6 +963,7 @@ const THREAD_TIMELINE: DotSceneKeyframe[] = [
   },
   {
     id: "web-design",
+    scene: "services",
     shape: "web-design",
     start: 1000,
     end: 1100,
@@ -931,9 +973,10 @@ const THREAD_TIMELINE: DotSceneKeyframe[] = [
 ]
 
 const SERVICE_TIMELINE: DotSceneKeyframe[] = [
-  { id: "cube", shape: "cube", start: 0, end: 100, slot: SLOT },
+  { id: "cube", scene: "cube", shape: "cube", start: 0, end: 100, slot: SLOT },
   {
     id: "branding",
+    scene: "services",
     shape: "branding",
     start: 500,
     end: 600,
@@ -942,6 +985,7 @@ const SERVICE_TIMELINE: DotSceneKeyframe[] = [
   },
   {
     id: "web-design",
+    scene: "services",
     shape: "web-design",
     start: 1000,
     end: 1100,
@@ -950,13 +994,21 @@ const SERVICE_TIMELINE: DotSceneKeyframe[] = [
   },
   {
     id: "development",
+    scene: "services",
     shape: "development",
     start: 1500,
     end: 1600,
     slot: SLOT,
     isThread: true,
   },
-  { id: "listening", shape: "listening", start: 2000, end: 2100, slot: SLOT },
+  {
+    id: "listening",
+    scene: "process",
+    shape: "listening",
+    start: 2000,
+    end: 2100,
+    slot: SLOT,
+  },
 ]
 
 const TRIGGER = DOT_FIELD_MORPH_TUNING.threadTrigger
@@ -1153,6 +1205,111 @@ describe("resolveThreadReveal", () => {
   })
 })
 
+const CROSSING_TIMELINE: DotSceneKeyframe[] = [
+  ...THREAD_TIMELINE,
+  {
+    id: "listening",
+    scene: "process",
+    shape: "listening",
+    start: 1500,
+    end: 1600,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "planning",
+    scene: "process",
+    shape: "planning",
+    start: 2000,
+    end: 2100,
+    slot: SLOT,
+    isThread: true,
+  },
+]
+
+describe("crossing between two thread scenes", () => {
+  it("threads steps inside one scene only", () => {
+    expect(isThreadSegment(CROSSING_TIMELINE[1], CROSSING_TIMELINE[2])).toBe(
+      true
+    )
+    expect(isThreadSegment(CROSSING_TIMELINE[3], CROSSING_TIMELINE[4])).toBe(
+      true
+    )
+    expect(isThreadSegment(CROSSING_TIMELINE[2], CROSSING_TIMELINE[3])).toBe(
+      false
+    )
+  })
+
+  it("scrubs the flight from one thread scene into the next", () => {
+    expect(
+      resolveTriggeredTarget({
+        keyframes: CROSSING_TIMELINE,
+        scrollTarget: 2.4,
+        previousScrollTarget: 2.3,
+        committedTarget: 2.3,
+        trigger: TRIGGER,
+      })
+    ).toBe(2.4)
+    expect(
+      followTriggeredProgress(
+        2.3,
+        2.4,
+        1 / 60,
+        CROSSING_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+    ).toBe(followMorphProgress(2.3, 2.4, 1 / 60, DOT_FIELD_MORPH_TUNING))
+  })
+
+  it("still triggers the first step inside the next scene", () => {
+    expect(
+      resolveTriggeredTarget({
+        keyframes: CROSSING_TIMELINE,
+        scrollTarget: 3 + TRIGGER,
+        previousScrollTarget: 3,
+        committedTarget: 3,
+        trigger: TRIGGER,
+      })
+    ).toBe(4)
+  })
+})
+
+describe("resolveThreadTurn", () => {
+  it("rests on each step while its drawing is formed", () => {
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "process", 3)).toBe(0)
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "process", 4)).toBe(1)
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "services", 2)).toBe(1)
+  })
+
+  it("turns on the signal ease between two steps", () => {
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "process", 3.5)).toBeCloseTo(
+      0.5,
+      9
+    )
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "process", 3.25)).toBeCloseTo(
+      0.0625,
+      9
+    )
+  })
+
+  it("counts the flight in as the step before the first", () => {
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "process", 0)).toBe(-1)
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "process", 2.5)).toBeCloseTo(
+      -0.5,
+      9
+    )
+  })
+
+  it("holds the last step after the scene", () => {
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "services", 3.6)).toBe(1)
+  })
+
+  it("has no turn for a scene without threaded steps", () => {
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "cube", 0)).toBeNull()
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "about", 2)).toBeNull()
+  })
+})
+
 describe("resolveThreadState", () => {
   it("names the threaded shape nearest the target", () => {
     expect(resolveThreadState(THREAD_TIMELINE, 1)).toBe("branding")
@@ -1190,8 +1347,22 @@ describe("resolveTimelinePosition", () => {
 
   it("switches without travelling when two keyframes touch", () => {
     const touching: DotSceneKeyframe[] = [
-      { id: "name", shape: "name", start: 0, end: 1000, slot: SLOT },
-      { id: "cube", shape: "cube", start: 1000.5, end: 1600, slot: SLOT },
+      {
+        id: "name",
+        scene: "name",
+        shape: "name",
+        start: 0,
+        end: 1000,
+        slot: SLOT,
+      },
+      {
+        id: "cube",
+        scene: "cube",
+        shape: "cube",
+        start: 1000.5,
+        end: 1600,
+        slot: SLOT,
+      },
     ]
 
     expect(resolveTimelinePosition(touching, 1000.2, 1)).toBe(0)
@@ -1258,6 +1429,7 @@ describe("resolveVisibleFraction", () => {
 describe("resolvePlacement", () => {
   const nameKeyframe: DotSceneKeyframe = {
     id: "name",
+    scene: "name",
     shape: "name",
     start: 0,
     end: 90,
@@ -1291,6 +1463,7 @@ describe("resolvePlacement", () => {
       buildPlacementRequest(
         {
           id: "cube",
+          scene: "cube",
           shape: "cube",
           start: 900,
           end: 1500,
@@ -1322,7 +1495,14 @@ describe("resolvePlacement", () => {
     const slot = { x: 100, y: 200, width: 700, height: 490 }
     const placement = resolvePlacement(
       buildPlacementRequest(
-        { id: "project", shape: "frame", start: 900, end: 1500, slot },
+        {
+          id: "project",
+          scene: "project",
+          shape: "frame",
+          start: 900,
+          end: 1500,
+          slot,
+        },
         {}
       )
     )
@@ -1338,7 +1518,14 @@ describe("resolvePlacement", () => {
     const slot = { x: 800, y: 200, width: 520, height: 442 }
     const placement = resolvePlacement(
       buildPlacementRequest(
-        { id: "contact", shape: "gather", start: 900, end: 1500, slot },
+        {
+          id: "contact",
+          scene: "contact",
+          shape: "gather",
+          start: 900,
+          end: 1500,
+          slot,
+        },
         {}
       )
     )
@@ -1357,6 +1544,7 @@ describe("resolvePlacement", () => {
   it("holds a still shape in one resting pose with or without motion", () => {
     const keyframe: DotSceneKeyframe = {
       id: "building",
+      scene: "process",
       shape: "building",
       start: 0,
       end: 100,

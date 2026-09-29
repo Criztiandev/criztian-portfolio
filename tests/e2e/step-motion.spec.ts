@@ -1,7 +1,11 @@
 import { expect, test } from "@playwright/test"
 import type { Page } from "@playwright/test"
 
-import { DOT_FIELD_MORPH_TUNING, DOT_SCENE_MOTION } from "@/data/hero.data"
+import {
+  DOT_FIELD_MORPH_TUNING,
+  DOT_SCENE_MOTION,
+  THREAD_TURN_PROPERTY,
+} from "@/data/hero.data"
 import {
   PROCESS_SCENE_SHAPES,
   SERVICES_SCENE_SHAPES,
@@ -27,6 +31,11 @@ const SERVICES_SHARE =
   DOT_SCENE_MOTION.services?.share ?? DOT_FIELD_MORPH_TUNING.stepMorphShare
 
 const FIRST_THREAD_START = 0.5 - SERVICES_SHARE / 2
+
+const PROCESS_SHARE =
+  DOT_SCENE_MOTION.process?.share ?? DOT_FIELD_MORPH_TUNING.stepMorphShare
+
+const FIRST_PROCESS_START = 0.5 - PROCESS_SHARE / 2
 
 const NUDGE_SHARE = DOT_FIELD_MORPH_TUNING.threadTrigger / 2
 
@@ -243,7 +252,13 @@ async function readCaptionSync(page: Page) {
       }[]
     }
 
-    return holder.captionSamples ?? []
+    return new Promise<NonNullable<typeof holder.captionSamples>>(
+      function waitOneFrame(resolve) {
+        window.requestAnimationFrame(function returnSamples() {
+          resolve(holder.captionSamples ?? [])
+        })
+      }
+    )
   })
 }
 
@@ -254,6 +269,8 @@ async function readOrbit(page: Page, stepIndex: number) {
       const container = document.getElementById("process")
       const slot = container?.querySelector<HTMLElement>("[data-dot-slot]")
       const ring = container?.querySelector("svg")
+      const circle = ring?.querySelector("circle")
+      const list = container?.querySelector("ol")
       const heading = container?.querySelector("h2")
       const steps =
         container?.querySelectorAll<HTMLElement>("[data-orbit-step]")
@@ -269,6 +286,10 @@ async function readOrbit(page: Page, stepIndex: number) {
         slot === undefined ||
         ring === null ||
         ring === undefined ||
+        circle === null ||
+        circle === undefined ||
+        list === null ||
+        list === undefined ||
         heading === null ||
         heading === undefined ||
         numeral === null ||
@@ -281,8 +302,23 @@ async function readOrbit(page: Page, stepIndex: number) {
         return ["missing orbit parts"]
       }
 
-      const containerRect = container.getBoundingClientRect()
-      const centre = (containerRect.left + containerRect.right) / 2
+      function isHitAt(element: Element, x: number, y: number): boolean {
+        const hit = document.elementFromPoint(x, y)
+
+        return hit !== null && element.contains(hit)
+      }
+
+      function readAlpha(element: Element): number {
+        const match = /\/\s*([\d.]+)\s*\)/.exec(getComputedStyle(element).color)
+
+        return match === null ? 1 : Number(match[1])
+      }
+
+      const listRect = list.getBoundingClientRect()
+      const centre = (listRect.left + listRect.right) / 2
+      const ringRect = ring.getBoundingClientRect()
+      const ringBox = circle.getBBox()
+      const ringCentre = ringRect.left + ringBox.x + ringBox.width / 2
       const titleRect = title.getBoundingClientRect()
       const numeralRect = numeral.getBoundingClientRect()
       const fontSize = parseFloat(getComputedStyle(numeral).fontSize)
@@ -293,13 +329,17 @@ async function readOrbit(page: Page, stepIndex: number) {
         numeralRect.width,
         numeralRect.height
       )
-      const ringY = ring.getBoundingClientRect().top + input.ringInsetPx
+      const ringY = ringRect.top + input.ringInsetPx
       const slotRect = slot.getBoundingClientRect()
       const headingText = document.createRange()
 
       headingText.selectNodeContents(heading)
 
       const headingRect = headingText.getBoundingClientRect()
+
+      if (Math.abs(ringCentre - centre) > input.tolerance) {
+        problems.push("ring not centred on the steps")
+      }
 
       if (
         Math.abs((titleRect.left + titleRect.right) / 2 - centre) >
@@ -318,22 +358,83 @@ async function readOrbit(page: Page, stepIndex: number) {
         problems.push("numeral off the ring")
       }
 
-      const next = steps?.[input.activeIndex + 1]?.querySelector("h3")
+      const next = steps?.[input.activeIndex + 1]
+      const nextTitle = next?.querySelector("h3")
 
-      if (next !== null && next !== undefined) {
-        const nextRect = next.getBoundingClientRect()
+      if (next !== undefined && nextTitle !== null && nextTitle !== undefined) {
+        const nextRect = nextTitle.getBoundingClientRect()
 
         if ((nextRect.left + nextRect.right) / 2 <= centre) {
           problems.push("next step not right of centre")
         }
 
-        if (nextRect.height <= next.offsetHeight + 2) {
+        if (nextRect.height <= nextTitle.offsetHeight + 2) {
           problems.push("next step not turned on the rim")
+        }
+
+        if (readAlpha(nextTitle) >= readAlpha(title)) {
+          problems.push("next title not dimmed")
+        }
+
+        for (const digit of next.firstElementChild?.children ?? []) {
+          if (getComputedStyle(digit).opacity !== "1") {
+            problems.push("next numeral not waiting on the rim")
+          }
+        }
+      }
+
+      const later = steps?.[input.activeIndex + 2]
+
+      for (const digit of later?.firstElementChild?.children ?? []) {
+        if (getComputedStyle(digit).opacity !== "0") {
+          problems.push("a step two ahead is showing")
+        }
+      }
+
+      const previousTitle = steps?.[input.activeIndex - 1]?.querySelector("h3")
+
+      if (previousTitle !== null && previousTitle !== undefined) {
+        const previousRect = previousTitle.getBoundingClientRect()
+
+        if ((previousRect.left + previousRect.right) / 2 >= centre) {
+          problems.push("previous step not left of centre")
+        }
+
+        if (previousRect.height <= previousTitle.offsetHeight + 2) {
+          problems.push("previous step not turned on the rim")
+        }
+
+        if (readAlpha(previousTitle) >= readAlpha(title)) {
+          problems.push("previous title not dimmed")
+        }
+
+        const clip = /inset\(\S+\s+(\S+)/.exec(
+          getComputedStyle(previousTitle).clipPath
+        )
+
+        if (clip === null || parseFloat(clip[1] ?? "") > 0) {
+          problems.push("previous title swept out")
+        }
+
+        const previousNumeral = previousTitle.previousElementSibling
+
+        for (const digit of previousNumeral?.children ?? []) {
+          if (getComputedStyle(digit).opacity !== "1") {
+            problems.push("previous numeral not waiting on the rim")
+          }
         }
       }
 
       const guarded = [
-        { name: "numeral", rect: inkRect },
+        {
+          name: "numeral box",
+          rect: new DOMRect(
+            numeralRect.left,
+            numeralRect.top + 1,
+            numeralRect.width,
+            numeralRect.height - 1
+          ),
+        },
         { name: "title", rect: titleRect },
         { name: "body", rect: body.getBoundingClientRect() },
         { name: "heading", rect: headingRect },
@@ -351,12 +452,13 @@ async function readOrbit(page: Page, stepIndex: number) {
         }
       }
 
-      const slotHit = document.elementFromPoint(
-        slotRect.left + slotRect.width / 2,
-        slotRect.top + slotRect.height / 2
-      )
-
-      if (slotHit !== slot) {
+      if (
+        !isHitAt(
+          slot,
+          slotRect.left + slotRect.width / 2,
+          slotRect.top + slotRect.height / 2
+        )
+      ) {
         problems.push("slot not on top of hit testing")
       }
 
@@ -370,30 +472,58 @@ async function readOrbit(page: Page, stepIndex: number) {
 
         text.selectNodeContents(item.element)
 
-        const firstLine = text.getClientRects()[0]
-
-        if (firstLine === undefined) {
-          problems.push("no " + item.name + " line")
-          continue
-        }
-
-        const hit = document.elementFromPoint(
-          firstLine.left + firstLine.width / 2,
-          firstLine.top + firstLine.height / 2
-        )
-
-        if (hit === null || !item.element.contains(hit)) {
-          problems.push("active " + item.name + " not revealed")
+        for (const line of text.getClientRects()) {
+          for (const fraction of [0.1, 0.5, 0.9]) {
+            if (
+              !isHitAt(
+                item.element,
+                line.left + line.width * fraction,
+                line.top + line.height / 2
+              )
+            ) {
+              problems.push("active " + item.name + " not whole at " + fraction)
+            }
+          }
         }
       }
 
-      const headingHit = document.elementFromPoint(
-        headingRect.left + Math.min(headingRect.width / 2, 12),
-        headingRect.top + headingRect.height / 2
-      )
-
-      if (headingHit === null || !heading.contains(headingHit)) {
+      if (
+        !isHitAt(
+          heading,
+          headingRect.left + Math.min(headingRect.width / 2, 12),
+          headingRect.top + headingRect.height / 2
+        )
+      ) {
         problems.push("heading not on top of hit testing")
+      }
+
+      const positions = heading.querySelectorAll<HTMLElement>("[data-position]")
+
+      for (
+        let positionIndex = 0;
+        positionIndex < positions.length;
+        positionIndex += 1
+      ) {
+        const position = positions[positionIndex]
+
+        if (position === undefined) {
+          continue
+        }
+
+        const rect = position.getBoundingClientRect()
+        const isShown = isHitAt(
+          position,
+          rect.left + rect.width * 0.8,
+          rect.top + rect.height / 2
+        )
+
+        if (positionIndex === input.activeIndex && !isShown) {
+          problems.push("active position hidden")
+        }
+
+        if (positionIndex !== input.activeIndex && isShown) {
+          problems.push("showing position " + (position.textContent ?? ""))
+        }
       }
 
       return problems
@@ -405,6 +535,102 @@ async function readOrbit(page: Page, stepIndex: number) {
       ringInsetPx: RING_INSET_PX,
     }
   )
+}
+
+async function readOrbitTurn(page: Page) {
+  return page.evaluate(function readTurn(property) {
+    const container = document.getElementById("process")
+
+    return Number(container?.style.getPropertyValue(property) ?? Number.NaN)
+  }, THREAD_TURN_PROPERTY)
+}
+
+async function watchOrbitTurn(page: Page) {
+  await page.evaluate(function installTurnWatch(property) {
+    const stage = document.querySelector<HTMLElement>("[data-status]")
+    const container = document.getElementById("process")
+    const samples: {
+      time: number
+      scene: string
+      thread: string
+      turn: number
+    }[] = []
+
+    Object.assign(window, { turnSamples: samples })
+
+    if (stage === null || container === null) {
+      return
+    }
+
+    const observedStage: HTMLElement = stage
+    const observedContainer: HTMLElement = container
+
+    function sampleTurn() {
+      samples.push({
+        time: window.performance.now(),
+        scene: observedStage.dataset.scene ?? "",
+        thread: observedStage.dataset.thread ?? "",
+        turn: Number(observedContainer.style.getPropertyValue(property)),
+      })
+
+      window.requestAnimationFrame(sampleTurn)
+    }
+
+    window.requestAnimationFrame(sampleTurn)
+  }, THREAD_TURN_PROPERTY)
+}
+
+async function readTurnSamples(page: Page) {
+  return page.evaluate(function readSamples() {
+    const holder = window as unknown as {
+      turnSamples?: {
+        time: number
+        scene: string
+        thread: string
+        turn: number
+      }[]
+    }
+
+    return new Promise<NonNullable<typeof holder.turnSamples>>(
+      function waitOneFrame(resolve) {
+        window.requestAnimationFrame(function returnSamples() {
+          resolve(holder.turnSamples ?? [])
+        })
+      }
+    )
+  })
+}
+
+async function readShownTitles(page: Page) {
+  return page.evaluate(function findShownTitles() {
+    const shown: string[] = []
+
+    for (const step of document.querySelectorAll<HTMLElement>(
+      "#process [data-orbit-step]"
+    )) {
+      const title = step.querySelector("h3")
+
+      if (title === null) {
+        continue
+      }
+
+      const rect = title.getBoundingClientRect()
+      const probeX = rect.left + rect.width / 2
+      const probeY = rect.top + rect.height / 2
+      const isInView =
+        probeX >= 0 &&
+        probeX < window.innerWidth &&
+        probeY >= 0 &&
+        probeY < window.innerHeight
+      const hit = isInView ? document.elementFromPoint(probeX, probeY) : null
+
+      if (hit !== null && title.contains(hit)) {
+        shown.push(step.dataset.orbitStep ?? "")
+      }
+    }
+
+    return shown
+  })
 }
 
 async function readProcessBoxes(page: Page) {
@@ -466,10 +692,10 @@ async function readCurtainClearance(page: Page) {
 
     headingText.selectNodeContents(heading)
 
-    const topBand = Math.max(
-      slot.getBoundingClientRect().bottom,
-      headingText.getBoundingClientRect().bottom
-    )
+    const guarded = [
+      { name: "slot", rect: slot.getBoundingClientRect() },
+      { name: "label", rect: headingText.getBoundingClientRect() },
+    ]
 
     for (const step of document.querySelectorAll<HTMLElement>(
       "#process [data-orbit-step]"
@@ -477,8 +703,22 @@ async function readCurtainClearance(page: Page) {
       const rect = step.getBoundingClientRect()
       const isOnScreen = rect.bottom > 0 && rect.top < window.innerHeight
 
-      if (isOnScreen && rect.top < topBand - tolerance) {
-        problems.push("curtain enters the top band: " + step.dataset.orbitStep)
+      if (!isOnScreen) {
+        continue
+      }
+
+      for (const item of guarded) {
+        const isOverlapping =
+          rect.left < item.rect.right - tolerance &&
+          rect.right > item.rect.left + tolerance &&
+          rect.top < item.rect.bottom - tolerance &&
+          rect.bottom > item.rect.top + tolerance
+
+        if (isOverlapping) {
+          problems.push(
+            (step.dataset.orbitStep ?? "") + " covers the " + item.name
+          )
+        }
       }
     }
 
@@ -501,13 +741,19 @@ async function readOverflowX(page: Page) {
 }
 
 async function checkCurtainClearance(page: Page) {
-  const stepCount = SCENES[1]?.shapes.length ?? 0
+  const shapes = SCENES[1]?.shapes ?? []
 
-  for (let position = 0; position < stepCount - 0.5; position += 0.25) {
+  for (let position = 0; position < shapes.length - 0.5; position += 0.25) {
     await scrollToStep(page, "process", position)
 
     expect(await readCurtainClearance(page), `at ${position}`).toEqual([])
     expect(await readOverflowX(page)).toBeLessThanOrEqual(0)
+
+    if (Number.isInteger(position)) {
+      expect(await readShownTitles(page), `docked at ${position}`).toEqual([
+        shapes[position],
+      ])
+    }
   }
 }
 
@@ -685,6 +931,7 @@ async function checkOrbitTurns(page: Page) {
   const problems = collectPageProblems(page)
   const shapes = SCENES[1]?.shapes ?? []
   const section = page.locator("#process")
+  const stage = page.locator("[data-status]")
   const ringOffsets = new Set<string>()
 
   await openRunningPage(page)
@@ -697,18 +944,97 @@ async function checkOrbitTurns(page: Page) {
       resolveFormedPosition(stepIndex, shapes.length)
     )
 
-    await expect(page.locator("[data-status]")).toHaveAttribute(
-      "data-scene",
-      shapes[stepIndex] ?? "",
-      { timeout: SCENE_TIMEOUT_MS }
-    )
+    await expect(stage).toHaveAttribute("data-scene", shapes[stepIndex] ?? "", {
+      timeout: SCENE_TIMEOUT_MS,
+    })
+    await expect(stage).toHaveAttribute("data-thread", shapes[stepIndex] ?? "")
     await expect(section).not.toHaveAttribute("data-fit")
-    expect(await readOrbit(page, stepIndex), `step ${stepIndex}`).toEqual([])
+    expect(await readOrbitTurn(page)).toBe(stepIndex)
+    await expect
+      .poll(
+        function readFormedOrbit() {
+          return readOrbit(page, stepIndex)
+        },
+        { message: `step ${stepIndex}`, timeout: SCENE_TIMEOUT_MS }
+      )
+      .toEqual([])
     ringOffsets.add(await readRingOffset(page))
   }
 
-  expect(ringOffsets.size, "the ring's ticks stream").toBe(shapes.length)
+  expect(ringOffsets.size, "the ring's dots drift").toBe(shapes.length)
   expect(problems).toEqual([])
+}
+
+async function checkTriggeredTurn(page: Page) {
+  const stage = page.locator("[data-status]")
+
+  await openRunningPage(page)
+  await scrollToStep(page, "process", 0)
+  await expect(stage).toHaveAttribute("data-scene", "listening", {
+    timeout: SCENE_TIMEOUT_MS,
+  })
+
+  await scrollToStep(
+    page,
+    "process",
+    FIRST_PROCESS_START + PROCESS_SHARE * NUDGE_SHARE
+  )
+  await page.waitForTimeout(DOT_FIELD_MORPH_TUNING.threadDrawSeconds * 1000)
+  await expect(stage).toHaveAttribute("data-scene", "listening")
+  expect(await readOrbitTurn(page)).toBe(0)
+
+  await watchOrbitTurn(page)
+  await scrollToStep(
+    page,
+    "process",
+    FIRST_PROCESS_START + PROCESS_SHARE * PAST_TRIGGER_SHARE
+  )
+  await expect(stage).toHaveAttribute("data-thread", "planning")
+  await expect(stage).toHaveAttribute("data-scene", "planning", {
+    timeout: SCENE_TIMEOUT_MS,
+  })
+
+  const samples = await readTurnSamples(page)
+  let previousTurn = 0
+  let startedAt = Number.NaN
+  let landedAt = Number.NaN
+  let formedTurn = Number.NaN
+
+  for (const sample of samples) {
+    expect(sample.turn, "the turn never runs back").toBeGreaterThanOrEqual(
+      previousTurn
+    )
+    previousTurn = sample.turn
+
+    if (sample.thread === "listening") {
+      expect(sample.turn, "no turn before the trigger").toBe(0)
+    }
+
+    if (Number.isNaN(startedAt) && sample.turn > 0) {
+      startedAt = sample.time
+    }
+
+    if (Number.isNaN(landedAt) && sample.turn === 1) {
+      landedAt = sample.time
+    }
+
+    if (Number.isNaN(formedTurn) && sample.scene === "planning") {
+      formedTurn = sample.turn
+    }
+  }
+
+  expect(formedTurn, "the step lands with its drawing").toBe(1)
+  expect(landedAt - startedAt).toBeGreaterThanOrEqual(
+    DOT_FIELD_MORPH_TUNING.threadDrawSeconds * 1000 * MIN_DRAW_SHARE
+  )
+  await expect
+    .poll(
+      function readPlanningOrbit() {
+        return readOrbit(page, 1)
+      },
+      { timeout: SCENE_TIMEOUT_MS }
+    )
+    .toEqual([])
 }
 
 function resolveFormedPosition(stepIndex: number, stepCount: number): number {
@@ -894,6 +1220,12 @@ for (const viewport of STAGED_VIEWPORTS) {
 
     test("turns the orbit one step per shape", async ({ page }) => {
       await checkOrbitTurns(page)
+    })
+
+    test("turns the orbit by itself once the scroll passes the trigger", async ({
+      page,
+    }) => {
+      await checkTriggeredTurn(page)
     })
 
     test("keeps the orbit's boxes identical staged and unstaged", async ({
@@ -1197,12 +1529,22 @@ test.describe("step scenes on a short landscape phone", () => {
 test.describe("the orbit on a wide screen", () => {
   test.use({ viewport: { width: 1474, height: 880 } })
 
-  test("stays pinned when the window resizes while the numerals animate", async ({
+  test("stays pinned while staged when the window resizes, its numerals contained", async ({
     page,
   }) => {
     const section = page.locator("#process")
 
     await openRunningPage(page)
+
+    for (const numeral of await section
+      .locator("[data-orbit-step] > span")
+      .all()) {
+      expect(
+        await numeral.evaluate(function readContain(element) {
+          return getComputedStyle(element).contain
+        })
+      ).toContain("layout")
+    }
 
     for (const size of [
       { width: 1474, height: 900 },
@@ -1232,16 +1574,35 @@ test.describe("the orbit in forced colours", () => {
   test("keeps every step title readable and drops the decoration", async ({
     page,
   }) => {
+    const shapes = SCENES[1]?.shapes ?? []
+
     await openRunningPage(page)
 
     await expect(page.locator("#process svg")).toBeHidden()
 
-    for (const title of await page.locator("#process h3").all()) {
-      await expect(title).toBeVisible()
-    }
-
     for (const step of await page.locator("#process [data-orbit-step]").all()) {
       await expect(step.locator("> span")).toBeHidden()
+    }
+
+    for (let stepIndex = 0; stepIndex < shapes.length; stepIndex += 1) {
+      await scrollToStep(
+        page,
+        "process",
+        resolveFormedPosition(stepIndex, shapes.length)
+      )
+      await expect(page.locator("[data-status]")).toHaveAttribute(
+        "data-scene",
+        shapes[stepIndex] ?? "",
+        { timeout: SCENE_TIMEOUT_MS }
+      )
+      await expect
+        .poll(
+          function readTitles() {
+            return readShownTitles(page)
+          },
+          { message: `step ${stepIndex}`, timeout: SCENE_TIMEOUT_MS }
+        )
+        .toContain(shapes[stepIndex])
     }
   })
 })

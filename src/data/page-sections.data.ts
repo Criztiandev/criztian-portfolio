@@ -139,16 +139,11 @@ export const PLATE_SLOT_CLASS =
 export const SECTION_HEADLINE_CLASS =
   "scroll-mt-18 font-display text-[clamp(1.75rem,1rem+3vw,3.5rem)] leading-[1.05] font-bold text-balance wrap-break-word text-foreground uppercase"
 
-export const SECTION_TITLE_CLASS =
-  "font-display text-[clamp(1.5rem,1rem+1.5vw,2.25rem)] leading-[1.05] font-bold uppercase"
-
-export const SECTION_BODY_CLASS = "text-base text-foreground/75"
-
 export const FOCUS_RING_CLASS =
   "scroll-mt-18 outline-none focus-visible:ring-[3px] focus-visible:ring-foreground/50 focus-visible:outline-hidden"
 
 export const ORBIT_CIRCLE_CLASS =
-  "fill-none stroke-current [cx:50%] [cy:calc(var(--orbit-radius)_+_6px)] [r:var(--orbit-radius)] staged:orbit-spin"
+  "fill-none stroke-current [stroke-dasharray:0_10px] [stroke-linecap:round] [stroke-width:3px] [cx:50%] [cy:calc(var(--orbit-radius)_+_6px)] [r:var(--orbit-radius)] staged:orbit-spin"
 
 export const DUST_SECTION_SPACING_CLASS =
   "pt-[max(6rem,14svh)] pb-[max(3rem,6svh)]"

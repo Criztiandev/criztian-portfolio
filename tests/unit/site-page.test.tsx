@@ -402,6 +402,32 @@ describe("SitePage", () => {
     }
   })
 
+  it("names the process label and keys its hidden position to each shape", () => {
+    const { container } = renderPage()
+    const heading = container.querySelector("#process h2")
+    const positions: string[] = []
+    const shapes: string[] = []
+
+    expect(heading).toHaveAccessibleName(PROCESS_SCENE.heading)
+
+    for (const position of container.querySelectorAll<HTMLElement>(
+      "#process h2 [data-position]"
+    )) {
+      positions.push(position.textContent ?? "")
+      shapes.push(position.dataset.position ?? "")
+      expect(position.closest("[aria-hidden='true']")).not.toBeNull()
+    }
+
+    expect(positions).toEqual([
+      " · 01 / 05",
+      " · 02 / 05",
+      " · 03 / 05",
+      " · 04 / 05",
+      " · 05 / 05",
+    ])
+    expect(shapes.join(" ")).toBe(PROCESS_SCENE.shapes)
+  })
+
   it("puts one orbit step on the rim for every process shape, in order", () => {
     const { container } = renderPage()
     const shapes: string[] = []

@@ -28,13 +28,6 @@ export type ServicesSceneContent = PageSectionHeading & {
   steps: ServiceStep[]
 }
 
-export type StepHandover = {
-  inFrom: number
-  inTo: number
-  outFrom: number | null
-  outTo: number | null
-}
-
 export type StepMotionStyle = Record<`--${string}`, string | number>
 
 export type AboutStat = {

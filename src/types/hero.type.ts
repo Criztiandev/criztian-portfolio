@@ -137,6 +137,7 @@ export type DotFieldMorphTuning = {
 export type DotSceneMotion = {
   share: number
   isThread: boolean
+  hasTurn: boolean
 }
 
 export type DotFieldFollowTuning = Pick<
@@ -188,6 +189,7 @@ export type DotSceneMeasure = {
 
 export type DotSceneKeyframe = {
   id: string
+  scene: string
   shape: DotShapeId
   start: number
   end: number

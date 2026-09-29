@@ -20,6 +20,7 @@ import {
   SETTLED_INTRO_SECONDS,
   THREAD_REVEAL_DECIMALS,
   THREAD_REVEAL_PROPERTY_PREFIX,
+  THREAD_TURN_PROPERTY,
 } from "@/data/hero.data"
 import {
   hasFontLoadingApi,
@@ -35,6 +36,7 @@ import {
   easeInOutSine,
   followTriggeredProgress,
   isShapeSpinning,
+  isThreadSegment,
   parseCssPixels,
   parsePrimaryFontFamily,
   parseSceneShapes,
@@ -45,6 +47,7 @@ import {
   resolveSceneState,
   resolveThreadReveal,
   resolveThreadState,
+  resolveThreadTurn,
   resolveStaticKeyframe,
   resolveArrivalStrike,
   resolveTimelinePosition,
@@ -350,7 +353,6 @@ export function useDotField(request: UseDotFieldRequest): void {
       let previousScrollTarget = Number.NaN
       let threadState: string | null = null
       const threadContainers = readThreadContainers(stage)
-      const threadReveals = new Map<string, string>()
       let staticIndex = -1
       let spinSeconds = 0
       let isFieldAtRest = true
@@ -542,8 +544,7 @@ export function useDotField(request: UseDotFieldRequest): void {
 
         const intro = resolveIntro()
         const nameSample = resolveNameSample()
-        const isThread =
-          fromKeyframe.isThread === true && toKeyframe.isThread === true
+        const isThread = isThreadSegment(fromKeyframe, toKeyframe)
 
         let morphSpin = DOT_FIELD_MORPH_TUNING.morphSpin
 
@@ -608,31 +609,50 @@ export function useDotField(request: UseDotFieldRequest): void {
         stage.dataset.thread = nextState
       }
 
-      function publishThreadReveal(): void {
-        for (let index = 0; index < keyframes.length; index += 1) {
-          const keyframe = keyframes[index]
+      function writeThreadProperty(
+        container: HTMLElement,
+        property: string,
+        value: number
+      ): void {
+        const formatted = value.toFixed(THREAD_REVEAL_DECIMALS)
 
-          if (keyframe?.isThread !== true) {
-            continue
-          }
+        if (container.style.getPropertyValue(property) === formatted) {
+          return
+        }
 
-          const reveal = resolveThreadReveal(
-            progress,
-            index,
-            DOT_FIELD_MORPH_TUNING.threadCaptionSpan
-          ).toFixed(THREAD_REVEAL_DECIMALS)
+        container.style.setProperty(property, formatted)
+      }
 
-          if (threadReveals.get(keyframe.id) === reveal) {
-            continue
-          }
+      function publishThreadMotion(): void {
+        for (const container of threadContainers) {
+          const sceneId = container.dataset.dotScene ?? ""
 
-          threadReveals.set(keyframe.id, reveal)
+          for (let index = 0; index < keyframes.length; index += 1) {
+            const keyframe = keyframes[index]
 
-          for (const container of threadContainers) {
-            container.style.setProperty(
+            if (keyframe?.isThread !== true || keyframe.scene !== sceneId) {
+              continue
+            }
+
+            writeThreadProperty(
+              container,
               THREAD_REVEAL_PROPERTY_PREFIX + keyframe.id,
-              reveal
+              resolveThreadReveal(
+                progress,
+                index,
+                DOT_FIELD_MORPH_TUNING.threadCaptionSpan
+              )
             )
+          }
+
+          if (DOT_SCENE_MOTION[sceneId]?.hasTurn !== true) {
+            continue
+          }
+
+          const turn = resolveThreadTurn(keyframes, sceneId, progress)
+
+          if (turn !== null) {
+            writeThreadProperty(container, THREAD_TURN_PROPERTY, turn)
           }
         }
       }
@@ -641,7 +661,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         drawDotField(runtime, buildFrame())
         publishSceneState()
         publishThreadState()
-        publishThreadReveal()
+        publishThreadMotion()
       }
 
       function canPush(): boolean {
@@ -765,7 +785,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         drawDotField(runtime, frame)
         publishSceneState()
         publishThreadState()
-        publishThreadReveal()
+        publishThreadMotion()
 
         const isLoopDone = shouldLoopSleep({
           isFieldAtRest,

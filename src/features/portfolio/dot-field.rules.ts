@@ -910,7 +910,11 @@ export function isThreadSegment(
   from: DotSceneKeyframe | undefined,
   to: DotSceneKeyframe | undefined
 ): boolean {
-  return from?.isThread === true && to?.isThread === true
+  if (from?.isThread !== true || to?.isThread !== true) {
+    return false
+  }
+
+  return from.scene === to.scene
 }
 
 export function resolveTriggeredTarget(
@@ -1013,6 +1017,41 @@ export function resolveThreadReveal(
   return easeInOutSine(linear)
 }
 
+export function resolveThreadTurn(
+  keyframes: DotSceneKeyframe[],
+  sceneId: string,
+  progress: number
+): number | null {
+  let firstIndex = -1
+  let lastIndex = -1
+
+  for (let index = 0; index < keyframes.length; index += 1) {
+    const keyframe = keyframes[index]
+
+    if (keyframe?.scene !== sceneId || keyframe.isThread !== true) {
+      continue
+    }
+
+    if (firstIndex === -1) {
+      firstIndex = index
+    }
+
+    lastIndex = index
+  }
+
+  if (firstIndex === -1) {
+    return null
+  }
+
+  const local = Math.min(
+    Math.max(progress - firstIndex, -1),
+    lastIndex - firstIndex
+  )
+  const whole = Math.floor(local)
+
+  return whole + easeInOutCubic(local - whole)
+}
+
 export function resolveThreadState(
   keyframes: DotSceneKeyframe[],
   target: number
@@ -1102,6 +1141,7 @@ export function buildSceneKeyframes(
     if (scene.shapes.length === 1) {
       keyframes.push({
         id: scene.id,
+        scene: scene.id,
         shape: firstShape,
         start,
         end,
@@ -1131,6 +1171,7 @@ export function buildSceneKeyframes(
 
       const keyframe: DotSceneKeyframe = {
         id: shape,
+        scene: scene.id,
         shape,
         start: stepStart,
         end: stepEnd,

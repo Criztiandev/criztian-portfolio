@@ -2,9 +2,9 @@
 
 > **For:** the next Claude Code session picking up this build.
 >
-> **Current phase:** **Phase 8, How I work restyle and the triggered turn.** Phase 7 is done: Services is the B statement split, and nothing holds the scroll any more. Its done note lists what is open, including the owner's scroll test. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference); the renders are in `plans/mockups/`. To resume, paste the prompt under "Start here".
+> **Current phase:** **Phase 9, the projects deck.** Phase 8 is done: How I work is a centred wheel whose turn the dots trigger and play, with no plates. Its done note lists what is open, including the owner's scroll test. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference), except How I work's centred wheel (owner, Phase 8); the renders are in `plans/mockups/`. To resume, paste the prompt under "Start here".
 >
-> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, Phase 5 is `ca4d45c`, Phase 6 is `bb808b1`, and Phase 7 is the commit after it. Nothing is pushed.
+> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, Phase 5 is `ca4d45c`, Phase 6 is `bb808b1`, Phase 7 is `32efb4b`, and Phase 8 is the commit after it. Nothing is pushed.
 >
 > **How this file works:** each phase is one conversation. It lists its scope, the owner inputs it needs and its acceptance. It ends with the prompt that starts the next conversation. When a phase ends, write its done note under it, move "Current phase" forward, and give the owner the next prompt.
 >
@@ -15,9 +15,9 @@
 Paste this into a new conversation to resume the current phase:
 
 ```text
-Continue the portfolio redesign: Phase 8, How I work restyle and the triggered turn.
-Read CLAUDE.md (the orbit paragraphs), then plans/handoff.md ("Direction", "The DOM contract" rule 14, Phase 7's done note and "Phase 8"), and DESIGN.md's Orbit.
-Build Phase 8 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 9, and end your reply with Phase 9's prompt from the handoff.
+Continue the portfolio redesign: Phase 9, the projects deck.
+Read CLAUDE.md, then plans/handoff.md ("Direction", "The DOM contract", Phase 8's done note and "Phase 9"), and DESIGN.md's Projects.
+Build Phase 9 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 10, and end your reply with Phase 10's prompt from the handoff.
 Ask me before committing.
 ```
 
@@ -218,12 +218,13 @@ The mockups use these, and the owner approved them all. Use them in place of the
   - the Services thread with its glide lock, and the How I work orbit (`0f198b2`)
 - **Phase 5** (`ca4d45c`): the B page order, the approved copy and the B surface for the quote, Work, About, Testimonials, FAQ, Contact, the header and the footer (see its done note).
 - **Phase 6** (`bb808b1`): the one-product dot shapes in one material, the plate frames, the Contact gather as its own gated scene, and FAQ on plain black (see its done note).
-- **Phase 7** on `portfolio/phase-3`: Services on the B statement split, the glide lock removed (trigger, play, no lock) and the reduced-motion curtain bug fixed (see its done note).
+- **Phase 7** (`32efb4b`): Services on the B statement split, the glide lock removed (trigger, play, no lock) and the reduced-motion curtain bug fixed (see its done note).
+- **Phase 8** on `portfolio/phase-3`: How I work as a centred wheel (owner), no plates, the ring drawn in dots, the shape at full size above the numeral, and the turn triggered and played by the dots' own progress (see its done note).
 - **Not built:** old Part 3 (section motion, now Phase 10) and old Part 4 (the cursor, parked).
-- **Last evidence (2026-09-29):**
-  - 366 unit tests pass and `pnpm check` is clean.
-  - e2e was green on a production build at :3100, with Supabase up.
-  - The hero pixel diff against `0a3c97a` held with the pre-flight carve-outs (header band, cue row, and the name-dot ceiling). The method is in the history.
+- **Last evidence (2026-09-29, Phase 8):**
+  - 380 unit tests pass and `pnpm check` is clean.
+  - e2e was green on a production build at :3100, with Supabase up (139 specs).
+  - The hero pixel diff held: 0 pixels against Phase 7, and the known 20/24-pixel residue against `0a3c97a`, inside the name's box. The method is in the history and the landmines.
 
 **Carried-over open items,** each assigned to a phase:
 
@@ -369,14 +370,14 @@ Every section that takes part in the timeline follows these rules. The engine tr
 5. **Overflow.** Ancestors of sticky elements use `overflow: visible` or `clip` only. `hidden`, `auto` and `overflow-x-hidden` silently stop the pin.
 6. **Named groups only.** Tailwind groups are named (`group/stage`). An unnamed `group` on the page wrapper would make every unnamed `group-*` react to the whole page.
 7. **Coverage.** Every section belongs to a scene; dust counts. No transit may stretch across unassigned sections as a half-formed smear.
-8. **The mobile band.** In the portrait layout, the slot is a band just below the header at `top-18`, and the step blocks are `sticky` directly below the band on an opaque ground, so copy never enters the band. Conditions:
+8. **The top band.** Where the copy docks as curtains, the label and the slot form a band at the top of the frame, and the step blocks are `sticky` directly below it (at `step-top`) on an opaque ground, so copy never enters the band. In Services' split the band is the label alone, since the slot is in the other column; How I work's band is the label and its centred slot at every width. Conditions:
    - The step list ends where the container ends, or the last step unsticks into the band.
-   - Each step's height is at most `svh − band − 72`.
+   - Each step's height is at most `F − step-top`, where `F` is the frame (`svh − 72`).
    - Choose the layout by height as well as width, with the custom variants in `globals.css`, never `md:`:
      - `split` is `(min-width: 48rem), (max-height: 30rem) and (min-width: 34rem)`. A 740×360 landscape phone is split; 320×256 (400% zoom) is portrait.
-     - `short` is `(max-height: 30rem), (width < 48rem) and (max-height: 38rem)`. It tightens the step type and the band, so small phones (375×548, 360×560) stay pinned.
+     - `short` is `(max-height: 30rem), (width < 48rem) and (max-height: 38rem)`. It tightens the frame's insets, the step type and the copy budgets (`--caption-stacked`, `--orbit-copy`), so small phones (375×548, 360×560) stay pinned.
    - No links inside steps. A covered link could still take focus (WCAG 2.4.11).
-   - `ServicesSection` and `ProcessSection` implement this in their unstaged layouts. Services' maths: each caption is `--caption` tall and sticks at `--caption-top` (the foot of a portrait frame, or one row gap under the label in the split's left column, where it never meets the slot), with its bottom inset as padding so the stuck curtains end with the frame, and `not-first:mt-[pitch − caption]` docks caption `k` at `k·pitch`. Process's maths: the frame and the list share one grid cell, the list starts `--orbit-step-top` below the top (the band, or the heading and slot in split), each step is `F − step-top` tall and sticks at `step-top`, and `not-first:mt-[pitch − (F − step-top)]` keeps step `k` docking at `k·pitch`. Space docked curtains with `margin-top`, never `margin-bottom`: a sticky element's margin box must stay inside its containing block, so a bottom margin pushes every stuck curtain up by that margin as the list ends. The last step unsticks together with the frame.
+   - `ServicesSection` and `ProcessSection` implement this in their unstaged layouts. Services' maths: each caption is `--caption` tall and sticks at `--caption-top` (the foot of a portrait frame, or one row gap under the label in the split's left column, where it never meets the slot), with its bottom inset as padding so the stuck curtains end with the frame, and `not-first:mt-[pitch − caption]` docks caption `k` at `k·pitch`. Process's maths: the frame and the list share one grid cell, the list starts `--orbit-step-top` below the top (right under the label and the centred slot, at every width since Phase 8), each step is `F − step-top` tall and sticks at `step-top`, and `not-first:mt-[pitch − (F − step-top)]` keeps step `k` docking at `k·pitch`. Space docked curtains with `margin-top`, never `margin-bottom`: a sticky element's margin box must stay inside its containing block, so a bottom margin pushes every stuck curtain up by that margin as the list ends. The last step unsticks together with the frame.
 9. **In-scene anchors.** Every `id` inside a scene has `scroll-margin-top` equal to that scene's `stickyTop` (`scroll-mt-18`). A larger margin lands before the pin starts. `data-scene` then reads `moving`, and if a spinning shape is the outgoing one, the loop never sleeps.
    - **Focusables too.** Every focusable inside a scene also carries `scroll-mt-18` (`FOCUS_RING_CLASS` does). This keeps a Shift-Tab target clear of the 72px fixed header, because `scroll-padding-top` is banned.
 10. **Dust scene endings.** The last section of a dust scene is at least one frame tall (`min-h-[calc(100svh_-_4.5rem)]`). Otherwise its anchor lands in the transit to the next scene, with a half-formed shape over it. `#contact` needed this until Phase 6; now FAQ is the dust scene's only section and carries it at every width.
@@ -391,11 +392,11 @@ Every section that takes part in the timeline follows these rules. The engine tr
     - The `unpinned` variant styles flow mode and the no-WebGL path with one class list.
     - Any new sticky, fixed-height copy box must join the gate or follow rule 12.
 14. **Staged step scenes.** Under the `staged` variant a step scene's copy sits on one board instead of scrolling:
-    - **The board** is the container's second child, a sibling of the frame, never an ancestor of the slot. It is sticky, transparent, and ends with the container, so it pins on exactly the frame's pin range. The orbit's board is frame-tall at `top-18` and `pointer-events-none` because it covers the frame and the engine listens for pointer events on the slot itself. Only the numeral, plate and paragraph take pointer events when staged (the numeral so fit.spec's `elementFromPoint` scan can reach its digits); unstaged, the whole curtain does, so covered text can't be hovered or selected. The split slot must stay clear of the numeral's box (0.96em wide, starting 0.078em above the ink), not just its ink.
-    - **The container height is explicit** and equals the Phase 2 height: `F + (n − 1)·pitch`, where pitch is `F − band` in portrait and `F` in split. Staging on or off therefore never moves a pin, an anchor landing or the slot rect, and the engine needs no re-measure.
-    - **Animated decoration is ink, not copy.** The gate re-checks while staged too (on resize and font load), so nothing animated inside a fit box may add to its `scrollHeight`. The orbit numeral carries `contain: layout`, which turns its digits' assemble transforms into ink overflow. Without it, 67 wide sizes between 900 and 975px tall flowed How I work to the reading list (Phase 7 fix).
-    - **Measured before staging.** The hook's first measure (use-dot-field.hook.ts:331) and the gate's first check run while the stage is `idle`; `running` (:1173) switches `staged` on later and triggers neither. So the slot rect, the container height and every step box must be identical in both modes. `step-motion.spec.ts` flips the stage attribute and compares them.
-    - **Copy motion.** Services' captions and its label's position count are drawn by the dots' own progress. The hook writes `--reveal-<shape>` on the thread scene's container (`resolveThreadReveal`), and literal selectors in globals.css map it to `--caption-reveal`, so the text sweeps at the pen's pace and never on a timer. The orbit still reads only the container's `--step-scene` view timeline (`view-timeline-inset: 4.5rem 0`, so `exit-crossing 0` is the pin start), through `exit-crossing` length offsets in `--pitch` units from `resolveStepHandover`, until Phase 8 moves it onto the same reveal; update this rule then. Nothing in the stylesheet keys on `data-scene`.
+    - **The board** is the container's second child, a sibling of the frame, never an ancestor of the slot. It is sticky, transparent, and ends with the container, so it pins on exactly the frame's pin range. The orbit's board is frame-tall at `top-18` and `pointer-events-none` because it covers the frame and the engine listens for pointer events on the slot itself. Only the title and paragraph take pointer events when staged, and a step's own sweep clips them while it is hidden, so a hidden step never takes a hit; the numeral takes none, so a turning neighbour can't steal the slot's pointer. Unstaged, the whole curtain does, so covered text can't be hovered or selected. The slot must stay clear of the numeral's box (0.96em wide, starting 0.078em above the ink), not just its ink: the slot's height drops `max(0, 0.078em − 0.5rem)` of the numeral from `--orbit-slot`, so it ends at or above the box's top while `--orbit-step-top` stays put (Phase 8 review).
+    - **The container height is explicit:** `F + (n − 1)·pitch`, where pitch is `F − step-top + 0.75rem` in portrait and `F` in split. Staging on or off therefore never moves a pin, an anchor landing or the slot rect, and the engine needs no re-measure.
+    - **Animated decoration is ink, not copy.** The gate re-checks while staged too (on resize and font load), so nothing animated inside a fit box may add to its `scrollHeight`. The orbit numeral carries `contain: layout`, which turns its digits' assemble transforms into ink overflow. Without it, 67 wide sizes between 900 and 975px tall flowed How I work to the reading list (Phase 7 fix). Phase 8's geometry no longer overflows there without it, so `step-motion.spec.ts` asserts the containment directly.
+    - **Measured before staging.** The hook's first measure (use-dot-field.hook.ts:349) and the gate's first check run while the stage is `idle`; `running` (:1214) switches `staged` on later and triggers neither. So the slot rect, the container height and every step box must be identical in both modes. `step-motion.spec.ts` flips the stage attribute and compares them.
+    - **Copy motion.** Both step scenes are drawn by the dots' own progress, never on a timer or the scroll timeline. The hook writes `--reveal-<shape>` on each thread scene's container (`resolveThreadReveal`), and literal selectors in globals.css map it to `--caption-reveal` for Services' captions and both labels' position counts. For the orbit it also writes `--thread-turn` (`resolveThreadTurn`), and the `orbit-step` utility derives each step's rotation, `--orbit-assemble` and `--orbit-lit` from it (Phase 8). The container's `--step-scene` view timeline (`view-timeline-inset: 4.5rem 0`) now drives only the ring's drift. Nothing in the stylesheet keys on `data-scene`.
     - **Services' board** is the caption box itself: `--caption` tall, sticky at `--caption-top`, with the frame's bottom inset (`--screen-bottom`) as its padding so it ends exactly with the container. In the split it covers only the left column under the label, so the slot on the right is never under it.
     - **Rule 8 in staged mode:** the board is transparent. Nothing scrolls under the band during the pin, so the opaque ground isn't needed, and the portrait exit transits are visible. The opaque sticky steps remain in the fallback layout.
     - **Rules 12–13:** the Services board and each orbit step are fixed-height `[data-fit-box]`es, so an overflow flows the scene through the gate. The orbit board itself is not a fit box: its rotated neighbours would count toward its `scrollHeight`. It is `overflow: clip`, so they never widen the page.
@@ -974,6 +975,67 @@ Ask me before committing.
 - `pnpm check`, the unit tests and e2e are green.
 - The owner scrolls it.
 
+**Done note (2026-09-29).**
+
+- **Owner answers:**
+  - Phase 7 was committed on its own first (`32efb4b`).
+  - After seeing the first build, which followed B1's left-hand ring: "I like this to be center rather than on the left side so the rotation is genuine." Asked where the shape goes, the owner chose it centred above the numeral, with the neighbouring steps dim at both edges. This is DESIGN.md's new Wheel Rule. It supersedes two scope bullets above: "In variant B, the shape sits beside the ring", and the ring's dash in `pathLength` units (the ring is dashed in px; a path-unit gap can't follow a vw radius in CSS).
+- **Shipped:**
+  - **Restyle** (`process-section.component.tsx`):
+    - The white plates, their dots and the bullets are gone. Step titles are Title type in Lamp White (32px on `short` phones), and the paragraph is Body.
+    - The label is "How I work" with an `aria-hidden` position count ("· 04 / 05") on the staged board. The count is keyed to `--reveal-<shape>`, like Services'.
+    - **The ring** is one Wire Grey circle with a 3px round-capped stroke, dashed `0 10px`, running from the ring's top to the frame's foot. Its dots drift with the scroll (`orbit-spin`, now the only scroll-timeline animation).
+    - **A centred wheel at every width:**
+      - The label is top-left. The slot is centred, as wide as the content and at most twice its height, and takes the height the step leaves (up to 268px on a phone, 416px on desktop). It ends above the numeral's box.
+      - The numeral is centred on the top of the ring, with the title and body under it. The neighbours wait on the rim at both edges on desktop and off screen on phones.
+      - The geometry is in `--orbit-*` variables on the container. Staged and unstaged boxes stay identical.
+    - Under reduced motion, a docked numeral's black ground now hides the digits of the curtain it covers. They had peeked 1–2px above it.
+  - **The triggered turn:**
+    - `process: { share: 0.4, isThread: true, hasTurn: true }`, so the hook commits How I work's steps and publishes `data-thread` for them.
+    - `resolveThreadTurn` is the dots' own position in the scene, eased on the signal ease: −1 on the flight in, up to the last step. The hook writes it as `--thread-turn` on the orbit's container, only when it changes.
+    - The `orbit-step` utility turns it into each step's rotation about the circle centre, plus:
+      - `--orbit-assemble`: the digits' assemble and the title's sweep. It runs one step ahead, so both neighbours wait assembled.
+      - `--orbit-lit`: the brightness, and the paragraph's sweep.
+    - Nothing runs on a clock, and there is no lock. The numerals keep `contain: layout`.
+    - Gone: the scroll-driven turn, digit and reveal animations, the nested turn wrappers, `resolveStepHandover` and its helpers, `ORBIT_RING_PATH_LENGTH`, `StepHandover`, `SECTION_TITLE_CLASS`, `SECTION_BODY_CLASS` and `--signal-ease`.
+  - **Crossings between two thread scenes stay a scrubbed flight (decided).** Keyframes carry their `scene`, and `isThreadSegment` threads two steps only inside one scene. During a crossing both frames are moving, so a shape played ahead of the scroll would hang at the next pinned slot over the outgoing copy. DESIGN.md's Thread "Entry and exit" and the One-Scroll Rule say so.
+  - **The shapes at full size:** `PROCESS_LINE_ART_TUNING.sizeRatio` went from 0.45 to 0.58, so the page is about 270px wide at 1440×900 and on a 390×844 phone. The pose and the depth light read well in the captures and are unchanged. Between two states the dots now draw in pen order, like Services.
+  - **Docs:**
+    - CLAUDE.md: the orbit paragraphs, the triggered scenes, Sections, the `aria-hidden` list and the view-timeline note.
+    - DESIGN.md: the status note, the Wheel Rule, Numeral, Title, the ring in Shapes, the One-Scroll Rule, Thread's entry and exit, and Orbit.
+    - This handoff: rules 8 and 14.
+- **Evidence:**
+  - `pnpm check` is clean and 380 unit tests pass. New ones cover the crossing rule, `resolveThreadTurn`, the orbit stylesheet and the process label.
+  - **e2e:** all 139 specs pass on a production build at :3100 (a same-drive copy, webpack build, Supabase up, `draft = published`).
+    - The rewritten orbit tests:
+      - one turn per commit, at every formed step, at 1440×900, 390×664, 375×548 and 1920×1080;
+      - the active step whole and hit-testable, the neighbours turned and dim on both sides, the step two ahead hidden, and the slot clear and on top of hit testing;
+      - the turn playing by itself past the trigger (not before it), never running back, taking at least half a draw, and landing with its drawing;
+      - staged and unstaged boxes identical;
+      - reduced-motion curtains that never cover the label or the slot, with exactly step `k`'s title showing at each docked position;
+      - 740×280 flow;
+      - forced colours, with each formed title hit-testable;
+      - `contain: layout` on every numeral.
+    - **Mutation check** (in the throwaway copy): snapping the turn to whole steps failed the landing test (0ms against a floor of 800ms). Hiding the next step failed "next numeral not waiting on the rim".
+  - **Where it pins** (dev server):
+    - It pins at 1920×1080, 1440×900, 1366×768, 1366×657, 1280×720, 1024×768, 820×1180, 768×1024, 390×844, 390×664, 360×640, 375×548 and 360×560.
+    - It flows at 320×568, 740×360, 740×304, 740×280, 667×320 and 320×256, and with WCAG text spacing at every size tested (1920×1080, 1440×900, 1024×768 and 360×640).
+  - **The loop sleeps at rest** in listening and building (`hero.spec.ts`, 0 RAF over 500ms).
+  - **Hero pixel diff:** 0 pixels against Phase 7 (`32efb4b`, a throwaway worktree on :3201) at DPR 1 and 2, at rest and with reduced motion. Against `0a3c97a` it is the same 20 pixels (up to 2/255) and 24 (up to 1/255), all in the name's box, as Phases 5–7 measured.
+  - **Captures** at 1920×1080, 1440×900, 1366×768, 1280×720, 1024×768, 768×1024, 390×844, 390×664 and 375×548, plus frame strips of a turn. They are in `.local/phase8/shots/`, git-ignored.
+  - **A five-lens review** (engine, layout and DOM contract, accessibility, tests, conventions and docs), each lens followed by an adversarial skeptic. It raised 25 findings and confirmed 23, which come to 15 distinct problems. All 15 are fixed:
+    - The numeral's box poked into the slot's foot, where the unstaged digits took the slot's pointer. The slot now ends above the box.
+    - Two tests could pass vacuously: forced colours checked the titles at scroll 0, and the reduced-motion curtains never asserted which step docks.
+    - `--thread-turn` was written on Services too (now only where `hasTurn`), and `--signal-ease` was dead.
+    - The turn sampler could miss the formed frame by one frame.
+    - The previous neighbour was never asserted as shown, and `contain: layout` was no longer guarded.
+    - Stale docs: rule 8's band, rule 14's slot sentence, the reading-list numeral size, the short-phone copy budget, the `aria-hidden` list and the view-timeline note.
+- **Open:**
+  - **Owner:** scroll How I work on a wheel, a trackpad and a phone (the last acceptance item), and confirm the drifting ring dots (Phase 4 decision 3). Services' scroll test (Phase 7) is still open too.
+  - The mockup canvas still shows B1's left-hand ring; DESIGN.md's Wheel Rule records the change.
+  - **Where How I work flows:** with text spacing it now flows at 1920×1080 too, where Services still pins. The stacked wheel is height-hungry. The gate is working as designed.
+  - On short laptops the numeral gets small (144px at 1366×657) so the shape keeps room.
+
 **Next conversation prompt (starts Phase 9):**
 
 ```text
@@ -1156,12 +1218,14 @@ These are the ones CLAUDE.md doesn't already cover:
 - **Check the Phase 5 copy that went live locally (owner):** the e2e run published the draft Phase 5 wrote (the new tagline, the belief placeholder and the bracketed project placeholders), because `editor.spec.ts` publishes the whole draft. Keep it, or ask for the pre-Phase 5 published copy back (the row was backed up in the Phase 5 session).
 - **Scroll Services (Phase 7, for the owner):** on a wheel, a trackpad and a phone. Nothing should ever hold the scroll; a drawing plays by itself once the scroll passes 12% into a transit.
 - **Testimonials with several quotes:** the label counts them once there is more than one (owner, Phase 5), but how one quote gives way to the next is not designed. Decide when the real quotes arrive.
-- **To confirm later:** the black-and-white photo, when it arrives, and the drifting ring, when Phase 8 is scrolled.
+- **Scroll How I work (Phase 8, for the owner):** on a wheel, a trackpad and a phone. A step turns in by itself once the scroll passes 12% into a transit, and nothing holds the scroll.
+- **To confirm later:** the black-and-white photo, when it arrives, and the drifting ring dots, when the owner scrolls How I work.
 - **Contact on small phones (Phase 6, for the owner to see):** the gather shows wherever the whole form fits one pinned frame (desktop, tablets, a 390×844 phone). Below that the section flows as plain black and the gather gives way, so a pin never hides the submit button.
 - **Phase 10:** heading parallax, the adaptive cursor, the cursive logo.
 - **Phase 11:** the pause-motion toggle (WCAG 2.2.2).
 - **Material:** the belief line, the story and photo, client quotes, real projects.
 - **Decided, recorded:**
+  - Phase 8 (owner, 2026-09-29): Phase 7 committed on its own first; How I work is a centred wheel ("so the rotation is genuine"), with the shape centred above the numeral and the neighbouring steps dim at both edges
   - Phase 7 (owner, 2026-09-29): Phase 6 committed on its own first; Development's short copy is "High-performance, scalable websites tailored to your business."
   - Phase 6 (owner, 2026-09-29): Phase 5 committed on its own first; Work on a phone shows the frame through a clear window round each plate; frames never scatter under the pointer; the dust behind FAQ goes away (plain black); the Services B layout stays in Phase 7
   - Phase 5 (owner, 2026-09-29): the Projects heading and intro are retired; Work is one screen per project until the deck; the mockup's placeholder plates; the draft is written for the owner to publish; the submit button is uppercase; Testimonials shows no count while it has one quote; all nine FAQ answers are still true
