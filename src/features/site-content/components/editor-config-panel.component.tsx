@@ -25,8 +25,6 @@ import {
   PREVIEW_CONTENT_DEBOUNCE_MS,
   PREVIEW_CONTENT_MESSAGE,
   PROJECT_ITEM_FIELDS,
-  PROJECTS_HEADING_MAX_LENGTH,
-  PROJECTS_LEDE_MAX_LENGTH,
   PROJECTS_MAX,
   QUOTE_AUTHOR_MAX_LENGTH,
   QUOTE_TEXT_MAX_LENGTH,
@@ -278,29 +276,6 @@ export function EditorConfigPanel({
 
         <div hidden={selectedEntry !== "projects"}>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="projects-heading">Heading</FieldLabel>
-              <Input
-                id="projects-heading"
-                autoComplete="off"
-                maxLength={PROJECTS_HEADING_MAX_LENGTH}
-                aria-invalid={errors.projects?.heading ? true : undefined}
-                {...form.register("projects.heading")}
-              />
-              <FieldError errors={[errors.projects?.heading]} />
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="projects-lede">Intro</FieldLabel>
-              <Textarea
-                id="projects-lede"
-                maxLength={PROJECTS_LEDE_MAX_LENGTH}
-                aria-invalid={errors.projects?.lede ? true : undefined}
-                {...form.register("projects.lede")}
-              />
-              <FieldError errors={[errors.projects?.lede]} />
-            </Field>
-
             {projectFields.map(function renderProjectCard(projectField, index) {
               const position = index + 1
 

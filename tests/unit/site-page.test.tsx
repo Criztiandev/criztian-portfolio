@@ -2,7 +2,9 @@ import { render, screen, within } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
 import {
+  ABOUT_SECTION,
   FAQ_SECTION,
+  OWNER_EMAIL_HREF,
   PROCESS_SCENE,
   SERVICES_SCENE,
 } from "@/data/page-sections.data"
@@ -32,13 +34,32 @@ const IN_SCENE_FOCUSABLE_SELECTOR = `[data-dot-scene] :is(a[href], button, summa
 const SCENE_ORDER = [
   "name",
   "cube",
-  "services",
-  "about",
   "project",
+  "services",
   "process",
+  "about",
+  "testimonials",
   "dust",
   "footer",
 ]
+
+const SECTION_ORDER = [
+  "home",
+  "quote",
+  "project",
+  "services",
+  "process",
+  "about",
+  "testimonials",
+  "faq",
+  "contact",
+]
+
+const RETIRED_SECTION_IDS = ["connect", "blog"]
+
+const PLACEHOLDER_PLATE_SECTION_IDS = ["project", "about", "testimonials"]
+
+const PLATE_SLOT_SECTION_IDS = ["about", "testimonials"]
 
 function renderPage() {
   return render(
@@ -162,7 +183,37 @@ describe("SitePage", () => {
       labelledCount += 1
     }
 
-    expect(labelledCount).toBe(9)
+    expect(labelledCount).toBe(7)
+  })
+
+  it("orders the sections as the locked design does, with Connect and Blog gone", () => {
+    const { container } = renderPage()
+    const order: string[] = []
+
+    for (const section of container.querySelectorAll("section")) {
+      order.push(section.id)
+    }
+
+    expect(order).toEqual(SECTION_ORDER)
+
+    for (const id of RETIRED_SECTION_IDS) {
+      expect(container.querySelector(`[id="${id}"]`), id).toBeNull()
+      expect(container.querySelector(`a[href="#${id}"]`), id).toBeNull()
+    }
+  })
+
+  it("gives every placeholder plate a decorative image", () => {
+    const { container } = renderPage()
+
+    for (const id of PLACEHOLDER_PLATE_SECTION_IDS) {
+      const images = container.querySelectorAll(`#${id} img`)
+
+      expect(images.length, id).toBeGreaterThan(0)
+
+      for (const image of images) {
+        expect(image, id).toHaveAttribute("alt", "")
+      }
+    }
   })
 
   it("resolves every in-page link to exactly one element", () => {
@@ -207,6 +258,35 @@ describe("SitePage", () => {
       "var(--foreground)"
     )
     expect(stage?.style.getPropertyValue("--input")).toBe("var(--border)")
+    expect(stage?.style.getPropertyValue("--ring")).toBe("var(--foreground)")
+    expect(stage?.style.getPropertyValue("--rule")).toContain(
+      "var(--foreground)"
+    )
+  })
+
+  it("merges the email line into contact and lists the stats as a dl", () => {
+    const { container } = renderPage()
+    const stats = container.querySelectorAll("#about dl > div")
+
+    expect(
+      container.querySelector(`#contact a[href="${OWNER_EMAIL_HREF}"]`)
+    ).not.toBeNull()
+    expect(stats).toHaveLength(ABOUT_SECTION.stats.length)
+
+    for (const stat of stats) {
+      expect(stat.querySelector("dt")).not.toBeNull()
+      expect(stat.querySelector("dd")).not.toBeNull()
+    }
+  })
+
+  it("sets the About and Testimonials slots on their plates", () => {
+    const { container } = renderPage()
+
+    for (const id of PLATE_SLOT_SECTION_IDS) {
+      const slot = container.querySelector(`#${id} [data-dot-slot]`)
+
+      expect(slot?.parentElement?.querySelector("img"), id).not.toBeNull()
+    }
   })
 
   it("keeps the step copy in reading order inside each scene's board", () => {

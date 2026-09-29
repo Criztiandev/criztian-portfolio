@@ -2,13 +2,18 @@ import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import {
+  PROJECT_IMAGE_PLACEHOLDER_LABEL,
+  PROJECTS_LABEL,
+} from "@/data/portfolio.data"
+import {
   DEFAULT_PROJECT_ITEMS,
-  DEFAULT_PROJECTS_HEADING,
   NEW_PROJECT_ITEM,
 } from "@/data/site-content.data"
 import { ProjectsSection } from "@/features/portfolio/components/projects-section.component"
 import { createDefaultSiteContent } from "@/features/site-content/site-content.rules"
 import type { ProjectItem } from "@/types/site-content.type"
+
+const EXPECTED_LABELS = ["Work · 01 / 03", "Work · 02 / 03", "Work · 03 / 03"]
 
 function renderProjects(items: ProjectItem[]) {
   const projects = { ...createDefaultSiteContent().projects, items }
@@ -21,15 +26,13 @@ function buildProject(overrides: Partial<ProjectItem>): ProjectItem {
 }
 
 describe("ProjectsSection", () => {
-  it("labels the section with an h2 and titles each project with an h3", () => {
+  it("labels the section Work with an h2 and titles each project with an h3", () => {
     const { container } = renderProjects(DEFAULT_PROJECT_ITEMS)
 
     expect(
-      screen.getByRole("region", { name: DEFAULT_PROJECTS_HEADING })
+      screen.getByRole("region", { name: PROJECTS_LABEL })
     ).toBeInTheDocument()
-    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-      "Featured projects"
-    )
+    expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(1)
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(3)
     expect(container.querySelector("h1")).toBeNull()
     expect(container.querySelector("h4")).toBeNull()
@@ -41,25 +44,32 @@ describe("ProjectsSection", () => {
     expect(container.querySelector("section#project")).not.toBeNull()
   })
 
-  it("counts the visible projects below the lede, never above the heading", () => {
+  it("counts each project in its own screen label", () => {
     const { container } = renderProjects(DEFAULT_PROJECT_ITEMS)
-    const header = container.querySelector("header")
-    const count = screen.getByText("/ 03")
-    const lede = screen.getByText(createDefaultSiteContent().projects.lede)
+    const labels: string[] = []
 
-    expect(header?.firstElementChild?.tagName).toBe("H2")
-    expect(
-      lede.compareDocumentPosition(count) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy()
+    for (const article of container.querySelectorAll("article")) {
+      labels.push(article.firstElementChild?.textContent ?? "")
+    }
+
+    expect(labels).toEqual(EXPECTED_LABELS)
+    expect(container.querySelector("article h2")).toHaveAccessibleName(
+      PROJECTS_LABEL
+    )
+
+    for (const label of container.querySelectorAll("article > p:first-child")) {
+      expect(label).toHaveAttribute("aria-hidden", "true")
+    }
   })
 
-  it("points the call to action at the contact form", () => {
+  it("retires the heading, the intro and the in-section call to action", () => {
+    const projects = createDefaultSiteContent().projects
+
     renderProjects(DEFAULT_PROJECT_ITEMS)
 
-    expect(screen.getByRole("link", { name: "Let's talk" })).toHaveAttribute(
-      "href",
-      "#contact"
-    )
+    expect(screen.queryByText(projects.heading)).toBeNull()
+    expect(screen.queryByText(projects.lede)).toBeNull()
+    expect(screen.queryByRole("link", { name: "Let's talk" })).toBeNull()
   })
 
   it("skips projects with a blank title", () => {
@@ -70,17 +80,30 @@ describe("ProjectsSection", () => {
 
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(1)
     expect(container.querySelectorAll("li")).toHaveLength(1)
-    expect(screen.getByText("/ 01")).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
+      new RegExp(`^${PROJECTS_LABEL}$`)
+    )
   })
 
-  it("is a dot scene with one hidden slot for the dots to form in", () => {
+  it("keeps its label when no project is visible", () => {
+    renderProjects([buildProject({ title: "" })])
+
+    expect(
+      screen.getByRole("region", { name: PROJECTS_LABEL })
+    ).toBeInTheDocument()
+    expect(screen.queryAllByRole("heading", { level: 3 })).toHaveLength(0)
+  })
+
+  it("is a dot scene with one hidden slot, pinned in its first child", () => {
     const { container } = renderProjects(DEFAULT_PROJECT_ITEMS)
+    const section = container.querySelector("section[data-dot-scene]")
     const slots = container.querySelectorAll("[data-dot-slot]")
 
-    expect(container.querySelector("section[data-dot-scene]")).not.toBeNull()
+    expect(section).not.toBeNull()
     expect(slots).toHaveLength(1)
     expect(slots[0]).toHaveAttribute("aria-hidden", "true")
     expect(slots[0]).toBeEmptyDOMElement()
+    expect(section?.firstElementChild?.contains(slots[0] ?? null)).toBe(true)
   })
 
   it("links the title to an https project in a new tab", () => {
@@ -102,7 +125,7 @@ describe("ProjectsSection", () => {
       buildProject({ title: "Plain", link: "http://plain.test" }),
     ])
 
-    expect(screen.getAllByRole("link")).toHaveLength(1)
+    expect(screen.queryAllByRole("link")).toHaveLength(0)
     expect(screen.getByRole("heading", { name: "Script" })).toBeInTheDocument()
     expect(screen.queryByRole("link", { name: /Script|Data|Plain/ })).toBeNull()
   })
@@ -143,7 +166,7 @@ describe("ProjectsSection", () => {
       buildProject({ title: "Two", image: "/projects/two.png" }),
     ])
 
-    expect(screen.getAllByText("Screenshot to come")).toHaveLength(1)
+    expect(screen.getAllByText(PROJECT_IMAGE_PLACEHOLDER_LABEL)).toHaveLength(1)
   })
 
   it("hides the tag, summary and stack when they are blank", () => {

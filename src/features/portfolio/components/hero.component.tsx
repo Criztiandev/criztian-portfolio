@@ -269,9 +269,7 @@ export function Hero({
                 )}
                 className={cn(
                   "flex items-center justify-center gap-2",
-                  "text-muted-foreground uppercase",
-                  "text-[0.75rem] tracking-[0.12em]",
-                  "md:text-[0.6875rem] md:tracking-[0.22em]"
+                  "text-[0.6875rem] tracking-[0.22em] text-muted-foreground uppercase"
                 )}
               >
                 <span>{HERO_SCROLL_LABEL}</span>

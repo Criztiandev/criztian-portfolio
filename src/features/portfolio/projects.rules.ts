@@ -1,6 +1,4 @@
 import {
-  PROJECT_COUNT_DIGITS,
-  PROJECT_COUNT_PREFIX,
   PROJECT_IMAGE_PATH_PATTERN,
   PROJECT_LINK_PROTOCOL,
 } from "@/data/portfolio.data"
@@ -59,10 +57,4 @@ export function selectVisibleProjects(items: ProjectItem[]): ProjectItem[] {
   }
 
   return visible
-}
-
-export function formatProjectCount(count: number): string {
-  const digits = String(count).padStart(PROJECT_COUNT_DIGITS, "0")
-
-  return `${PROJECT_COUNT_PREFIX}${digits}`
 }

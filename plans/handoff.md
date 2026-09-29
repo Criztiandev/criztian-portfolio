@@ -2,9 +2,9 @@
 
 > **For:** the next Claude Code session picking up this build.
 >
-> **Current phase:** **Phase 5, page structure and copy.** Phase 4 is done: the design is locked to mockup B ("Statement", with `B-desktop-1` as the reference), the renders are in `plans/mockups/`, and DESIGN.md describes the locked system (owner's yes, 2026-09-29). To resume, paste the prompt under "Start here".
+> **Current phase:** **Phase 6, the one-product dot shapes.** Phase 5 is done: the page runs in the B order with the approved copy and the B surface, and its done note lists what is open for the owner. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference); the renders are in `plans/mockups/`. To resume, paste the prompt under "Start here".
 >
-> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`, and Phase 4's DESIGN.md rewrite is the "Phase 4" docs commit after it. Nothing is pushed.
+> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, and Phase 5 is the commit after it. Nothing is pushed.
 >
 > **How this file works:** each phase is one conversation. It lists its scope, the owner inputs it needs and its acceptance. It ends with the prompt that starts the next conversation. When a phase ends, write its done note under it, move "Current phase" forward, and give the owner the next prompt.
 >
@@ -15,10 +15,10 @@
 Paste this into a new conversation to resume the current phase:
 
 ```text
-Continue the portfolio redesign: Phase 5, page structure and copy.
-Read CLAUDE.md, then plans/handoff.md ("Direction", "The DOM contract", Phase 4's done note and "Phase 5"), PRODUCT.md and DESIGN.md.
-Follow the mockup pick and the approved copy recorded in Phase 4. Ask me Phase 5's open questions first.
-Build Phase 5 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 6, and end your reply with Phase 6's prompt from the handoff.
+Continue the portfolio redesign: Phase 6, the one-product dot shapes.
+Read CLAUDE.md, then plans/handoff.md ("Direction", "The dot story", "The DOM contract", Phase 5's done note and "Phase 6"), and DESIGN.md.
+Open the mockup canvas https://claude.ai/artifact/JfBhfHpocuCtfDmcTkahob for the look of every shape.
+Build Phase 6 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 7, and end your reply with Phase 7's prompt from the handoff.
 Ask me before committing.
 ```
 
@@ -217,6 +217,7 @@ The mockups use these, and the owner approved them all. Use them in place of the
   - Part 1, the line-art shape library (`00d54b9`)
   - Part 2, the dot choreography: pen draw-on, burst, swell and strike (`f33d351`)
   - the Services thread with its glide lock, and the How I work orbit (`0f198b2`)
+- **Phase 5** on `portfolio/phase-3`: the B page order, the approved copy and the B surface for the quote, Work, About, Testimonials, FAQ, Contact, the header and the footer (see its done note).
 - **Not built:** old Part 3 (section motion, now Phase 10) and old Part 4 (the cursor, parked).
 - **Last evidence (2026-09-29):**
   - 366 unit tests pass and `pnpm check` is clean.
@@ -225,19 +226,19 @@ The mockups use these, and the owner approved them all. Use them in place of the
 
 **Carried-over open items,** each assigned to a phase:
 
-| Item                                                                                                                    | Phase             |
-| ----------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Services curtain bug: under reduced motion, earlier captions ride up over the slot (`not-last:mb-*` → `not-first:mt-*`) | 7                 |
-| Copy crossings: transit dots cross copy columns at full brightness                                                      | 11                |
-| `resolveViewportHeight` with grown frames shifts dust boundaries                                                        | 11                |
-| Transit captures of every scene, both directions, and the owner's "wow and professional" sign-off                       | 11                |
-| The 16ms frame trace on the owner's phone (ask for an Android with USB debugging)                                       | 11                |
-| Safari 26 on an iPhone (scroll-driven animations, Lenis at 60fps)                                                       | 11                |
-| The real-phone fling test (Phase 1)                                                                                     | 11                |
-| The smooth-scroll feel sign-off (`SMOOTH_SCROLL_LERP`)                                                                  | 11                |
-| The published-content read is cached for a year (tag it and `revalidateTag` on publish, or make it uncached)            | 11                |
-| The Projects heading in the live record still has old text (the owner sets it in the editor)                            | 5 (ask the owner) |
-| Existing reveals hide content without JavaScript (`data-reveal` plus `@media (scripting: none)`)                        | 10                |
+| Item                                                                                                                    | Phase    |
+| ----------------------------------------------------------------------------------------------------------------------- | -------- |
+| Services curtain bug: under reduced motion, earlier captions ride up over the slot (`not-last:mb-*` → `not-first:mt-*`) | 7        |
+| Copy crossings: transit dots cross copy columns at full brightness                                                      | 11       |
+| `resolveViewportHeight` with grown frames shifts dust boundaries: fixed in Phase 5, it reads the shortest pinned frame  | done (5) |
+| Transit captures of every scene, both directions, and the owner's "wow and professional" sign-off                       | 11       |
+| The 16ms frame trace on the owner's phone (ask for an Android with USB debugging)                                       | 11       |
+| Safari 26 on an iPhone (scroll-driven animations, Lenis at 60fps)                                                       | 11       |
+| The real-phone fling test (Phase 1)                                                                                     | 11       |
+| The smooth-scroll feel sign-off (`SMOOTH_SCROLL_LERP`)                                                                  | 11       |
+| The published-content read is cached for a year (tag it and `revalidateTag` on publish, or make it uncached)            | 11       |
+| The Projects heading in the live record still has old text: retired with the intro (owner, Phase 5)                     | done (5) |
+| Existing reveals hide content without JavaScript (`data-reveal` plus `@media (scripting: none)`)                        | 10       |
 
 ## The architecture this needs
 
@@ -378,8 +379,8 @@ Every section that takes part in the timeline follows these rules. The engine tr
 9. **In-scene anchors.** Every `id` inside a scene has `scroll-margin-top` equal to that scene's `stickyTop` (`scroll-mt-18`). A larger margin lands before the pin starts. `data-scene` then reads `moving`, and if a spinning shape is the outgoing one, the loop never sleeps.
    - **Focusables too.** Every focusable inside a scene also carries `scroll-mt-18` (`FOCUS_RING_CLASS` does). This keeps a Shift-Tab target clear of the 72px fixed header, because `scroll-padding-top` is banned.
 10. **Dust scene endings.** The last section of a dust scene is at least one frame tall (`min-h-[calc(100svh_-_4.5rem)]`). Otherwise its anchor lands in the transit to the next scene, with a half-formed shape over it. `#contact` needed this.
-11. **Reveals on pinned elements.** A pinned element never moves, so a `whileInView` margin must already hold at its pinned position. The projects heading sat at 65% of a phone screen behind a −40% margin and never revealed; it is now −10%.
-12. **Frames that can grow, grow.** A single-frame scene (Quote, About, footer) uses `min-h-[…]`, never a fixed `h-[…]`, and so does its container. Step boxes are the exception: they are fixed and join the gate (rule 13), because a step that grows would move the next step's docking point. Zoom or WCAG text spacing then lengthens the pin instead of clipping or overlapping the copy. The engine re-reads frame and container heights on every measure.
+11. **Reveals on pinned elements.** A pinned element never moves, so a `whileInView` margin must already hold at its pinned position. The old projects heading sat at 65% of a phone screen behind a −40% margin and never revealed until it moved to −10%; Phase 5 retired that heading and its reveal.
+12. **Frames that can grow, grow.** A single-frame scene (Quote, About, Testimonials, footer) uses `min-h-[…]`, never a fixed `h-[…]`. Its pin length comes from a fixed spacer after the frame (`PIN_SPACER_CLASS`: 50svh; 60svh for the quote, 25svh for the footer; hidden without WebGL), never from a container `min-h`: a grown frame then keeps its whole pin instead of dropping it to zero (Phase 5 review). Work's frame is an exception: it is fixed and holds only the slot, and its project screens sit in normal flow with `min-h`, so they grow instead. Step boxes are the other exception: they are fixed and join the gate (rule 13), because a step that grows would move the next step's docking point. Zoom or WCAG text spacing then lengthens the frame instead of clipping or overlapping the copy. The engine re-reads frame and container heights on every measure.
 13. **The fit gate.** A docked step cannot grow: it is sticky, and a taller step is covered by the next one. So each step scene (`ServicesSection`, `ProcessSection`) renders `SceneFitGate` (a hidden `<span>`) as its **last** child. The frame stays first. How it works:
     - It checks every `[data-fit-box]` step.
     - If one overflows, it sets `data-fit="flow"` on the container, removes `data-dot-slot` from the slot and sets `data-dot-shapes="dust"`. The engine re-reads both attributes on its next measure, so the scene becomes a plain dust scene. It never sees a hidden 0×0 slot.
@@ -616,6 +617,60 @@ Ask me before committing.
 - Strict counts hold: one canvas, one `[data-status]`, one `<h1>`.
 - Captures at 1440 and 390 match the picked mockup's structure.
 
+**Done note (2026-09-29).**
+
+- **Owner answers** (asked first, all recorded under "Open owner decisions"):
+  - The Projects heading and intro are retired: they left the page and the editor panel, and the schema still stores them.
+  - Until Phase 9's deck, Work is one B screen per project.
+  - The plates use the mockup's placeholders: the grey glow for projects, the circle for the photo, the stripes for the client plate.
+  - The owner's draft was written for them to review and publish (below).
+  - The submit button is uppercase.
+  - Testimonials shows no count while it has one quote.
+  - All nine FAQ answers are still true.
+- **Shipped:**
+  - **Order:** Hero, Quote, Work, Services, How I work, About, Testimonials (a new `testimonials` scene), a dust scene holding FAQ and Contact, then the footer.
+    - Nav: Work, Services, Process, About, FAQ. The menu panel lists all eight anchors.
+    - Blog left the page and the nav; its component and data stay. `ConnectSection` is deleted, and its email line sits beside the form.
+  - **The B split** for the quote, Work, About, Testimonials, FAQ and Contact, built from shared constants in `page-sections.data.ts` (`SCREEN_*`, `STATEMENT_*`, `SECTION_LABEL_CLASS`, `BODY_CLASS`, `TITLE_CLASS`, `CUE_CLASS`, `PLATE_*`).
+    - Statements size from their column (the table in DESIGN.md, Statement).
+    - Content stops at 100rem; the columns are 6fr : 5fr, and 31fr : 35fr for Work.
+    - Services and How I work keep their Phase 3 layout, classes and 80rem cap until Phases 7 and 8; only their copy changed.
+  - **Work:** a label per screen ("Work · 01 / 03"; the first is the `<h2>`, the rest are `aria-hidden`), the title as the statement, the summary, tag and stack, and a 10:7 plate.
+    - The pinned frame holds only the slot, at the plate's rect.
+    - A project without a valid image shows `/projects/placeholder.webp` with an "Image placeholder" chip. This is a fallback, so the seed and the owner's draft store no image paths.
+    - On a phone the screens are top-aligned and opaque, so the copy never crosses the formed sphere.
+  - **About:** a pinned single frame with "I am Criztian.", the approved line, "[Your story, in your own words]" and the stats as a `<dl>`. On the right is a 4:5 black-and-white placeholder plate with a "[Your photo]" chip, its slot under the image.
+  - **Testimonials:** "“[A client's words, with their permission]”" as the statement, "[Client name] · [Role, company]", and a 1:1 "[Client photo or logo]" plate.
+  - **Copy:** the approved short drafts for Branding, Web design, Bringing it to life, Delivering success and About, the section labels and the Contact line. Development keeps its long copy, since it has no short draft yet.
+  - **Surface:**
+    - type: Body 15/18px, Title 44/56px, Cue 11px at 0.22em everywhere (the hero cue too)
+    - tokens: Rule Grey as `--rule` for every divider, and `--ring` pointing at the foreground
+    - header: Lit Grey links in both states, a Dim Grey ©, the Contact action at 10×20
+    - form: 44px fields (16px text below 768, 15px from 768), a 112px message box, a 48px uppercase full-width submit, a form box of at least 520×440 with 32px padding, a Lit Grey 12px chevron, name and email side by side from a 28rem form, and invalid fields that brighten on keyboard focus
+    - footer: items at least 44px tall below 1024px, a full-bleed Rule Grey rule, and two wrapped rows on short landscape screens
+  - **Seeds and the owner's draft:** the tagline "I build whole products. Brand, design and code.", the belief placeholder "[Your belief line, in your own words]", and the bracketed project placeholders are the seed defaults. The same values were written into the local draft only. The final e2e run then published them, because `editor.spec.ts` publishes the whole draft (see Landmines), so the local page shows them now. The pre-Phase 5 row is backed up if the owner wants the old published copy back.
+  - **Engine:** `resolveViewportHeight` takes the shortest pinned frame, not the tallest, so a grown frame no longer moves a dust boundary. This closes that carried-over item: a grown About frame had put `/#contact` on `moving`.
+  - **Pins that survive growth:** single-frame scenes get their pin from `PIN_SPACER_CLASS` after the frame (rule 12 updated), not from a container `min-h`.
+- **Evidence:**
+  - `pnpm check` is clean and 373 unit tests pass.
+  - e2e: all 115 specs pass on a production build at :3100 (a same-drive copy, webpack build, Supabase up).
+    - New specs: the scene walk in the new order, deep links to every scene, About and Testimonials at all ten fit sizes (frame never clipped, no overlapping lines, every line visible), statement word fit at twelve sizes, and invalid-field focus.
+    - `step-motion.spec`'s arrival fling now starts from the last project screen.
+  - **Hero pixel diff:** Phase 5 against `6d11e7c` is 0 pixels at DPR 1 and 2, at rest and with reduced motion (header band and cue row masked). Against `0a3c97a` it is 20 pixels at DPR 1 (up to 2/255) and 24 at DPR 2 (up to 1/255), all in the name's box. `6d11e7c` measures exactly the same, so the residue predates Phase 5 (see Landmines).
+  - **Strict counts** (one canvas, one `[data-status]`, one `<h1>`): `site-page.test.tsx` and `anchors.spec.ts`.
+  - **Frame growth:** measured at 1920×1080, 1536×864, 1440×900, 1366×768, 1280×720, 1024×768, 768×1024, 820×1180 and 390×844/664. No pinned frame grows at any of them. Frames grow only at the short fit sizes and 400% zoom, as rule 12 allows, and their pins keep their length.
+  - **Captures** at 1440×900 and 390×844 match B's structure screen by screen.
+  - **A six-lens review with adversarial verification:** DOM contract, B fidelity, accessibility, conventions, tests and scope.
+    - 31 findings raised, 13 confirmed after verification (some confirmed twice, across lenses). All are fixed; the invalid-field focus fix was confirmed in the browser.
+    - The rejected ones were duplicates, contradicted an owner decision, or are Phase 6/9 work: the sphere hidden under the plates, the Work slot drift, and a single-project pin.
+- **Open:**
+  - **Owner:** keep the copy the e2e run published, or ask for the old published copy back.
+  - The Development short draft is not written yet.
+  - **Phase 6:** the plate slots, Work's opaque phone screens and Contact's own scene (notes under Phase 6).
+  - On landscape phones and at 400% zoom a grown About frame centres its plate, so part of the plate can sit below the fold while pinned. Phase 6's frame will show it.
+  - A long owner belief line wraps at 11ch with no size step by length. Decide when the real line arrives.
+  - Testimonials renders the first quote only.
+
 **Next conversation prompt (starts Phase 6):**
 
 ```text
@@ -668,7 +723,11 @@ Ask me before committing.
   - Every line-art shape keeps pen order.
   - The two scattered shapes (`listening`, the `delivery` trail) are seeded point generators.
   - Register every new id in all four places: the `DotGeneratedShapeId` union, `DOT_SHAPE_IDS`, `GENERATED_SHAPE_IDS` (tsc doesn't check this one) and `DOT_SHAPE_TUNING`.
-- **Projects, About and Testimonials:** each slot is its plate, and `frame` replaces the placeholder sphere. The sphere is deleted once nothing uses it.
+- **Projects, About and Testimonials:** each slot is its plate, and `frame` replaces the placeholder sphere. The sphere is deleted once nothing uses it. What Phase 5 left for this:
+  - **About and Testimonials:** the slot is the plate's own rect, the plate's first child, under the image. A frame drawn 18px outside the plate (12px on a phone) needs either the shape's half-size to exceed the slot or the slot to grow by that margin. Under the image the slot gets no pointer events, so decide whether the frame takes the pointer push.
+  - **Work:** the pinned frame holds the slot at the plate's rect, and the project screens slide past it. A formed frame therefore frames each plate only as it lands, until Phase 9's deck.
+  - **Work on a phone:** the screen list is opaque (`bg-background` below `split`), because the project copy scrolled over the formed sphere (Phase 5 review). That also hides a frame drawn round the plate. Decide how the phone frame shows without copy crossing it.
+  - **Contact:** still inside the FAQ dust scene; the gather makes it its own scene (below).
 - **Tuning:** every number in `hero.data.ts`. Match the mockup's stroke weight (the cube is the reference).
 - **Tests:**
   - `line-art-shapes.test.ts`: determinism, count, bounds, rank, pen order, every id uploaded
@@ -878,7 +937,6 @@ Ask me before committing.
 
 - **The carried-over items** in "What is built today":
   - copy crossings
-  - `resolveViewportHeight` with grown frames
   - transit captures in both directions and the owner's "wow and professional" sign-off
   - the 16ms trace
   - Safari 26
@@ -922,12 +980,16 @@ These are the ones CLAUDE.md doesn't already cover:
 
 - **Diff visual regressions; don't eyeball them.** Capture the canvas with `getImageData` in a throwaway Playwright script, before and after. That is how two sub-pixel regressions were caught that screenshots hid.
 - **The hero pixel diff** is against `0a3c97a`. Mask the 72px header band and the scroll cue's row. The name's dots may differ by at most 18 pixels at DPR 1 (up to 2/255) and 14 at DPR 2 (up to 1/255), all inside the name's box. Anything more is drift. The full method is in the history.
+  - **Measured 2026-09-29 (Phase 5):** `6d11e7c` (Phase 4, before any Phase 5 change) already differs from `0a3c97a` in 20 pixels at DPR 1 (up to 2/255) and 24 at DPR 2 (up to 1/255), all inside the name's box. So the ceiling moved before Phase 5, in the environment or an earlier phase; it was not isolated further. All three builds read the same published record, which by then held the one-line Phase 5 tagline. Phase 5 against `6d11e7c` is a zero-pixel diff at DPR 1 and 2, at rest and with reduced motion. Diff each phase against the previous commit as well as against `0a3c97a`.
+  - **Ready baseline:** `E:\Project\criztian-baseline-build` is a git worktree at `0a3c97a` with its own `node_modules` (a real install) and a webpack build; serve it with `pnpm exec next start -p 3200` and the `.env.local` variables loaded. The older `E:\Project\criztian-baseline-0a3c97a\node_modules` has dangling package links and no `.bin`, so it cannot build.
+  - **Capture:** a page screenshot per case once three consecutive frames match (the script used in Phase 5 is recreated easily from "How it was measured" in the history).
 - **PowerShell 5.1 splits `git commit -m` at quotes** (the apostrophe in "Let's"). Write the message to a file and use `git commit -F <file>`.
 - **`Set-Content -Encoding utf8` writes a BOM** in Windows PowerShell 5.1. Use the Write and Edit tools.
 - **`UID` is read-only in bash.** A `UID=$(...)` capture fails silently.
 - **TypeScript loses narrowing** of a captured `const` inside a hoisted `function` declaration. After the null guard, use an explicitly typed alias (`const container: HTMLElement = containerElement`). The hook already does this throughout; don't "clean it up".
 - **`motion/react` ships no `"use client"`.** Import it only from client components; `src/providers/motion.provider.tsx` carries the directive.
 - **`aria-hidden` on a wrapper hides everything inside it.** It once hid the `<h1>`. Keep it on decorative leaves, or on a visual duplicate of text that stays exposed, never on a wrapper of readable content.
+- **The e2e suite publishes the owner's draft.** `editor.spec.ts` edits the name, publishes, restores it and publishes again, so whatever else sits unpublished in the draft goes live. In Phase 5 that published the draft written for the owner to review. Before an e2e run, check `draft = published` in `site_content`, and ask the owner before running if they differ.
 - **The local Supabase may have no users.** `auth.users` was empty on 2026-09-20. Logged-in specs create their own throwaway user; never ask for the owner's password.
 - **Never `pnpm db:reset`** on the owner's data. It re-seeds `site_content` as `draft = '{}'` and wipes `auth.users`. Apply new migrations with `pnpm exec supabase migration up --local`.
 - **Turbopack flags one build warning:** `path.join(process.cwd(), …)` in `email-preview.adapter.ts`. It is harmless locally; fix it before deploying.
@@ -944,15 +1006,14 @@ These are the ones CLAUDE.md doesn't already cover:
 
 ## Open owner decisions
 
-- **Phase 5:** the Projects heading and intro, which B has no place for (see Phase 5's owner inputs).
-- **Testimonials with several quotes:** the label counts them ("01 / 03"), but how one quote gives way to the next is not designed. Decide when the real quotes arrive.
+- **Check the Phase 5 copy that went live locally (owner):** the e2e run published the draft Phase 5 wrote (the new tagline, the belief placeholder and the bracketed project placeholders), because `editor.spec.ts` publishes the whole draft. Keep it, or ask for the pre-Phase 5 published copy back (the row was backed up in the Phase 5 session).
+- **Testimonials with several quotes:** the label counts them once there is more than one (owner, Phase 5), but how one quote gives way to the next is not designed. Decide when the real quotes arrive.
 - **To confirm later:** the black-and-white photo, when it arrives, and the drifting ring, when Phase 8 is scrolled.
 - **Phase 10:** heading parallax, the adaptive cursor, the cursive logo.
 - **Phase 11:** the pause-motion toggle (WCAG 2.2.2).
-- **Material:** the tagline, the belief line, the story and photo, client quotes, real projects.
-- **FAQ truth check:** is each answer still true? (Webflow and WordPress; digital marketing campaigns.)
-- **The Send message button voice:** uppercase Label voice like "Let's talk", or sentence case as today. The mockups show uppercase.
+- **Material:** the belief line, the story and photo, client quotes, real projects.
 - **Decided, recorded:**
+  - Phase 5 (owner, 2026-09-29): the Projects heading and intro are retired; Work is one screen per project until the deck; the mockup's placeholder plates; the draft is written for the owner to publish; the submit button is uppercase; Testimonials shows no count while it has one quote; all nine FAQ answers are still true
   - positioning (PRODUCT.md)
   - reveals replay on re-entry
   - the direction-aware sweep keeps the natural mirror

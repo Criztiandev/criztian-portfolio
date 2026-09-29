@@ -89,6 +89,7 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
   - **Services is triggered, not scrubbed.** Between two thread keyframes (`DOT_SCENE_MOTION` `isThread`), `resolveTriggeredTarget` commits the target to the next or previous shape once the scroll passes `threadTrigger` in that direction, and `followTriggeredProgress` plays it over `threadDrawSeconds`. The hook publishes the committed shape as the stage's `data-thread`; the captions are CSS transitions keyed on it (literal selectors in globals.css).
   - **The glide lock.** On a thread-to-thread commit (not during a nav jump, never under reduced motion) the hook dispatches `DOT_THREAD_COMMIT_EVENT` with the shape's rest top. `SmoothScroll` glides there over `threadDrawSeconds` on `easeInOutSine`: through `lenis.scrollTo(…, { lock: true })` with Lenis, else a RAF glide with `overflow: hidden` on `<html>`. A key press or an in-page anchor click releases either lock. `SmoothScroll` therefore listens on every pointer type; only Lenis itself stays fine-pointer-only. Never key it on `data-scene`; no CSS keys on `data-scene` today. `staged` needs scroll-driven animations, motion allowed, height over 30rem, a running stage and no `data-fit`; everything else gets the Phase 2 layout.
   - Use the `view-timeline-name` and `view-timeline-inset` longhands: the `view-timeline` shorthand resets the inset and puts every handover 72px late.
+  - A dust scene ends one viewport before its container does. The viewport height is the shortest pinned frame plus its sticky top (`resolveViewportHeight`). Every frame is at least one viewport tall and the hero's is exactly one, so a frame that grows under rule 12 never moves a dust boundary.
   - `buildSceneKeyframes` turns the measured scenes into keyframes. `resolveTimelinePosition` maps `scrollY` to one position `p` (keyframe index plus transit progress), which the loop smooths (`followTimelineProgress`, snapping jumps longer than one segment).
   - The stage's `data-scene` is the formed keyframe id or `moving`.
 - **Shapes:**
@@ -117,10 +118,13 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
   - No WebGL2 (or a lost context) falls back to the text `<h1>`. Slots hide and scene containers drop their pin height.
   - Reduced motion never starts the loop. It draws a keyframe only while the scroll is inside that keyframe's pin range, and clears the canvas between scenes.
   - There is no viewport gate; phones run the dots.
-  - `aria-hidden` goes on decorative leaves only: the canvas, the empty slots, the orbit ring, the step numerals and the plate dots.
+  - `aria-hidden` goes on decorative leaves only: the canvas, the empty slots, the orbit ring, the step numerals and the plate dots. The other exception is a visual duplicate of text that stays exposed: the FAQ statement (the label `<h2>` carries it), the later Projects labels and a label's position count (the list carries it).
 
 **Other.**
 
+- **Sections:** every screen below the hero is the B statement split, built from the `SCREEN_*`, `STATEMENT_*`, `SECTION_LABEL_CLASS`, `BODY_CLASS`, `TITLE_CLASS` and `CUE_CLASS` constants in `src/data/page-sections.data.ts`. Services and How I work keep their Phase 3 layout and the older `SECTION_HEADLINE_CLASS` family until Phases 7 and 8.
+  - Statements size from their column (`@container`, `cqi`) with a rem term and an svh cap. Check the widest word against its column at the fit sizes after changing a factor.
+  - Projects is one B screen per visible project, until Phase 9's deck. Its pinned frame holds only the slot, at the plate's rect, and the screens scroll past it. The first screen's label is the section `<h2>`; later labels are `aria-hidden` duplicates.
 - **Env:** `src/config/env.server.ts` / `env.public.ts` validate at import and fail fast. They reject legacy `eyJ…` Supabase keys.
 - **Email:** `EmailAdapter` has only a preview implementation, which writes HTML to `.local/email-previews/`. Nothing is sent.
 - **Global UI state:** `@tanstack/react-store` (`useSelector`, not the deprecated `useStore`).
@@ -150,6 +154,7 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
   - Don't remove the flag, and don't re-diagnose this as antivirus.
   - Stop the dev server with Ctrl-C, never `taskkill /F`, which leaves locked handles on `.next`. If it happens anyway, delete `.next`.
 - **ESLint is pinned to 9.** ESLint 10 crashes `eslint-plugin-react`.
+- **`cn()` drops a line height that comes before a font size.** `cn("leading-[0.95]", "text-[…]")` keeps only the size, because the merge treats a font size as overriding line height. Put the line height on the size utility (`text-[…]/[0.95]`), as `STATEMENT_SIZE_CLASSES` does.
 - **`next build` replays a stale published document.** The published-content read is cached in Next's Data Cache (`.next/cache/fetch-cache`) for a year with no tags, and a fresh build reuses it, so a production build can render an old theme or old fields while the DB and dev server are right. Runtime publishes are fine (`revalidatePath`). Until the read is tagged or made uncached, delete `.next/cache/fetch-cache` before a build that must show current content.
 - **Never write a secret-shaped literal in a test,** even a fake one. GitHub push protection blocked a push once. Build fixtures from parts: `` `sb_secret_${"0".repeat(32)}` ``.
 - **e2e state:**

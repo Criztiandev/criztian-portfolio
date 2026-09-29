@@ -132,7 +132,7 @@ components:
 
 # Design System: Criztian
 
-> **Status:** this is the locked design, mockup B ("Statement"), with `B-desktop-1` as the reference (owner, 2026-09-29). Phases 5–10 in `plans/handoff.md` build it, so until each lands, the code still shows parts of the Phase 3 system: the Headline role, the white orbit plates, the glide lock and the placeholder sphere. It also still has the Phase 2 surface: Body at 16px, the smaller Title, 12px cues on phones, 32px fields and submit button, Wire Grey hairlines and the 80rem section cap. Phase 5 brings the surface to B. The renders are in `plans/mockups/`. Exact markup is in the artboards on the mockup canvas (linked from the handoff). When unsure how something should look, match B1.
+> **Status:** this is the locked design, mockup B ("Statement"), with `B-desktop-1` as the reference (owner, 2026-09-29). Phase 5 built the page order, the copy and the B surface: the statement split for the quote, Work, About, Testimonials, FAQ and Contact, the section label, Body, Title, Cue, Rule Grey, the form and the footer. Until Phases 6–10 land, the code still shows parts of the Phase 3 system: My services and How I work keep their Headline role, their 80rem cap and their layout (the white orbit plates, the glide lock), and the placeholder sphere stands in for every dot frame (behind the Work, About and client plates). The renders are in `plans/mockups/`. Exact markup is in the artboards on the mockup canvas (linked from the handoff). When unsure how something should look, match B1.
 
 ## Overview
 
@@ -159,7 +159,7 @@ This file describes the public site. The owner surfaces (`/login`, `/dashboard`,
 
 **References (history).** Earlier phases took one reference site per section: the hero from [adriavale.framer.website](https://adriavale.framer.website/), the dot shapes from [jeffmilanes.com](https://www.jeffmilanes.com/) (Scene 03) and the How I work orbit from [buckssauce.com](https://buckssauce.com/). The Phase 4 audit found that nobody had checked how the sections added up (`plans/handoff.md`, "Direction"). These sites are history now. Design a section against the one idea and B1, never against a reference site. What they left behind:
 
-- **adriavale:** the dot-matrix name on black. The dot field is an original WebGL implementation of the same technique, not the template's component. The seeded tagline that matched the template word for word gives way to the owner's approved line in Phase 5.
+- **adriavale:** the dot-matrix name on black. The dot field is an original WebGL implementation of the same technique, not the template's component. The seeded tagline that matched the template word for word gave way to the owner's approved line in Phase 5 (the seed default, and the owner's draft until they publish it).
 - **jeffmilanes:** outlines drawn in scattered dots that form as the story advances.
 - **buckssauce:** a huge ring with only its top arc in view, the steps riding it, and the giant outlined numeral. Its label plate, the plate's dots and the corner mascot are gone.
 
@@ -178,7 +178,7 @@ The palette is a set of brightness levels on black. Every colour is white at som
 - **Dim Grey** (`dim-grey`, white at 60%): tertiary text such as section labels, the scroll cue, plate chips, captions and helper text. At 7.4:1 on black it is still comfortable to read.
 - **Ghost Grey** (`ghost-grey`, white at 45%): decorative marks only; B uses none (the brand's © is Dim Grey). It measures 4.4:1 on black, which is below AA for body text.
 - **Wire Grey** (`wire-grey`, white at 40%): outlines on interactive elements (form fields), the project tag, the How I work ring's dots and the outgoing numeral.
-- **Rule Grey** (`rule-grey`, white at 12%): hairline dividers only. It draws the solid header's bottom rule, the Services item rules, the FAQ rows, the About stats rule and the footer bar's rule. At about 1.3:1 it is too faint to mark a control (WCAG 1.4.11), so it never outlines anything interactive. It is new with B and not in the code yet; today every hairline is Wire Grey. It needs its own token, separate from `--border` and `--input`, which stay Wire Grey for field outlines and the project tag.
+- **Rule Grey** (`rule-grey`, white at 12%): hairline dividers only. It draws the solid header's bottom rule, the Services item rules, the FAQ rows, the About stats rule and the footer bar's rule. At about 1.3:1 it is too faint to mark a control (WCAG 1.4.11), so it never outlines anything interactive. It is its own token, `--rule` (the foreground at 12%, `border-rule`), set on the public stage; `--border` and `--input` stay Wire Grey for field outlines and the project tag.
 
 ### Named Rules
 
@@ -214,13 +214,23 @@ The palette is a set of brightness levels on black. Every colour is white at som
   | "Let's start your project today.", on three lines          | 128px          | 52px        |
   | "FAQ"                                                      | 240px          | 110px       |
 
-  A statement never overflows its column or its frame. From 48rem the left column is about half the viewport, so in the split a statement is sized from its column (container units), not from the viewport, and it keeps a rem term so it grows under page zoom (WCAG 1.4.4). Phase 5 sets the scale and checks each statement it builds at the fit sizes and at 768×1024 and 1024×768. Phase 7 checks the service names, "Development" included.
+  A statement never overflows its column or its frame. From 48rem the left column is about half the viewport, so in the split a statement is sized from its column (container units), not from the viewport, and it keeps a rem term so it grows under page zoom (WCAG 1.4.4). The scale (`STATEMENT_SIZE_CLASSES`, set in Phase 5) is `min(cap, k·cqi + rem, h·svh)` with line-height 0.95:
+
+  | Statement | Phone               | Split                        |
+  | --------- | ------------------- | ---------------------------- |
+  | Default   | 19cqi + 0.5rem, 72  | 26cqi + 0.5rem, 176, 20svh   |
+  | Belief    | 14cqi + 0.5rem, 52  | 18cqi + 0.5rem, 136, 16svh   |
+  | Client    | 17cqi + 0.25rem, 68 | 15.5cqi + 0.5rem, 120, 14svh |
+  | Contact   | 14cqi + 0.5rem, 52  | 16.5cqi + 0.5rem, 128, 15svh |
+  | FAQ       | 30cqi + 0.5rem, 110 | 32cqi + 0.5rem, 240, 28svh   |
+
+  The svh term keeps a statement inside short frames (landscape phones, 1280×720). Each factor was checked so the widest word fits its column at the fit sizes and at 768×1024 and 1024×768 ("CRIZTIAN." is the tightest at 768 wide). A word that still cannot fit, such as an owner's long project title, breaks rather than overflows. Phase 7 checks the service names, "Development" included.
 
 - **Numeral** (Antonio 700 digits, line-height 0.86, outlined with a 2px Lit Grey stroke and no fill, so the ring's dots show through the digits where its top arc crosses them; about 340px on desktop and 150px on a phone): the How I work step numbers only. Phase 8 sizes them from the frame. They are decorative and `aria-hidden`; the step title carries the meaning. They are the one exception to "Display is the name, and nothing else", and they drop to Title size, solid Dim Grey, in the reading list.
 - **Title** (Antonio 700, uppercase, line-height 0.95, 56px at 1440 and 44px at 390, `clamp(2.75rem, 2.47rem + 1.14vw, 3.5rem)`): the How I work step titles and the About stat values. It sits one clear step below the statement.
 - **Body** (Geist 400, 15px/1.55 on a phone and 18px/1.5 from 768px, Lit Grey, at most 40ch): the paragraph under a statement, the About story and the FAQ answers. Form fields use 16px below 768px (iOS Safari zooms the page into a smaller field on focus) and 15px from 768px.
 - **Lede** (Geist 400, uppercase, 14px/1.625 with 0.14em tracking from 768px; 13px/1.7 with 0.05em tracking on mobile): the hero tagline only. Maximum width is 34rem.
-- **Label** (Geist 400, uppercase, 14px, 0.025em tracking): nav links and the Contact action. The project tag uses it at 12px. The submit button is Geist 500; whether it takes the Label voice is open (see Buttons).
+- **Label** (Geist 400, uppercase, 14px, 0.025em tracking): nav links and the Contact action. The project tag uses it at 12px. The submit button takes the Label voice in Geist 500 (owner, Phase 5).
 - **Item** (Geist 400, uppercase, 13px/16px, 0.08em tracking, Lit Grey, after a Dim Grey number): numbered lists, such as the six items under each service.
 - **Section label** (Geist 400, uppercase, 11px on a phone and 12px from 768px, 0.22em tracking, 16px line-height, Dim Grey): the one `<h2>` style. It names the section and, where the section has steps or several items, the position: "My services · 02 / 03". Every section from Projects to Contact opens with it, at the top left of its frame; the hero, the quote and the footer have none.
 - **Cue** (Geist 400, uppercase, 11px with 0.22em tracking at every width, Dim Grey): the scroll cue, plate chips, captions (the quote's author, a client's name, a stat's label, a project's stack line), the "Or email me" line and the footer bar.
@@ -263,8 +273,9 @@ Every screen below the hero is the same composition (the quote has no section la
   - **Left** (about x 40–760 at 1440): the section label at the top left, 56px below the header. Then, vertically centred in the rest of the frame, the statement, left-aligned, with the body and details under it.
   - **Right** (about x 800–1400): the object, large and vertically centred. It is a dot shape, a dot-framed plate or the form.
   - **The columns flex with the object:** Projects gives its plate 700px (620 + 700), and How I work gives the ring the wide side (800 + 560, with no gap). Its 560×448 shape is top-aligned, 64px below the top of the content, not vertically centred. Every other screen is 720 + 600.
-  - **Width:** at 1440 the split fills the whole width inside the gutters (1360px), wider than today's 80rem section cap, which goes. Phase 5 sets the maximum content width beyond 1440 and keeps the column ratios below it, and records both here.
-- **Phone:** one column, left-aligned, in 24px gutters. The section label sits 28px below the header. Then, vertically centred, the object comes first: a plate at full width (342px at 390), or a dot shape as a centred square at its own size (the cube 288px, Services 280px, How I work 268px). Then come the statement and the details. Where the object is the form (Contact) or there is none (FAQ), the statement comes first. FAQ is not centred: its statement sits 8px under the label, and the list follows 16px below it.
+  - **Width:** at 1440 the split fills the whole width inside the gutters (1360px). The content stops growing at 100rem (1600px; `max-w-[105rem]` with the gutters), so beyond about 1680px wide the split is centred. Below that the columns keep their ratios: 6fr : 5fr for most screens (720 : 600 at 1440) and 31fr : 35fr for Work (620 : 700). How I work's 800 + 560 arrives with Phase 8.
+  - **Vertical rhythm:** the label sits `min(3.5rem, 6svh)` below the header and the frame keeps `min(4rem, 7svh)` at its foot, so 1280×720 fits without growing; short screens (the `short` variant) tighten both to 16px.
+- **Phone:** one column, left-aligned, in 24px gutters. The section label sits 28px below the header. Then, vertically centred, the object comes first: a plate at full width (342px at 390, 10:7, at most 28svh tall), or a dot shape as a centred square at its own size (the cube 288px, Services 280px, How I work 268px). Work is the one screen that is top-aligned on a phone (label, plate, copy), so its pinned slot can sit on the plate. Then come the statement and the details. Where the object is the form (Contact) or there is none (FAQ), the statement comes first. FAQ is not centred: its statement sits 8px under the label, and the list follows 16px below it.
 - **How I work** centres its numeral, title and copy on the ring in both layouts.
 - **Choosing the layout:** pinned scenes use the `split` variant (`min-width: 48rem`, or `max-height: 30rem` from 34rem wide), so a landscape phone gets the two columns while 400% zoom stays single-column. The `short` variant tightens step type and the shape band on short screens, so small phones (375×548) keep the pinned layout. Never choose by `md:` alone. The header nav switches at 1024px.
 
@@ -387,12 +398,13 @@ The one quote on the page, owner-editable in the dashboard (text plus an optiona
 
 ### Projects
 
-The proof section. It is owner-editable in the dashboard (heading, intro and up to six projects). The seed is three visible placeholders with neutral monochrome placeholder images; nothing is invented.
+The proof section. It is owner-editable in the dashboard (up to six projects). The seed is three visible placeholders; a project without a valid image shows the neutral monochrome placeholder plate. Nothing is invented.
 
 - **Layout:** the section label "Work · 01 / 03" (the active project over the visible count), the project's title as the statement, its summary in Body, then a square tag (Wire Grey hairline, Dim Grey Label type at 12px) and the stack line in Cue type. On the right is the 10:7 plate (700×490 at 1440), framed by dots. On a phone the plate comes first, full width. B has no in-section action: "Let's talk" is always a tap away, in the header from 1024px and in the menu panel below it.
-- **The editor's heading and intro:** B shows neither. The label stands in for the heading, and the intro has no slot. Whether they drive anything (for example the label's name) or are retired is an owner question for Phase 5; the schema stays as it is until then.
-- **The deck (Phase 9):** a pinned step scene with one step per visible project, triggered and never locked. The active project swaps inside one plate slot while the dots draw the frame round it in pen order. The title, summary, tag and stack are captions on the same trigger, and the image swaps with the light sweep. Until then the cards stay a list.
-- **Plate:** the image, `object-cover`; or a placeholder image with a chip naming it as one ("Image placeholder", Cue type in Dim Grey on a black tab, 16px in from the top left).
+- **The editor's heading and intro:** retired (owner, Phase 5). The label "Work" stands in for the heading, and neither field shows on the page or in the editor; the schema still stores them.
+- **Until the deck (Phases 5–8):** one B screen per visible project, one after another. Each screen has its own label ("Work · 02 / 03"; the first is the section `<h2>`, the rest are `aria-hidden` duplicates), its title as the statement and its 10:7 plate. The pinned frame holds only the dot slot at the plate's rect, so the screens slide past it.
+- **The deck (Phase 9):** a pinned step scene with one step per visible project, triggered and never locked. The active project swaps inside one plate slot while the dots draw the frame round it in pen order. The title, summary, tag and stack are captions on the same trigger, and the image swaps with the light sweep. Until then the screens stay a list.
+- **Plate:** the image, `object-cover`; or, when a project has no valid image, the monochrome placeholder (`/projects/placeholder.webp`) with a chip naming it as one ("Image placeholder", Cue type in Dim Grey on a black tab, 16px in from the top left).
 - **Links:** in the list (the fallback, and until Phase 9), a card with an https link is one link that opens a new tab. In the staged deck the plate and the captions are separate elements (DOM contract rule 14), so one link cannot wrap the card. Phase 9 puts the link on the active project's caption, keeps every hidden caption out of the tab order, and gives the link a visible hover and focus state.
 - **Never hidden:** cards are never opacity-hidden, so they read without JavaScript, and they stay in DOM order for screen readers. With reduced motion, without JavaScript or without WebGL2, the deck is a plain list.
 
@@ -428,7 +440,7 @@ The five steps ride the top of a huge ring of dim dots, and the dots build the p
 
 - **Layout:** the section label "Testimonials · 01 / 03", the client's words as the statement in curly quotes, in `figure > blockquote > p`, and the attribution under them in a `figcaption` in Cue type: "[Client name] · [Role, company]". On the right is the client's photo or logo on a 1:1 plate (440×440 at 1440), set to the right edge and framed by dots. On a phone the plate comes first, full width, cropped to the phone plate (342×240 at 390).
 - **Placeholders:** bracketed until the owner sends real quotes with permission. Never invent a quote, a name or a logo.
-- **Several quotes:** the label counts them, but how one quote gives way to the next is not designed yet. Phase 5 builds one; decide the rest when the real quotes arrive.
+- **Several quotes:** the label reads just "Testimonials" while there is one quote and counts them ("Testimonials · 01 / 03") once there are more (owner, Phase 5). How one quote gives way to the next is not designed yet; Phase 5 shows the first. Decide the rest when the real quotes arrive.
 
 ### FAQ
 
@@ -443,7 +455,7 @@ The five steps ride the top of a huge ring of dim dots, and the dots build the p
 
 ### Navigation
 
-Uppercase 14px Geist links (Label type) at Lit Grey over the hero, lighting to Lamp White on hover and for the current section (`aria-current`). They sit in the centre zone in a 16px-gapped row with 12px × 8px hit padding. Once the header turns solid, the links stay Lit Grey, as B1 shows (today they step down to muted text). The header drops in 24px on load (0.6s) and its groups stagger in 0.06s apart. Below 1024px, a ghost icon button toggles a stacked panel of every anchor, and Escape closes it.
+Uppercase 14px Geist links (Label type) at Lit Grey over the hero, lighting to Lamp White on hover and for the current section (`aria-current`). They sit in the centre zone in a 16px-gapped row with 12px × 8px hit padding. Once the header turns solid, the links stay Lit Grey, as B1 shows. The header drops in 24px on load (0.6s) and its groups stagger in 0.06s apart. Below 1024px, a ghost icon button toggles a stacked panel of every anchor, and Escape closes it.
 
 **Brand (placeholder):** the name in Antonio 700 uppercase at 28px, Lamp White, with a small 10px Dim Grey © at its top right. It stands in until the owner's own logo (planned as a cursive mark, parked until Phase 10) replaces it.
 
@@ -453,9 +465,9 @@ The one call to action in the header: a square Lamp White button with Unlit Blac
 
 ### Buttons
 
-- **Primary** (form submit): square, Lamp White fill, Unlit Black text, 48px tall and full width in the form, Geist 500 at 14px. Hover dims the fill to 80%. Active nudges it down 1px. Its voice is an open owner decision: uppercase Label type, as the mockups show, or sentence case, as built.
+- **Primary** (form submit): square, Lamp White fill, Unlit Black text, 48px tall and full width in the form, Geist 500 at 14px in the uppercase Label voice with 0.025em tracking (owner, Phase 5). Hover dims the fill to 80%. Active nudges it down 1px.
 - **Ghost** (icon toggles): transparent at rest, with a faint fill on hover.
-- **Focus:** a 3px ring in half-strength Lamp White (about 5.3:1 on black), as `FOCUS_RING_CLASS` draws it. Never remove it. The vendored button, input and textarea still use the shadcn `--ring`, which resolves to a dark grey on the public stage and fails WCAG 1.4.11 at half strength; Phase 5 points `--ring` at the foreground with the other public token overrides.
+- **Focus:** a 3px ring in half-strength Lamp White (about 5.3:1 on black), as `FOCUS_RING_CLASS` draws it. Never remove it. The public stage points `--ring` at the foreground, so the vendored button, input, textarea and select draw the same ring.
 
 ### Inputs / Fields
 

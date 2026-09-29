@@ -12,6 +12,7 @@ import {
   PORTFOLIO_NAVIGATION,
   PORTFOLIO_PRIMARY_NAVIGATION,
 } from "@/data/navigation.data"
+import { FOCUS_RING_CLASS } from "@/data/page-sections.data"
 import {
   useActiveSection,
   useIsMobileNavOpen,
@@ -103,11 +104,9 @@ export function SectionNavigation() {
         onClick={onSelect}
         aria-current={isActive ? "true" : undefined}
         className={cn(
-          "rounded-sm px-3 py-2 text-sm tracking-wide uppercase transition-colors",
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden",
-          isSolid
-            ? "text-muted-foreground hover:text-foreground"
-            : "text-foreground/70 hover:text-foreground",
+          "px-3 py-2 text-sm tracking-wide uppercase transition-colors",
+          "text-foreground/75 hover:text-foreground",
+          FOCUS_RING_CLASS,
           isActive && "text-foreground"
         )}
       >
@@ -130,7 +129,7 @@ export function SectionNavigation() {
         className={cn(
           "inline-flex items-start gap-0.5 justify-self-start",
           "text-foreground transition-colors",
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
+          FOCUS_RING_CLASS
         )}
       >
         <span className="font-display text-[1.75rem] leading-none font-bold uppercase">
@@ -138,10 +137,7 @@ export function SectionNavigation() {
         </span>
         <span
           aria-hidden="true"
-          className={cn(
-            "text-[0.625rem] leading-none",
-            isSolid ? "text-muted-foreground" : "text-foreground/45"
-          )}
+          className="text-[0.625rem] leading-none text-muted-foreground"
         >
           ©
         </span>
@@ -161,10 +157,10 @@ export function SectionNavigation() {
         href={item.href}
         onClick={onSelect}
         className={cn(
-          "inline-flex items-center gap-2 px-5 py-2",
+          "inline-flex items-center gap-2 px-5 py-2.5",
           "text-sm tracking-wide uppercase transition-colors",
           "bg-foreground text-background hover:bg-foreground/80",
-          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-hidden"
+          FOCUS_RING_CLASS
         )}
       >
         {item.label}
@@ -180,7 +176,9 @@ export function SectionNavigation() {
       variants={HEADER_VARIANTS}
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-colors duration-300",
-        isSolid ? "border-b bg-background/80 backdrop-blur" : "bg-transparent"
+        isSolid
+          ? "border-b border-rule bg-background/80 backdrop-blur"
+          : "bg-transparent"
       )}
     >
       <div
@@ -233,7 +231,7 @@ export function SectionNavigation() {
         className={cn(
           "flex max-h-[calc(100svh_-_4.5rem)] flex-col gap-1 overflow-y-auto",
           "overscroll-contain",
-          "border-t bg-background px-6 py-3 md:px-10 lg:hidden"
+          "border-t border-rule bg-background px-6 py-3 md:px-10 lg:hidden"
         )}
       >
         {PORTFOLIO_NAVIGATION.map(renderLink)}

@@ -1,7 +1,5 @@
 import { PUBLIC_TOKEN_OVERRIDES } from "@/data/portfolio.data"
 import { AboutSection } from "@/features/portfolio/components/about-section.component"
-import { BlogSection } from "@/features/portfolio/components/blog-section.component"
-import { ConnectSection } from "@/features/portfolio/components/connect-section.component"
 import { ContactSection } from "@/features/portfolio/components/contact-section.component"
 import { FaqSection } from "@/features/portfolio/components/faq-section.component"
 import { Hero } from "@/features/portfolio/components/hero.component"
@@ -44,26 +42,22 @@ export function SitePage({
 
           <QuoteSection quote={content.quote} />
 
+          <ProjectsSection projects={content.projects} />
+
           <ServicesSection />
+
+          <ProcessSection />
 
           <AboutSection />
 
-          <ProjectsSection projects={content.projects} />
-
-          <ProcessSection />
+          <TestimonialsSection />
 
           <div
             data-dot-scene="dust"
             data-dot-shapes="dust"
             className="scroll-mt-18"
           >
-            <ConnectSection />
-
-            <TestimonialsSection />
-
             <FaqSection />
-
-            <BlogSection />
 
             <ContactSection />
           </div>

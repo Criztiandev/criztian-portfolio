@@ -800,11 +800,20 @@ describe("parseCssPixels", () => {
 })
 
 describe("resolveViewportHeight", () => {
-  it("reads the small viewport from the tallest pinned frame", () => {
+  it("reads the small viewport from the shortest pinned frame", () => {
     const scenes = [
       buildScene({ stickyTop: 0, frameHeight: 900 }),
       buildScene({ stickyTop: 72, frameHeight: 828 }),
       buildScene({ slot: null, frameHeight: 0 }),
+    ]
+
+    expect(resolveViewportHeight(scenes, 1000)).toBe(900)
+  })
+
+  it("ignores a frame that grew past one viewport", () => {
+    const scenes = [
+      buildScene({ stickyTop: 0, frameHeight: 900 }),
+      buildScene({ stickyTop: 72, frameHeight: 1040 }),
     ]
 
     expect(resolveViewportHeight(scenes, 1000)).toBe(900)

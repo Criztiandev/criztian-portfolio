@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 
 import { NEW_PROJECT_ITEM } from "@/data/site-content.data"
 import {
-  formatProjectCount,
   resolveProjectHref,
   resolveProjectImage,
   selectVisibleProjects,
@@ -87,13 +86,5 @@ describe("selectVisibleProjects", () => {
     expect(selectVisibleProjects([{ ...NEW_PROJECT_ITEM, title: "" }])).toEqual(
       []
     )
-  })
-})
-
-describe("formatProjectCount", () => {
-  it("pads the count to two digits after a slash", () => {
-    expect(formatProjectCount(0)).toBe("/ 00")
-    expect(formatProjectCount(3)).toBe("/ 03")
-    expect(formatProjectCount(12)).toBe("/ 12")
   })
 })

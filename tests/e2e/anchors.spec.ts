@@ -3,9 +3,13 @@ import { expect, test } from "@playwright/test"
 const HEADER_OFFSET = "72px"
 
 const SCENE_DEEP_LINKS = [
+  { hash: "#project", scene: "project" },
   { hash: "#services", scene: "branding" },
-  { hash: "#about", scene: "about" },
   { hash: "#process", scene: "listening" },
+  { hash: "#about", scene: "about" },
+  { hash: "#testimonials", scene: "testimonials" },
+  { hash: "#faq", scene: "dust" },
+  { hash: "#contact", scene: "dust" },
 ]
 
 test.describe("in-page anchors", () => {

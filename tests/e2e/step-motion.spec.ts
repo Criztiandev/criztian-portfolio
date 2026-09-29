@@ -36,6 +36,8 @@ const FLING_FRAMES = 70
 
 const FLING_DELTA = 70
 
+const LAST_PROJECT_SETTLE_PX = 100
+
 const SCENES = [
   { id: "services", shapes: SERVICES_SCENE_SHAPES.split(" ") },
   { id: "process", shapes: PROCESS_SCENE_SHAPES.split(" ") },
@@ -636,25 +638,30 @@ test.describe("service glides with a wheel", () => {
 test.describe("arriving at the services with a wheel", () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
-  test("a fling from the quote stops on branding, not beyond it", async ({
+  test("a fling from the last project stops on branding, not beyond it", async ({
     page,
   }) => {
     const stage = page.locator("[data-status]")
 
     await openRunningPage(page)
-    await page.evaluate(function scrollToQuote() {
-      const quote = document.getElementById("quote")
+    await page.evaluate(function scrollToLastProject(settleOffset) {
+      const screens = document.querySelectorAll("#project article")
+      const lastScreen = screens[screens.length - 1]
 
-      if (quote === null) {
+      if (lastScreen === undefined) {
         return
       }
 
       window.scrollTo({
-        top: quote.getBoundingClientRect().top + window.scrollY - 72,
+        top:
+          lastScreen.getBoundingClientRect().top +
+          window.scrollY -
+          72 -
+          settleOffset,
         behavior: "instant",
       })
-    })
-    await expect(stage).toHaveAttribute("data-scene", "cube", {
+    }, LAST_PROJECT_SETTLE_PX)
+    await expect(stage).toHaveAttribute("data-scene", "project", {
       timeout: SCENE_TIMEOUT_MS,
     })
     await page.mouse.move(720, 450)

@@ -72,7 +72,7 @@ describe("SectionNavigation", () => {
       labels.push(link.textContent ?? "")
     }
 
-    expect(labels).toEqual(["Services", "About", "Work", "Process", "Blog"])
+    expect(labels).toEqual(["Work", "Services", "Process", "About", "FAQ"])
     expect(within(primary).getByRole("link", { name: "Work" })).toHaveAttribute(
       "href",
       "#project"
@@ -92,14 +92,12 @@ describe("SectionNavigation", () => {
 
     expect(readHrefs(panel.querySelectorAll("a"))).toEqual([
       "#home",
-      "#services",
-      "#about",
       "#project",
+      "#services",
       "#process",
-      "#connect",
+      "#about",
       "#testimonials",
       "#faq",
-      "#blog",
       "#contact",
     ])
   })

@@ -8,8 +8,6 @@ import {
   NEW_PROJECT_ITEM,
   PREVIEW_CONTENT_MESSAGE,
   PROJECT_ITEM_FIELDS,
-  PROJECTS_HEADING_MAX_LENGTH,
-  PROJECTS_LEDE_MAX_LENGTH,
   PROJECTS_MAX,
   THEME_COLOR_FIELDS,
 } from "@/data/site-content.data"
@@ -133,7 +131,6 @@ describe("EditorConfigPanel", () => {
   it("renders hidden project fields until the projects entry is selected", () => {
     renderPanel()
 
-    expect(screen.getByLabelText("Heading").closest("[hidden]")).not.toBeNull()
     expect(
       screen.getByLabelText("Project 1 title").closest("[hidden]")
     ).not.toBeNull()
@@ -151,14 +148,8 @@ describe("EditorConfigPanel", () => {
       expect(input).toHaveAttribute("maxLength", String(itemField.maxLength))
     }
 
-    expect(screen.getByLabelText("Heading")).toHaveAttribute(
-      "maxLength",
-      String(PROJECTS_HEADING_MAX_LENGTH)
-    )
-    expect(screen.getByLabelText("Intro")).toHaveAttribute(
-      "maxLength",
-      String(PROJECTS_LEDE_MAX_LENGTH)
-    )
+    expect(screen.queryByLabelText("Heading")).toBeNull()
+    expect(screen.queryByLabelText("Intro")).toBeNull()
   })
 
   it("posts an edited project title to the preview frame", async () => {

@@ -5,7 +5,9 @@ import {
   PORTFOLIO_PRIMARY_NAVIGATION,
 } from "@/data/navigation.data"
 import {
+  CUE_CLASS,
   OWNER_EMAIL_ADDRESS,
+  PIN_SPACER_CLASS,
   OWNER_EMAIL_HREF,
 } from "@/data/page-sections.data"
 import {
@@ -13,7 +15,6 @@ import {
   FOOTER_LINK_CLASS,
   FOOTER_NAVIGATION_LABEL,
   FOOTER_YEAR,
-  PROJECTS_CUE_CLASS,
 } from "@/data/portfolio.data"
 import { cn } from "@/lib/utils"
 import type { SiteFooterProps } from "@/types/page-sections.type"
@@ -23,10 +24,7 @@ export function SiteFooter({ name }: Readonly<SiteFooterProps>) {
     <footer
       data-dot-scene="footer"
       data-dot-shapes="name"
-      className={cn(
-        "min-h-[calc(125svh_-_4.5rem)] scroll-mt-18 text-foreground",
-        "group-data-[status=unsupported]/stage:min-h-0"
-      )}
+      className="scroll-mt-18 text-foreground"
     >
       <div
         className={cn(
@@ -56,18 +54,20 @@ export function SiteFooter({ name }: Readonly<SiteFooterProps>) {
 
         <div
           className={cn(
-            "flex w-full shrink-0 flex-col items-center gap-2 border-t border-border",
-            "py-6 text-center [@media(max-height:30rem)]:py-3",
-            "lg:flex-row lg:justify-between lg:gap-8 lg:text-left",
-            PROJECTS_CUE_CLASS
+            "-mx-6 flex shrink-0 flex-col items-center gap-3 self-stretch border-t border-rule",
+            "px-6 pt-4 pb-6 text-center md:-mx-10 md:px-10",
+            "[@media(max-height:30rem)]:flex-row [@media(max-height:30rem)]:flex-wrap [@media(max-height:30rem)]:justify-center",
+            "[@media(max-height:30rem)]:gap-x-4 [@media(max-height:30rem)]:gap-y-0 [@media(max-height:30rem)]:py-2",
+            "lg:h-18 lg:flex-row lg:justify-between lg:gap-8 lg:py-0 lg:text-left",
+            CUE_CLASS
           )}
         >
-          <p>
+          <p className="flex min-h-11 items-center lg:min-h-0">
             © {FOOTER_YEAR} {name}
           </p>
 
           <nav aria-label={FOOTER_NAVIGATION_LABEL}>
-            <ul className="flex flex-wrap justify-center gap-x-4">
+            <ul className="flex flex-wrap justify-center lg:gap-x-2">
               {PORTFOLIO_PRIMARY_NAVIGATION.map(function renderLink(item) {
                 return (
                   <li key={item.id}>
@@ -93,6 +93,8 @@ export function SiteFooter({ name }: Readonly<SiteFooterProps>) {
           </a>
         </div>
       </div>
+
+      <div className={cn(PIN_SPACER_CLASS, "h-[25svh]")} />
     </footer>
   )
 }

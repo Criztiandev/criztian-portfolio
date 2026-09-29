@@ -37,7 +37,52 @@ const STEP_SCENES = [
   { id: "process", shapes: PROCESS_SCENE_SHAPES },
 ]
 
-const DEEP_LINK_HASHES = ["#about", "#project", "#process", "#contact"]
+const SINGLE_FRAME_SCENES = ["#about", "#testimonials"]
+
+const SINGLE_FRAME_VIEWPORTS = [
+  { width: 375, height: 548, hasTextSpacing: false },
+  { width: 360, height: 560, hasTextSpacing: false },
+  { width: 390, height: 664, hasTextSpacing: false },
+  { width: 740, height: 304, hasTextSpacing: false },
+  { width: 740, height: 280, hasTextSpacing: false },
+  { width: 667, height: 320, hasTextSpacing: false },
+  { width: 320, height: 256, hasTextSpacing: false },
+  { width: 360, height: 640, hasTextSpacing: true },
+  { width: 740, height: 360, hasTextSpacing: true },
+  { width: 1440, height: 900, hasTextSpacing: true },
+]
+
+const STATEMENT_SELECTORS = [
+  "#quote blockquote p",
+  "#project h3",
+  "#about p[class*='cqi']",
+  "#testimonials blockquote p",
+  "#faq p[class*='cqi']",
+  "#contact p[class*='cqi']",
+]
+
+const STATEMENT_VIEWPORTS = [
+  { width: 375, height: 548 },
+  { width: 360, height: 560 },
+  { width: 390, height: 664 },
+  { width: 360, height: 640 },
+  { width: 320, height: 256 },
+  { width: 740, height: 360 },
+  { width: 740, height: 304 },
+  { width: 740, height: 280 },
+  { width: 667, height: 320 },
+  { width: 768, height: 1024 },
+  { width: 1024, height: 768 },
+  { width: 1440, height: 900 },
+]
+
+const DEEP_LINK_HASHES = [
+  "#project",
+  "#process",
+  "#about",
+  "#testimonials",
+  "#contact",
+]
 
 const DEEP_LINK_VIEWPORTS = [
   { width: 320, height: 256, isServicesFlowing: true },
@@ -215,6 +260,59 @@ async function findNeverVisibleLines(page: Page, selector: string) {
   )
 }
 
+async function readFrameClipping(page: Page, selector: string) {
+  return page.evaluate(function measureFrame(sceneSelector) {
+    const frame = document.querySelector(sceneSelector)?.firstElementChild
+
+    if (frame === null || frame === undefined) {
+      return Number.NaN
+    }
+
+    return frame.scrollHeight - frame.clientHeight
+  }, selector)
+}
+
+async function findStatementOverflows(page: Page) {
+  return page.evaluate(function measureWidestWords(selectors) {
+    const overflows: string[] = []
+    const probe = document.createElement("span")
+
+    probe.style.position = "absolute"
+    probe.style.visibility = "hidden"
+    probe.style.whiteSpace = "nowrap"
+    document.body.appendChild(probe)
+
+    for (const selector of selectors) {
+      for (const statement of document.querySelectorAll<HTMLElement>(
+        selector
+      )) {
+        const style = getComputedStyle(statement)
+
+        probe.style.font = style.font
+        probe.style.letterSpacing = style.letterSpacing
+        probe.style.textTransform = style.textTransform
+
+        const text = (statement.textContent ?? "").trim()
+
+        for (const word of text.split(/\s+/)) {
+          probe.textContent = word
+
+          const overflow =
+            probe.getBoundingClientRect().width - statement.clientWidth
+
+          if (overflow > 0) {
+            overflows.push(selector + " " + word + " +" + Math.ceil(overflow))
+          }
+        }
+      }
+    }
+
+    probe.remove()
+
+    return overflows
+  }, STATEMENT_SELECTORS)
+}
+
 async function readTargetTop(page: Page, hash: string) {
   return page.evaluate(function measureTargetTop(targetHash) {
     const target = document.querySelector(targetHash)
@@ -375,6 +473,61 @@ for (const scene of STEP_SCENES) {
       expect(problems).toEqual([])
     })
   })
+}
+
+for (const viewport of STATEMENT_VIEWPORTS) {
+  test.describe(`statements at ${viewport.width}x${viewport.height}`, () => {
+    test.use({ viewport: { width: viewport.width, height: viewport.height } })
+
+    test("fit the widest word of every statement in its column", async ({
+      page,
+    }) => {
+      await page.goto("/")
+      await waitForRunningStage(page)
+      await waitForFonts(page)
+
+      expect(await findStatementOverflows(page)).toEqual([])
+    })
+  })
+}
+
+for (const selector of SINGLE_FRAME_SCENES) {
+  for (const viewport of SINGLE_FRAME_VIEWPORTS) {
+    const spacing = viewport.hasTextSpacing ? " with text spacing" : ""
+
+    test.describe(`${selector} at ${viewport.width}x${viewport.height}${spacing}`, () => {
+      test.use({
+        viewport: { width: viewport.width, height: viewport.height },
+        reducedMotion: "reduce",
+      })
+
+      test("grows its pinned frame so every line can be read", async ({
+        page,
+      }) => {
+        const problems = collectPageProblems(page)
+
+        await page.goto("/")
+        await waitForRunningStage(page)
+        await waitForFonts(page)
+
+        if (viewport.hasTextSpacing) {
+          await page.addStyleTag({ content: TEXT_SPACING_CSS })
+          await page.waitForTimeout(GATE_SETTLE_MS)
+        }
+
+        const section = page.locator(selector)
+
+        await expect(section.locator("[data-dot-slot]")).toHaveCount(1)
+        expect(await readFrameClipping(page, selector)).toBeLessThanOrEqual(
+          FIT_TOLERANCE_PX
+        )
+        expect(await findOverlappingLines(page, selector)).toEqual([])
+        expect(await findNeverVisibleLines(page, selector)).toEqual([])
+
+        expect(problems).toEqual([])
+      })
+    })
+  }
 }
 
 for (const viewport of DEEP_LINK_VIEWPORTS) {

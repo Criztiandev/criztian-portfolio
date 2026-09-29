@@ -32,12 +32,6 @@ const PROCESS_ITEM: PortfolioNavigationItem = {
   href: "#process",
 }
 
-const CONNECT_ITEM: PortfolioNavigationItem = {
-  id: "connect",
-  label: "Connect",
-  href: "#connect",
-}
-
 const TESTIMONIALS_ITEM: PortfolioNavigationItem = {
   id: "testimonials",
   label: "Testimonials",
@@ -50,12 +44,6 @@ const FAQ_ITEM: PortfolioNavigationItem = {
   href: "#faq",
 }
 
-const BLOG_ITEM: PortfolioNavigationItem = {
-  id: "blog",
-  label: "Blog",
-  href: "#blog",
-}
-
 const CONTACT_ITEM: PortfolioNavigationItem = {
   id: "contact",
   label: "Contact",
@@ -65,11 +53,11 @@ const CONTACT_ITEM: PortfolioNavigationItem = {
 export const PORTFOLIO_HOME_NAVIGATION = HOME_ITEM
 
 export const PORTFOLIO_PRIMARY_NAVIGATION: PortfolioNavigationItem[] = [
-  SERVICES_ITEM,
-  ABOUT_ITEM,
   WORK_ITEM,
+  SERVICES_ITEM,
   PROCESS_ITEM,
-  BLOG_ITEM,
+  ABOUT_ITEM,
+  FAQ_ITEM,
 ]
 
 export const PORTFOLIO_ACTION_NAVIGATION: PortfolioNavigationItem = {
@@ -80,13 +68,11 @@ export const PORTFOLIO_ACTION_NAVIGATION: PortfolioNavigationItem = {
 
 export const PORTFOLIO_NAVIGATION: PortfolioNavigationItem[] = [
   HOME_ITEM,
-  SERVICES_ITEM,
-  ABOUT_ITEM,
   WORK_ITEM,
+  SERVICES_ITEM,
   PROCESS_ITEM,
-  CONNECT_ITEM,
+  ABOUT_ITEM,
   TESTIMONIALS_ITEM,
   FAQ_ITEM,
-  BLOG_ITEM,
   CONTACT_ITEM,
 ]

@@ -8,7 +8,6 @@ export type PortfolioSection =
   | "about"
   | "project"
   | "process"
-  | "connect"
   | "testimonials"
   | "faq"
   | "blog"

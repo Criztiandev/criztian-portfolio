@@ -1,10 +1,11 @@
 import type {
   AboutSectionContent,
-  ConnectSectionContent,
+  ContactSectionContent,
   FaqSectionContent,
-  PageSectionHeading,
   PlaceholderSectionContent,
+  StatementSize,
   StepSceneContent,
+  TestimonialsSectionContent,
 } from "@/types/page-sections.type"
 
 export const OWNER_EMAIL_ADDRESS = "criztiandev@gmail.com"
@@ -13,12 +14,18 @@ export const OWNER_EMAIL_HREF = `mailto:${OWNER_EMAIL_ADDRESS}`
 
 export const SERVICES_SCENE_SHAPES = "branding web-design development"
 
-export const ABOUT_SCENE_SHAPES = "sphere"
+export const PLACEHOLDER_SCENE_SHAPES = "sphere"
 
 export const PROCESS_SCENE_SHAPES =
   "listening planning visualising building delivery"
 
 export const STEP_NUMBER_DIGITS = 2
+
+export const SECTION_POSITION_DIGITS = 2
+
+export const SECTION_LABEL_SEPARATOR = " · "
+
+export const SECTION_POSITION_SEPARATOR = " / "
 
 export const SCENE_FIT_BOX_SELECTOR = "[data-fit-box]"
 
@@ -35,7 +42,80 @@ export const SCENE_MIN_SLOT_PX = 64
 export const SCENE_ANCHOR_TOLERANCE_PX = 1
 
 export const SECTION_FRAME_CLASS =
-  "mx-auto max-w-[80rem] scroll-mt-18 px-6 md:px-10"
+  "mx-auto w-full max-w-[105rem] scroll-mt-18 px-6 md:px-10"
+
+export const SCREEN_CLASS =
+  "flex flex-col pt-7 pb-6 split:grid split:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] split:grid-rows-[auto_1fr] split:gap-x-10 split:gap-y-4 split:pt-[min(3.5rem,6svh)] split:pb-[min(4rem,7svh)] short:pt-4 short:pb-4"
+
+export const SCREEN_LABEL_CLASS = "split:col-start-1 split:row-start-1"
+
+export const SCREEN_LABEL_BOX_CLASS = "h-4 whitespace-nowrap"
+
+export const SCREEN_HEIGHT_CLASS = "min-h-[calc(100svh_-_4.5rem)]"
+
+export const SCREEN_CENTRED_GROUP_CLASS =
+  "my-auto flex flex-col pt-3 split:contents"
+
+export const SCREEN_OBJECT_CLASS =
+  "split:col-start-2 split:row-span-2 split:row-start-1 split:self-center split:justify-self-end"
+
+export const SCREEN_COPY_CLASS =
+  "@container split:col-start-1 split:row-start-2 split:self-center"
+
+export const PINNED_FRAME_CLASS = "sticky top-18 min-h-[calc(100svh_-_4.5rem)]"
+
+export const PIN_SPACER_CLASS =
+  "h-[50svh] group-data-[status=unsupported]/stage:hidden"
+
+export const SHORT_SCREEN_COPY_GAP_CLASS =
+  "mt-10 split:mt-0 [@media(max-height:44rem)]:mt-6 [@media(max-height:44rem)]:split:mt-0"
+
+export const SECTION_LABEL_CLASS =
+  "scroll-mt-18 text-[0.6875rem] leading-4 font-normal tracking-[0.22em] text-muted-foreground uppercase md:text-xs"
+
+export const STATEMENT_CLASS =
+  "font-display font-bold text-balance wrap-break-word text-foreground uppercase"
+
+export const STATEMENT_SIZE_CLASSES: Record<StatementSize, string> = {
+  default:
+    "text-[length:min(4.5rem,calc(19cqi_+_0.5rem),max(10svh,2.5rem))]/[0.95] split:text-[length:min(11rem,calc(26cqi_+_0.5rem),20svh)]/[0.95]",
+  belief:
+    "text-[length:min(3.25rem,calc(14cqi_+_0.5rem))]/[0.95] split:text-[length:min(8.5rem,calc(18cqi_+_0.5rem),16svh)]/[0.95]",
+  client:
+    "text-[length:min(4.25rem,calc(17cqi_+_0.25rem))]/[0.95] split:text-[length:min(7.5rem,calc(15.5cqi_+_0.5rem),14svh)]/[0.95]",
+  contact:
+    "text-[length:min(3.25rem,calc(14cqi_+_0.5rem))]/[0.95] split:text-[length:min(8rem,calc(16.5cqi_+_0.5rem),15svh)]/[0.95]",
+  faq: "text-[length:min(6.875rem,calc(30cqi_+_0.5rem))]/[0.95] split:text-[length:min(15rem,calc(32cqi_+_0.5rem),28svh)]/[0.95]",
+}
+
+export const BODY_CLASS =
+  "max-w-[40ch] text-[0.9375rem] leading-[1.55] text-foreground/75 md:text-lg md:leading-normal"
+
+export const TITLE_CLASS =
+  "font-display text-[length:clamp(2.75rem,2.47rem_+_1.14vw,3.5rem)] leading-[0.95] font-bold uppercase"
+
+export const CUE_CLASS =
+  "text-[0.6875rem] leading-4 tracking-[0.22em] text-muted-foreground uppercase"
+
+export const PLATE_CLASS =
+  "relative aspect-[10/7] max-h-[28svh] w-full shrink-0 split:max-h-none [@media(max-height:44rem)]:max-h-[18svh] [@media(max-height:44rem)]:split:max-h-none"
+
+export const PROJECT_SCREEN_COLUMNS_CLASS =
+  "split:grid-cols-[minmax(0,31fr)_minmax(0,35fr)]"
+
+export const PROJECT_PLATE_CLASS =
+  "mt-3 split:mt-0 split:w-[min(100%,calc((100svh_-_12rem)_*_10_/_7))]"
+
+export const ABOUT_PLATE_CLASS =
+  "split:aspect-[4/5] split:w-[min(80%,calc((100svh_-_12rem)_*_0.8))]"
+
+export const TESTIMONIAL_PLATE_CLASS =
+  "split:aspect-square split:w-[min(73%,calc(100svh_-_12rem))]"
+
+export const PLATE_CHIP_CLASS = "absolute top-4 left-4 bg-background px-2 py-1"
+
+export const PLATE_SLOT_CLASS =
+  "absolute inset-0 touch-pan-y touch-pinch-zoom group-data-[status=unsupported]/stage:hidden"
 
 export const SECTION_HEADLINE_CLASS =
   "scroll-mt-18 font-display text-[clamp(1.75rem,1rem+3vw,3.5rem)] leading-[1.05] font-bold text-balance wrap-break-word text-foreground uppercase"
@@ -48,7 +128,7 @@ export const SECTION_BODY_CLASS = "text-base text-foreground/75"
 export const SECTION_LEDE_CLASS =
   "text-[0.8125rem] leading-[1.7] tracking-[0.05em] uppercase md:text-sm md:leading-relaxed md:tracking-[0.14em]"
 
-export const SECTION_LABEL_CLASS = "text-xs tracking-[0.025em] uppercase"
+export const LABEL_CLASS = "text-xs tracking-[0.025em] uppercase"
 
 export const FOCUS_RING_CLASS =
   "scroll-mt-18 outline-none focus-visible:ring-[3px] focus-visible:ring-foreground/50 focus-visible:outline-hidden"
@@ -68,7 +148,7 @@ export const SERVICES_SCENE: StepSceneContent = {
   steps: [
     {
       title: "Branding",
-      body: "I craft impactful brand stories that connect with your audience and build long-term trust. Through strategic thinking and visual storytelling, your brand gains clarity, consistency and character.",
+      body: "Brand stories that connect with your audience and build long-term trust.",
       items: [
         "Visual content strategy",
         "Research and testing",
@@ -80,7 +160,7 @@ export const SERVICES_SCENE: StepSceneContent = {
     },
     {
       title: "Web design",
-      body: "My design approach blends creativity with functionality, with no AI slop. Every layout, interaction and element is thoughtfully created to deliver seamless user experiences that reflect your brand identity.",
+      body: "Creative and functional, with no AI slop. Every layout and interaction is made for your brand.",
       items: [
         "Responsive design",
         "Wireframing and prototyping",
@@ -110,14 +190,19 @@ export const ABOUT_SECTION: AboutSectionContent = {
   headingId: "about-heading",
   heading: "Who am I",
   sceneId: "about",
-  shapes: ABOUT_SCENE_SHAPES,
-  intro: "I am Criztian.",
-  body: "I specialize in crafting custom web solutions, including branding, web design and development tailored to meet your business.",
+  shapes: PLACEHOLDER_SCENE_SHAPES,
+  statement: "I am Criztian.",
+  body: "Branding, web design and development, made for your business.",
+  story: "[Your story, in your own words]",
   stats: [
     { value: "5+", label: "Years experience" },
     { value: "500+", label: "Projects done" },
     { value: "140", label: "Happy clients" },
   ],
+  plate: {
+    src: "/about/placeholder.webp",
+    label: "[Your photo]",
+  },
 }
 
 export const PROCESS_SCENE: StepSceneContent = {
@@ -144,36 +229,38 @@ export const PROCESS_SCENE: StepSceneContent = {
     },
     {
       title: "Bringing it to life",
-      body: "Using cutting-edge technologies, I develop and implement your project with precision and care.",
+      body: "I build your project with precision and care.",
       items: [],
     },
     {
       title: "Delivering success",
-      body: "After a seamless launch, I provide ongoing support and optimization to ensure long-term success.",
+      body: "I launch it, then keep supporting and improving it.",
       items: [],
     },
   ],
 }
 
-export const CONNECT_SECTION: ConnectSectionContent = {
-  id: "connect",
-  headingId: "connect-heading",
-  heading: "Let's connect",
-  actionLabel: "Email me",
-}
-
-export const TESTIMONIAL_PLACEHOLDER = "Client quote to come"
-
-export const TESTIMONIALS_SECTION: PlaceholderSectionContent = {
+export const TESTIMONIALS_SECTION: TestimonialsSectionContent = {
   id: "testimonials",
   headingId: "testimonials-heading",
-  heading: "Testimonials that inspire confidence",
-  placeholders: [
-    TESTIMONIAL_PLACEHOLDER,
-    TESTIMONIAL_PLACEHOLDER,
-    TESTIMONIAL_PLACEHOLDER,
+  heading: "Testimonials",
+  sceneId: "testimonials",
+  shapes: PLACEHOLDER_SCENE_SHAPES,
+  items: [
+    {
+      quote: "[A client's words, with their permission]",
+      attribution: "[Client name] · [Role, company]",
+    },
   ],
+  plate: {
+    src: "/testimonials/placeholder.webp",
+    label: "[Client photo or logo]",
+  },
 }
+
+export const TESTIMONIAL_OPEN_QUOTE = "“"
+
+export const TESTIMONIAL_CLOSE_QUOTE = "”"
 
 export const FAQ_SECTION: FaqSectionContent = {
   id: "faq",
@@ -237,8 +324,10 @@ export const BLOG_SECTION: PlaceholderSectionContent = {
   placeholders: [BLOG_PLACEHOLDER, BLOG_PLACEHOLDER, BLOG_PLACEHOLDER],
 }
 
-export const CONTACT_SECTION: PageSectionHeading = {
+export const CONTACT_SECTION: ContactSectionContent = {
   id: "contact",
   headingId: "contact-heading",
-  heading: "Let's start your project today",
+  heading: "Get in touch",
+  statement: "Let's start your project today.",
+  emailPrompt: "Or email me:",
 }

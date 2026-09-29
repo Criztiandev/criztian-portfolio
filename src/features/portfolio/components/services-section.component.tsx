@@ -1,7 +1,7 @@
 import {
+  LABEL_CLASS,
   SECTION_BODY_CLASS,
   SECTION_HEADLINE_CLASS,
-  SECTION_LABEL_CLASS,
   SECTION_LEDE_CLASS,
   SERVICES_SCENE,
 } from "@/data/page-sections.data"
@@ -68,7 +68,7 @@ export function ServicesSection() {
             data-caption-line=""
             style={buildLineStyle(2)}
             className={cn(
-              SECTION_LABEL_CLASS,
+              LABEL_CLASS,
               "mt-4 flex max-w-[60ch] flex-wrap justify-center gap-x-5 gap-y-1",
               "text-muted-foreground short:mt-3 staged:caption-line"
             )}

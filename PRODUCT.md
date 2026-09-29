@@ -22,7 +22,7 @@ Their job on the site is to judge, quickly, whether Criztian can take their proj
 
 ## Product Purpose
 
-A personal portfolio that wins freelance work. It is one public scrolling page (home, quote, services, about, projects, process, connect, testimonials, FAQ, blog, contact) that ends in a contact form, and behind it a private owner dashboard for editing that content. Success means qualified clients leave convinced and send a message through the contact form.
+A personal portfolio that wins freelance work. It is one public scrolling page (home, belief quote, projects, services, process, about, testimonials, FAQ, contact) that ends in a contact form, and behind it a private owner dashboard for editing that content. Success means qualified clients leave convinced and send a message through the contact form.
 
 ## Positioning
 
@@ -34,7 +34,7 @@ The site is built the same way. It has a hand-built WebGL hero, a real auth and 
 
 **Voice:** short, plain, precise, in the first person. The owner approves every line of public copy.
 
-Decided (owner, 2026-09-29): the hero tagline becomes "I build whole products. Brand, design and code." The seeded one ("Crafting timeless digital experiences through design, strategy, and code.") matches word for word the Framer template the hero was modelled on (adriavale.framer.website). The tagline is owner-editable content, so the new line goes live when the owner publishes it in the editor, or through the seed defaults in Phase 5.
+Decided (owner, 2026-09-29): the hero tagline becomes "I build whole products. Brand, design and code." The seeded one ("Crafting timeless digital experiences through design, strategy, and code.") matched word for word the Framer template the hero was modelled on (adriavale.framer.website). Phase 5 made the new line the seed default and wrote it into the owner's draft, and the Phase 5 e2e run published it locally.
 
 ## Operating Context
 
@@ -54,8 +54,8 @@ The owner's own summary: "I specialize in crafting custom web solutions, includi
 
 **Public site:**
 
-- Single page. The anchors (`#home`, `#services`, `#about`, `#project`, `#process`, `#connect`, `#testimonials`, `#faq`, `#blog`, `#contact`) are the navigation. `#contact` must keep working because the e2e suite depends on it.
-- **Planned order** (owner, 2026-09-29; not built yet. The design is locked to mockup B, recorded in DESIGN.md, and Phases 5–10 in `plans/handoff.md` build it):
+- Single page. The anchors (`#home`, `#quote`, `#project`, `#services`, `#process`, `#about`, `#testimonials`, `#faq`, `#contact`) are the navigation. `#contact` must keep working because the e2e suite depends on it.
+- **Order** (owner, 2026-09-29; built in Phase 5. The design is locked to mockup B, recorded in DESIGN.md, and Phases 6–10 in `plans/handoff.md` finish the dots, Services, How I work, the projects deck and the motion):
   1. Hero
   2. Belief quote
   3. Projects
@@ -70,13 +70,17 @@ The owner's own summary: "I specialize in crafting custom web solutions, includi
   Blog is hidden until real posts exist. About shows the owner's real photo, framed by dots like a project image. Testimonials pairs each client quote with the client's photo or logo, framed the same way. The layout follows mockup B ("Statement"): a huge statement on the left and one dot object on the right.
 
 - The list below describes the page as built today.
+- Every screen below the hero is the B statement split: a small section label, one big statement on the left and one object on the right (the object comes first on a phone).
 - Hero: the name rendered as a dot-matrix WebGL wordmark whose dots scatter from a cursor or a finger and spring back. It falls back to a real text `<h1>` when WebGL2 is unavailable; with reduced motion the dots render still.
-- Quote (`#quote`, not in the nav): scrolling out of the hero morphs the name's dots into a turning dot cube, above one owner-editable statement quote. The seed is a visible placeholder; the owner supplies the real quote.
-- My services (`#services`): Branding, Web design and Development, each with the owner's paragraph and six items, as steps scrolling past a pinned dot shape.
-- Who am I (`#about`): "I am Criztian.", the owner's summary and three stats (5+ years experience, 500+ projects done, 140 happy clients).
-- Projects (`#project`): a pinned left column carries the heading, an intro and a "Let's talk" action to `#contact`, beside a placeholder dot sphere until the Phase 5 deck. The three seeded cards are visible placeholders ("Project one", "Screenshot to come").
-- How I work (`#process`): the owner's five numbered steps on a turning orbit, each with its dot shape formed beside the step's numeral (above the orbit on a phone).
-- Let's connect (`#connect`, an "Email me" mailto action), Testimonials and Blog (visible placeholders: "Client quote to come", "Post to come"), FAQ (the owner's nine questions in native disclosures) and Get in touch (`#contact`, the form).
+- Belief quote (`#quote`, not in the nav): scrolling out of the hero morphs the name's dots into a turning dot cube beside one owner-editable statement. The seed is a visible placeholder ("[Your belief line, in your own words]"); the owner supplies the real line.
+- Work (`#project`): one screen per visible project ("Work · 01 / 03"), with the title as the statement, the summary, tag and stack, and a 10:7 plate on the right. A project without a valid image shows a monochrome placeholder plate with an "Image placeholder" chip. The three seeded cards are visible placeholders ("Project one", "[What you built, and for whom]"). The dots hold a placeholder sphere behind the plate until Phase 6.
+- My services (`#services`): Branding, Web design and Development, each with the owner's short copy and six items, as steps scrolling past a pinned dot shape (restyled to B in Phase 7).
+- How I work (`#process`): the owner's five numbered steps on a turning orbit, each with its dot shape formed beside the step's numeral (above the orbit on a phone; restyled to B in Phase 8).
+- Who am I (`#about`): "I am Criztian.", the owner's line, a bracketed "[Your story, in your own words]" and three stats (5+ years experience, 500+ projects done, 140 happy clients), beside a black-and-white placeholder photo plate with a "[Your photo]" chip.
+- Testimonials (`#testimonials`): one bracketed placeholder quote as the statement, its bracketed attribution, and a "[Client photo or logo]" plate.
+- FAQ (`#faq`): the owner's nine questions in native disclosures, beside a big "FAQ".
+- Get in touch (`#contact`): "Let's start your project today.", the "Or email me" line (Let's connect merged in), and the form.
+- Blog is hidden from the page and the nav until real posts exist; its code stays.
 - Contact form: name, email, a required "Service needed" select (Branding, Web design, Development, Something else) and "What can I help you with?". The service is stored with the message and shown in the notification.
 - Contact form anti-spam: a honeypot, a two-second minimum time-to-submit, and a limit of five submissions per hour per hashed IP. These are deliberate; do not weaken them.
 - Contact notifications are written as local HTML previews. No email is actually sent yet.
@@ -84,7 +88,7 @@ The owner's own summary: "I specialize in crafting custom web solutions, includi
 **Owner side:**
 
 - Single owner account and public signup is disabled.
-- Editable today: the hero (name, and a rich-text tagline with bold and italic only), the quote (text, and an optional author), the projects (heading, intro, and up to six projects, each with a title, tag, summary, stack line, https link, image and alt text) and a curated set of six theme colours.
+- Editable today: the hero (name, and a rich-text tagline with bold and italic only), the quote (text, and an optional author), the projects (up to six, each with a title, tag, summary, stack line, https link, image and alt text) and a curated set of six theme colours. The projects heading and intro were retired in Phase 5 (the label "Work" stands in); the schema still stores them.
 - Project images are referenced, not uploaded: a file committed to `public/projects/` (for example `/projects/shop.webp`) or an https URL. Anything else shows the placeholder plate.
 - Draft and published states only, with no version history.
 - The content schema is built so that making another section editable is a data change, not a rewrite.
@@ -95,7 +99,7 @@ The owner's own summary: "I specialize in crafting custom web solutions, includi
 - live email
 - reading contact messages in the dashboard
 - a blog rendering pipeline
-- editing the Services, About, Process, Connect, Testimonials, FAQ, Blog and Get in touch copy (hard-coded in `src/data/page-sections.data.ts` for now; the CMS for them comes later)
+- editing the Services, About, Process, Testimonials, FAQ, Blog and Get in touch copy (hard-coded in `src/data/page-sections.data.ts` for now; the CMS for them comes later)
 
 **Terminology:** _owner_, _draft_, _published_, _section_, _site content_.
 
@@ -113,7 +117,7 @@ The owner has all of the following, but **none of it is in the repo yet**:
 - testimonials and named clients
 - blog posts
 
-The Project section is built and editable, seeded with three placeholder cards. Services, About, Process and FAQ carry the owner's copy. Testimonials and Blog show visible placeholders until the owner supplies real material.
+The Project section is built and editable, seeded with three placeholder cards. Services, About, Process and FAQ carry the owner's copy. Testimonials, the About story and photo, and the belief line show visible bracketed placeholders until the owner supplies real material; Blog is hidden until real posts exist.
 
 Future work must get the real material from the owner. Never invent project names, client names, quotes, logos, metrics or outcomes to fill these sections.
 

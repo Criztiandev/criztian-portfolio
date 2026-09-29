@@ -32,16 +32,38 @@ export type AboutStat = {
   label: string
 }
 
+export type PlaceholderPlate = {
+  src: string
+  label: string
+}
+
+export type StatementSize = "default" | "belief" | "client" | "contact" | "faq"
+
 export type AboutSectionContent = PageSectionHeading & {
   sceneId: string
   shapes: string
-  intro: string
+  statement: string
   body: string
+  story: string
   stats: AboutStat[]
+  plate: PlaceholderPlate
 }
 
-export type ConnectSectionContent = PageSectionHeading & {
-  actionLabel: string
+export type Testimonial = {
+  quote: string
+  attribution: string
+}
+
+export type TestimonialsSectionContent = PageSectionHeading & {
+  sceneId: string
+  shapes: string
+  items: Testimonial[]
+  plate: PlaceholderPlate
+}
+
+export type ContactSectionContent = PageSectionHeading & {
+  statement: string
+  emailPrompt: string
 }
 
 export type PlaceholderSectionContent = PageSectionHeading & {

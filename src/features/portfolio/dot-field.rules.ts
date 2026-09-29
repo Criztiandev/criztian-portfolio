@@ -1014,15 +1014,15 @@ export function resolveViewportHeight(
   scenes: DotSceneMeasure[],
   fallback: number
 ): number {
-  let height = 0
+  let height = Number.POSITIVE_INFINITY
 
   for (const scene of scenes) {
     if (scene.slot !== null) {
-      height = Math.max(height, scene.frameHeight + scene.stickyTop)
+      height = Math.min(height, scene.frameHeight + scene.stickyTop)
     }
   }
 
-  if (height <= 0) {
+  if (!Number.isFinite(height) || height <= 0) {
     return fallback
   }
 

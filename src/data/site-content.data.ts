@@ -16,7 +16,7 @@ export const QUOTE_TEXT_MAX_LENGTH = 140
 
 export const QUOTE_AUTHOR_MAX_LENGTH = 80
 
-export const DEFAULT_QUOTE_TEXT = "Your quote about life goes here."
+export const DEFAULT_QUOTE_TEXT = "[Your belief line, in your own words]"
 
 export const DEFAULT_QUOTE_AUTHOR = ""
 
@@ -44,16 +44,18 @@ export const DEFAULT_PROJECTS_HEADING = "Featured projects"
 
 export const DEFAULT_PROJECTS_LEDE = "Showcasing my most impactful work."
 
-export const DEFAULT_PROJECT_TAG = "Tag"
+export const DEFAULT_PROJECT_TAG = "[Tag]"
 
-export const DEFAULT_PROJECT_SUMMARY = "What you built and for whom goes here."
+export const DEFAULT_PROJECT_SUMMARY = "[What you built, and for whom]"
+
+export const DEFAULT_PROJECT_STACK = "[Stack]"
 
 export const DEFAULT_PROJECT_ITEMS: ProjectItem[] = [
   {
     title: "Project one",
     tag: DEFAULT_PROJECT_TAG,
     summary: DEFAULT_PROJECT_SUMMARY,
-    stack: "",
+    stack: DEFAULT_PROJECT_STACK,
     link: "",
     image: "",
     imageAlt: "",
@@ -62,7 +64,7 @@ export const DEFAULT_PROJECT_ITEMS: ProjectItem[] = [
     title: "Project two",
     tag: DEFAULT_PROJECT_TAG,
     summary: DEFAULT_PROJECT_SUMMARY,
-    stack: "",
+    stack: DEFAULT_PROJECT_STACK,
     link: "",
     image: "",
     imageAlt: "",
@@ -71,7 +73,7 @@ export const DEFAULT_PROJECT_ITEMS: ProjectItem[] = [
     title: "Project three",
     tag: DEFAULT_PROJECT_TAG,
     summary: DEFAULT_PROJECT_SUMMARY,
-    stack: "",
+    stack: DEFAULT_PROJECT_STACK,
     link: "",
     image: "",
     imageAlt: "",
@@ -164,7 +166,7 @@ export const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i
 export const DEFAULT_HERO_NAME = "Criztian"
 
 export const DEFAULT_HERO_TAGLINE_TEXT =
-  "Crafting timeless digital experiences through design, strategy, and code."
+  "I build whole products. Brand, design and code."
 
 export const DEFAULT_HERO_TAGLINE: RichTextDocument = {
   type: "doc",
