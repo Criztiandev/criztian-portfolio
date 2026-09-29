@@ -2,67 +2,153 @@
 
 > **For:** the next Claude Code session picking up this build.
 >
-> **Current phase:** **Phase 3, smooth scroll, shapes, dot choreography, section motion and the cursor.** Phases 0–2 are done (2026-09-28). Phase 1 is committed as `3f58984` and Phase 2 as `ba153d4`; both reached `main` in `5c2173c` (PR #1).
+> **Current phase:** **Phase 4, direction and mockups.** The brief is recorded (below) and the whole-page mockups are on a private Design canvas: https://claude.ai/artifact/JfBhfHpocuCtfDmcTkahob. **The owner picked B, "Statement", for the whole page, with `B-desktop-1` as the reference** (2026-09-29). B2 and the phone artboards were matched to B1 the same day. **The design is locked** (owner, 2026-09-29: "I still love this, please lock on this design"). Renders of it are in `plans/mockups/`, and every Phase 4 question is answered. **What's left of Phase 4 is the DESIGN.md rewrite.** To resume, paste the prompt under "Start here".
 >
-> **Phase 3 progress (2026-09-28):** the pre-flight, Part 0, Part 1 and the core of Part 2 are built and committed on `portfolio/phase-3`. The owner then redirected My services and How I work: "Step scene motion" (after Part 2) is built, and How I work was redirected again into the buckssauce-style orbit ("Orbit (owner redirect #3, 2026-09-29)", after "Services thread"). **Resume with Part 2's open items** (see "Part 2 done note"), then 3B: Part 3, then Part 4. The done notes sit under Parts 1 and 2 and under "Step scene motion".
+> **Branch:** `portfolio/phase-3` (HEAD `0f198b2`). This file's rewrite, the "Direction" section and the PRODUCT.md positioning are uncommitted until the owner asks.
 >
-> **Branch:** `portfolio/phase-3`, cut from `main` at `5c2173c`. **Baseline for pixel diffs:** `0a3c97a`.
+> **How this file works:** each phase is one conversation. It lists its scope, the owner inputs it needs and its acceptance. It ends with the prompt that starts the next conversation. When a phase ends, write its done note under it, move "Current phase" forward, and give the owner the next prompt.
 >
-> **Older rationale:** the previous handoff (the hero, quote, burst, editor and foundation) is in git at `0a3c97a:plans/handoff.md`. Read it with `git show 0a3c97a:plans/handoff.md`. The foundation and editor plans in `plans/` are finished history.
+> **History:** the full notes for Phases 1–3 are in git: `git show 0f198b2:plans/handoff.md`. That covers the pre-flight, Parts 0–4, the planning and gap reviews, and the Departure Board, Signal Wire, Services thread and Orbit redirects. The hero, quote, burst and editor rationale is in `git show 0a3c97a:plans/handoff.md`.
 
-## What the owner asked for (2026-09-28)
+## Start here
 
-The public page is rebuilt as one long scroll. Instead of images, dots form a shape in each signature section.
+Paste this into a new conversation to resume the current phase:
 
-**The owner's rule:** the dot animation is the main show. As you scroll, it must always be framed in view and never cut off between sections.
+```text
+Continue the portfolio redesign: finish Phase 4 by rewriting DESIGN.md.
+Read CLAUDE.md, then plans/handoff.md ("Direction", and "Phase 4" with its locked design and decisions), PRODUCT.md and DESIGN.md.
+The design is locked to mockup B, with B-desktop-1 as the reference: look at plans/mockups/*.jpg, and the canvas https://claude.ai/artifact/JfBhfHpocuCtfDmcTkahob if you can open it.
+Rewrite DESIGN.md to that system as Phase 4's scope lists, show me the changes, and when I say yes, write Phase 4's done note, move "Current phase" to Phase 5 and give me Phase 5's prompt.
+Ask me before committing.
+```
 
-This round is design only. The CMS for the new sections comes later.
+## Direction (owner redirect #4, 2026-09-29)
 
-### Page order and anchors
+**Why.** A four-lens audit (visual system, story and voice, design lineage, motion) read the live page at 1440 and 390. A synthesis and a critic followed. The findings:
 
-| #   | Section           | Anchor          | Dots                                                                        |
-| --- | ----------------- | --------------- | --------------------------------------------------------------------------- |
-| 1   | Hero              | `#home`         | the name (today's wordmark)                                                 |
-| 2   | Quote             | `#quote`        | the spinning cube (kept)                                                    |
-| 3   | My services       | `#services`     | one line-art shape per service                                              |
-| 4   | Who am I          | `#about`        | a wireframe bust, slowly rotating, on the left; copy and stats on the right |
-| 5   | Featured projects | `#project`      | dots frame the active project's plate                                       |
-| 6   | How I work        | `#process`      | one shape that evolves through the 5 steps                                  |
-| 7   | Let's connect     | `#connect`      | dust                                                                        |
-| 8   | Testimonials      | `#testimonials` | dust                                                                        |
-| 9   | FAQ               | `#faq`          | dust                                                                        |
-| 10  | Blog              | `#blog`         | dust                                                                        |
-| 11  | Get in touch      | `#contact`      | dust. `#contact` must stay on the form.                                     |
-| 12  | Footer            | none            | the name re-forms                                                           |
+- **No idea above the sections.** Each section was designed alone against its own reference: the hero from adriavale, the shapes from jeffmilanes, the orbit from buckssauce, and the lower half from landing-page blocks. The owner chose every piece deliberately; nobody checked how they add up.
+- **DESIGN.md fixes only the surface.** Black, square, Antonio/Geist and brightness hold everywhere, but there is no layout rule, so the composition axis changes at almost every section.
+- **The dots change material four times.** The name is an LED lattice, the shapes are chalk stipple, the About/Projects sphere is a particle globe and the dust is a starfield. The shapes are icons of each section's title, and the cube and browser repeat.
+- **How I work is alien because of two parts,** both confirmed by the owner:
+  - the white label plates, the brightest surface on the page
+  - the dot shape shrunk to a corner "mascot"
 
-### Owner decisions
+  The owner likes the big hollow numbers and the turn.
 
-- **The owner's screenshot** (stacked, rounded cards with orange tags) was context only.
-  - Featured Projects is designed fresh.
-  - Keep the black, monochrome, square system in DESIGN.md.
-- **Shape style is literal line art**, stippled like the cube's edges:
-  - Branding is a brand-mark seal.
-  - Web design is a browser window.
-  - Development is the code brackets `</>`.
-  - The process shape evolves: a sound ring (listening), then a grid (planning), then a wireframe (visualising), then a cube (building), then a rocket (delivery).
-- **The bust reference** was a stock "wireframe head" image.
-  - Dots sit on mesh vertices, with stipple along the edge loops.
-  - Contour rings run across the skull.
-  - Dots are densest at the eyes, nose and lips.
-  - The head faces front.
-  - It is a **style reference only**: watermarked stock, never committed or shipped. Ask the owner to re-share it at the start of Phase 4.
-  - It needs a head mesh with quad topology. Scans are triangle soup and read as noise.
-- **Stats:** show three: 5+ years experience, 500+ projects done, 140 happy clients. The owner dropped a fourth ("96").
-- **Voice:** first person "I" throughout. Change only pronouns and typos in the owner's copy.
-- **Let's connect:** `mailto:criztiandev@gmail.com`, a constant in `src/data`.
-- **No invented content.** Testimonials and blog posts have no real material yet, so they get visible placeholders ("Client quote to come", "Post to come"). This follows PRODUCT.md.
-- **Content is hard-coded for now.** New sections live in `src/data/*.data.ts`, with types in `src/types/`.
-  - The hero, quote, projects and theme keep rendering from `SiteContent`, and the editor keeps working.
-  - Leave the site-content schema and the editor alone.
+- **The page follows four scroll rules:** scrubbed, triggered and locked, scrubbed again, and free.
 
-### The owner's copy
+**The owner's answers.**
 
-Typos are fixed and the voice is switched to "I". Use it as written.
+| Question                     | Answer                                                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| One thing a client remembers | I build whole products                                                                                                                      |
+| What I sell                  | Branding, web design and development, as one package                                                                                        |
+| Client                       | Founders, small businesses and agencies equally                                                                                             |
+| Feeling                      | Calm, precise, premium                                                                                                                      |
+| Big idea                     | The dots build one product: the name's dots build one product stage by stage and come home to the name                                      |
+| Orbit                        | The orbit joins the page. The white plates and the corner dots go; the big hollow numbers and the turn stay                                 |
+| Motion                       | Every section moves, in one style: the left-to-right light sweep for text, the pen-order draw for dots                                      |
+| Scroll                       | Trigger, play, no lock. A shape plays by itself on arrival, and the reader can always keep scrolling. This replaces the Services glide lock |
+| Emphasis                     | Big bold text for emphasis                                                                                                                  |
+| Voice                        | Short, plain, precise. First person. The owner approves every line                                                                          |
+| Order                        | Work first                                                                                                                                  |
+| Rebuild                      | Restyle, keep the engine                                                                                                                    |
+| About                        | A real photo, no dots. The bust is cancelled                                                                                                |
+| Material                     | The owner will send real projects, a belief line, their story and photo, and client words. Projects stay placeholders, with images, for now |
+| Next step                    | Whole-page mockups before any build                                                                                                         |
+
+**The page rule.** Every screen shows one dot object and one big, bold statement. Everything else is quiet signage.
+
+- **Big type is emphasis only:** the name, the belief line, one statement per section and the How I work numerals.
+- **Every section label is quiet signage,** the same on every section: a small, tracked `<h2>` such as "My services · 02 / 03". This replaces "My services" being the only small label. The statement is the big type.
+- **One motion style:** the light sweep (about 0.9s, `SIGNAL_EASE`) for text and the pen-order draw for dots. No new per-section tricks.
+- **The dots draw ideas and frame real things.**
+  - **Ideas are drawn in dots:** the name, the cube, the product being built.
+  - **Real things are framed by dots:** a project image, the owner's photo, a client's photo or logo.
+  - Every screen is plain black: no dotted background texture.
+- **One scroll rule:** trigger, play, no lock.
+- **Monochrome stays.** This is a default taken from "calm, premium"; the owner was not asked about colour.
+
+**Order.**
+
+1. Hero (`#home`)
+2. Belief quote (`#quote`)
+3. Projects (`#project`)
+4. Services (`#services`)
+5. How I work (`#process`)
+6. About (`#about`)
+7. Testimonials (`#testimonials`)
+8. FAQ (`#faq`)
+9. Contact (`#contact`), with Let's connect's email merged in, so the page ends once
+10. Footer
+
+- **Nav:** Work · Services · Process · About · FAQ, plus "Let's talk".
+- **Blog** is hidden from the page and the nav until real posts exist; its code stays.
+
+**The dot story** (the mockup canvas's first artboard shows it):
+
+1. The name.
+2. The idea (the cube).
+3. The finished products (the dots frame each project plate).
+4. Brand, design and code: the thread builds one product through the mark, the mark in a page layout, and the layout opening into code.
+5. Five steps of the same page: a loose ring (listening), a grid (planning), a wireframe (visualising), the built page (building), the page lifting off on a trail of dots (delivery).
+6. Real people: the dots frame the owner's photo (About), then a client's photo or logo (Testimonials).
+7. FAQ is plain black: the dots are out of the way while people read.
+8. The dots gather round the form.
+9. The name comes home.
+
+**Per section.**
+
+- **Hero:** kept as it is. The tagline is replaced by the owner's own line.
+- **Quote:** kept, with the cube as "the idea". The owner's belief line replaces the placeholder.
+- **Projects:**
+  - It moves up.
+  - The placeholder cards get neutral monochrome placeholder images, clearly placeholders. No invented names, clients or outcomes.
+  - The dots frame the active plate.
+- **Services:**
+  - The one-line thread and the triggered draw stay.
+  - The three shapes become three stages of one product.
+  - Numbered items replace the tag cloud, and the copy is cut short.
+  - The glide lock goes.
+- **How I work:**
+  - The orbit's turn and the big hollow numerals stay.
+  - The white plates and bullets go, and the step title becomes plain big Antonio.
+  - The ring is drawn as a row of dim dots.
+  - The dot shape returns to centre stage at full size.
+  - The five shapes become five states of one page.
+  - The turn becomes triggered, like Services.
+- **About:**
+  - "I am Criztian." as the statement on the left, with the story and stats under it.
+  - The owner's real photo on the right, framed by dots like a project plate. The photo itself is never made of dots.
+  - The sphere and the bust go.
+- **Testimonials:**
+  - The client's words as the statement on the left, with the attribution under them.
+  - The client's photo or logo on the right, framed by dots.
+  - Bracketed placeholders until the owner sends real quotes, with permission.
+- **FAQ:** the owner confirms that each answer is still true. It is their copy.
+- **Contact:** the email line sits beside the form.
+
+**Parked (not cancelled):**
+
+- the adaptive cursor (old Part 4)
+- the cursive logo
+- the Connect address flicker, which brought back the rejected departure board
+- heading parallax
+- any other new per-section effect
+
+The owner decides on each in Phase 10.
+
+**Standing rules** (carried from the first brief):
+
+- **No invented content.** Gaps stay as visible placeholders (PRODUCT.md "Never fabricate").
+- **The owner's own words.** Voice is first person. Shortened drafts need the owner's OK before they ship.
+- **Where content lives.** The hero, quote, projects and theme render from `SiteContent` (the editor). Every other section is hard-coded in `src/data/*.data.ts`, with types in `src/types/`. Leave the site-content schema and the editor alone unless a phase says otherwise.
+- **Stats:** three, the owner's: 5+ years experience, 500+ projects done, 140 happy clients.
+- **Email:** `mailto:criztiandev@gmail.com`, a constant in `src/data`.
+
+## The owner's copy
+
+Typos are fixed and the voice is switched to "I". This is the source text.
 
 - **My services**
   - **Branding.** "I craft impactful brand stories that connect with your audience and build long-term trust. Through strategic thinking and visual storytelling, your brand gains clarity, consistency and character."
@@ -97,6 +183,61 @@ Typos are fixed and the voice is switched to "I". Use it as written.
 - **Blog:** "Stay ahead with the latest in digital marketing".
 - **Get in touch:** "Let's start your project today".
   - Fields: name, email, service needed, and "What can I help you with?"
+
+### Short drafts (approved by the owner, 2026-09-29)
+
+The mockups use these, and the owner approved them all. Use them in place of the long versions above wherever they apply.
+
+- **Hero tagline:** "I build whole products. Brand, design and code."
+- **Branding:** "Brand stories that connect with your audience and build long-term trust."
+- **Web design:** "Creative and functional, with no AI slop. Every layout and interaction is made for your brand."
+- **Development:** not drafted yet (the mockups don't show it).
+- **Bringing it to life:** "I build your project with precision and care."
+- **Delivering success:** "I launch it, then keep supporting and improving it."
+- **About:** "Branding, web design and development, made for your business."
+- **Section labels:**
+  - "Work · 01 / 03"
+  - "My services · 02 / 03"
+  - "How I work · 04 / 05"
+  - "Who am I"
+  - "Testimonials · 01 / 03"
+  - "FAQ"
+  - "Get in touch"
+- **Contact:** "Or email me: criztiandev@gmail.com"
+
+## What is built today
+
+- **Phase 1, the engine** (`3f58984`), and **Phase 2, page structure and system** (`ba153d4`), reached `main` in `5c2173c` (PR #1). They cover:
+  - one fixed canvas with a scroll timeline
+  - every section in the old order
+  - the fit gate
+  - the token pass
+- **Phase 3** on `portfolio/phase-3`:
+  - Part 0, Lenis smooth scroll (`39f62f5`)
+  - Part 1, the line-art shape library (`00d54b9`)
+  - Part 2, the dot choreography: pen draw-on, burst, swell and strike (`f33d351`)
+  - the Services thread with its glide lock, and the How I work orbit (`0f198b2`)
+- **Not built:** old Part 3 (section motion, now Phase 10) and old Part 4 (the cursor, parked).
+- **Last evidence (2026-09-29):**
+  - 366 unit tests pass and `pnpm check` is clean.
+  - e2e was green on a production build at :3100, with Supabase up.
+  - The hero pixel diff against `0a3c97a` held with the pre-flight carve-outs (header band, cue row, and the name-dot ceiling). The method is in the history.
+
+**Carried-over open items,** each assigned to a phase:
+
+| Item                                                                                                                    | Phase             |
+| ----------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| Services curtain bug: under reduced motion, earlier captions ride up over the slot (`not-last:mb-*` → `not-first:mt-*`) | 7                 |
+| Copy crossings: transit dots cross copy columns at full brightness                                                      | 11                |
+| `resolveViewportHeight` with grown frames shifts dust boundaries                                                        | 11                |
+| Transit captures of every scene, both directions, and the owner's "wow and professional" sign-off                       | 11                |
+| The 16ms frame trace on the owner's phone (ask for an Android with USB debugging)                                       | 11                |
+| Safari 26 on an iPhone (scroll-driven animations, Lenis at 60fps)                                                       | 11                |
+| The real-phone fling test (Phase 1)                                                                                     | 11                |
+| The smooth-scroll feel sign-off (`SMOOTH_SCROLL_LERP`)                                                                  | 11                |
+| The published-content read is cached for a year (tag it and `revalidateTag` on publish, or make it uncached)            | 11                |
+| The Projects heading in the live record still has old text (the owner sets it in the editor)                            | 5 (ask the owner) |
+| Existing reveals hide content without JavaScript (`data-reveal` plus `@media (scripting: none)`)                        | 10                |
 
 ## The architecture this needs
 
@@ -184,7 +325,7 @@ The timeline is pure and unit-tested, in `dot-field.rules.ts`.
 - **Observers:**
   - The IntersectionObserver goes, because a fixed canvas always intersects. `visibilitychange` stays.
   - One ResizeObserver watches the stage. The projects MutationObserver goes.
-- **Static drawing:** `isStatic = reducedMotion || paused`, so Phase 6's pause toggle reuses the path.
+- **Static drawing:** `isStatic = reducedMotion || paused`, so a pause toggle reuses the path.
   - When static, draw only when the keyframe for the current scroll position changes.
   - Draw a keyframe only while `scrollY` is inside its pin range, and clear the canvas otherwise. A shape drawn at its pinned rect while its section scrolls away would hang over the next section's copy.
 - **Status attributes:**
@@ -202,7 +343,7 @@ These still hold, and CLAUDE.md explains each one:
 - **The font gate:** `document.fonts.load()` then `check()`, on the primary family only.
 - **Raw WebGL2:** no three.js, react-three-fiber or ogl.
 - **Tuning:** every tuning number lives in `src/data/hero.data.ts`.
-- **Accessibility:** `aria-hidden` goes only on decorative leaves (the canvas, empty slots, icons, step numbers) or on a visual duplicate of text that stays exposed. Never on a wrapper of readable content (gap review; Part 3 needs the duplicate case).
+- **Accessibility:** `aria-hidden` goes only on decorative leaves (the canvas, empty slots, icons, step numbers) or on a visual duplicate of text that stays exposed. Never on a wrapper of readable content.
 - **No `useState` in the hook.**
 - **Blending:** source-over, with dimness expressed as opacity.
 
@@ -235,7 +376,7 @@ Every section that takes part in the timeline follows these rules. The engine tr
    - No links inside steps. A covered link could still take focus (WCAG 2.4.11).
    - `ServicesSection` and `ProcessSection` implement this in their unstaged layouts. Process's maths: the frame and the list share one grid cell, the list starts `--orbit-step-top` below the top (the band, or the heading and slot in split), each step is `F − step-top` tall and sticks at `step-top`, and `not-first:mt-[pitch − (F − step-top)]` keeps step `k` docking at `k·pitch`. Space docked curtains with `margin-top`, never `margin-bottom`: a sticky element's margin box must stay inside its containing block, so a bottom margin pushes every stuck curtain up by that margin as the list ends. The last step unsticks together with the frame.
 9. **In-scene anchors.** Every `id` inside a scene has `scroll-margin-top` equal to that scene's `stickyTop` (`scroll-mt-18`). A larger margin lands before the pin starts. `data-scene` then reads `moving`, and if a spinning shape is the outgoing one, the loop never sleeps.
-   - **Focusables too (gap review).** Every focusable inside a scene also carries `scroll-mt-18` (`FOCUS_RING_CLASS` does). This keeps a Shift-Tab target clear of the 72px fixed header, because `scroll-padding-top` is banned (Phase 3, Part 0).
+   - **Focusables too.** Every focusable inside a scene also carries `scroll-mt-18` (`FOCUS_RING_CLASS` does). This keeps a Shift-Tab target clear of the 72px fixed header, because `scroll-padding-top` is banned.
 10. **Dust scene endings.** The last section of a dust scene is at least one frame tall (`min-h-[calc(100svh_-_4.5rem)]`). Otherwise its anchor lands in the transit to the next scene, with a half-formed shape over it. `#contact` needed this.
 11. **Reveals on pinned elements.** A pinned element never moves, so a `whileInView` margin must already hold at its pinned position. The projects heading sat at 65% of a phone screen behind a −40% margin and never revealed; it is now −10%.
 12. **Frames that can grow, grow.** A single-frame scene (Quote, About, footer) uses `min-h-[…]`, never a fixed `h-[…]`, and so does its container. Step boxes are the exception: they are fixed and join the gate (rule 13), because a step that grows would move the next step's docking point. Zoom or WCAG text spacing then lengthens the pin instead of clipping or overlapping the copy. The engine re-reads frame and container heights on every measure.
@@ -246,11 +387,11 @@ Every section that takes part in the timeline follows these rules. The engine tr
     - The check runs in `requestAnimationFrame`, scheduled by a ResizeObserver and by `document.fonts.ready`. It never mutates layout inside the observer callback, because that raises ResizeObserver loop errors, which the e2e specs count as page errors.
     - The `unpinned` variant styles flow mode and the no-WebGL path with one class list.
     - Any new sticky, fixed-height copy box must join the gate or follow rule 12.
-14. **Staged step scenes** (step scene motion, 2026-09-28). Under the `staged` variant a step scene's copy sits on one board instead of scrolling:
+14. **Staged step scenes.** Under the `staged` variant a step scene's copy sits on one board instead of scrolling:
     - **The board** is the container's second child, a sibling of the frame, never an ancestor of the slot. It is sticky, transparent, and ends with the container, so it pins on exactly the frame's pin range. The orbit's board is frame-tall at `top-18` and `pointer-events-none` because it covers the frame and the engine listens for pointer events on the slot itself. Only the numeral, plate and paragraph take pointer events when staged (the numeral so fit.spec's `elementFromPoint` scan can reach its digits); unstaged, the whole curtain does, so covered text can't be hovered or selected. The split slot must stay clear of the numeral's box (0.96em wide, starting 0.078em above the ink), not just its ink.
     - **The container height is explicit** and equals the Phase 2 height: `F + (n − 1)·pitch`, where pitch is `F − band` in portrait and `F` in split. Staging on or off therefore never moves a pin, an anchor landing or the slot rect, and the engine needs no re-measure.
     - **Measured before staging.** The hook's first measure (use-dot-field.hook.ts:331) and the gate's first check run while the stage is `idle`; `running` (:1173) switches `staged` on later and triggers neither. So the slot rect, the container height and every step box must be identical in both modes. `step-motion.spec.ts` flips the stage attribute and compares them.
-    - **Copy motion reads only the container's `--step-scene` view timeline** (`view-timeline-inset: 4.5rem 0`, so `exit-crossing 0` is the pin start), through `exit-crossing` length offsets in `--pitch` units from `resolveStepHandover`. Nothing in the stylesheet keys on `data-scene`.
+    - **Copy motion reads only the container's `--step-scene` view timeline** (`view-timeline-inset: 4.5rem 0`, so `exit-crossing 0` is the pin start), through `exit-crossing` length offsets in `--pitch` units from `resolveStepHandover`. Nothing in the stylesheet keys on `data-scene`. (Phases 7 and 8 replace the scrubbed copy motion with triggered transitions keyed on `data-thread`; update this rule then.)
     - **Rule 8 in staged mode:** the board is transparent. Nothing scrolls under the band during the pin, so the opaque ground isn't needed, and the portrait exit transits are visible. The opaque sticky steps remain in the fallback layout.
     - **Rules 12–13:** the Services board and each orbit step are fixed-height `[data-fit-box]`es, so an overflow flows the scene through the gate. The orbit board itself is not a fit box: its rotated neighbours would count toward its `scrollHeight`. It is `overflow: clip`, so they never widen the page.
 
@@ -258,920 +399,456 @@ In-page anchor clicks snap the timeline to the destination scene (`onAnchorClick
 
 ## Phases
 
-Each phase is meant to be one conversation. Update **Current phase** at the top and add a short "done" note under the phase before handing over.
-
-### Phase 1: the engine (done, 2026-09-28)
-
-**Goal:** the architecture above, running on today's page.
-
-**Scope:**
-
-- **Hero and quote:**
-  - Pin the hero: a `110svh` container with `#home` sticky, so the name and tagline stay together until today's 10% morph start.
-  - Pin the quote.
-  - Both keep their current look.
-- **Projects:** `#project` becomes a pinned scene whose slot holds a placeholder stippled sphere. Its cards scroll in the copy column. The frames and burst are gone; the real deck is Phase 5.
-- **Dust:** the About, Services and Blog placeholders plus `#contact` form one dust scene.
-- **Footer:** add a minimal footer scene where the name re-forms under a second transform.
-- **Delete:**
-  - burst, sparks, dust rect, claims and the frames uniforms
-  - `aScene`, `resolveSceneTargets`, `resolveClaimTarget`, `resolveFrameShare`, `resolveCanvasWindowTop`
-  - the IntersectionObserver and MutationObserver
-  - their unit tests
-- **Rewrite:**
-  - `src/types/hero.type.ts`
-  - the renderer, both shaders, the hook and the rules
-  - `tests/unit/hero.test.tsx` (the stage is now SitePage's wrapper)
-  - the `data-morph`/`data-burst` assertions and the `#quote > div` selectors in `tests/e2e/hero.spec.ts`
-
-**Files:**
-
-- `src/features/portfolio/hooks/use-dot-field.hook.ts` (1194 lines)
-- `src/features/portfolio/dot-field.rules.ts` (763)
-- `src/features/portfolio/services/dot-field-renderer.service.ts` (439)
-- `src/features/portfolio/shaders/*.ts`
-- `src/data/hero.data.ts`
-- `src/types/hero.type.ts`
-- `site-page.component.tsx`, `hero.component.tsx`, `quote-section.component.tsx`, `projects-section.component.tsx`
-- `src/app/globals.css`
-- `tests/unit/dot-field-rules.test.ts` (1046)
-- `tests/unit/hero.test.tsx`
-- `tests/e2e/hero.spec.ts`
-
-**Acceptance:**
-
-- **Pixel identity:** a zero-pixel diff of the hero at rest and of the reduced-motion hero, at 1440×900 with DPR 1 and 2, against `0a3c97a` built in a throwaway worktree. Compare against the baseline, not the previous phase, so drift can't accumulate.
-- **Deep link:** `/#quote` gives `data-scene="cube"`.
-- **Scene sequence:** scrolling the whole page steps `data-scene` through `name → moving → cube → … → footer`, with no console or GL errors.
-- **No clipping:** screenshots mid-transit at 390, 820 and 1440 wide show nothing clipped.
-- **Idle cost:** RAF measured at 0 fps at rest in the dust scene.
-- **Reduced motion:** each keyframe draws only inside its pin range.
-- **Unit tests** for the pin range, slot rect, equal step split, landing tolerance, the `p` → segment mapping and snap, `projectShapePoints` against the shader's maths, and name padding.
-- **Real phones:** the owner flings through the page on a real phone. Screenshots cannot show jitter.
-
-**Done note.** Everything above is met except two items, both still open:
-
-- **The real-phone fling test.** The owner has to do it.
-- **The e2e specs that need Supabase** (contact, editor, dashboard). Docker Desktop was not running, so only `hero.spec.ts` ran.
-
-Evidence:
-
-- **Checks:** `pnpm typecheck`, `pnpm lint` and the Prettier check are clean. 241 unit tests pass. `hero.spec.ts` passes 15/15 against a production build on :3100. The spec now includes lit-pixel checks on the cube slot, the canvas opacity, a nav jump that must skip the cube and projects, and `/#contact` landing on dust.
-- **Pixel diff against `0a3c97a`:**
-  - DPR 2 is a zero-pixel diff for the hero at rest and for the reduced-motion hero.
-  - DPR 1 differs in 12 pixels, by at most 6/255, all inside a 7×7 box at (796–802, 849–855). That is the scroll cue's arrow SVG. `#home` is now sticky, so that SVG rasterises slightly differently. The dots are identical.
-- **Scenes and idle cost:** the full `data-scene` sequence (name, moving, cube, moving, project, moving, dust, moving, footer) was checked at 390, 740×360, 820 and 1440. At rest the loop runs 0 RAF calls per 2s in the hero and in dust, and 120 per 2s with the cube spinning.
-- **Adversarial review:** 12 findings confirmed and all fixed:
-  - the sphere's depth light (now a per-shape `depthRadius`)
-  - dust filling only svh of the lvh canvas
-  - `#about` landing 8px short (rule 9)
-  - nav jumps flashing through shapes (the snap above)
-  - a reduced-motion toggle freezing displaced dots
-  - the canvas clear colour (it now clears to the theme's page background)
-  - the mobile projects sphere being covered, and its CTA being focusable under the card list
-  - frames overflowing short viewports (height media queries)
-  - tests that could not see an invisible canvas
-
-Tuning points found by eye, left for later phases:
-
-- **The hero tagline scrolls up through the dissolving name.** The name now dissolves in place, held in view. In the Phase 2 hero pass, fade the tagline and cue as the hero unpins, or tune `morphStagger`.
-- **Mid-transit dots cross outgoing copy**, for example the quote text on the way to Projects. This is inherent to held-in-view transits; tune in Phase 6.
-- **Mobile Projects is a placeholder.** The black card list rises over the pinned frame like a curtain. The sphere shows first, and the "Let's talk" button is hidden below `md`. Phase 5 replaces it.
-- **Hard-coded white text on a theme-coloured ground.** The hero, quote, projects and footer still hard-code `text-white` / `white/xx`, while the canvas now clears to the theme's page background. A light theme would put white text on light. Fold this into Phase 2's token pass.
-
-### Phase 2: page structure, content and system (done, 2026-09-28)
-
-**Scope:**
-
-- **Sections:**
-  - Build every section in the final order with the copy above.
-  - Use on-system layouts, with the impeccable skill for the design pass.
-  - Leave empty slots that follow the contract. The timeline picks them up with no engine edits.
-- **Nav:**
-  - Centre links: Services · About · Work (`#project`) · Process · Blog, plus "Let's talk" to `#contact`.
-  - The mobile panel lists every anchor.
-  - `PortfolioSection` keeps `about` and `contact` for the tests.
-- **Footer:** the name slot, nav, email and ©. The footer name is decorative or a `<p>`, never a second `<h1>`.
-- **FAQ:** native `<details>/<summary>`. It needs no JavaScript and still opens in the editor preview, whose `pointer-events` block does not cover `summary`.
-- **Contact service field:** a native `<select>` for the service needed (Branding / Web design / Development / Something else). It touches:
-  - `contact.schema.ts`, `contact.form.tsx` and the insert in `contact.service.ts`
-  - a migration adding a column and check constraint, then `pnpm db:types`
-  - the email template
-  - the fixtures in `contact-schema.test.ts`, `contact-notification.test.ts` and `email-preview.test.ts`, and `contact.spec.ts`
-
-  Never weaken the anti-spam checks.
-
-- **Token drift:** set `--radius: 0`, point `--font-heading` at the display face, and stop the public wrapper following the OS scheme (DESIGN.md "Known drift").
-- **Delete:**
-  - `PLACEHOLDER_SECTIONS`
-  - `openMobileNav`
-  - the unused `ContactMessageRow` and `ContactMessageInsert`
-  - `fontMono`
-  - three copies of `resolveTransition`, replaced by one helper
-- **Docs:** update the PRODUCT.md and DESIGN.md sections the new content changes. The services and positioning now follow the owner's copy, not PRODUCT.md's old four services.
-
-**Acceptance:**
-
-- **Sizes:** check 360×640, 740×360, 820 and 1440 with the longest copy.
-- **Anchors:** a smoke test that every anchor resolves.
-- **Contact:** the contact e2e submits with a service.
-- **Strict counts:** still one canvas, one `[data-status]` and one `<h1>`.
-
-**Done note (2026-09-28).** Everything in scope is built. Three items are still open:
-
-- **Database steps.** Docker was down, so the migration is written but not applied, and `database.type.ts` is hand-edited. See the Phase 3 pre-flight.
-- **The contact, editor and dashboard e2e specs** have not run, because they need Supabase.
-- **The hero pixel diff against `0a3c97a`** was not re-run. It is the first check of Phase 3. Phase 2 changed token classes (same computed colours) and added fade wrappers held at opacity 1 at rest. It also changed the header's centre links on purpose, so a clean diff needs the header band masked (gap review; see the Phase 3 pre-flight).
-
-What shipped:
-
-- **Sections.** Every section is built, in the final order, with the owner's copy verbatim.
-  - My services and How I work each own their scene component (`ServicesSection`, `ProcessSection`); `StepScene` is gone.
-  - Who am I is a pinned split with the stats as a `<dl>`.
-  - Let's connect, Testimonials, FAQ, Blog and Get in touch share one dust scene.
-  - The footer has the name slot, nav, email and ©.
-  - Services, About and Process hold the placeholder `sphere` until Phases 3–4. `parseSceneShapes` silently skips unknown ids, so each shape is swapped by changing one constant in `src/data/page-sections.data.ts`.
-- **Nav and forms.**
-  - Five centre links plus "Let's talk", moved to `lg`, because the links need about 845px. The mobile panel lists all ten anchors and scrolls when it is taller than the viewport.
-  - A required native "Service needed" select, with monochrome errors (glyph plus `role="alert"`, and `--destructive` set to the foreground on the stage).
-- **Token pass.**
-  - `--radius: 0`, `--font-heading` pointing at Antonio, and no hard-coded white or black on the public page.
-  - The stage carries `dark` and `scheme-dark`, and `html:has([data-status])` keeps the root scrollbar dark.
-  - `--input` is set to `--border`, so field outlines pass 3:1.
-- **Hero.** The tagline and cue fade as the hero unpins, which was the Phase 1 tuning point. They stay at opacity 1 without WebGL2.
-- **Height-aware layout and the fit gate** (rules 8, 12 and 13): the `split`, `short` and `unpinned` variants, `min-h` frames, and `SceneFitGate`.
-  - The gate scroll-anchors its own flips, so a deep link below a flipping scene lands.
-  - `html:has([data-status="idle"]) { scroll-behavior: auto }` keeps the page-load hash jump instant, because a smooth load scroll can't be redirected after the gate flips.
-- **Deletions:**
-  - `PLACEHOLDER_SECTIONS`
-  - `openMobileNav`
-  - the unused contact row and insert types
-  - `fontMono`
-  - three `resolveTransition` copies, now `resolveMotionTransition` in `motion.rules.ts`
-
-Evidence:
-
-- **Checks:** `pnpm typecheck` and `pnpm lint` are clean, and 271 unit tests pass. The Prettier check warns only on `.impeccable/hook.cache.json`. That was an open owner decision then; `ae0d4f7` has since ignored `.impeccable` in .gitignore.
-- **e2e:** `hero.spec.ts`, `anchors.spec.ts` and `fit.spec.ts` pass 36/36 against a production build on :3100.
-- **Measurement:** measured at 13 sizes, plus the WCAG 1.4.12 stylesheet at three of them, using the list in "Landmines". The result is 0 never-visible lines, 0 text overlaps, 0 clipped text, no horizontal overflow and no errors. The required phone sizes stay pinned with at least 27.8px spare. 400% zoom and text spacing flow.
-- **Reviews:**
-  - A five-lens adversarial review (contract, a11y, conventions, fidelity, data), with every finding verified by a skeptic: 14 confirmed (4 major), all fixed.
-  - The impeccable finish review: recapture, then fix (the project count sat above the heading; it now sits below the lede), then ship. The ship covers that fix and the reviewed captures.
-  - Captures are in `.impeccable/review/`, which is not committed.
-
-### Phase 3: smooth scroll, shapes, dot choreography, section motion and the cursor
-
-**The owner's direction (2026-09-28, after seeing Phase 2).** The layout is right, but the page feels static.
-
-- The dot transitions must feel "wow and professional".
-- Every section needs its own motion, sliding and award-level transitions, so the page feels alive.
-- The dots stay the main show. Section motion supports them and never competes with them.
-- Section motion moves here from Phase 6, so this phase is where the page comes alive.
-
-**The owner's second direction (2026-09-28, while planning Phase 3).**
-
-- **Smooth scroll.** "Stiff scroll feels like a chore." The page should glide, so a visitor takes the work in a little at a time. A library is allowed. See Part 0.
-- **An adaptive cursor.** A circle that trails the pointer with a smooth drag, with micro-interactions on hover, adapting to each section and tied to the scroll. See Part 4.
-
-**Splitting.** If this is too big for one conversation, split it at the part boundary:
-
-- 3A: parts 0, 1 and 2 (smooth scroll, then the dots)
-- 3B: parts 3 and 4 (the sections, then the cursor)
-
-Ask the owner to confirm the motion choices in Part 3 and the cursor anatomy in Part 4 before building them. They are a proposal, not a sign-off.
-
-**Decide first, at the start of 3A:** the Process step and shape sync (Part 2, "Step and shape sync"). Part 1's Process swap and Part 3's step handovers both depend on it. **Decided 2026-09-28: realign the split to the copy.**
-
-**Planning review (2026-09-28).** Parts 0 and 4 were designed by a multi-agent workflow and then reviewed adversarially against the code and the Lenis and Motion sources. Every confirmed finding is folded into the text below. Corrections to Parts 1–3 found in the same review are folded in too and marked "(planning review)".
-
-**Gap review (2026-09-28).** The owner asked for Phase 3 to be analysed and for the necessary missing features to be added.
-
-- **How it ran.** A second multi-agent review read Phase 3 against the code through four lenses: owner asks, engineering, a11y and performance, and executability. One adversarial verifier per candidate checked the code and the `node_modules` sources, and a completeness critic ran last.
-- **What survived.** 20 findings, folded in below and marked "(gap review)". Most are places where Phase 3 as written would break or fail its own acceptance, not missing visuals:
-  - the no-JS check already fails
-  - the pixel diff can't pass
-  - the planned draw-on rank un-hides padded points
-  - step handovers blank the copy
-  - `fit.spec` goes red
-  - two WCAG failures (2.5.3 and 2.4.11)
-- **Owner decisions:**
-  - **Three extras** the verifiers had dropped as not necessary go into Part 3: the mobile menu wipe-open, the contact success moment and a scroll-progress hairline.
-  - **Reveals replay on re-entry** instead of playing once. This is a DESIGN.md change.
-  - **The direction-aware sweep keeps the natural mirror,** so there is nothing to build.
-  - **Scroll-spy defaults:** during a nav flight the dot steps under each link it passes, and it hides on sections with no centre link.
-- **Verified as not necessary; don't re-propose these without new evidence:**
-  - a spec for the arrival strike's state and loop sleep; the 0-RAF and pixel-diff acceptance already force a finite end
-  - a fallback order for the phone frame budget; the trace decides. Do ask at the start of Part 2 whether the owner has an Android phone with USB debugging for the trace.
-  - a Lenis `focusin` reset
-  - a spin decision for the line-art shapes; it is tuning in `hero.data.ts`
-  - a second hover grammar; Part 4's `action` state is the hover micro-interaction
-  - making the header wait for the name on load; it would hide "Let's talk" behind a slow font
-  - dust that drifts with the scroll
-  - projects plate wipes; Phase 5 rebuilds the section
-  - a live reduced-motion hook, a committed capture harness, an owner-decisions table and tuning-loop bookkeeping
-  - WebGL context-loss restore
-  - the Part 4 text nits
-- **Real but optional, not folded in (owner's scope choice):**
-  - Anything translated inside a `[data-fit-box]` (the 24px docking slide, line rises) counts toward the scrollHeight the fit gate reads. The unclipped slide leaves 2.8px of the 27.8px minimum spare, so wrap it in an `overflow-clip` parent before raising it.
-  - Part 3's wording mismatch: testimonials have a rule and no plate, and a blog item has a plate and no separate rule. So "Hairlines draw … the testimonial and blog rules" and "the plates wipe open" each fit only one of the two.
-
-#### Pre-flight (gap review)
-
-Do this before Part 0, and record the results in the 3A done note.
-
-1. **Hero pixel diff.** It is the first check, and the Part 2, 3 and 4 acceptance repeat it. Use the same capture as Phase 1 (1440×900, DPR 1 and 2, at rest and reduced motion) against `0a3c97a`, with these carve-outs and no others:
-   - **Mask the fixed header band:** the top 72 CSS px, 144 device px at DPR 2. Phase 2 changed its centre links on purpose (`PORTFOLIO_PRIMARY_NAVIGATION`: Project, Blog, About, Contact became Services, About, Work, Process, Blog), and Part 3's nav dot and hairline change it again. The band doesn't overlap the name's dots at 1440.
-   - **Mask the scroll cue's row** (the "Scroll to explore" line and its arrow, y 840–860 CSS px). Phase 2's token pass changed its colour from translucent `white/60` to the opaque `text-muted-foreground` (`rgb(153,153,153)`). That is the same grey on black, but Chromium anti-aliases text differently for a translucent colour, so the glyph edges differ by up to 35/255 at DPR 1 and 61/255 at DPR 2. The tagline kept its colour and matches exactly. This replaces Phase 1's 7×7 arrow allowance.
-   - **A fixed ceiling on the name's dots.** At most 18 differing pixels at DPR 1 (at most 2/255) and 14 at DPR 2 (at most 1/255), all inside the name's box. Phase 1's fixed canvas causes them: the GL viewport went from the 1440×1422 document canvas to 1440×900, which moves a few point-edge pixels in rasterisation. Measured 2026-09-28 in Playwright's Chromium 1243. More pixels, a larger delta, or any dot pixel outside the name's box is drift.
-
-   Every other pixel must match. If any other pixel differs, stop and find the cause.
-   - **Pre-flight result (2026-09-28):** passed with exactly the residue above in all four cases (reduced motion matches motion at rest).
-   - **How it was measured.** A bisect built `0a3c97a`, `3f58984` (Phase 1) and HEAD in throwaway worktrees, served on :3200, :3300 and :3100. Phase 1 → HEAD differs only in the cue row, and `0a3c97a` → Phase 1 only in the dots. Each build diffed against itself is 0.
-   - **Correction to the Phase 1 done note:** its "zero-pixel diff at DPR 2" does not reproduce.
-   - **Capture method:** a fresh `chromium` (`channel: "chromium"`) browser per case. Wait for `data-status="running"` and `document.fonts.ready`, then screenshot every 400ms until three consecutive frames are identical. Diff the RGBA of two decoded PNGs in a page canvas. One browser reused across DPR 2 cases crashed.
-
-2. **Supabase:** `pnpm supabase:server`. If Docker Desktop is down, ask the owner to start it. Don't sign Part 0 off without it.
-3. **Migration:** `pnpm exec supabase migration up --local`. It applies only pending migrations, here the nullable `service` column of `20260928120000_contact_messages_service.sql`, and keeps data.
-   - **Never `pnpm db:reset`.** It re-seeds `site_content` as `draft = '{}'` (`20260920160000_site_content.sql:37`), which wipes the owner's draft and published content and `auth.users`.
-4. **Types:** `pnpm db:types`, then `git diff src/types/database.type.ts` must be empty. That confirms the Phase 2 hand edit.
-5. **Baseline:** the full `pnpm test:e2e` on a production build (see Landmines). Part 0's acceptance needs contact, editor and dashboard green, and they have never run in this redesign. Any failure here predates Part 0: fix it or record it before building Part 0, so that any later failure has one cause.
-
-#### Part 0: smooth scroll
-
-**Why a library.** `html { scroll-behavior: smooth }` (globals.css:152) smooths only anchor jumps and programmatic scrolls. Wheel steps are outside its scope, and wheel steps are the stiffness the owner means.
-
-**Why first.** Part 2's tuning (`morphFollowRate`, the stagger, the sweep, burst and gather) depends on how wheel input reaches `scrollY`. Tuning on stepped wheels and then adding smoothing means tuning twice. Part 0 touches no engine file, so it goes green before the engine changes and any later regression has one cause.
-
-**Sources.** `lenis.mjs` line numbers refer to `lenis@1.3.26/dist/lenis.mjs`. "Measured" means a Chromium probe of 1.3.26 run during planning.
-
-- **Library: core `lenis@^1.3.26`.**
-  - **It scrolls the real window.** Every frame is `window.scrollTo({ top, behavior: "instant" })` (lenis.mjs:532-541), with no transform. The sticky frames, the fixed canvas layer, the hook's `scrollY` reads (use-dot-field.hook.ts:643-657) and Motion's `useScroll` (hero.component.tsx:94, section-navigation.component.tsx:61) keep working. Measured: sticky and fixed `top` held still through a Lenis animation.
-  - **Transform smoothers are out** (GSAP ScrollSmoother, Locomotive v4, smooth-scrollbar). They translate a content wrapper, which becomes a transformed ancestor of the canvas and every slot (rule 4). `fixed` then resolves against the wrapper, sticky loses its scroll container (rule 5), and `containerRect.top + scrollY` stops being a document position.
-  - **`lenis/react` is out.** `ReactLenis` defaults `autoRaf` to true (lenis-react.mjs:45), and without `root` it wraps the page in divs, which puts a scroll container above the canvas.
-  - **Pin `^1.3.26`.** Lenis 2.0 regroups the options and makes `autoRaf` and `anchors` default to true. A caret range never installs it.
-  - **Don't import `lenis/dist/lenis.css`.** `html` and `body` are already `height: auto`, `/` has no iframes, and the keyboard hand-back's `stop()` is undone by `start()` in the same task, so `.lenis-stopped` never styles a frame. The one useful rule, `overscroll-behavior: contain` on opted-out scrollers, goes on those elements as a class.
-- **Mount: `src/app/page.tsx` only.**
-  - Render `<SmoothScroll />` after `<SitePage>` in a fragment. It lives in `src/features/portfolio/components/smooth-scroll.component.tsx`: a `"use client"` leaf that renders `null` and creates Lenis in an effect (the constructor reads `matchMedia`, lenis.mjs:382).
-  - The editor preview renders `SitePage` through `SitePreview` (site-preview.component.tsx:76), so it never gets Lenis, and its `scrollIntoView` (site-preview.component.tsx:54) works as today. Not the root layout, which also wraps the dashboard. Not `SitePage`, which must stay a server component.
-  - It renders no DOM, so it can't be an ancestor of the canvas or a slot, and the strict counts hold.
-  - Keep the default `wrapper` (`window`) and `content`. Never pass a wrapper element.
-- **Desktop pointers only.** Construct Lenis only when `(hover: hover) and (pointer: fine)` matches.
-  - Why: even with `syncTouch: false`, Lenis adds `touchstart` and `touchmove` on `window` with `{ passive: false }` (lenis.mjs:255, 283-286). That opts the page out of Chrome's passive-by-default window touch listeners, so every touch scroll waits on the main thread. That is the coupling the fixed canvas exists to avoid, and phones gain nothing from Lenis because it hands touch back anyway.
-  - Add `prefersFinePointer()` beside `prefersReducedMotion()` in browser-capability.rules.ts, with `FINE_POINTER_QUERY` in `src/data/motion.data.ts`. Part 4 uses the same helper.
-  - Phones and tablets attach nothing, so the Phase 1 fling result still holds. A hybrid laptop pays one non-passive listener, which is acceptable on desktop hardware.
-- **Options.**
-  - **`lerp: SMOOTH_SCROLL_LERP`**, 0.1 (Lenis's default), in a new `src/data/motion.data.ts`, which Part 3 also fills. It is the only feel setting. 0.1 means `damp(…, 6, dt)` (lenis.mjs:85-89), an ease-out with τ ≈ 167ms. Don't switch to `duration` plus `SIGNAL_EASE`: an ease-in-out delays the first pixel of every wheel notch.
-  - **`anchors: { onStart: wakeLoop }`.** It carries a callback, so it is built in the component, not in `src/data`.
-  - Everything else stays at the 1.x default: `smoothWheel: true`, `syncTouch: false`, `autoRaf: false`, `allowNestedScroll: false`.
-- **Loop: 0 RAF calls at rest.** `autoRaf` requests a frame every frame, forever (lenis.mjs:722-727). Measured: 61 calls/s idle, which fails "RAF at 0 fps at rest". `SmoothScroll` drives `lenis.raf` from its own loop, which sleeps:
-  - **`tick(time)`** calls `lenis.raf(time)` and requests the next frame only while `lenis.isScrolling === "smooth"`. Otherwise it sets the frame id to 0.
-  - **`wakeLoop()`** does nothing if a frame is pending. Otherwise it sets `lenis.time = 0` and requests a frame. Without the reset, `raf` computes `time − (this.time || time)` (lenis.mjs:723) across the whole idle gap. Measured: a 400px wheel landed in one frame. It mirrors the hook's `previousTimestamp = 0` (use-dot-field.hook.ts:639).
-  - **What wakes it:** `lenis.on("virtual-scroll", wakeLoop)`, which fires for every wheel (and, on hybrids, every `touchmove`) before any early return (lenis.mjs:581), plus the anchor `onStart`.
-  - **Keep it separate from the dot hook's loop; never merge them.** During a Lenis scroll both run: each write fires a native `scroll`, which the hook reads one frame later. That lag is invisible, because slots are pinned rects. Both sleep afterwards. Measured: 0 calls/s after settling.
-  - **Cleanup:** cancel the pending frame, remove the listeners, then `lenis.destroy()`.
-  - **Half-pixel stall (as built, Part 0 review).** In lerp mode Lenis finishes only when `Math.round(value) === Math.round(to)` (lenis.mjs:86-89). A target ending in exactly .5, approached from below, stalls a few ULPs short and never rounds up: `isScrolling` stays `"smooth"`, the loop runs forever and every native scroll is overwritten. Chrome reaches it through fractional wheel deltas (precision touchpads) and fractional anchor targets.
-    - `tick` treats a non-wake frame with `|velocity| < SMOOTH_SCROLL_REST_VELOCITY` (0.001 px per frame, `motion.data.ts`) as finished and calls `stop()` then `start()`. The wake frame is skipped, because its `dt` is 0 and so its velocity is 0.
-    - Integer targets finish at 0.012 px per frame or more even at 240 Hz, so the threshold never cuts a normal flight short.
-    - No Lenis `scrollend` fires for a settled stall. The dot hook clears its snap on arrival instead.
-    - `smooth-scroll.spec.ts` wheels 100.5px and fails on a build without this.
-- **Anchors: Lenis owns every in-page anchor scroll.**
-  - **Why not native.** While animating, Lenis overwrites scrolls it didn't make on its next frame (lenis.mjs:651-666). A nav click within about a second of a wheel would start a native smooth scroll that Lenis cancels at once. With `anchors`, the click retargets the running animation.
-  - **Same landing as the hook.** Lenis subtracts the target's `scroll-margin-top` and the root's `scroll-padding-top` (lenis.mjs:783-786); the hook subtracts `scrollMarginTop` only (use-dot-field.hook.ts:725-733). Every anchor already has 72px (`scroll-mt-18`), so pass no `offset`. **Never add `scroll-padding-top` to `html`:** the landings would disagree and `data-scene` would read `moving` on arrival (rule 9). Measured: a click landed exactly at `top − 72`.
-  - **The hash still updates.** Lenis doesn't call `preventDefault` (lenis.mjs:542-553), so native fragment navigation starts, and Lenis's first instant write takes over.
-  - **Accepted gap:** Lenis ignores modifier keys, so a Ctrl-click on a nav link also scrolls this page, without the hook's snap.
-- **The dot engine: no changes.**
-  - **The snap is still set first.** The hook's `onAnchorClick` is a document capture listener (use-dot-field.hook.ts:872); Lenis's click listener is on `window` in the bubble phase (lenis.mjs:477). `jumpScrollTop` is set before Lenis starts, and `followTimelineProgress` snaps.
-  - **`scrollend` doesn't clear the snap early, but only because of a Lenis internal.** Instant writes fire one native `scrollend` per frame (measured: 60 writes, 60 events). Lenis swallows them in a window capture listener while smoothing or idle (lenis.mjs:510-514) and dispatches one bubbling `CustomEvent("scrollend")` at the end (lenis.mjs:515-520). Measured over an anchor scroll: 70 `scroll`, 0 native `scrollend`, 1 custom. This is undocumented, so `scrollend` in `JUMP_CANCEL_EVENTS` (hero.data.ts:59-64) now depends on it. The nav-jump spec must watch the whole flight (see Tests) and must be re-run on every Lenis upgrade.
-  - **Arrival clears the snap.** Lenis ends by setting the exact target (lenis.mjs:87-89), inside `MORPH_LANDING_TOLERANCE_PX`.
-  - **A stale `scrollend` is dropped (as built, Part 0 review).** Lenis dispatches a flight's `scrollend` one frame after it completes, without checking whether a new flight has started (lenis.mjs:839-846). A nav click in that frame would get its snap cleared by the old flight's event. `SmoothScroll` adds a window capture listener that calls `stopImmediatePropagation()` on a `CustomEvent` `scrollend` while Lenis is still `"smooth"`; the real end still passes, because `reset()` has already set `isScrolling` to false.
-  - **Wheel still clears the snap.** Lenis calls `preventDefault` on the wheel (lenis.mjs:627) but doesn't stop propagation.
-  - **Double smoothing: keep `followTimelineProgress`.** In transits `p` trails the wheel by Lenis's τ ≈ 167ms plus the follow's τ = 100ms. The follow stays: it is the only smoothing for touch and keys, and its one-segment snap is how anchor jumps skip shapes. Pin ranges are unaffected, because the target there is a whole number. If the desktop morph feels late, raise `morphFollowRate` in Part 2 with Lenis on, then re-check a phone fling.
-  - **Main thread.** Lenis scrolls on the main thread, so a slow transit frame now also stutters the desktop wheel. Part 2's 16ms frame budget covers desktop wheel scrolling too.
-- **Keyboard stays native, plus one listener.** Lenis has no key handling; Space, PageDown, the arrows and Tab scroll natively and Lenis adopts those scrolls while idle. A window `keydown` listener in `SmoothScroll` calls `lenis.stop()` then `lenis.start()`, only while `lenis.isScrolling === "smooth"` (as built). Each runs the internal `reset()` (lenis.mjs:684-716), which is `private` in the 1.3.26 typings (lenis.d.ts:409), so `lenis.reset()` fails typecheck. Without it, a key pressed during a Lenis animation, including the scroll that brings a newly focused element into view, is overwritten on the next frame.
-- **Reduced motion: no Lenis.** Don't construct it when `prefersReducedMotion()` is true. Lenis's own reduced-motion handling still eases the wheel (lenis.mjs:749-754; measured: 7 frames against 1 native). Listen for `change` on `readReducedMotionQuery()`: on `reduce`, cancel the frame and `destroy()`; on `no-preference`, construct it again.
-- **No JavaScript.** Nothing loads. The wheel is native and anchor jumps are instant under the `idle` rule (globals.css:160-162), as today.
-- **Focus clearance (gap review).** Part 0 bans `scroll-padding-top`, which is the platform's global fix for focus under a fixed header, so every focusable inside a scene needs its own `scroll-mt-18` (DOM contract rule 9).
-  - **Three focusables miss it:** `FOOTER_LINK_CLASS` (portfolio.data.ts:40-41), the projects "Let's talk" CTA (projects-section.component.tsx:185-198) and the card's stretched link (:78-88, latent until a project has an https link). Add the one token to each.
-  - **Why it bites.** The CTA sits in the projects frame, which unsticks once the list scrolls past. Shift-Tab back from "Email me" then scrolls it in at the top edge in Firefox, under the 72px header. That fails WCAG 2.4.11 on the path to the only conversion.
-  - **Manual check** during the keyboard pass: in Firefox at 1440×900, Shift-Tab from "Email me" leaves "Let's talk" at 72px or lower.
-- **Nested scrollers.** Lenis takes every wheel unless an element opts out. Add `data-lenis-prevent` and `overscroll-contain` to the mobile nav panel (section-navigation.component.tsx:233, which shows in narrow desktop windows too), and `data-lenis-prevent` to the message `Textarea` at its call site (contact.form.tsx:137-144; the props spread through the vendored `textarea.tsx`, which stays untouched). Not `allowNestedScroll`: it walks `getComputedStyle` up the DOM on every wheel.
-- **Fit gate: unchanged.** Its instant `window.scrollBy` (scene-fit-gate.component.tsx:78-93) is adopted while Lenis is idle, which covers page load, deep links and every e2e path. Mid-wheel, Lenis overwrites it and the reader lands off by one scene's growth. That needs a resize, zoom or late font during a wheel, so it is accepted. If it shows up, call `lenis.stop()` then `lenis.start()` on window `resize` in `SmoothScroll`, as the keyboard hand-back does; keep the gate free of Lenis.
-- **CSS and Next: unchanged.** Keep `html { scroll-behavior: smooth }`: Lenis writes with `behavior: "instant"`, which ignores it, and with `auto` the native fragment jump would land within 1px of `jumpScrollTop`, clear the snap (use-dot-field.hook.ts:650-653) before Lenis's first frame, and bring back the shape flash. Keep the `idle` and reduced-motion rules (globals.css:160-168) and `data-scroll-behavior="smooth"` (layout.tsx:26, route transitions only).
-- **Rules for later work.**
-  - `SmoothScroll` never scrolls on mount. The usual Next.js snippet (`lenis.scrollTo(0)` on mount or pathname change) breaks every hash landing.
-  - Long programmatic scrolls go through an in-page anchor click. A bare `lenis.scrollTo` sets no `jumpScrollTop`, so it flashes through every shape.
-  - Safari is untested: Lenis caps at 60fps there and has known trackpad lag (lenis #290). Check it in Phase 6.
-- **Files.**
-  - `package.json`: add `lenis@^1.3.26`.
-  - New: `src/data/motion.data.ts`, `smooth-scroll.component.tsx`, `tests/unit/smooth-scroll.test.tsx`, `tests/e2e/smooth-scroll.spec.ts`.
-  - Edited: `src/app/page.tsx`, `browser-capability.rules.ts`, `section-navigation.component.tsx`, `contact.form.tsx`, `tests/e2e/hero.spec.ts`, `tests/e2e/editor.spec.ts`. For focus clearance (gap review): `src/data/portfolio.data.ts`, `projects-section.component.tsx`, `tests/unit/site-page.test.tsx`.
-  - CLAUDE.md: one bullet. Lenis runs on `/` only, for fine pointers, as core `lenis` driven by its own sleeping loop; it owns anchor scrolls; never give it a wrapper element; never add `scroll-padding-top`. Focus clearance comes from `scroll-mt-18` on each focusable, never `scroll-padding-top` (gap review).
-- **Tests.**
-  - **Existing specs are unaffected.** They scroll with instant `scrollTo` or `scrollIntoView` (hero.spec.ts:47-53, 101-105, 381-387; fit.spec.ts:156), which idle Lenis adopts. No spec uses the wheel. `hero.test.tsx`'s no-RAF checks never render `page.tsx`.
-  - **Unit, `smooth-scroll.test.tsx`.** `vi.mock("lenis")` and the frame-queue pattern from scene-fit-gate.test.tsx. Constructed once with `SMOOTH_SCROLL_LERP`, and mount requests no frame. Nothing is constructed under reduced motion or a coarse pointer (`vi.spyOn(window, "matchMedia")`, because tests/setup.ts always returns false); a reduced-motion `change` constructs or destroys it. `virtual-scroll` requests one frame; a tick while `isScrolling === "smooth"` requests the next, any other state stops. `keydown` during a smooth scroll calls `stop()` then `start()`, and neither otherwise. Unmount cancels the frame and destroys.
-  - **e2e, `smooth-scroll.spec.ts`** (Desktop Chrome). Wait on Lenis's own end state, never `waitForScrollRest`: its 20-frame heuristic resolves 1px early once the lerp is tuned to 0.05 or below (measured).
-    - **Wheel.** Open `/#faq`, put the mouse at the centre and wheel once. Sample `scrollY` every frame. Expect more than 10 distinct frames and `lenis-smooth` on `<html>` during the flight. Then `expect.poll` until `lenis-smooth` is gone (or await the `scrollend` event whose `detail.lenisScrollEnd` is true), and expect the landing to equal the start plus the `deltaY` a window `wheel` listener saw. Don't hard-code 400: at device scale 2 the same wheel moves 200.
-    - **Idle cost.** After that end state, a wrapped `requestAnimationFrame` counts 0 calls in 2s.
-    - **Reduced motion, live.** Assert behaviour, not the `lenis` class: `destroy()` leaves a 400ms velocity timer that re-adds the class (lenis.mjs:493-503, 668-673; measured). After `emulateMedia({ reducedMotion: "reduce" })`, a window `wheel` listener registered after Lenis sees `defaultPrevented === false` and `scrollY` moves the full delta in one frame. Under `no-preference`, `defaultPrevented === true`. Keep a class check only under `test.use({ reducedMotion: "reduce" })`, where Lenis is never constructed.
-    - **Nested scroller.** At 800×400, open the menu and wheel over the panel: the panel's `scrollTop` rises and `window.scrollY` stays put.
-    - **Phones.** In the touch block (hero.spec.ts:397-403), `<html>` never gets the `lenis` class.
-  - **`hero.spec.ts` nav jump (:219-266).** Today the observer resolves on the first `dust` (hero.spec.ts:236-239), which the snap writes before Lenis moves a pixel, so it can't see a mid-flight snap clear. Keep the observer connected until the `scrollend` whose `detail.lenisScrollEnd` is true (5s cap kept). Assert the trail contains `dust`, none of `JUMP_SKIPPED_SCENES`, and only `dust` from its first `dust` onwards. Then `#contact` sits at 72px ±1 and `location.hash` is `#contact`. This is the only guard on the Lenis `scrollend` suppression.
-  - **`editor.spec.ts`.** The preview iframe's `<html>` has no `lenis` class.
-  - **Unit, `site-page.test.tsx` (gap review).** Extend the rule 9 test (site-page.test.tsx:97-113). Render one project with an https link, so the card link exists. Then assert that every `[data-dot-scene] :is(a[href], button, summary, input, textarea, select)` that isn't `[tabindex="-1"]` or `[aria-hidden="true"]` has `scroll-mt-18` in its className. The ContactForm stub keeps the form fields out of scope; they already carry it. No e2e: Chrome centres a fully hidden focus target, so a Shift-Tab walk would pass without the fix.
-- **Acceptance:**
-  - `pnpm check`, the unit tests and every e2e spec pass, including contact, editor and dashboard with Supabase up.
-  - A wheel animates over more than 10 frames and lands exactly on its delta.
-  - 0 RAF calls per 2s at rest after a wheel in dust.
-  - The nav jump to `#contact` never shows a skipped scene during the whole flight, lands at 72px ±1 and updates the hash.
-  - Reduced motion and phones: the wheel and touch are native (not `defaultPrevented`).
-  - The editor preview has no `lenis` class. The nav panel scrolls under the wheel at 800×400.
-  - The owner wheels and trackpads through the page and signs off the feel. `SMOOTH_SCROLL_LERP` is the only knob.
-
-#### Part 1: the shape library
-
-- **Generators:** seeded, pure line-art generators that stipple along paths, like `generateCubePoints` along the cube's edges: the three service shapes and the five process shapes.
-  - **Emit points in pen order now** (planning review, corrected in the gap review). Part 2's draw-on reads the pen order from the point's index (see Part 2, "Draw-on formation"), so each generator emits its points along the stroke from the start. `w` stays the seeded random rank. Otherwise the generators are rewritten in Part 2.
-- **Swap:** change the scene shape constants in `src/data/page-sections.data.ts` (`SERVICES_SCENE_SHAPES` → `branding web-design development`, `PROCESS_SCENE_SHAPES` → `listening planning visualising building delivery`, gap review) and add the ids to `DOT_SHAPE_IDS` (hero.data.ts:76). An id the engine doesn't know is silently skipped (`parseSceneShapes`, dot-field.rules.ts:661-667).
-  - **`building`** may reuse `CUBE_EDGES` and `writeEdgePoint`, but it emits edge by edge in arc-length order, not `generateCubePoints`' round-robin (`index % 12`, dot-field.rules.ts:413), which is not pen order. It keeps its own id and its own `DOT_SHAPE_TUNING` entry.
-  - **Register all eight ids (gap review)** in the `DotGeneratedShapeId` union (hero.type.ts:3) and in `GENERATED_SHAPE_IDS` (hero.data.ts:78), as well as `DOT_SHAPE_IDS`. tsc then flags every `Record<DotGeneratedShapeId, …>` (`DOT_SHAPE_TUNING`, `buildShapeLibrary`, the renderer's `shapeBuffers` and `shapePoints`).
-  - **`GENERATED_SHAPE_IDS` is the one list tsc doesn't check.** The renderer uploads buffers by iterating it (dot-field-renderer.service.ts:330-336), so an id missing from it renders blank with no error.
-  - **Update the specs in the same commit (gap review).** A multi-shape scene reports its step's shape id as `data-scene` (dot-field.rules.ts:755), not the scene id, so the swap breaks:
-    - `SCENE_WALK` in hero.spec.ts and `SCENE_DEEP_LINKS` in anchors.spec.ts: `#services → branding`, `#process → listening`
-    - fit.spec.ts:302: `data-dot-shapes` becomes the new services string
-    - `JUMP_SKIPPED_SCENES`: replace `services` and `process` with the eight step ids. This is tidying; the real guard is Part 0's "only `dust` from its first `dust` onwards".
-- **Tuning:** every number goes in `hero.data.ts`.
-- **Acceptance:**
-  - reduced-motion screenshots show each shape formed in its own slot at 390, 820 and 1440 wide
-  - unit tests per generator (planning review, corrected in the gap review): deterministic for a seed, exactly `SHAPE_POINTS` points, every point inside [-1,1]³, `w` in [0,1), and consecutive points adjacent along the path (gap below a bound)
-
-**Part 0 and Part 1 done notes (2026-09-28).**
-
-- **Pre-flight:** passed. See the result under "Pre-flight" above.
-- **Part 0:** built as specified, plus the two Lenis fixes recorded in its Loop and dot-engine bullets.
-  - Evidence: `smooth-scroll.spec.ts` (6 tests, including the half-pixel stall), the nav-jump spec asserting Lenis ended the flight, and 0 RAF at rest after a wheel.
-  - An adversarial review confirmed 4 of its 11 findings; all 4 are fixed.
-  - **Owner sign-off still open:** the wheel and trackpad feel (`SMOOTH_SCROLL_LERP`).
-- **Part 1:** built.
-  - **The step split** is realigned to the copy (owner decision above): pitch `pin/(n − 1)`, boundaries at `start + (k + 0.5)·pitch`, with transits centred on them.
-  - **Shapes as data.** The eight line-art shapes are strokes in `LINE_ART_SHAPES` (`hero.data.ts`): polylines, arcs (rippled for the seal) and stars, each with a seed. They share `FLAT_LINE_ART_TUNING` (no perspective, no spin, no wobble, so their rest pose is deterministic and the loop sleeps). `building` reuses the quote cube's tuning and spins.
-  - **One sampler.** `generateLineArtPoints` places `SHAPE_POINTS` along the total arc length with stratified-random spacing. That is strict pen order with the cube's stipple look.
-  - **Content choices to confirm by eye:** `visualising` is a UI wireframe (frame, header, image box with an X, text lines, a button), and `listening` is a ring with sound arcs on both sides.
-  - **Evidence:**
-    - `line-art-shapes.test.ts` (35 tests): determinism, count, bounds, rank, pen order (fails for random order), every tuned shape uploaded, and the scene wiring
-    - the e2e scene ids updated
-    - 48 e2e tests pass
-    - reduced-motion contact sheets at 390, 820 and 1440 show every shape formed in its slot
-    - the hero pixel diff is unchanged
-
-#### Part 2: dot choreography
-
-Make every morph an event, not a slide from one slot to the next.
-
-- **Draw-on formation.** Each line-art generator emits its points in pen order, by arc length along the stroke (gap review). The arrival stagger uses that order, so a shape draws itself like a pen:
-  - the seal traces its ring
-  - the browser draws its frame, then its bar
-  - the brackets write left to right
-
-  Departure keeps today's left-to-right dissolve.
-
-  **The pen key comes from the vertex index; `w` stays random** (gap review, replacing the planning review's "keep `uVisible` on a hash").
-  - **The key.** The arrival pen key is `min(float(gl_VertexID) / float(SHAPE_POINTS), 1.0)`, with `SHAPE_POINTS` interpolated into the shader like `OFFSCREEN_CLIP_POSITION` (dot-field.vertex-shader.ts:1, :149). `drawArrays(POINTS, 0, pointCount)` (dot-field-renderer.service.ts:474) makes `gl_VertexID` the buffer index. The clamp keeps padded vertices past `SHAPE_POINTS` from stalling mid-fade. The "little jitter" is the existing `mix(key, randomKey, uMorphJitter)` (vertex-shader.ts:130).
-  - **`w` keeps every current role.** `uVisible`, `randomKey` (jitter, arc) and `HIDDEN_RANK` keep reading it unchanged, so thinning stays even and padded points stay hidden. One division by `gl_VertexID` is not the texture index maths rejected under "Shapes and buffers". Cube, sphere and dust keep their emission order, which is already spatially random.
-  - **Not for the name.** Any segment that touches the name (`hasName`, vertex-shader.ts:126-127) keeps today's `nameKey` sweep. Name points come out in raster order (dot-field.rules.ts:157-158), so a pen key would re-form the hero and the footer name row by row, and every point past `SHAPE_POINTS` would land at once. The pen key applies only when the target is a generated shape.
-  - **Why the planning-review version failed.**
-    - Padded duplicates carry `w = HIDDEN_RANK = 2`, and `fract(2 × 97.13) ≈ 0.26`. Comparing `uVisible` with that hash would show them whenever `uVisible > 0.26`, and it is often 1.
-    - With `w` as path order, that hash is a sawtooth with a period of about 74 points. Thinning would keep and drop alternating runs of about 37 points, so strokes turn dashed, and the arc (which reads `randomKey`) would ripple along every stroke.
-
-- **Burst and gather.** Mid-flight, add a seeded curl-noise displacement that peaks at `t = 0.5` and is zero at both ends. The dots loosen into a drifting cloud between shapes instead of sliding on clean arcs. Bound it so no dot leaves the viewport.
-  - **Per dot, not per segment (gap review).** The envelope is `sin(π · eased)` on each dot's own eased flight, like the arc (dot-field.vertex-shader.ts:140), never the segment's `t`. A dot that hasn't left yet, or has already landed, has no displacement, so the part of the stroke drawn so far stays crisp. With the segment's `t`, at `t = 0.2` dots still waiting to leave would already sit at 59% of the peak, which undoes the draw-on.
-- **Depth swell.** Dots lift toward the camera mid-flight: size and brightness rise a little. Dimness stays opacity, never MAX blending. It uses the same per-dot envelope (gap review).
-- **Arrival strike.** On landing, a brief brightness flash that decays over about 300ms, like a lamp striking. Also give a small spring impulse through `stepDotPhysics`, so a formed shape settles with the same bounce as the pointer scatter.
-- **Direction-aware sweep: nothing to build** (owner, 2026-09-28, gap review). Scrolling back already plays the sweep in reverse, right to left, because it is the same from/to pair with `t` falling (dot-field.rules.ts:803-824). Never flip a sweep key mid-flight: every dot's `localMorph` would jump and the dots would teleport.
-- **Copy crossings** (the Phase 1 tuning point): transit dots must not cross the incoming or outgoing copy column at full brightness. Either dim dots over text boxes or bias the arcs toward the slot side.
-- **Step and shape sync.** With the equal pin split, each shape is still fully formed at the scroll where its copy is aligned. But for Process's five steps, the first and last shape handovers land about 0.14 of a step (about 116px at 1440×900) away from the copy handovers. Decide before wiring the five shapes: accept that skew, or change the split:
-  - put multi-step boundaries at `start + (k + 0.5)·pin/(n − 1)`
-  - make the first and last intervals half length
-
-  The change matches the copy pitch in both layouts and still measures no step rects. If you make it, update the rules tests.
-
-  The split is not strictly equal today: `stepLength` is equal (dot-field.rules.ts:736), but `stepMorphShare: 0.4` (hero.data.ts:110) cuts transits out of the inner boundaries only, so the first and last steps are longer by `halfGap` (dot-field.rules.ts:737-751). Measure the skew from that, not from an equal split. This decision is taken at the start of 3A (see Splitting).
-
-  **Decided (owner, 2026-09-28): realign to the copy.** Change the split as above, for every multi-step scene (Services and Process), before Part 1 wires the shapes. Keep `stepMorphShare`'s transits centred on the new boundaries, and update the rules tests.
-
-- **Transits hidden behind opaque steps.** On portrait phones, the services → about transit runs entirely behind the last services step, which is opaque by design (rule 8), so the flight is invisible there. Choreograph around it: start the transit as the last step unsticks, or route the flight through the band.
-  - **Process → dust has the same geometry** (gap review): the last docked step, followed directly by the dust container (`StepScene` is gone; the orbit's staged board is transparent, so only the unstaged curtains hide the exit). Apply the same fix to both exits, keyed on the component rather than on a scene id.
-- **Engine follow-ups from the Phase 2 fit work** (the engine was off-limits then):
-  - `resolveViewportHeight` takes the tallest `frameHeight + stickyTop`. A frame that grows past `F` (text spacing, 400% zoom) therefore shifts dust boundaries, and `data-scene` reads `moving` early near them. The text stays readable.
-  - Split steps that grew at short landscapes (740×304, 740×280): resolved. Both step scenes now flow there through the fit gate.
-- **Invariants:** every number lives in `hero.data.ts`. Reduced motion is unchanged: no flight, and still shapes only inside pin ranges. The loop still sleeps at rest.
-- **Acceptance:**
-  - frame captures of every transit, name → cube → each service → about → project → each process step → dust → footer name, scrolling down and back up, at 1440 and 390, tuned with Part 0 on; the owner signs off "wow and professional" from them (gap review: the project transits, the exit to dust, the footer finale and the reverse direction were missing)
-  - RAF at 0 fps at rest
-  - the hero passes the pre-flight pixel diff. Part 2 rewrites the vertex shader and adds the strike, so 3A re-checks it rather than leaving a regression for 3B to find (gap review)
-  - no transit frame over 16ms on a mid-range Android, and on desktop with a smoothed wheel (Part 0 puts the scroll on the main thread). Phase 4 names no method yet (planning review): use a Chrome Performance trace and count long frames, on the owner's phone.
-
-**Part 2 done note (2026-09-28): core built; open items listed.**
-
-- **Built:**
-  - **Pen draw-on.** The arrival key is `min(gl_VertexID / SHAPE_POINTS, 1)`, mixed with `randomKey` by `penJitter` (0.12). Departure keeps the screen-x sweep. Each dot flies over `[departKey·s, 1 − (1 − arriveKey)·s]`. Segments that touch the name keep today's `nameKey` sweep at both ends.
-  - **Burst and gather.** Curl noise from 2D value noise, amplitude `burstPixels` (34) and scale `burstScalePixels` (240), both times the pixel ratio. The per-dot `sin(π · eased)` envelope is the same one the arc uses, and a per-dot `randomKey` offset keeps a stroke from moving rigidly. It is clamped to the viewport by bounds that widen to include the dot's own position, so an off-screen dot never moves.
-  - **Depth swell.** Size times `1 + swell·flight` (0.35), and opacity lifted by half that, capped at 1.
-  - **Arrival strike.**
-    - `resolveArrivalStrike` returns `(1 − age/0.3)²` and exactly 0 at the end.
-    - It applies to landings on keyframes with a slot (`canPush`), at most one per `strikeMinIntervalSeconds` (0.5).
-    - Load, deep links and resize never strike: `syncToScroll` records the landed index.
-    - The flash is a dot-size pulse (`strikeSize` 0.5), because white at opacity 1 has no brightness headroom.
-    - `applyArrivalImpulse` gives each dot an outward kick from the shape centre (the name's centre adds `wordCenter`), scaled by ink height. The existing spring settles it.
-    - `shouldLoopSleep` takes `isStriking`.
-  - **Tuning:** every number is in `DOT_FIELD_MORPH_TUNING`.
-  - **At rest every new term is exactly neutral** (times 1.0, plus 0.0), so the hero pixel diff is unchanged.
-- **Evidence:**
-  - unit tests for the strike curve, the impulse and loop sleep while striking (321 total)
-  - 48/48 e2e (GL-error collectors included)
-  - pixel diff unchanged in all four cases
-  - a 1440 transit strip (branding → web-design) shows the seal loosening into a curl cloud and the browser drawing on frame-first
-- **Open, in this order:**
-  1. **Copy crossings.** Transit dots still cross copy columns at full brightness. Choose arc bias or dimming from captures.
-  2. **Transits hidden behind opaque steps.** Fixed wherever the step scenes are staged: the boards are transparent, so the portrait services → about and process → dust exits are visible. Still hidden in the fallback layout (reduced motion never flies, so that leaves only browsers without scroll-driven animations).
-  3. **The engine follow-up from the Phase 2 fit work:** `resolveViewportHeight` with grown frames. (Split steps at short landscapes are resolved: both step scenes flow there.)
-  4. **Acceptance captures.** Frame captures of every transit, both directions, at 1440 and 390, tuned with Lenis on. Tune the strike size and impulse and the burst amplitude by eye, then ask the owner to sign off "wow and professional".
-  5. **The 16ms trace on the owner's phone.** Ask whether they have an Android phone with USB debugging.
-- **The capture harness is not committed.** Scratch scripts did the pixel diff (above), the reduced-motion shape contact sheets (scroll to `start + k·pitch` per step, clip the slot) and the transit strips (scroll to `start + (k + 0.3 + 0.4f)·pitch`, wait about 1.6s, then screenshot). Rewrite them from these notes.
-
-#### Step scene motion (owner redirect, 2026-09-28)
-
-> **Superseded.** The Departure Board gave way to "Services thread" and the Signal Wire to "Orbit" (both below). This section is history; its code, tuning constants and tests are gone.
-
-**The owner's ask.** After Part 2: "I really like the shape shifting but scrolling is less interesting", and How I work "is similar to my services". Both were one `StepScene`, with frame-tall steps scrolling up a column past the pinned shape. The owner suggested horizontal motion or card stacking, "something that fits the design".
-
-**How it was designed.** A judge-panel workflow wrote five independent directions: signal-board, horizontal, stacking, lean CSS and dot-integrated. Three lens judges (owner, design system, engineering) scored every one against the code, and a synthesizer merged the winners and fixed their issues.
-
-- **Owner's picks:** the Departure Board for My services and the Signal Wire for How I work. The owner also approved mirroring How I work (shape on the right in split) and the lamp strike on landing.
-- **Rejected, with reasons:**
-  - a sideways service rail (a generic carousel and a film strip)
-  - 1:1 sticky card stacks (still copy sliding up)
-  - a 3D flip pad (breaks Lit-Not-Lifted)
-  - a shape that walks the wire (needs per-step slots in the engine)
-
-**How it works.** Components are in DESIGN.md; the contract is rule 14.
-
-- **No engine change and no JavaScript.** Both are compositor CSS scroll-driven animations behind the `staged` variant (globals.css), on the container's `--step-scene` view timeline.
-- **Sync.** `resolveStepHandover` (`step-motion.rules.ts`) returns each step's roll-in range in pitch units: `[−share, 0]` for step 0 and `k − 0.5 ± share/2` after it. That is exactly the engine's transit into shape k (`buildSceneKeyframes`). A unit test runs the real keyframe builder and asserts equality for Services and Process, in split and portrait pitches.
-- **Departure Board** (`departure-board.component.tsx`):
-  - Three panels overlap in one subgrid housing.
-  - Each text cell is an `overflow: clip` box with one flap span. The span carries both rolls (`board-flap`: roll in, then roll out, `animation-composition: add`), so an inactive flap is always translated out of its clip, and clipped content is neither painted nor hit-tested.
-  - The last panel has roll-in only.
-  - Cells roll bottom-up, and the title seats on the landing.
-- **Signal Wire** (`signal-wire.component.tsx`):
-  - Five nested wrappers each translate `−100%` over one handover (`wire-travel`). The `ol` sits `left: 100%` inside them, so station k reaches the read-head as shape k lands.
-  - The current (`wire-current`) scales in with the same range and ease, so its tip stays on the read-head.
-  - The lamp fills (`wire-lamp`) over the last quarter of the handover.
-  - The halo strike is the one `data-scene`-keyed rule (five literal selectors in globals.css).
-  - The board bleeds left to the screen edge under `overflow-x: clip`. A mask feathers the last `--numeral-gap` before the read-head, so passed stations fade out there instead of leaving text fragments in the gutter.
-- **Fallbacks.** `staged` needs `@supports (animation-timeline: view())`, `prefers-reduced-motion: no-preference`, height over 30rem, `data-status="running"` and no `data-fit`. Anything else is the Phase 2 layout (How I work mirrored), with no transforms:
-  - reduced motion
-  - no JavaScript (stage `idle`)
-  - no WebGL2
-  - flow mode
-  - 740×304, 740×280, 667×320 and 320×256
-  - Firefox without scroll-driven animations
-
-**Done note (2026-09-28): built, not yet committed.**
-
-- **Measured:**
-  - Container heights equal Phase 2 at every size (for example 2484 = 3×828 at 1440, and 1398 = 592 + 2×403 at 390×664).
-  - The timeline reads exactly 25%, 37.5% and 50% at the Services step marks.
-  - No horizontal overflow mid-transit at 1440, 390 and 375.
-- **Bug found and fixed:** the `view-timeline` shorthand also sets the inset. Emitted after `view-timeline-inset`, it reset the inset, and every handover ran 72px late. Use the longhands (now in CLAUDE.md).
-- **Tests:**
-  - `step-motion-rules.test.ts`: handovers, flap timing and order, the strike selectors, and the keyframe cross-check
-  - `site-page.test.tsx`: the mirror, reading order, one board per scene, the last panel never rolling out, one lamp per process shape
-  - `step-motion.spec.ts`, at 1440, 390 and 375: every panel or station whole at its keyframe, siblings clipped, the active title on top of hit testing, `data-scene` and the strike, no sideways scroll; plus reduced motion, 740×280 and no WebGL2
-  - fit.spec's two synchronous scans now run under reduced motion, because Chromium samples scroll timelines once per frame
-  - 336 unit tests and 60/60 e2e (including contact, editor and dashboard with Supabase up) pass on a production build
-- **Open:**
-  1. **Closed** (both boards replaced). It read: the owner scrolls it with a wheel, a trackpad and a phone, and signs off the feel. Tuning was `BOARD_FLAP_ROLL_SHARE`, `WIRE_LAMP_FILL_SHARE` and `WIRE_STRIKE_SCALE`; the handover length is the dots' own `stepMorphShare`.
-  2. **Safari 26 on an iPhone.** Its scroll-driven threading and the subgrid flaps are unverified.
-  3. **Part 2's 16ms trace** now covers these transits too (up to 16 flaps, or 14 wire animations, mid-roll alongside a heavy dot frame).
-  4. **Known limit:** find-in-page, or a screen-reader highlight, on a rolled-out service or another station lands on clipped text until the reader scrolls there.
-
-#### Services thread (owner redirect #2, 2026-09-28): prototype built
-
-**The owner's verdict on the above:** only the hero and the quote are liked, "the rest is garbage". Focus on Services and make the dots the show, not the copy. Of three directions, the owner picked **one line, three services**. The other two were an exploded 3D view and words in dots. The Departure Board is removed; a patch of it is kept outside the repo, for reference only.
-
-**What was built.** It is a prototype for the owner to scroll; see DESIGN.md "Thread (My services)".
-
-- **Engine:**
-  - **`DOT_SCENE_MOTION`** (hero.data.ts) gives a scene its own share and a thread flag. Today it holds `services: { share: 0.72, isThread: true }`. `buildSceneKeyframes` reads it and marks multi-shape keyframes `isThread`.
-  - **Thread segments.** A segment whose two ends are both thread keyframes gets `frame.thread = 1`. The shader then departs in pen order (`gl_VertexID`) as well as arriving in pen order, with:
-    - `threadStagger` 0.97 (a 3% flight window)
-    - `threadJitter` 0.015
-    - a coherent `threadArcPixels` 90 bow
-    - `threadBurst` 0.12
-    - `threadSpin` 0.2 (a damped transit yaw)
-  - **Invariant:** with `uThread` 0 the maths is identical, so every other transit is unchanged.
-- **Shapes:**
-  - The three service shapes carry z depth layers (`LINE_ART_SHAPES`) and `THREAD_LINE_ART_TUNING`: perspective, a pitch lean, and `sway` 0.32 rad at `swaySpeed` 0.45.
-  - `sway` counts as spinning (`isShapeSpinning`), so the loop stays awake while a service shape is formed, as it does for the cube.
-- **Layout** (`services-section.component.tsx`):
-  - It keeps the DOM contract: the container, a sticky frame first (label, flex slot, caption spacer) and one slot.
-  - The container is `F + 2·pitch` tall, with pitch `1.2·F`.
-  - Captions sit in a `--caption`-tall area: 15rem in split, 18rem in portrait and 17.75rem on short screens.
-  - **Staged:** one sticky board. Each caption line (`[data-caption-line]`, `staged:caption-line`) is hidden by a clip wipe, and it shows through a CSS transition while the stage's `data-thread` equals its `[data-caption]`. The literal selectors are in globals.css. Timings come from `buildThreadCaptionStyle`.
-  - **Base** (reduced motion, or no scroll-driven animations): each caption docks at `k·pitch` as an opaque sticky curtain.
-- **Triggered, not scrubbed** (owner, 2026-09-28: "automatically create the dot design rather than getting stuck between scrolls", and time the text with it):
-  - **Committing.** Inside a thread segment, `resolveTriggeredTarget` turns the scrubbed target into a committed whole shape. It moves forward once a downward scroll passes `threadTrigger` (0.12) of the transit, and back once an upward scroll passes it from the end. A stopped scroll keeps the commitment, and a fresh load takes the nearer shape.
-  - **Playing.** `followTriggeredProgress` plays the committed segment at a constant rate over `threadDrawSeconds` (1.6), and the frame applies `easeInOutSine` to the thread progress. Jumps of more than one segment still snap.
-  - **`data-thread`.** The hook publishes it (`resolveThreadState`: the thread keyframe nearest the committed target, else absent) next to `data-scene`.
-  - **Entry and exit stay scrubbed.** The seal would otherwise finish drawing over the outgoing quote.
-- **Glide lock** (owner, 2026-09-28: "lock it until the animation is done so we don't skip, but make it smooth"):
-  - **The event.** On a thread-to-thread commit, the hook (`announceThreadCommit`) dispatches `DOT_THREAD_COMMIT_EVENT` with the committed keyframe's rest top (`resolveKeyframeRestTop`, the middle of its range) and `threadDrawSeconds`. It never fires during a nav jump (`jumpScrollTop`) or under reduced motion.
-  - **Desktop.** `SmoothScroll` calls `lenis.scrollTo(top, { duration, easing: easeInOutSine, lock: true })`. Lenis swallows wheel input while locked (lenis.mjs:613).
-  - **Phones** (no Lenis): a RAF glide on the same ease, with `overflow: hidden` and `scrollbar-gutter: stable` on `<html>` until it lands.
-  - **Releases.** A key press, an in-page anchor click (a document capture listener, which runs before Lenis's anchor handler) or a switch to reduced motion releases either lock.
-  - **Measured on the dev server.** The desktop glide lands exactly on the rest top (3280, then 4204 at 1440), and a 3000px wheel during it is ignored. The phone glide lands exactly and restores `overflow`.
-  - **Accessibility note.** Holding the scroll for 1.6s is the owner's call. Reduced motion is exempt, and keyboard and nav stay free.
-- **Bug fixed (owner, 2026-09-28): "Branding instantly transitions to Web design."**
-  - **Cause.** The first step has only half a hold (about 140px at 1440), and the trigger sat 85px past it. Nothing caught the arrival from the scrubbed quote-to-seal entry, so wheel or trackpad momentum carried straight through Branding into the Web design trigger.
-  - **Fix 1, arrivals are commits.** `resolveThreadCommit` now also fires when the target enters a thread keyframe from outside, from above or below. The hook glides the reader onto it over `threadArriveSeconds` (0.9).
-  - **Fix 2, the near shape first.** `resolveTriggeredTarget` commits to the near keyframe first when the committed target is still outside the segment. A fast frame that lands mid-transit therefore stops at Branding, never at Web design.
-  - **Fix 3, one gesture, one service.** After a Lenis glide lands, `SmoothScroll` keeps Lenis stopped until the wheel stream has been quiet for `WHEEL_GESTURE_QUIET_MS` (180). Lenis emits `virtual-scroll` before its lock check, so trackpad momentum is absorbed.
-  - **No hold after jumps.** Commits are announced only from real scroll events and only when the target moved at most one segment. Loads, resizes, nav and multi-scene jumps never hold the reader.
-  - **Measured on the dev server (1440):**
-    - A trackpad-style fling from the quote, 24 fast wheel notches, and slow notches 0.4s apart all stop on Branding.
-    - With slow notches, the first notch after the landing stays on Branding and the second commits to Web design (`threadTrigger`).
-    - The e2e regression test flings from the quote and asserts Branding holds.
-- **Fit gate:**
-  - A slot shorter than `SCENE_MIN_SLOT_PX` (64) now flows the scene, so landscape phones (740×360, 740×304) get the reading list.
-  - It re-checks when reduced motion toggles (review finding).
-- **`staged` is screen-only** (review finding: printing dropped the step copy).
-
-**Evidence:**
-
-- 360 unit tests pass. Beyond the list below, they cover:
-  - thread commits, arrivals, the near-shape rule and the no-hold-after-jump rule
-  - the rest top
-  - the locked glide in `SmoothScroll` for Lenis, touch, a nav release and reduced motion
-  - the gesture-quiet hold
-
-  The earlier tests cover:
-  - the per-scene share and thread keyframes
-  - trigger direction, threshold and hysteresis
-  - the constant-speed triggered follow and the thread state
-  - the caption selectors
-  - a cramped slot flowing the scene
-
-- `pnpm check` is clean.
-- 66/66 e2e pass on a production build. `step-motion.spec.ts` checks:
-  - a fling from the quote stops on Branding
-  - a stopped scroll past the trigger finishes the drawing and the caption by itself
-  - a nudge below the trigger doesn't trigger
-  - the wheel stays locked during the glide and lands on the rest top
-  - the phone glide pauses touch scrolling and restores it
-
-**Open:**
-
-1. **The owner scrolls it** with a wheel, a trackpad and a phone. The knobs are `threadDrawSeconds`, `threadTrigger`, `threadStagger`, `threadArcPixels`, `sway`, `DOT_SCENE_MOTION.services.share` and the `CAPTION_*` timings in motion.data.ts.
-2. **Loop cost.** The sway keeps the loop awake in Services. Elsewhere it is still 0 RAF at rest.
-3. **Landscape phones** lose the pinned shapes in Services.
-4. **The Signal Wire's open review findings** are closed: the orbit replaced it (see below).
-
-#### Orbit (owner redirect #3, 2026-09-29): built
-
-**The owner's ask.** "For the how I work section … create orbit line, when I'm scrolling it will move right, similar to the functionality of https://buckssauce.com/", with a screenshot of its "Why Bucks Sauce" section. The Signal Wire is gone.
-
-**The reference, measured** in Edge at 1903×868 (the site sits behind a Vercel bot check, so curl and WebFetch get a 429):
-
-- A GSAP ScrollTrigger pin of 1736px.
-- A 1000px SVG ring scaled 8×, so R ≈ 3992px (2.1·W). Two dashed circles at 30% opacity: a fine dash and a bold tick, 1.94 units apart.
-- Three steps 12.8° apart, rotated tangent, numeral centre on the ring. Scrubbed linearly: the steps turn −25.8° while the ring turns +720°.
-- On entry, digits rise from `translate(0,100px) rotate(random) scale(.5,1.5) opacity 0`; the plate and copy fade in. A mascot stays fixed, upper right of the active numeral.
-
-**Owner decisions** (this session):
-
-1. The five process shapes stay, in a slot at the mascot's spot, upper right of the active numeral.
-2. Step-synced, not linear: the orbit turns one step during each dot transit and rests while the shape is formed. The ticks stream with the scroll the whole time.
-3. Direction as in the reference: ticks stream right, the next step enters from the right.
-4. The plate is a filled Lamp White plate, as in the screenshot (a DESIGN.md exception).
-
-**How it works** (`process-section.component.tsx`, `step-motion.rules.ts`, globals.css `orbit-*`):
-
-- **No engine change and no JavaScript.** CSS scroll-driven animation behind `staged`, on the container's `--step-scene` view timeline.
-- **Turn.** Four nested wrappers (steps 1–4) each rotate `−--orbit-step-angle` over one handover (`buildTravelStyle`, the wire's nesting pattern), about `50% calc(--orbit-ring-y + --orbit-radius)`. Step `i` sits at `rotate: i·angle` with its origin at the same circle centre, so step `i` reaches the top exactly while shape `i` is formed. The keyframe cross-check in `step-motion-rules.test.ts` still pins that.
-- **Ticks.** A band-shaped SVG (frame-wide, sagitta plus tick tall, the UA's `overflow: hidden` clipping it) with two `<circle pathLength="3600">`: `cx`, `cy` and `r` are CSS, so user units are px. `orbit-spin` moves `stroke-dashoffset` by `ORBIT_RING_SPIN_RATIO` (0.8) × the orbit's whole turn, linearly across the pin. It repaints a ~1500×110px band, never rotates a 6000px layer. The reference's 28× would alias (about 30px of tick travel per scrolled px against a 13px period).
-- **Assembly.** Each step's digits (`orbit-digit`, tilts from `ORBIT_DIGIT_TILTS_DEGREES`) and its plate and paragraph (`orbit-reveal`, a clip wipe) run over `resolveAssembleHandover`: steps 0 and 1 on the entry transit, step `i ≥ 2` as it turns in from the right edge.
-- **Geometry** (container classes; derived values computed in CSS from unitless numbers, all `--orbit-*`, never `--radius`):
-  - split: numeral `clamp(6rem, min(50svh − 8rem, 22vw), 22rem)`, R 210vw, spacing 52vw (θ ≈ 14.2°, the next numeral peeks ~100px like the reference), tick period 2.5 tenths of a degree (≈13px at 1440).
-  - portrait: numeral `clamp(4.5rem, 14svh, 7.5rem)`, R 260vw, spacing 115vw (neighbours fully off screen), period 8 (≈14px at 390).
-  - `--orbit-step-top` (the numeral top) is `max(heading block, 1rem + slot + 4px)` in split and `band + 0.75rem` in portrait. The split slot sits above that line, right of the numeral, so nothing on the rim ever sweeps the forming shape and the plate never meets it.
-  - Antonio has no `tnum` ("01" is 0.82em, the rest 0.96em). The numeral's line box is 0.86em with a −0.078em nudge, so its ink centre lands on the ring (`--orbit-ring-y = step-top + 0.43·numeral`).
-- **Modes.** Unstaged (reduced motion, no scroll-driven animations, idle), the steps are opaque sticky curtains docking below the heading and slot, and the ring is hidden. Split + short (height ≤ 30rem: 740×360/304/280) and 400% zoom flow to the reading list, like Services. Forced colours hide the ring and numerals (`forced-colors:hidden!`, which must beat `staged:block`) and border the plate.
-- **Pitfall found (curtains):** spacing the docked curtains with `not-last:mb-*` made every earlier curtain ride up into the heading and slot over the last pitch, because a sticky element's margin box must stay inside the list. `not-first:mt-*` docks identically and never pushes. `step-motion.spec` now sweeps the whole pin under reduced motion at 1440 and 390 and fails if any curtain enters the top band.
-- **Pitfall found (keyframes):** unitless `stroke-dashoffset` values (SVG's number quirk) and an `inset()` clip animated to an implicit `none` both animate discretely: the ticks jumped once mid-pin and the plate popped in. The keyframes use `calc(… * 1px)` and an explicit `to` inset; `readOrbit` hit-tests the active plate and paragraph and `checkOrbitTurns` asserts the dash offset differs at every formed position.
-- **Pitfall found (colour):** `--color-foreground` resolves once at `:root` (light theme, near black), so a stroke of `var(--color-foreground)` vanished on the dark stage. Use `var(--foreground)`, which the stage overrides.
-
-**Evidence** (2026-09-29): 366 unit tests; `pnpm check` clean; captures at 1920×1080, 1440×900, 1280×720, 768×1024, 390×664, 375×548 and 360×640 (formed positions, mid-turn, reduced motion, 740×280, forced colours), with `data-scene` right at every formed position, no sideways overflow, and staged/idle boxes identical. The new e2e: "turns the orbit one step per shape" (1440, 1920, 390, 375), "keeps the orbit's boxes identical staged and unstaged", the reduced-motion curtains, the 740×280 flow and forced colours; fit.spec's small-phone, text-spacing and 400% zoom checks now cover `#process` too.
-
-**Open:**
-
-1. **The owner scrolls it** on a wheel, a trackpad and a phone. Knobs: the numeral and slot sizes and `--orbit-radius-vw` / `--orbit-spacing-vw` in the section's classes, `ORBIT_RING_SPIN_RATIO` and `ORBIT_DIGIT_TILTS_DEGREES` in motion.data.ts, and the handover length (the dots' own `stepMorphShare`).
-2. **Dot density in the smaller slot.** At 1440 the slot is 317px (was ~504). The captures read well at the default `pointsPerArea`; if strokes look thin on the owner's screens, raise `FLAT_LINE_ART_TUNING.pointsPerArea` (Process-only) toward 0.06–0.08.
-3. **Known limits.** Find-in-page on a far step lands off the arc (far steps sit up to ~57° round a ~3000px radius in split, and up to ~101° round a ~1000px radius on a portrait phone). Short landscape phones lose the Process shapes. The tick period grows to about 23px at 2560 wide. On a portrait phone steps 02–05 assemble off screen (their neighbours sit fully off screen), so they arrive already assembled; only step 01's assembly plays in view.
-4. **Safari 26** and **the 16ms trace** (Part 2's open items) now cover the orbit too.
-5. **Services has the curtain bug the orbit fixed** (found 2026-09-29, not fixed: out of the orbit's scope). Under reduced motion at 1440, from about 1.25 pitches into the Services pin, the earlier captions ride up over the slot (`not-last:mb-[calc(var(--pitch)_-_var(--caption))]`, services-section.component.tsx). Fix: `not-first:mt-[…]` with `staged:mt-0` and `unpinned:mt-0`, then add a curtain sweep like Process's.
-
-#### Part 3: section motion
-
-One motion grammar, authored once, in the signal-board world: things power on like lamps, lines draw like wire, and copy wipes in like the quote. No per-section novelty, with one owner-made exception: My services and How I work have their own motion ("Services thread" and "Orbit" above).
-
-- **Headline power-on.** Every section `<h2>` lights up the way the wordmark does. It starts at the 14% ghost, and a feathered sweep (26px feather, `SIGNAL_EASE`, about 0.9s) lights it left to right as it enters.
-  - Use a CSS mask on the heading itself. Don't split it into letters, so screen readers still read it whole.
-  - Arming follows the Constraints below, for every reveal, not only headings (planning review, widened in the gap review).
-  - The Projects h2 drops `QUOTE_REVEAL_VARIANTS` and takes the power-on, so it gets one reveal, not two (gap review).
-- **Copy slides in.** Paragraphs rise line by line from behind a clip (100% up), staggered 60–80ms.
-  - Line splitting must survive the WCAG 1.4.12 text-spacing re-measure (see Landmines) and re-split on resize (planning review). If it can't, rise per paragraph.
-  - **SiteContent paragraphs rise per paragraph** (gap review). The Projects lede and the card summaries (projects-section.component.tsx:108-112, :170-178) come from SiteContent and change live in the editor preview, which re-renders `SitePage` on every message. A line splitter that re-splits only on resize would keep showing the old text there. Line splitting is only for static `src/data` copy.
-- **Hairlines draw** left to right, staggered: the stats rule, the FAQ rows, the testimonial and blog rules. Use scaleX from the left on a dedicated rule element or a pseudo-element. The service items are excluded: their rails are the departure board's static housing.
-- **Step handovers (Services, Process): superseded, not built.** "Step scene motion" above replaced them (owner, 2026-09-28). The copy now changes on the scene's own scroll timeline, so the `data-scene`-keyed wipe, its eight literal selectors and `data-step` are dropped. Part 3 leaves the step copy alone: no paragraph rise and no service-item hairline draw inside a step scene. The thread's captions and the orbit are those sections' motion.
-- **About:** the stats count up (0 → 5+, 500+, 140) when the stats row enters view.
-  - **The trigger** (gap review) is the same observer as every other reveal (`amount: 0`, margin 0 or more), never `data-scene`. A scroll that rests mid-transit leaves `data-scene` at `moving`, and a scene-keyed count would sit at 0 for as long as the reader stays. Under replay, the count re-arms (back to 0) only once the row has fully left the viewport.
-  - **The real value never leaves the DOM** (gap review). The `<dd>` keeps "5+", "500+" and "140", transparent while armed or counting. The digits (0 while armed, then counting) are an `aria-hidden`, tabular-nums overlay rendered from a Motion value child. So assistive tech, find-in-page and translation never read "0 happy clients", and the real text reserves the width, which makes the old fixed-width note unnecessary.
-  - Under `unpinned:` (no WebGL2, flow mode) and reduced motion, the final values show and nothing counts.
-- **Let's connect:** the heading powers on, then the "Email me" action wipes in. The address flickers on character by character, like a departure board.
-  - **Accessible text** (gap review, replacing the planning review's `aria-label`, which failed WCAG 2.5.3 Label in Name because the link's visible name is "Email me"). The link keeps "Email me" and has no `aria-label`. The address stays one real text node in its `<p>`, transparent while the flicker plays. The flicker is an `aria-hidden`, `select-none` overlay of character spans, removed when it settles. Assistive tech and select-all always get the address exactly once. Timings go in motion.data.ts.
-- **FAQ:** answers open with an eased height where supported (`interpolate-size: allow-keywords` or a `::details-content` transition) and snap elsewhere. This is a named exception to the property list below.
-  - **The plus is a state, not yet a motion** (gap review). `group-open/faq:rotate-45` (faq-section.component.tsx:45-50) has no transition, so it snaps. Add `motion-safe:transition-transform ease-[cubic-bezier(0.65,0,0.35,1)]`, following the project card (projects-section.component.tsx:56-58).
-  - **One duration, at most 0.4s,** shared by the plus and the height, recorded in motion.data.ts. The height is the one effect here that moves layout. Browsers forgive shifts only within 500ms of a click or key press, so this keeps CLS 0.
-  - The height transition is `motion-safe` only, because `useReducedMotion()` doesn't reach CSS.
-- **Testimonial and blog placeholders:** the plates wipe open from the bottom (`clip-path` inset), staggered.
-- **Reading sections: heading parallax, in CSS** (gap review, replacing "scroll-linked parallax on the inner columns").
-  - **Where:** the heading drifts only where it sits beside its content: FAQ (faq-section.component.tsx:20) and Get in touch (contact-section.component.tsx:17), at 48rem and up. Testimonials, Blog and Let's connect stack or centre their heading at every width, so they get none. The content column (the FAQ rows, the form) never moves. The drift is at most 40px, so the reading sections feel layered over the dust.
-  - **How:** a keyframe on the individual `translate` property on `animation-timeline: view()`, in globals.css. Use `translate`, not `transform`, which would override an inline transform Motion writes on the same element.
-    - Wrap it in `@supports (animation-timeline: view())` and `@media (prefers-reduced-motion: no-preference) and (min-width: 48rem)`, so browsers without scroll-driven animations get no drift.
-    - The 40px lives in motion.data.ts and reaches the keyframe as a custom property.
-    - If the heading's power-on is also a CSS animation, both share one `animation` declaration.
-  - **Why not Motion:** `useScroll` plus `useTransform` on `y` is written from the main thread (`y` isn't an accelerated key, motion-dom accelerated-values.mjs:4-10), a frame behind a phone's compositor scroll. Neither `INSTANT_TRANSITION` nor `MotionConfig reducedMotion` reaches a scroll-bound value. The CSS version needs no client leaf.
-  - Tune it with Part 0 on; on a stepped wheel, parallax looks cheap.
-- **Nav:** a single lit dot slides under the active centre link as the page scrolls (scroll-spy). The only round things on the site are dots and the How I work orbit track, apart from the cursor's ring if the owner approves Part 4.
-  - There is no scroll-spy today (planning review). `activeSection` changes only on a click (portfolio-ui.store.ts:26-28, section-navigation.component.tsx:94-100), so `aria-current` shows the last click. Build the scroll-spy first, and correct DESIGN.md:271, which overstates it.
-  - **Mechanism** (gap review):
-    - **Resolver.** Resolve the active id inside the existing `useMotionValueEvent(scrollY)` handler (section-navigation.component.tsx:63-65), through a pure function in a rules file. The rule is the last of all ten `PORTFOLIO_NAVIGATION` targets, not the five centre links, whose `getBoundingClientRect().top` is 73px or less (the `scroll-mt-18` landing plus 1). The handler already fires when a deep link or restored scroll leaves `scrollY` above 0, so it needs no mount pass.
-    - **Not `data-scene`.** One dust scene holds Connect through Contact, so it can't name Blog.
-    - **A new store action.** Write through a new `setActiveSection` action (add it to the store and `PortfolioUiActions`) that leaves `isMobileNavOpen` alone. `selectSection` closes the menu (portfolio-ui.store.ts:28), so reusing it would shut an open menu mid-scroll. Clicks keep using `selectSection`.
-    - **Owner defaults (2026-09-28).** The dot shows only when the active id is a centre link, and hides elsewhere. During a nav flight it steps under each centre link the page passes, which needs no extra code. The mobile panel keeps `aria-current` on all ten links.
-  - The nav dot and the cursor's dot share size, colour and easing.
-  - **Scroll-progress hairline** (owner extra, gap review). A 1px `aria-hidden` span on the header's bottom edge, `origin-left`, scaled on x only (`scale: 0 1` to `scale: 1 1`, so it stays 1px tall) on `animation-timeline: scroll(root)`.
-    - Pure CSS: compositor-driven, no client leaf, 0 RAF.
-    - **Wire Grey intensity** (foreground at 0.4), never Lamp White. The verifier warned that a moving full-width line competes with the dots and the nav dot, and DESIGN.md:127 keeps Lamp White for the one element that should read first.
-    - Hidden where `@supports (animation-timeline: scroll())` fails. It stays under reduced motion, because it moves only with the reader's own scroll, like a scrollbar.
-    - The header isn't an ancestor of the canvas or a slot, so rule 4 holds.
-    - DESIGN.md: add a Components entry, and amend :118's "no scene counter, film strip" line to allow this one hairline.
-- **Mobile menu wipe-open** (owner extra, gap review). The panel (section-navigation.component.tsx:227-238) wipes open top to bottom.
-  - **The class string** is a constant in motion.data.ts: `[clip-path:inset(0)] transition-[clip-path] duration-300 ease-[cubic-bezier(0.65,0,0.35,1)] starting:[clip-path:inset(0_0_100%_0)] motion-reduce:transition-none`.
-  - `@starting-style` gives the entry from the `hidden` attribute's `display: none`. Closing snaps, and there is no link stagger, because `renderLink` is shared with the desktop centre nav.
-  - DESIGN.md:271 gets one clause.
-  - Part 0's 800×400 nested-scroller spec waits for the computed clip-path to reach `inset(0)` before it wheels, because clip-path affects hit testing.
-- **Footer:** the bar's links power on in a stagger when the bar enters view (gap review). The bar docks with the frame, so it lands with the name's re-form. Never key it on `data-scene`: without WebGL2, or after a context loss, `data-status` is `unsupported` and `data-scene` freezes (use-dot-field.hook.ts:284-293, 780-784).
-- **Contact success moment** (owner extra, gap review). Today the form unmounts and a `role="status"` line replaces it (contact.form.tsx:65-71). That collapses the height, which is a layout shift on phones, and focus falls to `body`.
-  - **Keep the height.** Stack the form and the acknowledgement in one grid cell (`[grid-area:1/1]`). On success the form becomes `invisible`, which also removes it from focus and the accessibility tree, so the cell keeps its height.
-  - **Motion and focus.** The acknowledgement `<p tabIndex={-1}>` wipes in left to right in the quote grammar (instant under reduced motion) and receives focus. It carries `scroll-mt-18` (rule 9), so on a short phone the focus scroll doesn't park it under the header. The rule 9 unit guard skips `tabindex="-1"`, so this one is set by hand.
-  - **Drop `role="status"`.** Focus already announces the message, and keeping both double-reads. WCAG 4.1.3 doesn't apply to a message that takes focus.
-  - Update contact.spec.ts:35 to `getByText(CONTACT_ACKNOWLEDGEMENT)` plus `toBeFocused()`.
-  - The anti-spam checks (honeypot, two-second minimum, rate limit) are untouched.
-- **Constraints** (the DOM contract still binds):
-  - Animate inner elements only: never a scene container, a frame, an ancestor of a slot, or an ancestor of the canvas (rule 4).
-  - Animate `transform`, `clip-path`, `mask` and `opacity` only. Named exceptions: the FAQ answer's height, and the cursor ring's size (Part 4).
-  - Motion lives in small client leaf components, so the sections stay server components.
-  - Under `useReducedMotion()`, every effect renders its final state (`INSTANT_TRANSITION`).
-  - Content must be visible without JavaScript. Reveals arm only after hydration, never from a server-rendered hidden state, and text is never opacity-hidden from assistive tech.
-  - **The existing reveals already break that rule** (gap review). Motion writes `initial` into the server-rendered style (framer-motion use-visual-state.mjs), so without JS there is no nav, no name, no tagline, no quote and no Projects heading today.
-    - Tag each element Motion styles with `data-reveal`:
-      - the header and its three group children (section-navigation.component.tsx:177, 192, 196, 204)
-      - the wordmark wrapper and the h1 (hero.component.tsx:184, 217)
-      - the tagline (:239) and the cue (:262)
-      - the quote `<p>` (quote-section.component.tsx:59) and the figcaption (:75)
-      - every new Part 3 reveal
-    - Add one rule to globals.css: `@media (scripting: none) { [data-reveal] { opacity: 1 !important; clip-path: none !important; transform: none !important } }`.
-    - Tag the elements themselves, with no descendant `*`: the wildcard would force the hero ghost span's 0.14 opacity to 1 and undo `sr-only`.
-    - The rule is inert while scripts run, so the JS path and the hero pixel diff don't change.
-    - If a `javaScriptEnabled: false` context doesn't match `scripting: none`, ship the same rule as `<noscript><style>` in page.tsx.
-  - **Nothing that must end visible waits on `data-scene` or a pin alone** (gap review). Without WebGL2 the hook returns before publishing a scene, so `data-scene` stays `name`. In flow mode a step scene reports its container id.
-    - **What `unpinned:` covers** (globals.css:19-27): an unsupported stage, or a container with `data-fit="flow"`. Only the step scenes (`ServicesSection`, `ProcessSection`) render the fit gate, so it covers step copy on both paths, but About and the footer only on an unsupported stage. Under it, every step's copy, the stats and the footer links render their final state.
-    - **About never flows.** At 400% zoom its frame grows to the container's height, so its pin shrinks to about 1px. That is why the count-up and the footer stagger trigger on view, not on a pin or on `data-scene`.
-  - **Arming** (gap review, widening the planning review's heading rule to every reveal):
-    - Every reveal arms only if its element is outside the viewport (above or below) at hydration. Under replay, "above" matters too: after a deep link, the sections above it still reveal on the way back up. That covers the heading power-on, paragraph rise, hairlines, plates, the footer stagger, the address flicker, the count-up, and the existing quote and projects-heading reveals.
-    - Anything in view then (a deep link, or a reload's restored scroll) keeps its server-rendered final state until it first leaves the viewport.
-    - Arm from the observer's first callback, or by writing a DOM attribute through a ref (the status-attribute pattern), never with synchronous setState in an effect.
-    - While armed, a reveal's element carries `data-reveal="armed"`.
-  - **Reveals replay on re-entry** (owner, 2026-09-28, gap review; replaces "reveals play once").
-    - A reveal re-arms once its element has fully left the viewport, and plays again when it re-enters (`once: false`, `amount: 0`). `QUOTE_VIEWPORT` and `PROJECTS_HEADING_VIEWPORT` switch to the same behaviour, with margin 0 (hero.data.ts:273-277, portfolio.data.ts:12-16). With `once: false`, a negative margin would hide the quote while it is still in the bottom band on the way back up.
-    - A nav jump can no longer use up the reveals it flies past.
-    - Under reduced motion nothing replays; the final state stays.
-    - Load animations (the header drop-in, the hero intro) are not scroll reveals and are unchanged.
-    - DESIGN.md:258's "It plays once" is updated.
-  - A `whileInView` margin must already hold at the element's pinned position (rule 11).
-  - **Margins are 0 or more** (gap review). Never a negative bottom margin, the house precedent (`QUOTE_VIEWPORT` −20%, `PROJECTS_HEADING_VIEWPORT` −10%). A power-on heading resting in an excluded band would stay at the 14% ghost, about 1.3:1.
-- **Tuning:** every duration, stagger and feather goes in `src/data/motion.data.ts` (Part 0 creates it). `SIGNAL_EASE`, `INSTANT_TRANSITION` and the existing variants stay in `hero.data.ts`; reuse `resolveMotionTransition` (motion.rules.ts:5). Use the impeccable skill's `animate` reference for the pass.
-- **Tests** (gap review):
-  - **fit.spec's two scan tests** (now "<scene> under WCAG text spacing" and "<scene> at 400% zoom", looped over `#services` and `#process`) run under `test.use({ reducedMotion: "reduce" })`, as hero.spec.ts:352 does. Done.
-    - The scan moves the page inside one synchronous evaluate (fit.spec.ts:151-156), so no IntersectionObserver, scroll handler or RAF runs during it. Armed reveals never fire, so line-rise clips and the quote wipe would read as never-visible lines. (`data-scene` stays `name`, which leaves step copy lit under the handover rule.)
-    - Reduced motion renders every final state, which is the layout that WCAG 1.4.12 and 400% zoom are about. Don't loosen the scan instead.
-    - The 375×548 overflow test stays motion-on, so armed steps are still measured. These scans don't prove a motion-on reveal fires; the armed guard below does.
-  - **Unit:** the scroll-spy resolver (including a non-centre id such as `faq`), and a check that `setActiveSection` keeps the menu open.
-  - **e2e scroll-spy** at 1440: an instant scroll to each of `#services`, `#about`, `#project`, `#process` and `#blog` makes that Primary link `aria-current`, loading `/#about` marks About, and at `#faq` no Primary link is current.
-  - **e2e hairline:** its computed x scale is about 0 at the top and about 1 at the bottom of the page.
-- **Docs:** reword CLAUDE.md:113 to the new `aria-hidden` rule (see "Kept invariants"). In DESIGN.md: :258 (replay, and the quote now reveals on entry with margin 0 instead of 20% in), :271 (scroll-spy, menu wipe), the hairline entry and :118. In this handoff: DOM contract rule 11's "it is now −10%" becomes 0 (gap review).
-- **Acceptance:**
-  - screen recordings of a full scroll at 1440 and 390, signed off by the owner
-  - before that sign-off, Part 2's frame check is re-run with Part 3 on, over the same route: no transit frame over 16ms on the owner's phone or on desktop with a smoothed wheel, using a Chrome Performance trace. Part 3 starts DOM motion in the dots' heaviest frames, the landing frame that writes `data-scene` (gap review)
-  - reduced-motion screenshots with the DOM copy laid out as in Phase 2. The canvas (Part 1 changes its shapes), the new nav dot and the hairline are excluded (planning review).
-  - a no-JavaScript render shows all copy: in a `javaScriptEnabled: false` context, every `[data-reveal]` element and every section h2 has computed opacity 1, clip-path none, transform none and mask-image none (the power-on hides with a mask). Assert computed styles, not `toBeVisible`, which counts opacity 0 as visible (gap review)
-  - with `getContext('webgl2')` stubbed to null by `addInitScript`, again after `WEBGL_lose_context.loseContext()`, and at 320×256 (step scenes flowed): every step's copy is unclipped, the stats end at 5+, 500+ and 140 once in view, and the footer nav, email link and Back to top end at full brightness (gap review)
-  - step scenes: at every formed keyframe the matching caption or orbit step is whole and unclipped (`step-motion.spec.ts` asserts this; for the orbit, `readOrbit` hit-tests the active plate and paragraph). Mid-transit the orbit is mid-turn, which the owner accepted with the design (2026-09-29)
-  - armed-reveal guard, in fit.spec.ts: after each step of a stepped top-to-bottom scroll, with frames between steps so observers fire, no `[data-reveal="armed"]` element intersects the viewport, at 1440×900, 390×664, 375×548 and 740×304 (gap review)
-  - `toMatchAriaSnapshot` while the flicker runs: `#connect` has a link named "Email me" and a paragraph with the address exactly once. The About `<dl>` reads its real values before the scene forms. Scope both to their sections; the footer also renders the address (gap review)
-  - after a contact submit, the acknowledgement is focused and the Get in touch section's height hasn't changed (gap review)
-  - the hero passes the pre-flight pixel diff
-  - CLS 0, and e2e green
-
-#### Part 4: the adaptive cursor
-
-**Placement.** Last in 3B, after Part 3:
-
-- It reuses `motion.data.ts` and `prefersFinePointer()` from Part 0.
-- Part 3's nav dot already needs the round-thing amendment, so DESIGN.md changes once.
-- Its scroll behaviour is tuned with Part 0 on, and its push state is checked against Part 2's landings.
-
-**The owner's ask:** a circle that trails the pointer with an eased lag ("smooth drag"), micro-interactions on hover, adapting to the section, tied to the scroll. It is built as asked. "Smooth drag" is read as the trailing follow, not drag-to-browse; drag-to-browse would belong to the Phase 5 deck.
-
-**Design change, needs the owner's sign-off.** A hollow ring is a second round thing on the site. These lines change:
-
-- DESIGN.md Overview and the Square Signal Rule (Shapes): "The only round things on the site are dots, plus one owner-made curve: the How I work orbit" / "…are dots and the How I work orbit track" → add the cursor's ring to each.
-- DESIGN.md Key Characteristics: "Zero radius. Dots are the only curves, except the How I work orbit track." → add the cursor's ring.
-- DESIGN.md Shapes: "The curves in the system are the dot and the How I work orbit track" → add the cursor's ring.
-- DESIGN.md Don'ts: "The only round things are dots and the How I work orbit track." → add the cursor's ring.
-- A new "Cursor" entry under Components records the anatomy, the states and the 0.3s state transition (a new duration).
-- Colour stays on-system: white under `mix-blend-mode: difference` is an inversion, not a hue (DESIGN.md:123, :139). No shadow (DESIGN.md:208).
-
-**Anatomy.** `src/features/portfolio/components/adaptive-cursor.component.tsx` (`"use client"`, `AdaptiveCursor`): one fixed wrapper with two children.
-
-- **The dot:** 6px, Lamp White, drawn at the raw pointer. It is the precise pointer in every state, so hiding the native cursor costs no precision.
-- **The ring:** 36px, a 1px Lamp White hairline at 0.4 opacity (Wire Grey's intensity, DESIGN.md:135), on a spring behind the pointer. This is the smooth drag.
-- **The wrapper:** `pointer-events-none fixed top-0 left-0 z-50 size-0 mix-blend-difference forced-colors:hidden`, carrying `data-cursor-state`, which the tests key off. `forced-colors:hidden` (gap review) keeps a lagging ring off the native pointer when High Contrast is switched on mid-visit.
-- **Colour:** `bg-white` and `border-white` are hard-coded, the one exception to Phase 2's "no hard-coded white". White is the difference operand, so the cursor reads white on black and black on the Lamp White fills ("Let's talk", "Email me", submit; DESIGN.md:277, :281). The cursor sits outside the stage, where tokens follow the OS scheme (DESIGN.md:148), so `bg-foreground` could resolve dark and blend to nothing.
-- **Size:** the ring animates `width` and `height`, not `scale`, so the hairline stays 1px from 36px up to a push ring of about 600px. It is a fixed, out-of-flow leaf, hence the named exception in Part 3's property list.
-
-**States,** resolved in this order; the first match wins:
-
-| State    | Trigger                                                                                                 | Dot                                                            | Ring                                           |
-| -------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------- |
-| `hidden` | the pointer is outside the page, the last pointer was not a mouse, or `elementFromPoint` returns `null` | hidden                                                         | hidden                                         |
-| `field`  | `closest("input, textarea, select")`                                                                    | hidden                                                         | hidden; the native cursor shows                |
-| `action` | `closest("a[href], button:not(:disabled), summary")`                                                    | stays, with its own `mix-blend-difference`: a hole in the disc | fills into a 56px lit disc at opacity 1        |
-| `push`   | `closest("[data-dot-slot]")` and the stage has `data-push-radius`                                       | stays                                                          | grows to `2 × data-push-radius`, as a hairline |
-| `idle`   | anything else                                                                                           | 6px                                                            | 36px hairline                                  |
-
-- **`hidden` inputs.** A mouse `pointermove` sets `isPointerInside` true; `pointerleave` on `document.documentElement` sets it false. Scroll and landing re-resolves pass it through, so `hidden` holds until the next mouse move. Any `pointerdown` or `pointermove` whose `pointerType` isn't `mouse` (a pen, or a touchscreen laptop, where a tap sends no move) hides the cursor and removes `data-cursor` from `<html>`. Window `blur` is not a trigger: after alt-tabbing back with a still mouse, the visitor would see no pointer at all.
-- **`action`** covers the nav links and "Let's talk", the menu button, a project card's stretched link (when it has an https link), "Email me", the footer links, the FAQ `summary` and the submit button. The dot staying matters most on the FAQ, whose rows sit edge to edge: the lagging disc can still be over the previous row.
-- **`field`** covers the two inputs, the textarea and the select. The select is a field because its option list is a native popup the cursor can't follow.
-- **`push`** covers the six slots. When the fit gate drops a scene to dust, the slot loses `data-dot-slot`, so the cursor falls back to `idle` with no extra code.
-- **Transitions:** `{ duration: 0.3, ease: SIGNAL_EASE }` through `resolveMotionTransition`.
-
-**How sections adapt.** Through what they contain. No `data-cursor` attributes and no section edits: slot scenes get the push ring, the reading sections get the disc on their links and FAQ rows, Get in touch keeps the native caret. This follows "No per-section novelty", and every section stays a server component.
-
-**Dot states: the cursor follows the engine.**
-
-- **`push`** shows only while the hook's `canPush()` holds (use-dot-field.hook.ts:498-510): the intro has settled, reduced motion is off, `p` is whole and the keyframe has a slot. The ring then outlines the crater.
-- **`moving`** needs no state. Dots in flight ignore the pointer (DESIGN.md:243), and the attribute is absent while they fly. The ring lets go as the scene leaves and swells when the next shape lands under the pointer.
-- The push follows the raw pointer (use-dot-field.hook.ts:741-753) and the ring follows the spring, so after a fast move the ring reaches the crater's centre about 0.3s later. That lag is the intended drag.
-
-**Engine edit (the only one):**
-
-- **`dot-field.rules.ts`:** extract `resolvePushRadius(inkHeight, tuning)` from `stepDotPhysics` (dot-field.rules.ts:184-185) and call it from both places.
-- **A new `publishPushRadius(frame)`** beside `publishSceneState()`, called at the same two sites (use-dot-field.hook.ts:495, :605). `drawSingleFrame` keeps its built frame in a local and passes it. It keeps its own last-written value, independent of `sceneState`. It deletes `stage.dataset.pushRadius` when the frame is null or `!canPush()`, and otherwise writes `resolvePushRadius(frame.from.inkHeight, …) / pixelRatio`, rounded to whole CSS px, when that changes.
-  - Not inside `publishSceneState`: it returns early when the scene id is unchanged (use-dot-field.hook.ts:485-487). The hero reads `name` from server render through the intro, so the radius would never be written there, a resize would leave it stale, and a reduced-motion toggle on a formed keyframe would never delete it.
-  - No new GL-effect deps and no `useState`.
-- **Bind `pointerover`** next to `pointermove`/`pointerdown` on each slot (use-dot-field.hook.ts:865-866), and remove it in cleanup, so a slot arriving under a still pointer starts the push without a move. Verify it in Chromium.
-- **CLAUDE.md:** add `data-push-radius` to the stage's status attributes.
-
-**Scroll:**
-
-- **Re-hit-test.** In `useMotionValueEvent(scrollY, "change", …)` on `useScroll().scrollY` (the pattern at section-navigation.component.tsx:61-65), run `document.elementFromPoint(lastX, lastY)` and resolve the state again. A still pointer changes state as links and slots scroll under it. No window scroll listener of its own. Chromium's own `pointerover` arrived about 170ms late during a Lenis scroll, so the cursor doesn't wait for it.
-- **Landing.** A `MutationObserver` on the stage (`attributeFilter: ["data-push-radius"]`) resolves again with the last target, because no scroll or pointer event marks the moment a shape forms.
-- **Velocity.** In `idle` only, the ring stretches along the scroll axis: `useVelocity(scrollY)` at 0–2400 px/s maps to `scaleY` 1–1.3, clamped and smoothed by the same spring. In `action`, `push` and `field`, `scaleY` stays 1, so a push ring keeps marking the crater and its hairline stays 1px. `useScroll` reads the native scroll Lenis drives; the cursor never imports Lenis.
-
-**Follow:**
-
-- `useMotionValue` x and y are set in a passive window `pointermove`, so a move causes no React render. React state holds only the resolved state, set only when it changes.
-- The ring binds `useSpring(x)` and `useSpring(y)` with `{ stiffness: 200, damping: 28, mass: 1, restDelta: 0.5 }`: critically damped, trailing by about 0.3s with no overshoot.
-- **Leaving `hidden`,** call `.jump(clientX)` and `.jump(clientY)` on the ring's springs first, so the ring appears under the pointer instead of sliding in from (0,0) or from the exit point.
-- **0 RAF at rest, no loop of its own.** A settled spring cancels its frame (motion-dom `FollowAnimation.mjs:139-146`), and `useVelocity` stops 30ms after the last scroll (motion-dom `value/index.mjs:9, :272-278`).
-
-**Mount.** `src/app/page.tsx` renders `<AdaptiveCursor />` beside `<SmoothScroll />`, after `<SitePage />`.
-
-- Only `/`: the editor preview renders `SitePage` directly, and the root layout also wraps the dashboard.
-- A sibling of the stage, never an ancestor of the canvas or a slot (rule 4), so it may transform freely. The stage is `isolate` (site-page.component.tsx:35), so the header's `z-50` counts only inside it, and the wrapper's `z-50` paints above the whole page.
-- A `div`, never a `canvas`. It never carries `data-status`, `data-scene`, a heading or a label, and reads the stage with `document.querySelector(DOT_STAGE_SELECTOR)`. The strict counts hold.
-- Out of `Hero` and `SitePage`, so the no-RAF assertions in `hero.test.tsx` never mount it.
-
-**Gating:**
-
-- The effect starts only when `supportsCustomCursor()` is true: `prefersFinePointer()` plus `(forced-colors: none)`, as `CUSTOM_CURSOR_QUERY` in `motion.data.ts`. Phones, forced colours and the unit-test `matchMedia` mock get no listeners.
-- The server renders the wrapper as `data-cursor-state="hidden"`. Nothing reads `matchMedia` during render, so there is no hydration mismatch (a `console.error` the e2e specs count).
-- The first mouse `pointermove` sets `document.documentElement.dataset.cursor = "on"`. Unmount removes it. Until then, and without JavaScript, the native cursor stays, and the hero pixel diff and lit-pixel counts never see the cursor.
-
-**Native cursor.** In `globals.css`, outside any layer, so it beats `cursor-pointer` on the FAQ `summary` and `@layer base`:
-
-```css
-@media (forced-colors: none) {
-  html[data-cursor="on"],
-  html[data-cursor="on"] * {
-    cursor: none;
-  }
-
-  html[data-cursor="on"] :is(input, textarea, select) {
-    cursor: auto;
-  }
-}
+Each phase is one conversation.
+
+- **Before building:** ask the owner the phase's open questions with the ask tool. Never invent content.
+- **At the end:**
+  1. Run the acceptance.
+  2. Write a short done note under the phase: what shipped, the evidence and what is open.
+  3. Move "Current phase" at the top forward.
+  4. Give the owner the next phase's prompt, which is the code block at the end of the phase.
+- **Committing:** ask before committing. PowerShell 5.1 splits `-m` at quotes, so write the message to a file and use `git commit -F`.
+
+### Phase 4: direction and mockups (in progress)
+
+**Goal.** The owner picks the look from whole-page mockups, approves the short copy, and DESIGN.md is rewritten to the picked system before any section code changes.
+
+**Done (2026-09-29):**
+
+- **The audit and the brief:** the "Direction" section above.
+- **PRODUCT.md:** positioning, voice, planned order and the material on its way.
+- **A feedback memory:** whole-page mockups before building.
+- **The mockup canvas** https://claude.ai/artifact/JfBhfHpocuCtfDmcTkahob (private; the owner can share it from its Share menu):
+  - **"The dot story":** the whole sequence of dot objects.
+  - **A, "Stage":** the quote composition everywhere. A large centred dot object with one big statement below it.
+  - **B, "Statement":** a very large left-aligned statement with the dot object beside it; stacked on a phone.
+  - **Four artboards each** (desktop and phone, two halves each), showing:
+    - the new order
+    - the reworked How I work
+    - Services' one-product shapes
+    - the reading screens
+    - the About photo
+  - **A sticky note** listing the drafts to approve.
+  - **How the art was made:**
+    - The name and the cube are crops of the live engine.
+    - The new shapes are sketches in the same chalk-stipple material. They were drawn by a scratch Canvas2D script that no longer exists; "Shape geometry" in Phase 6 records their geometry.
+
+**The owner's pick (2026-09-29): B, "Statement".** In the owner's words: "I love the B1. It leads to my design. B1 is the thing that I want and I love." B1 is `B-desktop-1`: Hero, Belief, Work, Services and How I work. When asked about the rest, the owner said: "I love the B1 whole design, make it the same like that." So B2 and the phone artboards were matched to B1 the same day:
+
+- **Plain black everywhere:** the dotted grid background is gone.
+- **About:** the statement on the left, with the photo on the right framed by dots like a project plate.
+- **Testimonials:** turned into the same split, with a dot-framed "[Client photo or logo]" plate on the right.
+- **Phone:** each object comes first, as in B1's phone screens.
+- **The dot story's tile 12** now reads "Real people".
+
+**Locked (owner, 2026-09-29): "B · Statement · Desktop 1/2, I still love this, please lock on this design."** B1 is the reference for every future screen. When a later phase is unsure how something should look, match B1.
+
+- **Renders in the repo:** `plans/mockups/b-desktop-1.jpg` (the reference), `b-desktop-2.jpg`, `b-phone-1.jpg`, `b-phone-2.jpg` and `dot-story.jpg`.
+- **The source of truth for exact markup** is the canvas, on the owner's account. Artboards `B-desktop-1.dc.html` and the rest are readable with the Artifact tool (`read` with a `path`).
+
+What B means, as the mockups built it:
+
+- **Desktop:** a two-column split.
+  - **Left column** (about x 40–760): the label `<h2>` at the top left, then the statement very large and left-aligned, with body and details under it.
+  - **Statement sizes:** 176px; the belief line 136px (max 11ch); FAQ 240px; contact 128px on three lines.
+  - **Right column** (about x 800–1400): the dot object, large and vertically centred. The dot-framed plates (the project image at 700×490, the About photo at 480×600, the client plate at 440×440) and the contact form sit there too. The testimonial statement is 120px.
+- **How I work (B):** the hollow numeral about 340px on the left, centred on the dotted ring (circle centre x 440), with the title and body under it. The dot shape is about 560px on the right, beside the ring and not in a corner. Only the previous numeral peeks in at the left edge.
+- **Phone:** left-aligned throughout.
+  - **Order:** the dot object first, full width, then the statement at 72px (belief 52px, FAQ 110px, contact 52px), then the details.
+  - **How I work:** the ring stays centred, with a 150px numeral and a 44px title.
+- **Kept from both variants:** the hero exactly as today, the label style, the numbered item lists, and the header and footer.
+
+**Decisions (owner, 2026-09-29):**
+
+1. **The short drafts:** approved ("yes").
+2. **The About photo:** black and white. The question was "black and white or colour?" and the owner answered "yes"; this takes the first option, which also keeps the monochrome rule. Confirm when the photo arrives.
+3. **How I work's ring:** its dots drift with the scroll all the time. Again "yes" to an either/or question, read as the first option. Confirm when the owner scrolls Phase 8.
+4. **Contact:** yes, the dots gather round the form. Contact becomes its own scene with a slot (Phase 6).
+5. **The About stats:** count up (Phase 10).
+
+**Scope (what remains).**
+
+- Update "Direction" and PRODUCT.md if the DESIGN.md work turns up anything they miss.
+- **Rewrite DESIGN.md to the picked system:**
+  - the page rule
+  - a Statement type role, with sizes from the picked variant, for desktop and phone
+  - the section label as the one `<h2>` style
+  - the hollow numerals kept, and the plate exception removed
+  - the ring as dim dots (update the Square Signal Rule: "dots, and rings drawn in dots")
+  - "the dots draw ideas and frame real things", with plain black behind every screen
+  - one motion style and one scroll rule
+  - the new nav and order
+  - Components: rewrite Thread (no glide lock), Orbit (no plates, dots centred, triggered turn), Projects (the deck with a dot frame), About (the photo framed by dots) and Testimonials (the quote as the statement, a framed client plate); remove the bust
+  - References: say that adriavale, jeffmilanes and buckssauce are history, and that the one idea is "the dots build one product"
+- **Leave these alone:** code, tests and CLAUDE.md. CLAUDE.md changes with each phase that changes behaviour.
+
+**Acceptance.**
+
+- `pnpm format:check` passes.
+- The owner has read the DESIGN.md changes and said yes.
+
+**Next conversation prompt (starts Phase 5):**
+
+```text
+Continue the portfolio redesign: Phase 5, page structure and copy.
+Read CLAUDE.md, then plans/handoff.md ("Direction", "The DOM contract", Phase 4's done note and "Phase 5"), PRODUCT.md and DESIGN.md.
+Follow the mockup pick and the approved copy recorded in Phase 4. Ask me Phase 5's open questions first.
+Build Phase 5 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 6, and end your reply with Phase 6's prompt from the handoff.
+Ask me before committing.
 ```
 
-The native cursor stays on form fields, on touch and pen, in forced colours, without JavaScript, before the first move, and everywhere under `/dashboard`.
+### Phase 5: page structure and copy
 
-**The media query** (gap review). The gate checks forced colours once, when the effect starts, and nothing listens for a later change. Without the `@media` wrapper, switching High Contrast on after the first move (Alt+Shift+PrtScn) would leave `cursor: none` in force. In a dark contrast theme the dot's forced Canvas colour then blends away. With the wrapper, the native cursor returns with no JavaScript, which keeps the "forced colours keeps the native cursor" promise below.
+**Goal.** The page runs in the new order, with the new section set and the approved copy. The reading sections take the picked composition. The dot shapes don't change yet: Projects keeps its placeholder sphere until Phase 6.
 
-**Reduced motion.** `useReducedMotion()` gates it explicitly, because `MotionConfig reducedMotion="user"` (motion.provider.tsx:8) doesn't reach `useSpring`. The ring binds the raw x and y (no lag), `scaleY` stays 1, state changes use `INSTANT_TRANSITION`, and `push` never shows because the hook never writes the attribute.
+**Owner inputs.**
 
-**Accessibility:**
+- Confirm the placeholder project images (the monochrome plates from the mockups, or others).
+- Ask the owner to set the published Projects heading and intro in the editor ("Featured projects", "Showcasing my most impactful work."), unless the approved copy changes them.
 
-- `pointer-events: none` on the wrapper. The slots keep their pointer events, and Playwright clicks still land.
-- No ARIA: the cursor carries no text, so it takes no `aria-hidden`, role or label. The `aria-hidden` rule in "Kept invariants" (decorative leaves or visual duplicates only; gap review) stays true.
-- Focus is untouched; the focus rings stay (DESIGN.md:283).
-- Trade-off: hiding the native cursor drops the visitor's OS pointer size and colour. Forced colours keeps the native cursor, and the unlagged dot keeps precision.
+**Scope.**
 
-**Skipped:**
+- **`SitePage` order:**
+  1. Hero
+  2. Quote
+  3. Projects
+  4. Services
+  5. How I work
+  6. About: a pinned single-frame scene, its slot on the photo
+  7. Testimonials: a new pinned single-frame scene, its slot on the client plate
+  8. one dust scene holding FAQ and Contact
+  9. Footer
+  - **About and Testimonials follow rule 12** (`min-h` frames). Their slots keep the placeholder sphere until Phase 6 brings the `frame` shape.
+  - **Rules 7 and 10 still hold:** every section is covered, and `#contact` is at least one frame tall.
 
-- **Magnetic pull.** Not asked for, and moving a CTA moves its hit area under the pointer. If wanted later, pull the ring toward the CTA's centre, never transform the CTA.
-- **Press feedback.** The ask was hover.
+- **Nav** (`src/data/portfolio.data.ts` navigation):
+  - Primary: Work, Services, Process, About, FAQ.
+  - The mobile panel lists every remaining anchor. Keep the `about` and `contact` `PortfolioSection` ids the tests use.
+- **Blog:** remove it from the page and the nav. Keep `blog-section.component.tsx` and its data for later.
+- **Connect:** merge into Contact. The "Or email me" line goes beside the form, and `ConnectSection` leaves the page. Keep `OWNER_EMAIL_HREF`.
+- **About:**
+  - the photo plate on the right (B), with a placeholder image and a bracketed "[Your photo]" chip until the photo arrives; the file goes under `public/about/` and shows in black and white (Phase 4 decision 2)
+  - the statement "I am Criztian."
+  - the approved copy
+  - the stats as a `<dl>`
+  - the slot sits on the photo plate
+- **Testimonials:** the B split, with the quote as the statement and a placeholder client plate with a "[Client photo or logo]" chip on the right.
+- **Backgrounds:** no texture anywhere.
+- **Projects:**
+  - three neutral monochrome placeholder images in `public/projects/`, set in the seed defaults (`src/data/site-content.data.ts`)
+  - the owner re-publishes in the editor so the live record shows them
+  - the section label and statement layout from the pick; the cards stay a list until Phase 9
+- **Copy:**
+  - apply the approved drafts to `src/data/page-sections.data.ts`
+  - the tagline and quote live in `SiteContent`: the owner updates them in the editor, or the seed defaults change if they are still seed
+- **Typography:** add the Statement role and the label `<h2>` style as shared classes in `src/data/page-sections.data.ts`. Apply them to Quote, Projects, About, Testimonials, FAQ and Contact. Services and How I work change in Phases 7 and 8.
+- **Tests:**
+  - `site-page.test.tsx`: order, no Blog, no Connect, one `<h1>`, rule 9 focusables
+  - `anchors.spec.ts`: the anchor list and deep links
+  - `hero.spec.ts` `SCENE_WALK`: About is no longer a scene
+  - `fit.spec.ts`: About no longer pins
+  - `contact.spec.ts`
+- **Docs:** update the CLAUDE.md lines that name the old order or the Connect and Blog sections.
 
-**Rules, types and data:**
+**Acceptance.**
 
-- `src/features/portfolio/cursor.rules.ts`: `resolveCursorState({ element, pointerType, isPointerInside, pushRadius })` returns a `CursorState` by the priority above, reading only `element.closest(…)`. `resolveRingDiameter(state, pushRadius, tuning)` returns the ring's diameter.
-- `src/types/portfolio.type.ts`: `CursorState` (`"hidden" | "field" | "action" | "push" | "idle"`), `CursorStateRequest`, `CursorTuning`.
-- `src/data/motion.data.ts`: `CURSOR_TUNING` (sizes 6, 36 and 56; ring opacity 0.4; the spring; the transition; the stretch 2400 and 1.3), `CURSOR_ACTION_SELECTOR`, `CURSOR_FIELD_SELECTOR`, `CUSTOM_CURSOR_QUERY`. The slot selector stays `DOT_SLOT_SELECTOR`.
+- `pnpm check` and the unit tests pass.
+- Every e2e spec passes on a production build at :3100 with Supabase up (see Landmines).
+- The fit sizes in Landmines pass.
+- The hero pixel diff holds, with the header band masked because the nav changed.
+- Strict counts hold: one canvas, one `[data-status]`, one `<h1>`.
+- Captures at 1440 and 390 match the picked mockup's structure.
 
-**Tests:**
+**Next conversation prompt (starts Phase 6):**
 
-- **Unit, `cursor-rules.test.ts`:** a non-mouse pointer, `isPointerInside: false` or a `null` element gives `hidden` whatever else holds; a `span` inside a `summary`, an `a[href]` or a `button` gives `action`, while an `a` without `href` or a disabled `button` gives `idle`; `input`, `textarea` and `select` give `field`, and `field` beats `action`; inside a slot, `push` with a radius and `idle` with `null`; ring diameters 36, 56 and `2 × radius`.
-- **Unit, `dot-field-rules.test.ts`:** `resolvePushRadius` returns 300 at an ink height of 294, and the `stepDotPhysics` tests pass unchanged.
-- **e2e, `cursor.spec.ts`** on Desktop Chrome, with a reduced-motion block, keyed off `data-cursor-state` and the stage's `data-push-radius`.
-- Existing specs stay green without edits from Part 4: anchors.spec.ts:72-80, contact.spec.ts:33 and the pointer sweep at hero.spec.ts:299-328. Part 3's contact success moment changes contact.spec.ts:35, not this.
+```text
+Continue the portfolio redesign: Phase 6, the one-product dot shapes.
+Read CLAUDE.md, then plans/handoff.md ("Direction", "The dot story", "The DOM contract", Phase 5's done note and "Phase 6"), and DESIGN.md.
+Open the mockup canvas https://claude.ai/artifact/JfBhfHpocuCtfDmcTkahob for the look of every shape.
+Build Phase 6 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 7, and end your reply with Phase 7's prompt from the handoff.
+Ask me before committing.
+```
 
-**Acceptance:**
+### Phase 6: the one-product dot shapes
 
-- Before any pointer move: no `data-cursor` on `<html>`, the wrapper reads `hidden`, and the hero at rest passes the pre-flight pixel diff.
-- Still exactly one canvas, one `[data-status]` and one `<h1>`.
-- At 1440×900: the nav link, "Let's talk", the FAQ `summary` and the submit button give `action`, with the dot visible. Each contact field gives `field`, with computed `cursor` of `none` on `body` and `auto` on the input.
-- On `/`, after `data-status="running"` and the intro, hovering the name gives `push`.
-- On `/#quote` with `data-scene="cube"`, the slot gives `push`, and 0.5s later the ring's width is `2 × data-push-radius` ±1px. Switching emulated reduced motion on removes `data-push-radius`, and the state leaves `push`.
-- With a still pointer, an instant `scrollTo` that brings a link under it changes the state within two frames.
-- Over the outgoing slot mid-transit (`data-scene="moving"`): no `data-push-radius`, state `idle`.
-- After the pointer leaves the page, a scroll keeps the state `hidden`.
-- After a mouse move, a `pointerdown` with `pointerType: "touch"` gives `hidden` and removes `data-cursor`.
-- 0 RAF calls per 2s at rest in dust, after moving the mouse and scrolling with Part 0 on.
-- Under reduced motion, the ring's centre equals the pointer on the frame after a move.
-- After a mouse move (`data-cursor="on"`), `emulateMedia({ forcedColors: "active" })` makes `body`'s computed `cursor` `auto` and the `[data-cursor-state]` wrapper `display: none`. Switch forced colours on after the move, or the gate stops `data-cursor` from ever being set and the test passes without the fix (gap review).
-- A Chrome Performance trace on desktop with a smoothed wheel, Parts 3 and 4 on and the mouse over the page, over Part 2's route: no transit frame over 16ms. Part 4 adds a re-hit-test and the velocity stretch to every Lenis frame. Phones attach nothing, so they need no re-run (gap review).
-- The editor preview contains no `[data-cursor-state]`. No console errors, and the e2e suite is green.
+**Goal.** Every dot object tells the one-product story in one material. The engine's architecture doesn't change: this is shape data, generators, tuning and one dust change.
 
-### Phase 4: the bust (Who am I)
+**Shape geometry** (the mockup sketches, in model units, for `LINE_ART_SHAPES` in `hero.data.ts`; the ids stay, the strokes change):
 
-- **Reference:** ask the owner to re-share the reference image.
-- **Mesh:** source a **CC0** quad-topology head-and-shoulders mesh. MakeHuman and MPFB exports are CC0. The owner approves it against the reference.
-- **Bake:** `scripts/bake-bust.mjs` samples the vertices plus stipple along the edges, normalises to [-1,1]³ and quantises to Int16, writing `public/shapes/bust.bin`.
-- **Runtime:**
-  - Fetch the file lazily after the first draw. A procedural latitude/longitude head stands in until it loads.
-  - A slow yaw oscillation.
-- **Performance:** measure physics, projection and uploads while pushing the bust on a mid-range Android. Phones jump from about 1.5k name points to `SHAPE_POINTS`.
-- **Motion:** the bust forms with Phase 3's choreography. The bake emits its points along the edge loops from the face outward, so its draw-on follows them (the pen key is the point's index; see Part 2).
+- **The page** (the object that Services and How I work build):
+  - a frame 1.8 × 1.2 (x −0.9…0.9, y −0.6…0.6)
+  - a header rule at y −0.42
+  - the mark small at the header's left: a circle r 0.045 at (−0.79, −0.51) and a square 0.07 at (−0.75, −0.545)
+  - three short nav dashes at the header's right (x 0.42–0.5, 0.56–0.64, 0.7–0.8, y −0.51)
+  - a hero block (x −0.78…0.28, y −0.3…0.1)
+  - an image block (x 0.38…0.78, y −0.3…0.1)
+  - three column blocks (y 0.2…0.5; x −0.78…−0.32, −0.23…0.23, 0.32…0.78)
+- **`branding`, the mark:** a circle r 0.56 at (−0.16, −0.12) in front (z +0.1), and a square 0.92 from (−0.2, −0.24) behind it (z −0.1). A 3/4 view with perspective and a slow sway, like today's service shapes.
+- **`web-design`, the layout:** the page with its mark, slightly turned.
+- **`development`, the code:** the page pushed back (z −0.45, offset −0.22, −0.16) with a code panel in front (z +0.45, offset +0.32, +0.2). The panel is a 1.1 × 0.9 frame with a title rule and ten indented rows of one to three dashes (indents 0 1 2 2 1 2 3 3 2 0 × 0.07). An exploded 3/4 view.
+- **`listening`:** a loose, dim ring of scattered points. About 62% on an ellipse (radius 0.5, 1.25 × 0.9 aspect), with the rest scattered inside it. Points, not strokes: this is a scattered generator, not line art.
+- **`planning`:** the page frame with a 4 × 3 grid (verticals at x −0.45, 0, 0.45; rules at y −0.2, 0.2).
+- **`visualising`:** the page without its mark: outlines only.
+- **`building`:**
+  - the page with its mark
+  - hatched text lines in the hero block (rows every 0.06 from y −0.24)
+  - two lines in each column
+  - an X in the image block
 
-### Phase 5: the Featured Projects deck
+  It no longer reuses the cube, and it stops spinning, so the loop can sleep in How I work.
 
-- **The deck:** a pinned deck where the active project swaps by scroll inside one plate slot.
-- **Dot frame:** the dots frame the plate as a `frame` shape: the rect's perimeter, with a non-uniform scale.
-- **Accessibility:** cards stay in DOM order for screen readers. Under reduced motion, or without JavaScript, the deck is a plain list.
-- **Reuse:** keep `projects.rules.ts` (https-only links and images, visible-project selection).
-- **Motion:** the active project swaps with Phase 3's wipe grammar, and the frame's dots draw around the plate in path order.
+- **`delivery`:** the built page, smaller and tilted up, with a narrowing trail of points under it (a launch). Points, spreading from 0.04 to 0.34 wide and fading downward.
+- **`frame` (new):** a rectangle perimeter with a non-uniform half-size. It is used on the Projects plate (10:7), the About photo (4:5) and the Testimonials plate (1:1); the slot's rect sets the proportions.
+- **Dust:** B1 is plain black, so the dust behind FAQ and Contact goes very dim or away. Decide from captures with the owner; no dotted grid texture.
+- **Contact gather** (the owner said yes in Phase 4):
+  - Contact becomes its own single-frame scene: rule 12's `min-h` frame, with its slot on the form box.
+  - Its shape is a perimeter frame with points scattered around it.
+  - `#contact` still lands on it (rule 10 moves with it).
 
-### Phase 6: polish and proof
+**Scope.**
 
-- **Motion polish:** tune what Phase 3 authored, on real devices. The heading reveals, the stat count-up and the FAQ easing moved to Phase 3.
-- **Checks:**
-  - mobile tuning
-  - the editor-preview check (its iframe is about 686px wide, so "Desktop" shows the mobile layout)
-  - performance
-  - accessibility
-- **Owner decision:** a square "Pause motion" toggle for WCAG 2.2.2, because the cube and the bust spin endlessly. It uses the `isStatic` path.
-- **Docs:** the final rewrite of DESIGN.md, the CLAUDE.md "Hero dot field" block, and the README.
+- **Generators:**
+  - Every line-art shape keeps pen order.
+  - The two scattered shapes (`listening`, the `delivery` trail) are seeded point generators.
+  - Register every new id in all four places: the `DotGeneratedShapeId` union, `DOT_SHAPE_IDS`, `GENERATED_SHAPE_IDS` (tsc doesn't check this one) and `DOT_SHAPE_TUNING`.
+- **Projects, About and Testimonials:** each slot is its plate, and `frame` replaces the placeholder sphere. The sphere is deleted once nothing uses it.
+- **Tuning:** every number in `hero.data.ts`. Match the mockup's stroke weight (the cube is the reference).
+- **Tests:**
+  - `line-art-shapes.test.ts`: determinism, count, bounds, rank, pen order, every id uploaded
+  - the scene ids in `hero.spec.ts` and `anchors.spec.ts`
+  - the loop sleeping in How I work (`building` no longer spins)
+
+**Acceptance.**
+
+- Reduced-motion contact sheets at 390, 820 and 1440 show every shape formed in its slot and matching the mockup.
+- Transit strips (Services 1 → 2 → 3, Process 1 → 5) show the page being built.
+- 0 RAF at rest in How I work and in dust.
+- The hero pixel diff holds.
+- `pnpm check`, the unit tests and e2e are green.
+
+**Next conversation prompt (starts Phase 7):**
+
+```text
+Continue the portfolio redesign: Phase 7, the Services restyle and one scroll rule.
+Read CLAUDE.md (especially the Services and glide-lock paragraphs), then plans/handoff.md ("Direction", "The DOM contract", Phase 6's done note and "Phase 7"), and DESIGN.md.
+Build Phase 7 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 8, and end your reply with Phase 8's prompt from the handoff.
+Ask me before committing.
+```
+
+### Phase 7: the Services restyle and one scroll rule
+
+**Goal.** Services speaks the page's language, and the scroll is never taken from the reader.
+
+**Scope.**
+
+- **Layout** from the pick:
+  - the label `<h2>` "My services · 0k / 03"
+  - the statement (the service name)
+  - the approved short copy
+  - the six items as a numbered list with hairlines
+  - the shape large and centred (A) or beside the copy (B)
+
+  The caption board keeps rule 14, and the fit gate and the `split` and `short` variants still decide the layout.
+
+- **No lock:**
+  - **Remove from `smooth-scroll.component.tsx`:** the glide on `DOT_THREAD_COMMIT_EVENT`, meaning the Lenis `scrollTo(…, { lock: true })`, the phone RAF glide with `overflow: hidden`, and the `WHEEL_GESTURE_QUIET_MS` hold.
+  - **Remove from the hook:** the event and `announceThreadCommit`, unless Phase 8 needs them.
+  - **Keep:** `resolveTriggeredTarget`, `followTriggeredProgress`, arrivals as commits, and the captions keyed on `data-thread`. A shape triggers, then plays by itself, and a fast scroll simply carries on.
+  - Delete the constants and tests that belong only to the lock.
+- **The curtain bug** (carried over): under reduced motion, earlier captions ride up over the slot. Change `not-last:mb-[…]` to `not-first:mt-[…]` (plus `staged:mt-0` and `unpinned:mt-0`), and add a curtain sweep to `step-motion.spec.ts`, like Process's.
+- **Docs:** CLAUDE.md's "Services is triggered" and "The glide lock" paragraphs, DESIGN.md's Thread, and rule 14 here.
+
+**Acceptance.**
+
+- `step-motion.spec.ts` passes:
+  - a stopped scroll past the trigger finishes the drawing and the caption
+  - a nudge below the trigger doesn't trigger
+  - a fast wheel is never held
+  - the reduced-motion curtain sweep
+- `smooth-scroll.spec.ts` and its unit test pass without the lock.
+- The fit sizes pass.
+- `pnpm check`, the unit tests and e2e are green.
+- The owner scrolls it on a wheel, a trackpad and a phone.
+
+**Next conversation prompt (starts Phase 8):**
+
+```text
+Continue the portfolio redesign: Phase 8, How I work restyle and the triggered turn.
+Read CLAUDE.md (the orbit paragraphs), then plans/handoff.md ("Direction", "The DOM contract" rule 14, Phase 7's done note and "Phase 8"), and DESIGN.md's Orbit.
+Build Phase 8 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 9, and end your reply with Phase 9's prompt from the handoff.
+Ask me before committing.
+```
+
+### Phase 8: How I work restyle and the triggered turn
+
+**Goal.** The orbit belongs to the page: the dots are the show, the hollow numerals are the big type, and the turn follows the same trigger rule as Services.
+
+**Scope.**
+
+- **Restyle** (`process-section.component.tsx`, globals.css `orbit-*`):
+  - Remove the white plate and its two dots; the step title becomes plain Antonio in lamp white.
+  - Keep the hollow numerals.
+  - Draw the ring as a row of dim round dots: one circle with round caps and a `0 N` dash array, instead of the fine dash and tick pair.
+  - Move the dot slot back to centre stage at full size, with desktop composed like the phone: the shape above, the numeral on the ring, the title and copy below. In variant B, the shape sits beside the ring, full size and vertically centred.
+  - Re-derive `--orbit-step-top` and the slot rect, and keep the staged and unstaged boxes identical (rule 14).
+- **The triggered turn:**
+  - Add `process: { share, isThread: true }` to `DOT_SCENE_MOTION`, so the hook commits process steps and publishes `data-thread` for them too.
+  - Replace the scroll-driven `orbit-turn`, `orbit-digit` and `orbit-reveal` animations with CSS transitions keyed on the stage's `data-thread`, using literal selectors as the Services captions do.
+  - The ring's dots drift with the scroll all the time, as the ticks do today (Phase 4 decision 3, to be confirmed when the owner scrolls it).
+  - No lock.
+- **Docs:** CLAUDE.md's "How I work's orbit" paragraphs, DESIGN.md's Orbit, and rule 14 here.
+
+**Acceptance.**
+
+- `step-motion.spec.ts`'s orbit tests are rewritten, and they pass:
+  - one turn per commit
+  - the active step whole and hit-testable when formed
+  - staged and unstaged boxes identical
+  - reduced-motion curtains
+  - 740×280 flow
+  - forced colours
+- The fit sizes pass. The loop sleeps at rest.
+- `pnpm check`, the unit tests and e2e are green.
+- The owner scrolls it.
+
+**Next conversation prompt (starts Phase 9):**
+
+```text
+Continue the portfolio redesign: Phase 9, the projects deck.
+Read CLAUDE.md, then plans/handoff.md ("Direction", "The DOM contract", Phase 8's done note and "Phase 9"), and DESIGN.md's Projects.
+Build Phase 9 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 10, and end your reply with Phase 10's prompt from the handoff.
+Ask me before committing.
+```
+
+### Phase 9: the projects deck
+
+**Goal.** Projects is a pinned deck. The active project swaps by trigger inside one plate slot, and the dots draw the frame round it in pen order.
+
+**Scope.**
+
+- **A multi-step scene** with one keyframe per visible project (up to six, from `SiteContent`). It is a thread scene like Services: triggered, never locked.
+- **Captions:** the project's title as the statement, its summary, tag and stack are captions keyed on `data-thread`. The image swaps with the light-sweep wipe.
+- **The owner edits projects in the editor as today.** The schema doesn't change. Keep `projects.rules.ts` (https-only links and images, visible-project selection).
+- **Fallbacks:**
+  - Cards stay in DOM order for screen readers.
+  - With reduced motion, without JavaScript or without WebGL2, the deck is a plain list.
+  - A card with an https link stays one link.
+- **The fit gate and rule 14 apply,** since this is a new step scene.
+- **The editor preview** still renders the section: its iframe is about 686px wide, so it shows the phone layout.
+
+**Acceptance.**
+
+- New e2e: one project per commit, the list fallback, the fit sizes, and the editor preview.
+- `pnpm check`, the unit tests and e2e are green.
+- The owner scrolls it.
+
+**Next conversation prompt (starts Phase 10):**
+
+```text
+Continue the portfolio redesign: Phase 10, section motion in one style.
+Read CLAUDE.md, then plans/handoff.md ("Direction", "The DOM contract", Phase 9's done note and "Phase 10"), and the old Part 3 design with `git show 0f198b2:plans/handoff.md` (section "Part 3: section motion").
+Ask me Phase 10's open questions first. Build it as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 11, and end your reply with Phase 11's prompt from the handoff.
+Ask me before committing.
+```
+
+### Phase 10: section motion in one style
+
+**Goal.** Every section moves in the one style (the light sweep for text, the pen draw for dots), and content is visible without JavaScript.
+
+**Owner inputs.**
+
+- The parked items, one yes or no each:
+  - heading parallax
+  - the adaptive cursor (old Part 4)
+  - the cursive logo
+- The look of the scroll-progress hairline and the nav dot.
+
+**Scope** (from old Part 3; its constraints, arming rules, tests and acceptance still apply, read them in git):
+
+- **Keep:**
+  - the statement and heading power-on sweep
+  - copy rising per paragraph (per paragraph for `SiteContent` copy)
+  - hairlines drawing
+  - reveals replaying on re-entry
+  - the arming rules
+  - the no-JS fix: `data-reveal` plus `@media (scripting: none)`
+  - the scroll-spy with the nav dot and `setActiveSection`
+  - the scroll-progress hairline
+  - the mobile menu wipe-open
+  - the contact success moment (keep the height, focus the acknowledgement)
+  - the FAQ answer height and the plus transition
+  - the About stats counting up (owner, Phase 4). The real value never leaves the DOM; the counting digits are an `aria-hidden` overlay, as old Part 3 specifies
+- **Drop:**
+  - the Connect address flicker (Connect is gone)
+  - the testimonial and blog plate wipes (Blog is hidden; Testimonials is a statement)
+  - Part 3's step-handover items (superseded)
+- **Build the parked items** only on the owner's yes.
+
+**Acceptance.** Old Part 3's acceptance, adjusted for the new sections:
+
+- the no-JS computed-style check
+- the WebGL-off and context-loss checks
+- the armed-reveal guard
+- the aria snapshots
+- the contact focus
+- CLS 0
+- the hero pixel diff
+- e2e green
+- screen recordings at 1440 and 390, signed off by the owner
+
+**Next conversation prompt (starts Phase 11):**
+
+```text
+Continue the portfolio redesign: Phase 11, polish and proof.
+Read CLAUDE.md, then plans/handoff.md ("What is built today" carried-over items, Phase 10's done note and "Phase 11"), PRODUCT.md and DESIGN.md.
+Ask me Phase 11's open questions first. Work through it as scoped, then write its done note, move "Current phase" to "Deployment (to plan)", and tell me what deployment needs.
+Ask me before committing.
+```
+
+### Phase 11: polish and proof
+
+**Goal.** The page is tuned on real devices, proven accessible and fast, and documented, so it's ready to deploy.
+
+**Owner inputs.**
+
+- An Android phone with USB debugging for the 16ms trace.
+- An iPhone with Safari 26.
+- A decision on a square "Pause motion" toggle (WCAG 2.2.2, because the cube spins endlessly). It uses the `isStatic` path.
+
+**Scope.**
+
+- **The carried-over items** in "What is built today":
+  - copy crossings
+  - `resolveViewportHeight` with grown frames
+  - transit captures in both directions and the owner's "wow and professional" sign-off
+  - the 16ms trace
+  - Safari 26
+  - the real-phone fling test
+  - the smooth-scroll feel sign-off
+  - the published-content cache (tag it and call `revalidateTag` on publish)
+- **An accessibility pass** to WCAG 2.2 AA: keyboard, screen reader, zoom, text spacing and forced colours.
+- **A performance pass:** idle RAF, the frame budget, and image weights (the project and About images).
+- **Fix the Turbopack build warning** in `email-preview.adapter.ts`.
+- **Docs:** the final DESIGN.md, the CLAUDE.md "Hero dot field" block, and the README.
+
+**Acceptance.**
+
+- Every carried-over item is closed or recorded as accepted.
+- `pnpm check`, the unit tests and e2e are green.
+- The owner signs off the whole page on desktop and phone.
+
+**Next:** deployment isn't planned yet (hosting, a live email adapter, reading contact messages in the dashboard). Plan it with the owner in its own conversation.
+
+### Anytime: the owner's material
+
+Use this whenever the owner sends material. It can run between any two phases.
+
+```text
+Continue the portfolio redesign: I'm sending real material. Read CLAUDE.md, then plans/handoff.md ("Direction", "Standing rules" and "The owner's copy") and PRODUCT.md "Evidence on Hand".
+Put my material in exactly as I give it (fix only typos and pronouns): [paste the tagline, belief line, story, photo path, client quotes with names and permission, or project details here].
+Tagline, quote and projects go through the editor's site content: tell me what to publish there, or update the seed defaults if they are still seed. The rest goes in src/data. Update PRODUCT.md "Evidence on Hand" and the handoff's copy section, run pnpm check and the affected tests, and remind me which phase is current.
+Ask me before committing.
+```
 
 ## Landmines still live
 
@@ -1185,13 +862,15 @@ These are the ones CLAUDE.md doesn't already cover:
   Delete `.next/cache/fetch-cache` before the build, or it replays a stale published document.
 
 - **Diff visual regressions; don't eyeball them.** Capture the canvas with `getImageData` in a throwaway Playwright script, before and after. That is how two sub-pixel regressions were caught that screenshots hid.
+- **The hero pixel diff** is against `0a3c97a`. Mask the 72px header band and the scroll cue's row. The name's dots may differ by at most 18 pixels at DPR 1 (up to 2/255) and 14 at DPR 2 (up to 1/255), all inside the name's box. Anything more is drift. The full method is in the history.
 - **PowerShell 5.1 splits `git commit -m` at quotes** (the apostrophe in "Let's"). Write the message to a file and use `git commit -F <file>`.
 - **`Set-Content -Encoding utf8` writes a BOM** in Windows PowerShell 5.1. Use the Write and Edit tools.
 - **`UID` is read-only in bash.** A `UID=$(...)` capture fails silently.
 - **TypeScript loses narrowing** of a captured `const` inside a hoisted `function` declaration. After the null guard, use an explicitly typed alias (`const container: HTMLElement = containerElement`). The hook already does this throughout; don't "clean it up".
 - **`motion/react` ships no `"use client"`.** Import it only from client components; `src/providers/motion.provider.tsx` carries the directive.
-- **`aria-hidden` on a wrapper hides everything inside it.** It once hid the `<h1>`. Keep it on decorative leaves, or on a visual duplicate of text that stays exposed (the Part 3 flicker and count-up overlays), never on a wrapper of readable content.
+- **`aria-hidden` on a wrapper hides everything inside it.** It once hid the `<h1>`. Keep it on decorative leaves, or on a visual duplicate of text that stays exposed, never on a wrapper of readable content.
 - **The local Supabase may have no users.** `auth.users` was empty on 2026-09-20. Logged-in specs create their own throwaway user; never ask for the owner's password.
+- **Never `pnpm db:reset`** on the owner's data. It re-seeds `site_content` as `draft = '{}'` and wipes `auth.users`. Apply new migrations with `pnpm exec supabase migration up --local`.
 - **Turbopack flags one build warning:** `path.join(process.cwd(), …)` in `email-preview.adapter.ts`. It is harmless locally; fix it before deploying.
 - **Capture in full Chromium, not the headless shell.** Playwright's default `chromium-headless-shell` (SwiftShader) paints alpha-0 holes wherever an opaque sticky step overlaps the fixed canvas inside the isolated stage, so they look like white blocks. Use `channel: "chromium"` for screenshots and pixel checks. The e2e specs pass on either.
 - **Measure fit at real heights, not only nominal sizes.** Phase 2 passed at 360×640 and 740×360, then failed on an iPhone SE's real svh (about 548) and a landscape phone with its URL bar (740×304). Every layout change to a pinned scene is re-measured at all of these:
@@ -1202,22 +881,20 @@ These are the ones CLAUDE.md doesn't already cover:
 
   `tests/e2e/fit.spec.ts` covers the gate.
 
+- **The mockup canvas is private.** Only the owner can share it (Share menu). Read its comments with the artifact comments tool; never publish site code to it.
+
 ## Open owner decisions
 
-- **Pause motion toggle** for WCAG 2.2.2 (Phase 6).
-- **The quote text** is still the placeholder "Your quote about life goes here." The owner edits it in the editor.
-- **Hero tagline:** the seeded tagline matches the Framer template word for word (PRODUCT.md). It needs the owner's own words.
-- **Real material:** projects, screenshots, testimonials and blog posts.
-- **The published-content read is cached** for a year. Tag it and call `revalidateTag` on publish, or make it uncached (which makes `/` dynamic).
-- **Cursor anatomy (Part 4).** Two yeses are needed before building it: the trailing ring, a second round thing that needs the DESIGN.md changes listed in Part 4, and hiding the native cursor everywhere except form fields. No words are planned in the disc; if the owner wants a label on a target (for example the Phase 5 plates), the owner writes it.
-- **Smooth-scroll feel (Part 0).** The owner signs off `SMOOTH_SCROLL_LERP` with a wheel and a trackpad.
-- **Step scene motion feel.** The owner scrolls the Services thread and the How I work orbit on a real wheel, trackpad and phone and signs off the feel (see "Services thread" and "Orbit", Open 1).
-- **Part 3 motion confirmation.** Before building Part 3, the owner confirms its motion choices. The confirmation now includes heading-only CSS parallax (FAQ and Get in touch, tablet and up, only in browsers with scroll-driven animations). The step handovers are superseded by "Step scene motion". The extras and replay are already decided (below); only their look is confirmed.
-- **Decided 2026-09-28 (gap review).** These are recorded, not open:
+- **Phase 4:** the owner approves the DESIGN.md rewrite. Every other Phase 4 question is answered (see "Decisions" under Phase 4).
+- **To confirm later:** the black-and-white photo, when it arrives, and the drifting ring, when Phase 8 is scrolled.
+- **Phase 10:** heading parallax, the adaptive cursor, the cursive logo.
+- **Phase 11:** the pause-motion toggle (WCAG 2.2.2).
+- **Material:** the tagline, the belief line, the story and photo, client quotes, real projects.
+- **FAQ truth check:** is each answer still true? (Webflow and WordPress; digital marketing campaigns.)
+- **The Send message button voice:** uppercase Label voice like "Let's talk", or sentence case as today. The mockups show uppercase.
+- **Decided, recorded:**
+  - positioning (PRODUCT.md)
   - reveals replay on re-entry
   - the direction-aware sweep keeps the natural mirror
-  - the extras: the mobile menu wipe-open, the contact success moment and the scroll-progress hairline
-  - the scroll-spy defaults: the dot hides off the centre links and steps under passed links during a flight
-- **Positioning.** PRODUCT.md still says "Full-stack product builder", while the owner's new copy positions branding, web design and development. The owner decides; don't rewrite it unasked.
-- **Projects heading in the live record.** The seed defaults are now "Featured projects" and "Showcasing my most impactful work.", but the published site-content row keeps its old text until the owner sets it in the editor.
-- **Send message button voice.** It is the only action not in the uppercase, tracked Label voice of "Let's talk" and "Email me". DESIGN.md documents the sentence-case primary button, so changing it is a system change for the owner (finish review ceiling item).
+  - the scroll-spy defaults (the dot hides off the centre links and steps under passed links during a flight)
+  - the extras: the menu wipe-open, the contact success moment and the scroll-progress hairline

@@ -26,7 +26,13 @@ A personal portfolio that wins freelance work. It is one public scrolling page (
 
 ## Positioning
 
-**Full-stack product builder.** Criztian ships complete products: frontend, backend, auth and data, not just the visible layer. The site is built the same way. It has a hand-built WebGL hero, a real auth and database layer, and a draft/publish content editor, so the portfolio is itself evidence of the claim.
+**One person who builds whole products** (owner, 2026-09-29). Criztian sells branding, web design and development as one package, and takes a product from idea to launch. The one thing a client should remember is "I build whole products". Founders, small businesses and agencies are addressed equally.
+
+The site is built the same way. It has a hand-built WebGL hero, a real auth and database layer, and a draft/publish content editor, so the portfolio is itself evidence of the claim.
+
+**Feeling:** calm, precise, premium.
+
+**Voice:** short, plain, precise, in the first person. The owner approves every line of public copy.
 
 Open decision: the seeded hero tagline ("Crafting timeless digital experiences through design, strategy, and code.") matches word for word the Framer template the hero was modelled on (adriavale.framer.website). It is placeholder text, not the owner's voice, and it also leans toward design and strategy rather than end-to-end product building. It is owner-editable content; replace it with the owner's own words.
 
@@ -44,11 +50,26 @@ Open decision: the seeded hero tagline ("Crafting timeless digital experiences t
 - Web design
 - Development
 
-The owner's own summary: "I specialize in crafting custom web solutions, including branding, web design and development tailored to meet your business." The full-stack framing under Positioning predates this copy; reconciling the two is the owner's call.
+The owner's own summary: "I specialize in crafting custom web solutions, including branding, web design and development tailored to meet your business." Positioning reconciles this with the full-stack framing: the three services are one package that builds a whole product.
 
 **Public site:**
 
 - Single page. The anchors (`#home`, `#services`, `#about`, `#project`, `#process`, `#connect`, `#testimonials`, `#faq`, `#blog`, `#contact`) are the navigation. `#contact` must keep working because the e2e suite depends on it.
+- **Planned order** (owner, 2026-09-29; not built yet, waiting on the whole-page mockups in `plans/handoff.md` "Direction"):
+  1. Hero
+  2. Belief quote
+  3. Projects
+  4. Services
+  5. How I work
+  6. About
+  7. Testimonials
+  8. FAQ
+  9. Contact, with Let's connect's email merged in
+  10. Footer
+
+  Blog is hidden until real posts exist. About shows the owner's real photo, framed by dots like a project image. Testimonials pairs each client quote with the client's photo or logo, framed the same way. The layout follows mockup B ("Statement"): a huge statement on the left and one dot object on the right.
+
+- The list below describes the page as built today.
 - Hero: the name rendered as a dot-matrix WebGL wordmark whose dots scatter from a cursor or a finger and spring back. It falls back to a real text `<h1>` when WebGL2 is unavailable; with reduced motion the dots render still.
 - Quote (`#quote`, not in the nav): scrolling out of the hero morphs the name's dots into a turning dot cube, above one owner-editable statement quote. The seed is a visible placeholder; the owner supplies the real quote.
 - My services (`#services`): Branding, Web design and Development, each with the owner's paragraph and six items, as steps scrolling past a pinned dot shape.
@@ -95,6 +116,15 @@ The owner has all of the following, but **none of it is in the repo yet**:
 The Project section is built and editable, seeded with three placeholder cards. Services, About, Process and FAQ carry the owner's copy. Testimonials and Blog show visible placeholders until the owner supplies real material.
 
 Future work must get the real material from the owner. Never invent project names, client names, quotes, logos, metrics or outcomes to fill these sections.
+
+**On its way (owner, 2026-09-29):**
+
+- a tagline and a belief line in the owner's words
+- the owner's story and a photo for About
+- client quotes they have permission to use
+- real projects, later
+
+Until the projects arrive, the cards stay placeholders with neutral placeholder images.
 
 ## Product Principles
 
