@@ -6,6 +6,7 @@ import {
   FOCUS_RING_CLASS,
   SCREEN_CLASS,
   SCREEN_COPY_CLASS,
+  SCREEN_HEIGHT_CLASS,
   SCREEN_LABEL_CLASS,
   SCREEN_OBJECT_CLASS,
   SECTION_FRAME_CLASS,
@@ -23,7 +24,8 @@ export function FaqSection() {
       className={cn(
         SECTION_FRAME_CLASS,
         SCREEN_CLASS,
-        "text-foreground split:min-h-[calc(100svh_-_4.5rem)]"
+        SCREEN_HEIGHT_CLASS,
+        "text-foreground"
       )}
     >
       <h2

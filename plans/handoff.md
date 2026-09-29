@@ -2,9 +2,9 @@
 
 > **For:** the next Claude Code session picking up this build.
 >
-> **Current phase:** **Phase 6, the one-product dot shapes.** Phase 5 is done: the page runs in the B order with the approved copy and the B surface, and its done note lists what is open for the owner. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference); the renders are in `plans/mockups/`. To resume, paste the prompt under "Start here".
+> **Current phase:** **Phase 7, the Services restyle and one scroll rule.** Phase 6 is done: every dot object is drawn in one material and tells the one-product story, and its done note lists what is open. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference); the renders are in `plans/mockups/`. To resume, paste the prompt under "Start here".
 >
-> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, and Phase 5 is the commit after it. Nothing is pushed.
+> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, Phase 5 is `ca4d45c`, and Phase 6 is the commit after it. Nothing is pushed.
 >
 > **How this file works:** each phase is one conversation. It lists its scope, the owner inputs it needs and its acceptance. It ends with the prompt that starts the next conversation. When a phase ends, write its done note under it, move "Current phase" forward, and give the owner the next prompt.
 >
@@ -15,10 +15,9 @@
 Paste this into a new conversation to resume the current phase:
 
 ```text
-Continue the portfolio redesign: Phase 6, the one-product dot shapes.
-Read CLAUDE.md, then plans/handoff.md ("Direction", "The dot story", "The DOM contract", Phase 5's done note and "Phase 6"), and DESIGN.md.
-Open the mockup canvas https://claude.ai/artifact/JfBhfHpocuCtfDmcTkahob for the look of every shape.
-Build Phase 6 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 7, and end your reply with Phase 7's prompt from the handoff.
+Continue the portfolio redesign: Phase 7, the Services restyle and one scroll rule.
+Read CLAUDE.md (especially the Services and glide-lock paragraphs), then plans/handoff.md ("Direction", "The DOM contract", Phase 6's done note and "Phase 7"), and DESIGN.md.
+Build Phase 7 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 8, and end your reply with Phase 8's prompt from the handoff.
 Ask me before committing.
 ```
 
@@ -217,7 +216,8 @@ The mockups use these, and the owner approved them all. Use them in place of the
   - Part 1, the line-art shape library (`00d54b9`)
   - Part 2, the dot choreography: pen draw-on, burst, swell and strike (`f33d351`)
   - the Services thread with its glide lock, and the How I work orbit (`0f198b2`)
-- **Phase 5** on `portfolio/phase-3`: the B page order, the approved copy and the B surface for the quote, Work, About, Testimonials, FAQ, Contact, the header and the footer (see its done note).
+- **Phase 5** (`ca4d45c`): the B page order, the approved copy and the B surface for the quote, Work, About, Testimonials, FAQ, Contact, the header and the footer (see its done note).
+- **Phase 6** on `portfolio/phase-3`: the one-product dot shapes in one material, the plate frames, the Contact gather as its own gated scene, and FAQ on plain black (see its done note).
 - **Not built:** old Part 3 (section motion, now Phase 10) and old Part 4 (the cursor, parked).
 - **Last evidence (2026-09-29):**
   - 366 unit tests pass and `pnpm check` is clean.
@@ -304,8 +304,8 @@ The timeline is pure and unit-tested, in `dot-field.rules.ts`.
   - They are refilled with `bufferSubData` only when the segment changes, which is today's `cubeBuffer` path.
   - Don't use a float texture: it would add `texelFetch`, `gl_VertexID` index maths, a 2048-wide row limit and the NEAREST-filter trap for no gain.
 - **Generation:**
-  - Each shape is generated once, at a fixed `SHAPE_POINTS` count, by a seeded pure generator.
-  - Points at or past `SHAPE_POINTS` are hidden.
+  - Each shape is generated once, by a seeded pure generator, at its tuned `pointCount` (Phase 6: 12,000 for the drawings, 7,200 for the cube). `SHAPE_POINTS` is the largest count and the buffer size.
+  - Points past a shape's own count are padded and hidden.
   - Nothing is regenerated when the name is resampled.
 - **Padding:**
   - The name is padded to `N = max(nameCount, SHAPE_POINTS)` by repeating point `i % nameCount`, flagged hidden.
@@ -378,14 +378,15 @@ Every section that takes part in the timeline follows these rules. The engine tr
    - `ServicesSection` and `ProcessSection` implement this in their unstaged layouts. Process's maths: the frame and the list share one grid cell, the list starts `--orbit-step-top` below the top (the band, or the heading and slot in split), each step is `F − step-top` tall and sticks at `step-top`, and `not-first:mt-[pitch − (F − step-top)]` keeps step `k` docking at `k·pitch`. Space docked curtains with `margin-top`, never `margin-bottom`: a sticky element's margin box must stay inside its containing block, so a bottom margin pushes every stuck curtain up by that margin as the list ends. The last step unsticks together with the frame.
 9. **In-scene anchors.** Every `id` inside a scene has `scroll-margin-top` equal to that scene's `stickyTop` (`scroll-mt-18`). A larger margin lands before the pin starts. `data-scene` then reads `moving`, and if a spinning shape is the outgoing one, the loop never sleeps.
    - **Focusables too.** Every focusable inside a scene also carries `scroll-mt-18` (`FOCUS_RING_CLASS` does). This keeps a Shift-Tab target clear of the 72px fixed header, because `scroll-padding-top` is banned.
-10. **Dust scene endings.** The last section of a dust scene is at least one frame tall (`min-h-[calc(100svh_-_4.5rem)]`). Otherwise its anchor lands in the transit to the next scene, with a half-formed shape over it. `#contact` needed this.
+10. **Dust scene endings.** The last section of a dust scene is at least one frame tall (`min-h-[calc(100svh_-_4.5rem)]`). Otherwise its anchor lands in the transit to the next scene, with a half-formed shape over it. `#contact` needed this until Phase 6; now FAQ is the dust scene's only section and carries it at every width.
 11. **Reveals on pinned elements.** A pinned element never moves, so a `whileInView` margin must already hold at its pinned position. The old projects heading sat at 65% of a phone screen behind a −40% margin and never revealed until it moved to −10%; Phase 5 retired that heading and its reveal.
-12. **Frames that can grow, grow.** A single-frame scene (Quote, About, Testimonials, footer) uses `min-h-[…]`, never a fixed `h-[…]`. Its pin length comes from a fixed spacer after the frame (`PIN_SPACER_CLASS`: 50svh; 60svh for the quote, 25svh for the footer; hidden without WebGL), never from a container `min-h`: a grown frame then keeps its whole pin instead of dropping it to zero (Phase 5 review). Work's frame is an exception: it is fixed and holds only the slot, and its project screens sit in normal flow with `min-h`, so they grow instead. Step boxes are the other exception: they are fixed and join the gate (rule 13), because a step that grows would move the next step's docking point. Zoom or WCAG text spacing then lengthens the frame instead of clipping or overlapping the copy. The engine re-reads frame and container heights on every measure.
-13. **The fit gate.** A docked step cannot grow: it is sticky, and a taller step is covered by the next one. So each step scene (`ServicesSection`, `ProcessSection`) renders `SceneFitGate` (a hidden `<span>`) as its **last** child. The frame stays first. How it works:
+12. **Frames that can grow, grow.** A single-frame scene (Quote, About, Testimonials, footer) uses `min-h-[…]`, never a fixed `h-[…]`. Contact is the exception and follows rule 13 instead: its gather needs the whole form in one pinned frame, and a grown frame would hide the submit button for the length of the pin. Its pin length comes from a fixed spacer after the frame (`PIN_SPACER_CLASS`: 50svh; 60svh for the quote, 25svh for the footer; hidden without WebGL), never from a container `min-h`: a grown frame then keeps its whole pin instead of dropping it to zero (Phase 5 review). Work's frame is an exception: it is fixed and holds only the slot, and its project screens sit in normal flow with `min-h`, so they grow instead. Step boxes are the other exception: they are fixed and join the gate (rule 13), because a step that grows would move the next step's docking point. Zoom or WCAG text spacing then lengthens the frame instead of clipping or overlapping the copy. The engine re-reads frame and container heights on every measure.
+13. **The fit gate.** A docked step cannot grow: it is sticky, and a taller step is covered by the next one. So each step scene (`ServicesSection`, `ProcessSection`) renders `SceneFitGate` (a hidden `<span>`) as its **last** child. The frame stays first. `ContactSection` does the same, with its fixed-height frame as the fit box (Phase 6). How it works:
     - It checks every `[data-fit-box]` step.
     - If one overflows, it sets `data-fit="flow"` on the container, removes `data-dot-slot` from the slot and sets `data-dot-shapes="dust"`. The engine re-reads both attributes on its next measure, so the scene becomes a plain dust scene. It never sees a hidden 0×0 slot.
     - When everything fits again, it restores both attributes.
-    - The check runs in `requestAnimationFrame`, scheduled by a ResizeObserver and by `document.fonts.ready`. It never mutates layout inside the observer callback, because that raises ResizeObserver loop errors, which the e2e specs count as page errors.
+    - The check runs in `requestAnimationFrame`, scheduled by a ResizeObserver (on the container, each box's children and the slot) and by `document.fonts.ready`. It never mutates layout inside the observer callback, because that raises ResizeObserver loop errors, which the e2e specs count as page errors.
+    - When a switch moves an element that has focus inside the scene (a Contact field whose errors just appeared or cleared), the gate scrolls by the same amount, then scrolls it into view if a stuck frame made that inexact; otherwise it keeps a reader who is past the scene in place (Phase 6).
     - The `unpinned` variant styles flow mode and the no-WebGL path with one class list.
     - Any new sticky, fixed-height copy box must join the gate or follow rule 12.
 14. **Staged step scenes.** Under the `staged` variant a step scene's copy sits on one board instead of scrolling:
@@ -685,7 +686,7 @@ Ask me before committing.
 
 **Goal.** Every dot object tells the one-product story in one material. The engine's architecture doesn't change: this is shape data, generators, tuning and one dust change.
 
-**Shape geometry** (the mockup sketches, in model units, for `LINE_ART_SHAPES` in `hero.data.ts`; the ids stay, the strokes change):
+**Shape geometry** (the mockup sketches, in model units, for `LINE_ART_SHAPES` in `hero.data.ts`; the ids stay, the strokes change). These values are y-down; the model is y-up. As built, four places differ to match the mockup renders, and the Phase 6 done note lists them:
 
 - **The page** (the object that Services and How I work build):
   - a frame 1.8 × 1.2 (x −0.9…0.9, y −0.6…0.6)
@@ -713,7 +714,7 @@ Ask me before committing.
 - **`frame` (new):** a rectangle perimeter with a non-uniform half-size. It is used on the Projects plate (10:7), the About photo (4:5) and the Testimonials plate (1:1); the slot's rect sets the proportions.
 - **Dust:** B1 is plain black, so the dust behind FAQ and Contact goes very dim or away. Decide from captures with the owner; no dotted grid texture.
 - **Contact gather** (the owner said yes in Phase 4):
-  - Contact becomes its own single-frame scene: rule 12's `min-h` frame, with its slot on the form box.
+  - Contact becomes its own single-frame scene: rule 12's `min-h` frame, with its slot on the form box. (As built, the frame is fixed and gated under rule 13, because a grown pinned frame hid the submit button on phones; see the done note.)
   - Its shape is a perimeter frame with points scattered around it.
   - `#contact` still lands on it (rule 10 moves with it).
 
@@ -741,6 +742,71 @@ Ask me before committing.
 - 0 RAF at rest in How I work and in dust.
 - The hero pixel diff holds.
 - `pnpm check`, the unit tests and e2e are green.
+
+**Done note (2026-09-29).**
+
+- **Owner answers** (asked first; recorded under "Open owner decisions"):
+  - Phase 5 was committed on its own first (`ca4d45c`).
+  - Work on a phone shows the frame through a clear window round each plate.
+  - Frames stay still under the pointer.
+  - The dust behind FAQ goes away. The captures offered today's 45%, a very dim 15% and none; the owner chose none.
+  - The Services B layout stays in Phase 7.
+- **Shipped:**
+  - **One material, one product.** Every drawing is the cube's chalk stipple, generated once per shape, seeded and in pen order.
+    - The pages share their strokes: line-art shapes are layers of strokes, each with an offset and a scale.
+    - Branding is the mark (a circle in front of a square), web design the page with its mark, and development the page stepped back behind a code panel.
+    - How I work's five states are a scattered ring (listening), a gridded page (planning), the page's outlines (visualising), the built page (building, which no longer reuses the spinning cube) and the built page launched on a narrowing trail (delivery).
+    - `listening`, `delivery` and `gather` are seeded point generators.
+    - The sphere is deleted.
+  - **Plate frames:** a new `frame` shape on the Work, About and client plates. It sits `min(18px, 5% of the plate's short side)` outside the plate (`resolveFrameOutset`, `DOT_FRAME_OUTSET`), with its proportions set by the slot. Its pointer push never fires, because the real thing sits over its slot.
+  - **Work on a phone:** the list is no longer opaque.
+    - Each screen is full-bleed, `isolate` and `overflow-clip`.
+    - An `aria-hidden` ring 24px round the plate spreads the background colour over the rest of the screen.
+    - So the pinned frame shows round a plate as it lands, wipes off and back on between projects, and copy never crosses it.
+    - The label sits 24px above the plate (was 12), so the frame's top line never shows through it as a screen lands.
+    - Forced colours drop `box-shadow`, so there the phone screens turn opaque and hide the frame.
+    - With no visible project, Work has no slot and falls back to dust, rather than framing an empty rectangle.
+  - **Contact is its own scene (`contact`, shape `gather`):** a dotted perimeter round the form box, with points scattered outward that thin with distance. The slot is the form box, `pointer-events-none`, under the form. On a phone the form sits 80px below the email line, so the scatter clears it.
+    - **A deliberate change from the scope:** the frame is fixed-height and joins the fit gate (rule 13), where the scope asked for rule 12's `min-h` frame.
+    - **Why:** measured, Contact's content is 694–714px tall on phones against pinned frames of 476–592px, so a grown pinned frame would hide the submit button for the whole pin. With the gate, the gather pins on desktop, on tablets and on a 390×844 phone. Smaller phones, landscape phones, 400% zoom, text spacing, and error messages that outgrow the frame flow it as plain black.
+    - The gate now also watches its slot. When a switch moves a focused field (errors appearing on submit at 390×844, or clearing as the reader fixes them), the gate scrolls by the same amount and then into view, so the field never jumps under the header.
+  - **FAQ** is the dust scene's only section. It is one frame tall at every width (rule 10 moved to it), and the dust draws nothing.
+  - **Engine:**
+    - `pointCount` per shape: 12,000 for the drawings, while the cube keeps its reference 7,200, and `SHAPE_POINTS` is the buffer size. The page drawings match the cube's weight: roughly 2 to 3 dots per pixel of stroke at 1440, as the cube has, in a band of 0.015 in model units.
+    - `staticYaw` is the resting pose with or without motion, so a still shape never changes pose when reduced motion switches.
+    - The depth light is fitted to the flat pages.
+    - Every number is in `hero.data.ts`.
+  - **Geometry:** the "Shape geometry" above is y-down; the model is y-up, so y is negated. Four places differ from the notes, each to match the mockup renders:
+    - Development's layers are `[-0.186, 0.119, -0.35]` and `[0.462, -0.237, 0.35]` at scale 0.79, so the panel overlaps the page's right third. The notes' offsets put it over the page's centre.
+    - The branding square sits at z −0.3, so it reads behind the circle.
+    - Delivery's trail runs from −0.15 to −0.54, 0.04 → 0.36 wide.
+    - The gather's perimeter sits at 0.84 of the model square.
+- **Evidence:**
+  - `pnpm check` is clean and 376 unit tests pass.
+  - **e2e on a production build at :3100** (a same-drive copy, webpack build, Supabase up, draft = published). The final run: all 130 specs pass. Two earlier runs failed only on new tests that were still being corrected.
+    - New specs:
+      - the scene walk and deep links with `contact`, and the nav jump skipping `dust`
+      - RAF at rest in listening, building and dust (0 frames over 500ms)
+      - Contact's gate at seven sizes, with every error showing at 1024×768, and when its form box outgrows the frame
+      - a focused field staying on screen as errors flow the form and as fixing them pins it again
+      - Work's phone screens staying opaque in forced colours
+    - The line scans now skip only real `sr-only` boxes, such as the form's honeypot, and fail on a scan that finds no text.
+  - **A five-lens review** (engine and DOM contract, conventions, accessibility, tests, fidelity and docs), each lens followed by an adversarial skeptic. It raised 28 findings and confirmed 15, which come to 12 distinct problems because two lenses found some of the same ones. All 12 are fixed. The ones that mattered:
+    - My first line scan had skipped every line under `display: contents`, so the About, Testimonials and Contact checks passed vacuously on split layouts.
+    - Contact's gate moved a focused field off screen when errors flowed it.
+    - Work's phone window vanished in forced colours.
+    - The frame's top line showed through the phone label.
+    - An empty Work drew a frame round nothing.
+    - Four stale doc lines.
+  - **Hero pixel diff:** 0 pixels against Phase 5 (`ca4d45c`) at DPR 1 and 2, at rest and with reduced motion. Against `0a3c97a` it is 20 pixels (up to 2/255) and 24 (up to 1/255), all in the name's box, the same as Phase 5 measured.
+  - **Contact sheets** (reduced motion) at 1440×900, 820×1180 and 390×844 show every shape formed in its slot. They are in `.local/phase6/contact-sheet-*.png`, git-ignored.
+  - **Transit strips:** Services branding → web design → development shows the mark unwinding as the page draws, then the page stepping back as the code panel draws. Process listening → delivery shows the page's five states; between them the dots still take the scrubbed burst flight until Phase 8. The strips are in `.local/phase6/strip-*.png`.
+- **Open:**
+  - Phase 7 re-checks the Services drawings in the B slot, and Phase 8 the page states at centre stage (both noted in their scopes).
+  - Between How I work states the dots scatter and re-form rather than build on the same outline. Phase 8's threaded turn draws them in pen order.
+  - Contact on small phones shows no gather (see "Open owner decisions").
+  - The cube's 7,200 dots sit in the first 60% of the pen order, so when the reader scrolls back up from Work, the cube draws in over the first 60% of that flight. The review judged it too slight to change.
+  - The image-variant hang in the landmines.
 
 **Next conversation prompt (starts Phase 7):**
 
@@ -772,6 +838,7 @@ Ask me before committing.
   - **Keep:** `resolveTriggeredTarget`, `followTriggeredProgress`, arrivals as commits, and the captions keyed on `data-thread`. A shape triggers, then plays by itself, and a fast scroll simply carries on.
   - Delete the constants and tests that belong only to the lock.
 - **The curtain bug** (carried over): under reduced motion, earlier captions ride up over the slot. Change `not-last:mb-[…]` to `not-first:mt-[…]` (plus `staged:mt-0` and `unpinned:mt-0`), and add a curtain sweep to `step-motion.spec.ts`, like Process's.
+- **The shapes in the new slot:** Phase 6 tuned the three Services drawings in the Phase 3 slot (full width between the heading and the captions). Re-check `THREAD_LINE_ART_TUNING.sizeRatio` and the pose in the B slot (600×480 at 1440, 280px on a phone), so the page reads about 420px wide as in B1.
 - **Docs:** CLAUDE.md's "Services is triggered" and "The glide lock" paragraphs, DESIGN.md's Thread, and rule 14 here.
 
 **Acceptance.**
@@ -813,6 +880,7 @@ Ask me before committing.
   - The ring's dots drift with the scroll all the time, as the ticks do today (Phase 4 decision 3, to be confirmed when the owner scrolls it).
   - No lock.
   - **Crossings between two thread scenes.** `isThreadSegment` has no same-scene check. Once process is a thread scene, the Services → How I work crossing (and, after Phase 9, Projects → Services) becomes a triggered thread segment instead of a scrubbed burst flight. Decide which it should be, and update DESIGN.md's Thread "Entry and exit" and the One-Scroll Rule.
+- **The shapes at full size:** Phase 6 tuned the five page states in today's phone band and small desktop corner slot. Re-check `PROCESS_LINE_ART_TUNING` (size, pose and the depth light) once the slot is centre stage. Between two states the dots take the scrubbed burst flight today; once the turn is threaded they draw in pen order, like Services.
 - **The ring's dots** are one circle with round caps and a 3px stroke, dashed `0 <gap>`. With `pathLength` 3600, the gap is in path units (3600 × 10 ÷ the circumference in px), so it reads as a dot every 10px of arc (DESIGN.md, Shapes).
 - **Docs:** CLAUDE.md's "How I work's orbit" paragraphs, DESIGN.md's Orbit, and rule 14 here.
 
@@ -981,6 +1049,7 @@ These are the ones CLAUDE.md doesn't already cover:
 - **Diff visual regressions; don't eyeball them.** Capture the canvas with `getImageData` in a throwaway Playwright script, before and after. That is how two sub-pixel regressions were caught that screenshots hid.
 - **The hero pixel diff** is against `0a3c97a`. Mask the 72px header band and the scroll cue's row. The name's dots may differ by at most 18 pixels at DPR 1 (up to 2/255) and 14 at DPR 2 (up to 1/255), all inside the name's box. Anything more is drift. The full method is in the history.
   - **Measured 2026-09-29 (Phase 5):** `6d11e7c` (Phase 4, before any Phase 5 change) already differs from `0a3c97a` in 20 pixels at DPR 1 (up to 2/255) and 24 at DPR 2 (up to 1/255), all inside the name's box. So the ceiling moved before Phase 5, in the environment or an earlier phase; it was not isolated further. All three builds read the same published record, which by then held the one-line Phase 5 tagline. Phase 5 against `6d11e7c` is a zero-pixel diff at DPR 1 and 2, at rest and with reduced motion. Diff each phase against the previous commit as well as against `0a3c97a`.
+  - **Measured 2026-09-29 (Phase 6):** against Phase 5 (`ca4d45c`, a throwaway worktree served on :3201 and removed afterwards) the hero is a zero-pixel diff at DPR 1 and 2, at rest and with reduced motion. Against `0a3c97a` it is the same 20 pixels at DPR 1 (up to 2/255) and 24 at DPR 2 (up to 1/255), all inside the name's box. The script is `.local/phase6/pixel-diff.mjs` (git-ignored).
   - **Ready baseline:** `E:\Project\criztian-baseline-build` is a git worktree at `0a3c97a` with its own `node_modules` (a real install) and a webpack build; serve it with `pnpm exec next start -p 3200` and the `.env.local` variables loaded. The older `E:\Project\criztian-baseline-0a3c97a\node_modules` has dangling package links and no `.bin`, so it cannot build.
   - **Capture:** a page screenshot per case once three consecutive frames match (the script used in Phase 5 is recreated easily from "How it was measured" in the history).
 - **PowerShell 5.1 splits `git commit -m` at quotes** (the apostrophe in "Let's"). Write the message to a file and use `git commit -F <file>`.
@@ -992,6 +1061,7 @@ These are the ones CLAUDE.md doesn't already cover:
 - **The e2e suite publishes the owner's draft.** `editor.spec.ts` edits the name, publishes, restores it and publishes again, so whatever else sits unpublished in the draft goes live. In Phase 5 that published the draft written for the owner to review. Before an e2e run, check `draft = published` in `site_content`, and ask the owner before running if they differ.
 - **The local Supabase may have no users.** `auth.users` was empty on 2026-09-20. Logged-in specs create their own throwaway user; never ask for the owner's password.
 - **Never `pnpm db:reset`** on the owner's data. It re-seeds `site_content` as `draft = '{}'` and wipes `auth.users`. Apply new migrations with `pnpm exec supabase migration up --local`.
+- **A production server can hang on image variants.** After one full e2e run, the Phase 6 server at :3100 timed out on two uncached `_next/image` variants (the About and client placeholders at `w=384`), while other uncached variants and Phase 5's server answered at once. Every later request for those two keys hung until the server was restarted; after a restart they load at every width. It was not isolated further. If a plate shows black in a capture, request its `_next/image` URL with curl before suspecting the page. Check this again before deploying.
 - **Turbopack flags one build warning:** `path.join(process.cwd(), …)` in `email-preview.adapter.ts`. It is harmless locally; fix it before deploying.
 - **Capture in full Chromium, not the headless shell.** Playwright's default `chromium-headless-shell` (SwiftShader) paints alpha-0 holes wherever an opaque sticky step overlaps the fixed canvas inside the isolated stage, so they look like white blocks. Use `channel: "chromium"` for screenshots and pixel checks. The e2e specs pass on either.
 - **Measure fit at real heights, not only nominal sizes.** Phase 2 passed at 360×640 and 740×360, then failed on an iPhone SE's real svh (about 548) and a landscape phone with its URL bar (740×304). Every layout change to a pinned scene is re-measured at all of these:
@@ -1009,10 +1079,12 @@ These are the ones CLAUDE.md doesn't already cover:
 - **Check the Phase 5 copy that went live locally (owner):** the e2e run published the draft Phase 5 wrote (the new tagline, the belief placeholder and the bracketed project placeholders), because `editor.spec.ts` publishes the whole draft. Keep it, or ask for the pre-Phase 5 published copy back (the row was backed up in the Phase 5 session).
 - **Testimonials with several quotes:** the label counts them once there is more than one (owner, Phase 5), but how one quote gives way to the next is not designed. Decide when the real quotes arrive.
 - **To confirm later:** the black-and-white photo, when it arrives, and the drifting ring, when Phase 8 is scrolled.
+- **Contact on small phones (Phase 6, for the owner to see):** the gather shows wherever the whole form fits one pinned frame (desktop, tablets, a 390×844 phone). Below that the section flows as plain black and the gather gives way, so a pin never hides the submit button.
 - **Phase 10:** heading parallax, the adaptive cursor, the cursive logo.
 - **Phase 11:** the pause-motion toggle (WCAG 2.2.2).
 - **Material:** the belief line, the story and photo, client quotes, real projects.
 - **Decided, recorded:**
+  - Phase 6 (owner, 2026-09-29): Phase 5 committed on its own first; Work on a phone shows the frame through a clear window round each plate; frames never scatter under the pointer; the dust behind FAQ goes away (plain black); the Services B layout stays in Phase 7
   - Phase 5 (owner, 2026-09-29): the Projects heading and intro are retired; Work is one screen per project until the deck; the mockup's placeholder plates; the draft is written for the owner to publish; the submit button is uppercase; Testimonials shows no count while it has one quote; all nine FAQ answers are still true
   - positioning (PRODUCT.md)
   - reveals replay on re-entry

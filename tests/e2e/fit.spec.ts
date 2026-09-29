@@ -76,6 +76,29 @@ const STATEMENT_VIEWPORTS = [
   { width: 1440, height: 900 },
 ]
 
+const CONTACT_VIEWPORTS = [
+  { width: 1440, height: 900, isPinned: true, hasTextSpacing: false },
+  { width: 1024, height: 768, isPinned: true, hasTextSpacing: false },
+  { width: 390, height: 844, isPinned: true, hasTextSpacing: false },
+  { width: 375, height: 548, isPinned: false, hasTextSpacing: false },
+  { width: 740, height: 360, isPinned: false, hasTextSpacing: false },
+  { width: 320, height: 256, isPinned: false, hasTextSpacing: false },
+  { width: 1440, height: 900, isPinned: null, hasTextSpacing: true },
+]
+
+const CONTACT_SELECTOR = "#contact"
+
+const PIN_SCROLL_PX = 250
+
+const FOCUS_SHIFT_TOLERANCE_PX = 24
+
+const FIXED_FORM = {
+  name: "Suite Reader",
+  email: "suite.reader@example.com",
+  service: "branding",
+  message: "Checking the form pins again once it fits.",
+}
+
 const DEEP_LINK_HASHES = [
   "#project",
   "#process",
@@ -187,12 +210,41 @@ async function findNeverVisibleLines(page: Page, selector: string) {
       const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT)
       let current = walker.nextNode()
 
+      function isVisuallyHidden(node: Node): boolean {
+        let element = node.parentElement
+
+        while (element !== null) {
+          const style = getComputedStyle(element)
+          const rect = element.getBoundingClientRect()
+          const isClippedBox =
+            style.display !== "contents" &&
+            style.overflow === "hidden" &&
+            rect.width <= 1 &&
+            rect.height <= 1
+
+          if (isClippedBox) {
+            return true
+          }
+
+          element = element.parentElement
+        }
+
+        return false
+      }
+
       while (current !== null) {
-        if ((current.textContent ?? "").trim() !== "") {
+        if (
+          (current.textContent ?? "").trim() !== "" &&
+          !isVisuallyHidden(current)
+        ) {
           textNodes.push(current)
         }
 
         current = walker.nextNode()
+      }
+
+      if (textNodes.length === 0) {
+        return ["no text scanned in " + input.selector]
       }
 
       const seen = new Map<string, boolean>()
@@ -338,8 +390,33 @@ async function findOverlappingLines(page: Page, selector: string) {
     const walker = document.createTreeWalker(section, NodeFilter.SHOW_TEXT)
     let current = walker.nextNode()
 
+    function isVisuallyHidden(node: Node): boolean {
+      let element = node.parentElement
+
+      while (element !== null) {
+        const style = getComputedStyle(element)
+        const rect = element.getBoundingClientRect()
+        const isClippedBox =
+          style.display !== "contents" &&
+          style.overflow === "hidden" &&
+          rect.width <= 1 &&
+          rect.height <= 1
+
+        if (isClippedBox) {
+          return true
+        }
+
+        element = element.parentElement
+      }
+
+      return false
+    }
+
     while (current !== null) {
-      if ((current.textContent ?? "").trim() !== "") {
+      if (
+        (current.textContent ?? "").trim() !== "" &&
+        !isVisuallyHidden(current)
+      ) {
         const range = document.createRange()
 
         range.selectNodeContents(current)
@@ -351,6 +428,10 @@ async function findOverlappingLines(page: Page, selector: string) {
       }
 
       current = walker.nextNode()
+    }
+
+    if (lineRects.length === 0) {
+      return ["no text lines in " + sectionSelector]
     }
 
     const overlaps: string[] = []
@@ -529,6 +610,236 @@ for (const selector of SINGLE_FRAME_SCENES) {
     })
   }
 }
+
+async function expectContactFit(page: Page, isPinned: boolean | null) {
+  const section = page.locator(CONTACT_SELECTOR)
+
+  if (isPinned === true) {
+    await expect(section).not.toHaveAttribute("data-fit")
+  }
+
+  if (isPinned === false) {
+    await expect(section).toHaveAttribute("data-fit", "flow", {
+      timeout: 10000,
+    })
+  }
+
+  const fit = await section.getAttribute("data-fit")
+
+  if (fit === null) {
+    await expect(section).toHaveAttribute("data-dot-shapes", "gather")
+    await expect(section.locator("[data-dot-slot]")).toHaveCount(1)
+    expect(await readFrameClipping(page, CONTACT_SELECTOR)).toBeLessThanOrEqual(
+      FIT_TOLERANCE_PX
+    )
+  } else {
+    expect(fit).toBe("flow")
+    await expect(section).toHaveAttribute("data-dot-shapes", "dust")
+    await expect(section.locator("[data-dot-slot]")).toHaveCount(0)
+  }
+
+  expect(await findOverlappingLines(page, CONTACT_SELECTOR)).toEqual([])
+  expect(await findNeverVisibleLines(page, CONTACT_SELECTOR)).toEqual([])
+}
+
+for (const viewport of CONTACT_VIEWPORTS) {
+  const spacing = viewport.hasTextSpacing ? " with text spacing" : ""
+
+  test.describe(`#contact at ${viewport.width}x${viewport.height}${spacing}`, () => {
+    test.use({
+      viewport: { width: viewport.width, height: viewport.height },
+      reducedMotion: "reduce",
+    })
+
+    test("pins the gather where the form fits and flows it where it cannot", async ({
+      page,
+    }) => {
+      const problems = collectPageProblems(page)
+
+      await page.goto("/")
+      await waitForRunningStage(page)
+      await waitForFonts(page)
+
+      if (viewport.hasTextSpacing) {
+        await page.addStyleTag({ content: TEXT_SPACING_CSS })
+      }
+
+      await page.waitForTimeout(GATE_SETTLE_MS)
+      await expectContactFit(page, viewport.isPinned)
+
+      expect(problems).toEqual([])
+    })
+  })
+}
+
+test.describe("#contact when its form box outgrows the frame", () => {
+  test.use({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" })
+
+  test("flows the scene as soon as the form box grows past the frame", async ({
+    page,
+  }) => {
+    const problems = collectPageProblems(page)
+
+    await page.goto("/#contact")
+    await waitForRunningStage(page)
+    await waitForFonts(page)
+    await page.waitForTimeout(GATE_SETTLE_MS)
+
+    const section = page.locator(CONTACT_SELECTOR)
+
+    await expect(section).not.toHaveAttribute("data-fit")
+
+    await page.evaluate(function growFormBox(selector) {
+      const form = document.querySelector(selector + " form")
+      const filler = document.createElement("div")
+
+      filler.style.height = "40rem"
+      form?.appendChild(filler)
+    }, CONTACT_SELECTOR)
+
+    await expect(section).toHaveAttribute("data-fit", "flow", {
+      timeout: 5000,
+    })
+    await expect(section.locator("[data-dot-slot]")).toHaveCount(0)
+
+    expect(problems).toEqual([])
+  })
+})
+
+test.describe("#contact when errors flow it on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" })
+
+  test("keeps the focused field where it was when the form flows", async ({
+    page,
+  }) => {
+    const problems = collectPageProblems(page)
+
+    await page.goto("/#contact")
+    await waitForRunningStage(page)
+    await waitForFonts(page)
+    await page.waitForTimeout(GATE_SETTLE_MS)
+    await page.evaluate(function scrollIntoPin(offset) {
+      window.scrollBy({ top: offset, behavior: "instant" })
+    }, PIN_SCROLL_PX)
+    await page.waitForTimeout(GATE_SETTLE_MS)
+
+    const section = page.locator(CONTACT_SELECTOR)
+    const nameField = page.locator("#contact-name")
+    const pinnedTop = (await nameField.boundingBox())?.y ?? Number.NaN
+
+    await expect(section).not.toHaveAttribute("data-fit")
+    await page.locator(`${CONTACT_SELECTOR} button[type=submit]`).click()
+    await expect(section).toHaveAttribute("data-fit", "flow", {
+      timeout: 5000,
+    })
+    await expect(nameField).toBeFocused()
+    await page.waitForTimeout(GATE_SETTLE_MS)
+
+    const flowedBox = await nameField.boundingBox()
+    const flowedTop = flowedBox?.y ?? Number.NaN
+    const flowedBottom = flowedTop + (flowedBox?.height ?? 0)
+
+    expect(Math.abs(flowedTop - pinnedTop)).toBeLessThanOrEqual(
+      FOCUS_SHIFT_TOLERANCE_PX
+    )
+    expect(flowedTop).toBeGreaterThanOrEqual(HEADER_LINE_PX)
+    expect(flowedBottom).toBeLessThanOrEqual(page.viewportSize()?.height ?? 0)
+
+    expect(problems).toEqual([])
+  })
+})
+
+test.describe("#contact when fixed errors pin it again on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" })
+
+  test("keeps the field being typed in on screen as the form pins again", async ({
+    page,
+  }) => {
+    const problems = collectPageProblems(page)
+
+    await page.goto("/#contact")
+    await waitForRunningStage(page)
+    await waitForFonts(page)
+    await page.waitForTimeout(GATE_SETTLE_MS)
+    await page.evaluate(function scrollIntoPin(offset) {
+      window.scrollBy({ top: offset, behavior: "instant" })
+    }, PIN_SCROLL_PX)
+    await page.waitForTimeout(GATE_SETTLE_MS)
+
+    const section = page.locator(CONTACT_SELECTOR)
+
+    await page.locator(`${CONTACT_SELECTOR} button[type=submit]`).click()
+    await expect(section).toHaveAttribute("data-fit", "flow", {
+      timeout: 5000,
+    })
+
+    await page.locator("#contact-name").fill(FIXED_FORM.name)
+    await page.locator("#contact-email").fill(FIXED_FORM.email)
+    await page.locator("#contact-service").selectOption(FIXED_FORM.service)
+    await page.locator("#contact-message").fill(FIXED_FORM.message)
+    await expect(section).not.toHaveAttribute("data-fit", { timeout: 5000 })
+    await page.waitForTimeout(GATE_SETTLE_MS)
+
+    const message = page.locator("#contact-message")
+    const box = await message.boundingBox()
+    const viewportHeight = page.viewportSize()?.height ?? 0
+
+    await expect(message).toBeFocused()
+    expect(box?.y ?? Number.NaN).toBeGreaterThanOrEqual(HEADER_LINE_PX)
+    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(
+      viewportHeight
+    )
+
+    expect(problems).toEqual([])
+  })
+})
+
+test.describe("Work on a phone in forced colours", () => {
+  test.use({ viewport: { width: 390, height: 844 }, forcedColors: "active" })
+
+  test("keeps each project screen opaque so the frame never crosses copy", async ({
+    page,
+  }) => {
+    await page.goto("/#project")
+    await waitForRunningStage(page)
+
+    const backgrounds = await page.evaluate(function readScreenBackgrounds() {
+      const found: string[] = []
+
+      for (const article of document.querySelectorAll("#project article")) {
+        found.push(getComputedStyle(article).backgroundColor)
+      }
+
+      return found
+    })
+
+    expect(backgrounds.length).toBeGreaterThan(0)
+
+    for (const background of backgrounds) {
+      expect(background).not.toMatch(/rgba(.*, 0)$|transparent/)
+    }
+  })
+})
+
+test.describe("#contact with every error showing at 1024x768", () => {
+  test.use({ viewport: { width: 1024, height: 768 }, reducedMotion: "reduce" })
+
+  test("keeps every line readable, pinned or flowed", async ({ page }) => {
+    const problems = collectPageProblems(page)
+
+    await page.goto("/#contact")
+    await waitForRunningStage(page)
+    await waitForFonts(page)
+    await page.locator(`${CONTACT_SELECTOR} button[type=submit]`).click()
+    await expect(
+      page.locator(`${CONTACT_SELECTOR} [role=alert]`)
+    ).not.toHaveCount(0)
+    await page.waitForTimeout(GATE_SETTLE_MS)
+    await expectContactFit(page, null)
+
+    expect(problems).toEqual([])
+  })
+})
 
 for (const viewport of DEEP_LINK_VIEWPORTS) {
   test.describe(`deep links at ${viewport.width}x${viewport.height}`, () => {

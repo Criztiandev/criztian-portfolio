@@ -14,7 +14,9 @@ export const OWNER_EMAIL_HREF = `mailto:${OWNER_EMAIL_ADDRESS}`
 
 export const SERVICES_SCENE_SHAPES = "branding web-design development"
 
-export const PLACEHOLDER_SCENE_SHAPES = "sphere"
+export const FRAME_SCENE_SHAPES = "frame"
+
+export const CONTACT_SCENE_SHAPES = "gather"
 
 export const PROCESS_SCENE_SHAPES =
   "listening planning visualising building delivery"
@@ -104,7 +106,13 @@ export const PROJECT_SCREEN_COLUMNS_CLASS =
   "split:grid-cols-[minmax(0,31fr)_minmax(0,35fr)]"
 
 export const PROJECT_PLATE_CLASS =
-  "mt-3 split:mt-0 split:w-[min(100%,calc((100svh_-_12rem)_*_10_/_7))]"
+  "mt-6 split:mt-0 split:w-[min(100%,calc((100svh_-_12rem)_*_10_/_7))]"
+
+export const PROJECT_SCREEN_WINDOW_CLASS =
+  "isolate -mx-6 overflow-clip px-6 forced-colors:bg-background split:mx-0 split:overflow-visible split:px-0 split:forced-colors:bg-transparent"
+
+export const PROJECT_PLATE_WINDOW_CLASS =
+  "absolute -inset-6 -z-10 shadow-[0_0_0_100vmax_var(--background)] split:hidden"
 
 export const ABOUT_PLATE_CLASS =
   "split:aspect-[4/5] split:w-[min(80%,calc((100svh_-_12rem)_*_0.8))]"
@@ -190,7 +198,7 @@ export const ABOUT_SECTION: AboutSectionContent = {
   headingId: "about-heading",
   heading: "Who am I",
   sceneId: "about",
-  shapes: PLACEHOLDER_SCENE_SHAPES,
+  shapes: FRAME_SCENE_SHAPES,
   statement: "I am Criztian.",
   body: "Branding, web design and development, made for your business.",
   story: "[Your story, in your own words]",
@@ -245,7 +253,7 @@ export const TESTIMONIALS_SECTION: TestimonialsSectionContent = {
   headingId: "testimonials-heading",
   heading: "Testimonials",
   sceneId: "testimonials",
-  shapes: PLACEHOLDER_SCENE_SHAPES,
+  shapes: FRAME_SCENE_SHAPES,
   items: [
     {
       quote: "[A client's words, with their permission]",
@@ -328,6 +336,8 @@ export const CONTACT_SECTION: ContactSectionContent = {
   id: "contact",
   headingId: "contact-heading",
   heading: "Get in touch",
+  sceneId: "contact",
+  shapes: CONTACT_SCENE_SHAPES,
   statement: "Let's start your project today.",
   emailPrompt: "Or email me:",
 }

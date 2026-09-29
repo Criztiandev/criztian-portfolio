@@ -9,7 +9,7 @@ const SCENE_DEEP_LINKS = [
   { hash: "#about", scene: "about" },
   { hash: "#testimonials", scene: "testimonials" },
   { hash: "#faq", scene: "dust" },
-  { hash: "#contact", scene: "dust" },
+  { hash: "#contact", scene: "contact" },
 ]
 
 test.describe("in-page anchors", () => {

@@ -222,16 +222,17 @@ export function createDotFieldRuntime(
   const blankBuffer = createBuffer(context)
   const shapeBuffers: Record<DotGeneratedShapeId, WebGLBuffer> = {
     cube: createBuffer(context),
-    sphere: createBuffer(context),
     dust: createBuffer(context),
     branding: createBuffer(context),
     "web-design": createBuffer(context),
     development: createBuffer(context),
-    listening: createBuffer(context),
     planning: createBuffer(context),
     visualising: createBuffer(context),
     building: createBuffer(context),
+    frame: createBuffer(context),
+    listening: createBuffer(context),
     delivery: createBuffer(context),
+    gather: createBuffer(context),
   }
 
   context.bindVertexArray(vertexArray)
@@ -279,16 +280,17 @@ export function createDotFieldRuntime(
     shapeLibrary,
     shapePoints: {
       cube: new Float32Array(0),
-      sphere: new Float32Array(0),
       dust: new Float32Array(0),
       branding: new Float32Array(0),
       "web-design": new Float32Array(0),
       development: new Float32Array(0),
-      listening: new Float32Array(0),
       planning: new Float32Array(0),
       visualising: new Float32Array(0),
       building: new Float32Array(0),
+      frame: new Float32Array(0),
+      listening: new Float32Array(0),
       delivery: new Float32Array(0),
+      gather: new Float32Array(0),
     },
     boundFrom: blankBuffer,
     boundTo: blankBuffer,

@@ -40,6 +40,7 @@ const SCENE_ORDER = [
   "about",
   "testimonials",
   "dust",
+  "contact",
   "footer",
 ]
 
@@ -287,6 +288,29 @@ describe("SitePage", () => {
 
       expect(slot?.parentElement?.querySelector("img"), id).not.toBeNull()
     }
+  })
+
+  it("gathers the contact dots round the form box behind the form", () => {
+    const { container } = renderPage()
+    const slot = container.querySelector<HTMLElement>(
+      "#contact [data-dot-slot]"
+    )
+
+    if (slot === null) {
+      throw new Error("the contact slot is missing")
+    }
+
+    expect(slot.nextElementSibling?.tagName).toBe("FORM")
+    expect(slot.className).toContain("pointer-events-none")
+  })
+
+  it("gates the contact frame so a form that cannot fit flows", () => {
+    const { container } = renderPage()
+    const contact = container.querySelector("#contact")
+
+    expect(contact?.firstElementChild).toHaveAttribute("data-fit-box")
+    expect(contact?.lastElementChild?.tagName).toBe("SPAN")
+    expect(contact?.lastElementChild).toHaveAttribute("hidden")
   })
 
   it("keeps the step copy in reading order inside each scene's board", () => {

@@ -3,16 +3,20 @@ import {
   CUBE_EDGE_JITTER,
   CUBE_EDGES,
   CUBE_SEED,
+  DELIVERY_SHAPE,
   DOT_FIELD_MORPH_TUNING,
+  DOT_FRAME_OUTSET,
   DOT_SCENE_MOTION,
   DOT_SHAPE_IDS,
   DOT_SHAPE_TUNING,
-  DOT_SPHERE_TUNING,
   DUST_SEED,
+  GATHER_SHAPE,
+  GATHER_SIDES,
   HIDDEN_RANK,
   IDENTITY_ROTATION,
-  LINE_ART_JITTER,
+  JITTER_SPAN,
   LINE_ART_SHAPES,
+  LISTENING_SHAPE,
   MAX_CANVAS_PIXELS,
   MAX_PIXEL_RATIO,
   MIN_ARC_SEGMENTS,
@@ -20,10 +24,8 @@ import {
   PIXEL_RATIO_STEPS,
   POINT_STRIDE,
   REFERENCE_FRAME_RATE,
-  RIPPLE_SEGMENTS,
   SHAPE_POINTS,
   SHAPE_STRIDE,
-  SPHERE_SEED,
 } from "@/data/hero.data"
 import type {
   CubeEdge,
@@ -47,16 +49,18 @@ import type {
   DotSceneMeasure,
   DotShapeId,
   DotShapeLibrary,
-  DotSphereTuning,
   DotTimelineSegment,
   DotTriggeredTargetRequest,
+  GatherShape,
   HeroIntroTiming,
+  LaunchShape,
   LineArtArc,
+  LineArtLayer,
   LineArtSegment,
   LineArtShape,
-  LineArtStar,
   LineArtStroke,
   RandomSource,
+  ScatterRingShape,
 } from "@/types/hero.type"
 
 const MAX_PITCH_ATTEMPTS = 24
@@ -437,44 +441,6 @@ export function generateCubePoints(
   return points
 }
 
-export function generateSpherePoints(
-  count: number,
-  tuning: DotSphereTuning
-): Float32Array {
-  const points = new Float32Array(Math.max(0, count) * SHAPE_STRIDE)
-  const nextRandom = createRandomSource(SPHERE_SEED)
-  const lineCount = tuning.rings + tuning.meridians
-
-  for (let index = 0; index < count; index += 1) {
-    const pointIndex = index * SHAPE_STRIDE
-    const line = index % lineCount
-    const around = nextRandom() * Math.PI * 2
-
-    points[pointIndex + 3] = nextRandom()
-
-    let latitude = around
-    let longitude = (Math.PI * (line - tuning.rings)) / tuning.meridians
-
-    if (line < tuning.rings) {
-      latitude = (Math.PI * (line + 1)) / (tuning.rings + 1) - Math.PI / 2
-      longitude = around
-    }
-
-    const ringRadius = Math.cos(latitude)
-
-    points[pointIndex] =
-      ringRadius * Math.cos(longitude) +
-      resolveJitter(nextRandom, tuning.jitter)
-    points[pointIndex + 1] =
-      Math.sin(latitude) + resolveJitter(nextRandom, tuning.jitter)
-    points[pointIndex + 2] =
-      ringRadius * Math.sin(longitude) +
-      resolveJitter(nextRandom, tuning.jitter)
-  }
-
-  return points
-}
-
 export function generateDustPoints(count: number): Float32Array {
   const points = new Float32Array(Math.max(0, count) * SHAPE_STRIDE)
   const nextRandom = createRandomSource(DUST_SEED)
@@ -491,46 +457,26 @@ export function generateDustPoints(count: number): Float32Array {
   return points
 }
 
+function clampToModel(value: number): number {
+  return Math.min(1, Math.max(-1, value))
+}
+
 function flattenArc(arc: LineArtArc): CubeVector[] {
   const sweep = arc.endAngle - arc.startAngle
   const turns = Math.abs(sweep) / (Math.PI * 2)
   const segmentCount = Math.max(
     MIN_ARC_SEGMENTS,
-    Math.ceil(turns * ARC_SEGMENTS_PER_TURN),
-    Math.ceil(turns * arc.ripples * RIPPLE_SEGMENTS)
+    Math.ceil(turns * ARC_SEGMENTS_PER_TURN)
   )
   const vertices: CubeVector[] = []
 
   for (let step = 0; step <= segmentCount; step += 1) {
     const angle = arc.startAngle + (sweep * step) / segmentCount
-    const radius = arc.radius + arc.rippleDepth * Math.sin(arc.ripples * angle)
 
     vertices.push([
-      arc.center[0] + radius * Math.cos(angle),
-      arc.center[1] + radius * Math.sin(angle),
+      arc.center[0] + arc.radius * Math.cos(angle),
+      arc.center[1] + arc.radius * Math.sin(angle),
       arc.center[2],
-    ])
-  }
-
-  return vertices
-}
-
-function flattenStar(star: LineArtStar): CubeVector[] {
-  const vertices: CubeVector[] = []
-  const cornerCount = star.tips * 2
-
-  for (let step = 0; step <= cornerCount; step += 1) {
-    const angle = Math.PI / 2 + (step * Math.PI) / star.tips
-    let radius = star.innerRadius
-
-    if (step % 2 === 0) {
-      radius = star.outerRadius
-    }
-
-    vertices.push([
-      star.center[0] + radius * Math.cos(angle),
-      star.center[1] + radius * Math.sin(angle),
-      star.center[2],
     ])
   }
 
@@ -542,30 +488,34 @@ function flattenLineArtStroke(stroke: LineArtStroke): CubeVector[] {
     return stroke.points
   }
 
-  if (stroke.kind === "star") {
-    return flattenStar(stroke)
-  }
-
   return flattenArc(stroke)
+}
+
+function placeLayerVertex(layer: LineArtLayer, vertex: CubeVector): CubeVector {
+  return [
+    layer.offset[0] + vertex[0] * layer.scale,
+    layer.offset[1] + vertex[1] * layer.scale,
+    layer.offset[2] + vertex[2] * layer.scale,
+  ]
 }
 
 function measureDistance(start: CubeVector, end: CubeVector): number {
   return Math.hypot(end[0] - start[0], end[1] - start[1], end[2] - start[2])
 }
 
-export function buildLineArtSegments(
-  strokes: LineArtStroke[]
-): LineArtSegment[] {
+export function buildLineArtSegments(layers: LineArtLayer[]): LineArtSegment[] {
   const segments: LineArtSegment[] = []
 
-  for (const stroke of strokes) {
-    const vertices = flattenLineArtStroke(stroke)
+  for (const layer of layers) {
+    for (const stroke of layer.strokes) {
+      const vertices = flattenLineArtStroke(stroke)
 
-    for (let index = 1; index < vertices.length; index += 1) {
-      const start = vertices[index - 1]
-      const end = vertices[index]
+      for (let index = 1; index < vertices.length; index += 1) {
+        const start = placeLayerVertex(layer, vertices[index - 1])
+        const end = placeLayerVertex(layer, vertices[index])
 
-      segments.push({ start, end, length: measureDistance(start, end) })
+        segments.push({ start, end, length: measureDistance(start, end) })
+      }
     }
   }
 
@@ -574,11 +524,10 @@ export function buildLineArtSegments(
 
 export function generateLineArtPoints(
   shape: LineArtShape,
-  count: number,
-  jitter: number
+  count: number
 ): Float32Array {
   const points = new Float32Array(Math.max(0, count) * SHAPE_STRIDE)
-  const segments = buildLineArtSegments(shape.strokes)
+  const segments = buildLineArtSegments(shape.layers)
   let totalLength = 0
 
   for (const segment of segments) {
@@ -616,10 +565,10 @@ export function generateLineArtPoints(
     for (let axis = 0; axis < 3; axis += 1) {
       const start = segment.start[axis]
       const end = segment.end[axis]
-      const position =
-        start + (end - start) * along + resolveJitter(nextRandom, jitter)
 
-      points[pointIndex + axis] = Math.min(1, Math.max(-1, position))
+      points[pointIndex + axis] = clampToModel(
+        start + (end - start) * along + resolveJitter(nextRandom, shape.jitter)
+      )
     }
 
     points[pointIndex + 3] = nextRandom()
@@ -628,50 +577,174 @@ export function generateLineArtPoints(
   return points
 }
 
+export function generateScatterRingPoints(
+  shape: ScatterRingShape,
+  count: number
+): Float32Array {
+  const points = new Float32Array(Math.max(0, count) * SHAPE_STRIDE)
+  const nextRandom = createRandomSource(shape.seed)
+
+  for (let index = 0; index < count; index += 1) {
+    const pointIndex = index * SHAPE_STRIDE
+    const angle =
+      shape.startAngle - ((index + nextRandom()) / count) * Math.PI * 2
+    let reach = shape.scatterReach * Math.sqrt(nextRandom())
+
+    if (nextRandom() < shape.ringShare) {
+      reach = 1 + resolveJitter(nextRandom, shape.ringJitter)
+    }
+
+    points[pointIndex] = clampToModel(Math.cos(angle) * shape.radiusX * reach)
+    points[pointIndex + 1] = clampToModel(
+      Math.sin(angle) * shape.radiusY * reach
+    )
+    points[pointIndex + 2] = 0
+    points[pointIndex + 3] = nextRandom()
+  }
+
+  return points
+}
+
+export function generateLaunchPoints(
+  shape: LaunchShape,
+  count: number
+): Float32Array {
+  const total = Math.max(0, count)
+  const pageCount = Math.round(total * shape.pageShare)
+  const trailCount = total - pageCount
+  const trailLength = shape.trailTop - shape.trailBottom
+  const points = new Float32Array(total * SHAPE_STRIDE)
+  const nextRandom = createRandomSource(shape.seed)
+
+  points.set(generateLineArtPoints(shape.page, pageCount))
+
+  for (let index = 0; index < trailCount; index += 1) {
+    const pointIndex = (pageCount + index) * SHAPE_STRIDE
+    const along = Math.pow(
+      (index + nextRandom()) / trailCount,
+      shape.trailFalloff
+    )
+    const width = shape.topWidth + (shape.bottomWidth - shape.topWidth) * along
+
+    points[pointIndex] = clampToModel(
+      shape.trailX + resolveJitter(nextRandom, width / JITTER_SPAN)
+    )
+    points[pointIndex + 1] = clampToModel(shape.trailTop - along * trailLength)
+    points[pointIndex + 2] = 0
+    points[pointIndex + 3] = nextRandom()
+  }
+
+  return points
+}
+
+function writeGatherPoint(
+  points: Float32Array,
+  pointIndex: number,
+  side: number,
+  tangent: number,
+  normal: number
+): void {
+  let pointX = -normal
+  let pointY = tangent
+
+  if (side === 0) {
+    pointX = tangent
+    pointY = normal
+  }
+
+  if (side === 1) {
+    pointX = normal
+    pointY = -tangent
+  }
+
+  if (side === 2) {
+    pointX = -tangent
+    pointY = -normal
+  }
+
+  points[pointIndex] = clampToModel(pointX)
+  points[pointIndex + 1] = clampToModel(pointY)
+  points[pointIndex + 2] = 0
+}
+
+export function generateGatherPoints(
+  shape: GatherShape,
+  count: number
+): Float32Array {
+  const points = new Float32Array(Math.max(0, count) * SHAPE_STRIDE)
+  const nextRandom = createRandomSource(shape.seed)
+  const reach = 1 - shape.perimeter
+
+  for (let index = 0; index < count; index += 1) {
+    const pointIndex = index * SHAPE_STRIDE
+    const around = ((index + nextRandom()) / count) * GATHER_SIDES
+    const side = Math.min(GATHER_SIDES - 1, Math.floor(around))
+    const tangent = ((around - side) * 2 - 1) * shape.perimeter
+    let outward = resolveJitter(nextRandom, shape.lineJitter)
+
+    if (nextRandom() >= shape.lineShare) {
+      outward = reach * Math.pow(nextRandom(), shape.spreadFalloff)
+    }
+
+    writeGatherPoint(
+      points,
+      pointIndex,
+      side,
+      tangent,
+      shape.perimeter + outward
+    )
+    points[pointIndex + 3] = nextRandom()
+  }
+
+  return points
+}
+
 export function buildShapeLibrary(): DotShapeLibrary {
   return {
-    cube: generateCubePoints(SHAPE_POINTS, CUBE_EDGE_JITTER),
-    sphere: generateSpherePoints(SHAPE_POINTS, DOT_SPHERE_TUNING),
-    dust: generateDustPoints(SHAPE_POINTS),
+    cube: generateCubePoints(
+      DOT_SHAPE_TUNING.cube.pointCount,
+      CUBE_EDGE_JITTER
+    ),
+    dust: generateDustPoints(DOT_SHAPE_TUNING.dust.pointCount),
     branding: generateLineArtPoints(
       LINE_ART_SHAPES.branding,
-      SHAPE_POINTS,
-      LINE_ART_JITTER
+      DOT_SHAPE_TUNING.branding.pointCount
     ),
     "web-design": generateLineArtPoints(
       LINE_ART_SHAPES["web-design"],
-      SHAPE_POINTS,
-      LINE_ART_JITTER
+      DOT_SHAPE_TUNING["web-design"].pointCount
     ),
     development: generateLineArtPoints(
       LINE_ART_SHAPES.development,
-      SHAPE_POINTS,
-      LINE_ART_JITTER
-    ),
-    listening: generateLineArtPoints(
-      LINE_ART_SHAPES.listening,
-      SHAPE_POINTS,
-      LINE_ART_JITTER
+      DOT_SHAPE_TUNING.development.pointCount
     ),
     planning: generateLineArtPoints(
       LINE_ART_SHAPES.planning,
-      SHAPE_POINTS,
-      LINE_ART_JITTER
+      DOT_SHAPE_TUNING.planning.pointCount
     ),
     visualising: generateLineArtPoints(
       LINE_ART_SHAPES.visualising,
-      SHAPE_POINTS,
-      LINE_ART_JITTER
+      DOT_SHAPE_TUNING.visualising.pointCount
     ),
     building: generateLineArtPoints(
       LINE_ART_SHAPES.building,
-      SHAPE_POINTS,
-      CUBE_EDGE_JITTER
+      DOT_SHAPE_TUNING.building.pointCount
     ),
-    delivery: generateLineArtPoints(
-      LINE_ART_SHAPES.delivery,
-      SHAPE_POINTS,
-      LINE_ART_JITTER
+    frame: generateLineArtPoints(
+      LINE_ART_SHAPES.frame,
+      DOT_SHAPE_TUNING.frame.pointCount
+    ),
+    listening: generateScatterRingPoints(
+      LISTENING_SHAPE,
+      DOT_SHAPE_TUNING.listening.pointCount
+    ),
+    delivery: generateLaunchPoints(
+      DELIVERY_SHAPE,
+      DOT_SHAPE_TUNING.delivery.pointCount
+    ),
+    gather: generateGatherPoints(
+      GATHER_SHAPE,
+      DOT_SHAPE_TUNING.gather.pointCount
     ),
   }
 }
@@ -1223,6 +1296,17 @@ export function isShapeSpinning(shape: DotShapeId): boolean {
   return tuning.spinSpeed > 0 || tuning.sway > 0
 }
 
+export function resolveFrameOutset(slot: DotFieldRect | null): number {
+  if (slot === null) {
+    return 0
+  }
+
+  return Math.min(
+    DOT_FRAME_OUTSET.maxPixels,
+    Math.min(slot.width, slot.height) * DOT_FRAME_OUTSET.slotRatio
+  )
+}
+
 function resolveKeyframeSlot(
   keyframe: DotSceneKeyframe,
   viewport: DotFieldViewport
@@ -1298,9 +1382,11 @@ export function resolvePlacement(
   }
 
   if (tuning.fit === "fill") {
+    const outset = resolveFrameOutset(keyframe.slot)
+
     halfSize = {
-      x: (slot.width / 2) * pixelRatio,
-      y: (slot.height / 2) * pixelRatio,
+      x: (slot.width / 2 + outset) * tuning.sizeRatio * pixelRatio,
+      y: (slot.height / 2 + outset) * tuning.sizeRatio * pixelRatio,
     }
   }
 
@@ -1315,7 +1401,7 @@ export function resolvePlacement(
       tuning.sway * Math.sin(spinSeconds * DOT_FIELD_MORPH_TUNING.swaySpeed)
 
     rotation = buildCubeRotation(
-      spinSeconds * tuning.spinSpeed + yawOffset + sway,
+      tuning.staticYaw + spinSeconds * tuning.spinSpeed + yawOffset + sway,
       tuning.pitch + tuning.wobble * Math.sin(wobblePhase),
       tuning.roll + tuning.wobble * Math.cos(wobblePhase)
     )
@@ -1335,7 +1421,7 @@ export function resolvePlacement(
     visible: resolveVisibleFraction(
       tuning.pointsPerArea,
       slot.width * slot.height,
-      SHAPE_POINTS
+      tuning.pointCount
     ),
     farLight: tuning.farLight,
     depthRadius: tuning.depthRadius,

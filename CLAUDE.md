@@ -83,7 +83,8 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
   - Every section belongs to a `[data-dot-scene]` container, with shapes in `data-dot-shapes`.
   - A formed shape lives only in a pinned `[data-dot-slot]` inside the container's first child, a sticky frame. Dust scenes have no slot and fill the viewport.
   - Pinned layouts choose by height as well as width with the `split`, `short` and `staged` variants in `globals.css`, never `md:`.
-  - Frames that can grow use `min-h`. Sticky fixed-height copy boxes (the Services captions, the How I work step boxes and heading box) go through `SceneFitGate`, which drops the scene to dust when the copy can't fit. See DOM contract rules 12–14 in `plans/handoff.md`.
+  - Frames that can grow use `min-h`. Sticky fixed-height copy boxes (the Services captions, the How I work step boxes and heading box, and the Contact frame) go through `SceneFitGate`, which drops the scene to dust when the copy can't fit. See DOM contract rules 12–14 in `plans/handoff.md`.
+  - **Contact is gated, not grown.** Its gather needs the whole form in one pinned frame, and a grown frame would hide the submit button for the length of the pin. So the frame is fixed-height and joins the gate: most phones, landscape phones, 400% zoom and text spacing flow it as a plain section. The gate also watches the slot, so error messages that outgrow the frame flow it too, and when its switch moves a focused field, it scrolls by the same amount so the field stays put.
   - **How I work's orbit** is scroll-driven CSS behind the `staged` variant, on the container's `--step-scene` view timeline, with ranges from `resolveStepHandover` (`step-motion.rules.ts`, which reads the scene's share: `DOT_SCENE_MOTION`, else `stepMorphShare`). Nested turn wrappers each rotate one `--orbit-step-angle` over one handover, about the circle centre far below the frame. The ring's ticks move by `stroke-dashoffset` on a small band SVG, never by rotating a huge layer.
   - **The orbit's step box is identical staged and unstaged** (slot rect, container height, each step's height and width). The hook and the gate measure while the stage is still `idle`, and nothing re-measures when `running` switches `staged` on. Custom properties are namespaced `--orbit-*`; never redefine `--radius`, the token behind every `rounded-*`.
   - **Services is triggered, not scrubbed.** Between two thread keyframes (`DOT_SCENE_MOTION` `isThread`), `resolveTriggeredTarget` commits the target to the next or previous shape once the scroll passes `threadTrigger` in that direction, and `followTriggeredProgress` plays it over `threadDrawSeconds`. The hook publishes the committed shape as the stage's `data-thread`; the captions are CSS transitions keyed on it (literal selectors in globals.css).
@@ -94,7 +95,9 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
   - The stage's `data-scene` is the formed keyframe id or `moving`.
 - **Shapes:**
   - The name stays on attribute 0, pixel-identical to the pre-timeline build at rest.
-  - Every other shape comes from `buildShapeLibrary` (seeded, `SHAPE_POINTS` each), padded to the point total and uploaded once into its own buffer. Attributes 2 and 3 (`aFrom` and `aTo`) are re-pointed at the right buffers when the keyframe pair changes.
+  - Every other shape comes from `buildShapeLibrary`: seeded, at its tuned `pointCount` (12,000 for the drawings; the cube keeps its reference 7,200). Each is padded to the point total and uploaded once into its own buffer, and the padding is hidden. Attributes 2 and 3 (`aFrom` and `aTo`) are re-pointed at the right buffers when the keyframe pair changes.
+  - Line-art shapes are layers of strokes (`LINE_ART_SHAPES`), each placed with an offset and a scale, so the pages share their strokes. `listening`, `delivery` (a page plus its launch trail) and `gather` are seeded point generators. Every generator keeps pen order. The model is y-up; the handoff's sketch geometry is y-down.
+  - A `fill` shape with a slot (`frame`, `gather`) frames it `resolveFrameOutset` outside (18px, or 5% of the short side when that is less); dust has no slot and fills the viewport. `staticYaw` is the resting pose with or without motion.
   - `resolvePlacement` gives each keyframe a centre, half-size, rotation, camera and visible-rank threshold. The shader mixes from to with the staggered sweep and arc, then adds the spring offsets.
 - **Coordinates:**
   - Name homes stay in the bleed box's local device px. The name placement's centre is rounded to whole device pixels.
@@ -109,7 +112,7 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
   - Each dot is a damped spring (`stepDotPhysics`), stepped on the CPU and streamed to attribute 1 as offsets.
   - The pointer (canvas device px) pushes only while a slotted shape is formed. Homes come from `writeNameHomes` or `projectShapePoints`, which repeats the shader's maths.
 - **Loop:**
-  - The RAF loop sleeps once the dots are at rest, `p` has reached its target, the intro has settled, and no spinning shape (the cube, the placeholder sphere) is formed or in transit (`shouldLoopSleep`).
+  - The RAF loop sleeps once the dots are at rest, `p` has reached its target, the intro has settled, and no spinning shape (the cube, a swaying Services stage) is formed or in transit (`shouldLoopSleep`). How I work, the frames, the gather and the dust are still, so the loop sleeps there.
   - Scroll, pointer and resize input restart it. `visibilitychange` stops it.
   - There is no IntersectionObserver, because a fixed canvas is always on screen.
 - **No `useState` in the hook.** Status goes out as DOM attributes (`data-status`, `data-scene` and `data-thread` on the stage, `data-point-count` on the canvas), which CSS and the e2e specs key off.
@@ -118,13 +121,15 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
   - No WebGL2 (or a lost context) falls back to the text `<h1>`. Slots hide and scene containers drop their pin height.
   - Reduced motion never starts the loop. It draws a keyframe only while the scroll is inside that keyframe's pin range, and clears the canvas between scenes.
   - There is no viewport gate; phones run the dots.
-  - `aria-hidden` goes on decorative leaves only: the canvas, the empty slots, the orbit ring, the step numerals and the plate dots. The other exception is a visual duplicate of text that stays exposed: the FAQ statement (the label `<h2>` carries it), the later Projects labels and a label's position count (the list carries it).
+  - `aria-hidden` goes on decorative leaves only: the canvas, the empty slots, the orbit ring, the step numerals, the plate dots and Work's window rings. The other exception is a visual duplicate of text that stays exposed: the FAQ statement (the label `<h2>` carries it), the later Projects labels and a label's position count (the list carries it).
 
 **Other.**
 
 - **Sections:** every screen below the hero is the B statement split, built from the `SCREEN_*`, `STATEMENT_*`, `SECTION_LABEL_CLASS`, `BODY_CLASS`, `TITLE_CLASS` and `CUE_CLASS` constants in `src/data/page-sections.data.ts`. Services and How I work keep their Phase 3 layout and the older `SECTION_HEADLINE_CLASS` family until Phases 7 and 8.
   - Statements size from their column (`@container`, `cqi`) with a rem term and an svh cap. Check the widest word against its column at the fit sizes after changing a factor.
   - Projects is one B screen per visible project, until Phase 9's deck. Its pinned frame holds only the slot, at the plate's rect, and the screens scroll past it. The first screen's label is the section `<h2>`; later labels are `aria-hidden` duplicates.
+  - On a phone each Work screen is full-bleed, `isolate` and `overflow-clip`, and a ring 24px round its plate spreads the background colour over the rest of the screen (`PROJECT_PLATE_WINDOW_CLASS`). The pinned frame therefore shows only round the plate passing it, and copy never crosses its dots. Forced colours drop `box-shadow`, so those screens turn opaque there instead. With no visible project the scene has no slot and falls back to dust.
+  - FAQ is the dust scene's only section, one frame tall (rule 10), and the dust is invisible (owner, Phase 6).
 - **Env:** `src/config/env.server.ts` / `env.public.ts` validate at import and fail fast. They reject legacy `eyJ…` Supabase keys.
 - **Email:** `EmailAdapter` has only a preview implementation, which writes HTML to `.local/email-previews/`. Nothing is sent.
 - **Global UI state:** `@tanstack/react-store` (`useSelector`, not the deprecated `useStore`).

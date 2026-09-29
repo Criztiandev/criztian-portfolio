@@ -62,6 +62,8 @@ export type TestimonialsSectionContent = PageSectionHeading & {
 }
 
 export type ContactSectionContent = PageSectionHeading & {
+  sceneId: string
+  shapes: string
   statement: string
   emailPrompt: string
 }

@@ -5,14 +5,19 @@ import type {
   CubicBezier,
   DotFieldMorphTuning,
   DotFieldTuning,
+  DotFrameOutset,
   DotGeneratedShapeId,
   DotSceneMotion,
   DotShapeId,
   DotShapeTuning,
-  DotSphereTuning,
+  GatherShape,
   HeroIntroTiming,
+  LaunchShape,
   LineArtShape,
   LineArtShapeId,
+  LineArtStroke,
+  ScatterRingShape,
+  ScatterShapeId,
 } from "@/types/hero.type"
 
 export const RESIZE_DEBOUNCE_MS = 150
@@ -39,13 +44,13 @@ export const FROM_ATTRIBUTE_LOCATION = 2
 
 export const TO_ATTRIBUTE_LOCATION = 3
 
-export const SHAPE_POINTS = 7200
+export const SHAPE_POINTS = 12000
+
+export const CUBE_POINTS = 7200
 
 export const HIDDEN_RANK = 2
 
 export const CUBE_SEED = 20260926
-
-export const SPHERE_SEED = 20260928
 
 export const DUST_SEED = 20260929
 
@@ -82,486 +87,610 @@ export const LINE_ART_SHAPE_IDS: LineArtShapeId[] = [
   "branding",
   "web-design",
   "development",
-  "listening",
   "planning",
   "visualising",
   "building",
+  "frame",
+]
+
+export const SCATTER_SHAPE_IDS: ScatterShapeId[] = [
+  "listening",
   "delivery",
+  "gather",
 ]
 
 export const DOT_SHAPE_IDS: DotShapeId[] = [
   "name",
   "cube",
-  "sphere",
   "dust",
   ...LINE_ART_SHAPE_IDS,
+  ...SCATTER_SHAPE_IDS,
 ]
 
 export const GENERATED_SHAPE_IDS: DotGeneratedShapeId[] = [
   "cube",
-  "sphere",
   "dust",
   ...LINE_ART_SHAPE_IDS,
+  ...SCATTER_SHAPE_IDS,
 ]
 
-export const LINE_ART_JITTER = 0.02
+export const LINE_ART_JITTER = 0.015
+
+export const CODE_JITTER = 0.011
+
+export const FRAME_JITTER = 0.006
+
+export const FRAME_EDGE = 0.98
+
+export const JITTER_SPAN = 3
+
+export const GATHER_SIDES = 4
 
 export const ARC_SEGMENTS_PER_TURN = 96
 
 export const MIN_ARC_SEGMENTS = 8
 
-export const RIPPLE_SEGMENTS = 12
-
 const FULL_TURN = Math.PI * 2
+
+const PEN_START_ANGLE = Math.PI / 2
+
+const PAGE_OUTLINE_STROKE: LineArtStroke = {
+  kind: "polyline",
+  points: [
+    [-0.9, 0.6, 0],
+    [0.9, 0.6, 0],
+    [0.9, -0.6, 0],
+    [-0.9, -0.6, 0],
+    [-0.9, 0.6, 0],
+  ],
+}
+
+const PAGE_HEADER_STROKES: LineArtStroke[] = [
+  {
+    kind: "polyline",
+    points: [
+      [-0.9, 0.42, 0],
+      [0.9, 0.42, 0],
+    ],
+  },
+]
+
+const PAGE_MARK_STROKES: LineArtStroke[] = [
+  {
+    kind: "arc",
+    center: [-0.79, 0.51, 0],
+    radius: 0.045,
+    startAngle: PEN_START_ANGLE,
+    endAngle: PEN_START_ANGLE - FULL_TURN,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.75, 0.545, 0],
+      [-0.68, 0.545, 0],
+      [-0.68, 0.475, 0],
+      [-0.75, 0.475, 0],
+      [-0.75, 0.545, 0],
+    ],
+  },
+]
+
+const PAGE_NAV_STROKES: LineArtStroke[] = [
+  {
+    kind: "polyline",
+    points: [
+      [0.42, 0.51, 0],
+      [0.5, 0.51, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.56, 0.51, 0],
+      [0.64, 0.51, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.7, 0.51, 0],
+      [0.8, 0.51, 0],
+    ],
+  },
+]
+
+const PAGE_BLOCK_STROKES: LineArtStroke[] = [
+  {
+    kind: "polyline",
+    points: [
+      [-0.78, 0.3, 0],
+      [0.28, 0.3, 0],
+      [0.28, -0.1, 0],
+      [-0.78, -0.1, 0],
+      [-0.78, 0.3, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.38, 0.3, 0],
+      [0.78, 0.3, 0],
+      [0.78, -0.1, 0],
+      [0.38, -0.1, 0],
+      [0.38, 0.3, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.78, -0.2, 0],
+      [-0.32, -0.2, 0],
+      [-0.32, -0.5, 0],
+      [-0.78, -0.5, 0],
+      [-0.78, -0.2, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.23, -0.2, 0],
+      [0.23, -0.2, 0],
+      [0.23, -0.5, 0],
+      [-0.23, -0.5, 0],
+      [-0.23, -0.2, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.32, -0.2, 0],
+      [0.78, -0.2, 0],
+      [0.78, -0.5, 0],
+      [0.32, -0.5, 0],
+      [0.32, -0.2, 0],
+    ],
+  },
+]
+
+const PAGE_GRID_STROKES: LineArtStroke[] = [
+  {
+    kind: "polyline",
+    points: [
+      [-0.9, 0.2, 0],
+      [0.9, 0.2, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.9, -0.2, 0],
+      [0.9, -0.2, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.45, 0.6, 0],
+      [-0.45, -0.6, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0, 0.6, 0],
+      [0, -0.6, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.45, 0.6, 0],
+      [0.45, -0.6, 0],
+    ],
+  },
+]
+
+const PAGE_CONTENT_STROKES: LineArtStroke[] = [
+  {
+    kind: "polyline",
+    points: [
+      [-0.7, 0.24, 0],
+      [0.05, 0.24, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.7, 0.18, 0],
+      [0.05, 0.18, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.7, 0.12, 0],
+      [0.05, 0.12, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.7, 0.06, 0],
+      [0.05, 0.06, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.7, 0, 0],
+      [0.05, 0, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.43, 0.25, 0],
+      [0.73, -0.05, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.73, 0.25, 0],
+      [0.43, -0.05, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.7, -0.29, 0],
+      [-0.4, -0.29, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.7, -0.37, 0],
+      [-0.49, -0.37, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.15, -0.29, 0],
+      [0.15, -0.29, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.15, -0.37, 0],
+      [0.06, -0.37, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.4, -0.29, 0],
+      [0.7, -0.29, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.4, -0.37, 0],
+      [0.61, -0.37, 0],
+    ],
+  },
+]
+
+const CODE_PANEL_STROKES: LineArtStroke[] = [
+  {
+    kind: "polyline",
+    points: [
+      [-0.55, 0.45, 0],
+      [0.55, 0.45, 0],
+      [0.55, -0.45, 0],
+      [-0.55, -0.45, 0],
+      [-0.55, 0.45, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.55, 0.33, 0],
+      [0.55, 0.33, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.45, 0.22, 0],
+      [-0.33, 0.22, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.38, 0.156, 0],
+      [-0.22, 0.156, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.17, 0.156, 0],
+      [0.03, 0.156, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.31, 0.092, 0],
+      [-0.15, 0.092, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.31, 0.028, 0],
+      [-0.15, 0.028, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.38, -0.036, 0],
+      [-0.2, -0.036, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.31, -0.1, 0],
+      [-0.15, -0.1, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.1, -0.1, 0],
+      [0.02, -0.1, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.24, -0.164, 0],
+      [-0.12, -0.164, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.07, -0.164, 0],
+      [0.07, -0.164, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.24, -0.228, 0],
+      [-0.12, -0.228, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.07, -0.228, 0],
+      [0.15, -0.228, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.31, -0.292, 0],
+      [-0.17, -0.292, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.12, -0.292, 0],
+      [-0.04, -0.292, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.01, -0.292, 0],
+      [0.21, -0.292, 0],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.45, -0.356, 0],
+      [-0.35, -0.356, 0],
+    ],
+  },
+]
+
+const PAGE_WITH_MARK_STROKES: LineArtStroke[] = [
+  PAGE_OUTLINE_STROKE,
+  ...PAGE_HEADER_STROKES,
+  ...PAGE_MARK_STROKES,
+  ...PAGE_NAV_STROKES,
+  ...PAGE_BLOCK_STROKES,
+]
+
+const BUILT_PAGE_STROKES: LineArtStroke[] = [
+  ...PAGE_WITH_MARK_STROKES,
+  ...PAGE_CONTENT_STROKES,
+]
 
 export const LINE_ART_SHAPES: Record<LineArtShapeId, LineArtShape> = {
   branding: {
     seed: 20261001,
-    strokes: [
+    jitter: LINE_ART_JITTER,
+    layers: [
       {
-        kind: "arc",
-        center: [0, 0, -0.3],
-        radius: 0.88,
-        startAngle: Math.PI / 2,
-        endAngle: Math.PI / 2 + FULL_TURN,
-        ripples: 18,
-        rippleDepth: 0.06,
-      },
-      {
-        kind: "arc",
-        center: [0, 0, 0],
-        radius: 0.68,
-        startAngle: Math.PI / 2,
-        endAngle: Math.PI / 2 + FULL_TURN,
-        ripples: 0,
-        rippleDepth: 0,
-      },
-      {
-        kind: "star",
-        center: [0, 0, 0.35],
-        outerRadius: 0.44,
-        innerRadius: 0.18,
-        tips: 5,
+        strokes: [
+          {
+            kind: "arc",
+            center: [-0.16, 0.12, 0.1],
+            radius: 0.56,
+            startAngle: PEN_START_ANGLE,
+            endAngle: PEN_START_ANGLE - FULL_TURN,
+          },
+          {
+            kind: "polyline",
+            points: [
+              [-0.2, 0.24, -0.3],
+              [0.72, 0.24, -0.3],
+              [0.72, -0.68, -0.3],
+              [-0.2, -0.68, -0.3],
+              [-0.2, 0.24, -0.3],
+            ],
+          },
+        ],
+        offset: [0, 0, 0],
+        scale: 1,
       },
     ],
   },
   "web-design": {
     seed: 20261002,
-    strokes: [
+    jitter: LINE_ART_JITTER,
+    layers: [
       {
-        kind: "polyline",
-        points: [
-          [-0.95, 0.66, -0.2],
-          [0.95, 0.66, -0.2],
-          [0.95, -0.66, -0.2],
-          [-0.95, -0.66, -0.2],
-          [-0.95, 0.66, -0.2],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-0.95, 0.4, -0.2],
-          [0.95, 0.4, -0.2],
-        ],
-      },
-      {
-        kind: "arc",
-        center: [-0.82, 0.53, 0.1],
-        radius: 0.045,
-        startAngle: 0,
-        endAngle: FULL_TURN,
-        ripples: 0,
-        rippleDepth: 0,
-      },
-      {
-        kind: "arc",
-        center: [-0.7, 0.53, 0.1],
-        radius: 0.045,
-        startAngle: 0,
-        endAngle: FULL_TURN,
-        ripples: 0,
-        rippleDepth: 0,
-      },
-      {
-        kind: "arc",
-        center: [-0.58, 0.53, 0.1],
-        radius: 0.045,
-        startAngle: 0,
-        endAngle: FULL_TURN,
-        ripples: 0,
-        rippleDepth: 0,
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-0.4, 0.59, 0.25],
-          [0.8, 0.59, 0.25],
-          [0.8, 0.47, 0.25],
-          [-0.4, 0.47, 0.25],
-          [-0.4, 0.59, 0.25],
-        ],
+        strokes: PAGE_WITH_MARK_STROKES,
+        offset: [0, 0, 0],
+        scale: 1,
       },
     ],
   },
   development: {
     seed: 20261003,
-    strokes: [
+    jitter: CODE_JITTER,
+    layers: [
       {
-        kind: "polyline",
-        points: [
-          [-0.42, 0.62, -0.3],
-          [-0.95, 0, -0.3],
-          [-0.42, -0.62, -0.3],
-        ],
+        strokes: PAGE_WITH_MARK_STROKES,
+        offset: [-0.186, 0.119, -0.35],
+        scale: 0.79,
       },
       {
-        kind: "polyline",
-        points: [
-          [-0.17, -0.8, 0.3],
-          [0.17, 0.8, 0.3],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [0.42, 0.62, -0.3],
-          [0.95, 0, -0.3],
-          [0.42, -0.62, -0.3],
-        ],
-      },
-    ],
-  },
-  listening: {
-    seed: 20261004,
-    strokes: [
-      {
-        kind: "arc",
-        center: [0, 0, 0],
-        radius: 0.2,
-        startAngle: Math.PI / 2,
-        endAngle: Math.PI / 2 + FULL_TURN,
-        ripples: 0,
-        rippleDepth: 0,
-      },
-      {
-        kind: "arc",
-        center: [0, 0, 0],
-        radius: 0.46,
-        startAngle: -Math.PI / 4,
-        endAngle: Math.PI / 4,
-        ripples: 0,
-        rippleDepth: 0,
-      },
-      {
-        kind: "arc",
-        center: [0, 0, 0],
-        radius: 0.46,
-        startAngle: (Math.PI * 3) / 4,
-        endAngle: (Math.PI * 5) / 4,
-        ripples: 0,
-        rippleDepth: 0,
-      },
-      {
-        kind: "arc",
-        center: [0, 0, 0],
-        radius: 0.7,
-        startAngle: -Math.PI / 4,
-        endAngle: Math.PI / 4,
-        ripples: 0,
-        rippleDepth: 0,
-      },
-      {
-        kind: "arc",
-        center: [0, 0, 0],
-        radius: 0.7,
-        startAngle: (Math.PI * 3) / 4,
-        endAngle: (Math.PI * 5) / 4,
-        ripples: 0,
-        rippleDepth: 0,
-      },
-      {
-        kind: "arc",
-        center: [0, 0, 0],
-        radius: 0.94,
-        startAngle: -Math.PI / 4,
-        endAngle: Math.PI / 4,
-        ripples: 0,
-        rippleDepth: 0,
-      },
-      {
-        kind: "arc",
-        center: [0, 0, 0],
-        radius: 0.94,
-        startAngle: (Math.PI * 3) / 4,
-        endAngle: (Math.PI * 5) / 4,
-        ripples: 0,
-        rippleDepth: 0,
+        strokes: CODE_PANEL_STROKES,
+        offset: [0.462, -0.237, 0.35],
+        scale: 0.79,
       },
     ],
   },
   planning: {
     seed: 20261005,
-    strokes: [
+    jitter: LINE_ART_JITTER,
+    layers: [
       {
-        kind: "polyline",
-        points: [
-          [-0.9, 0.9, 0],
-          [0.9, 0.9, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-0.9, 0.45, 0],
-          [0.9, 0.45, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-0.9, 0, 0],
-          [0.9, 0, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-0.9, -0.45, 0],
-          [0.9, -0.45, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-0.9, -0.9, 0],
-          [0.9, -0.9, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-0.9, 0.9, 0],
-          [-0.9, -0.9, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-0.45, 0.9, 0],
-          [-0.45, -0.9, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [0, 0.9, 0],
-          [0, -0.9, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [0.45, 0.9, 0],
-          [0.45, -0.9, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [0.9, 0.9, 0],
-          [0.9, -0.9, 0],
-        ],
+        strokes: [PAGE_OUTLINE_STROKE, ...PAGE_GRID_STROKES],
+        offset: [0, 0, 0],
+        scale: 1,
       },
     ],
   },
   visualising: {
     seed: 20261006,
-    strokes: [
+    jitter: LINE_ART_JITTER,
+    layers: [
       {
-        kind: "polyline",
-        points: [
-          [-0.95, 0.72, 0],
-          [0.95, 0.72, 0],
-          [0.95, -0.72, 0],
-          [-0.95, -0.72, 0],
-          [-0.95, 0.72, 0],
+        strokes: [
+          PAGE_OUTLINE_STROKE,
+          ...PAGE_HEADER_STROKES,
+          ...PAGE_NAV_STROKES,
+          ...PAGE_BLOCK_STROKES,
         ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-0.95, 0.48, 0],
-          [0.95, 0.48, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-0.8, 0.32, 0],
-          [0.05, 0.32, 0],
-          [0.05, -0.56, 0],
-          [-0.8, -0.56, 0],
-          [-0.8, 0.32, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-0.8, 0.32, 0],
-          [0.05, -0.56, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [0.05, 0.32, 0],
-          [-0.8, -0.56, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [0.22, 0.28, 0],
-          [0.8, 0.28, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [0.22, 0.1, 0],
-          [0.8, 0.1, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [0.22, -0.08, 0],
-          [0.58, -0.08, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [0.22, -0.36, 0],
-          [0.6, -0.36, 0],
-          [0.6, -0.56, 0],
-          [0.22, -0.56, 0],
-          [0.22, -0.36, 0],
-        ],
+        offset: [0, 0, 0],
+        scale: 1,
       },
     ],
   },
   building: {
     seed: 20261007,
-    strokes: [
+    jitter: LINE_ART_JITTER,
+    layers: [
       {
-        kind: "polyline",
-        points: [
-          [-1, -1, -1],
-          [1, -1, -1],
-          [1, -1, 1],
-          [-1, -1, 1],
-          [-1, -1, -1],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-1, 1, -1],
-          [1, 1, -1],
-          [1, 1, 1],
-          [-1, 1, 1],
-          [-1, 1, -1],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-1, -1, -1],
-          [-1, 1, -1],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [1, -1, -1],
-          [1, 1, -1],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [1, -1, 1],
-          [1, 1, 1],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-1, -1, 1],
-          [-1, 1, 1],
-        ],
+        strokes: BUILT_PAGE_STROKES,
+        offset: [0, 0, 0],
+        scale: 1,
       },
     ],
   },
-  delivery: {
-    seed: 20261008,
-    strokes: [
+  frame: {
+    seed: 20261011,
+    jitter: FRAME_JITTER,
+    layers: [
       {
-        kind: "polyline",
-        points: [
-          [-0.24, -0.45, 0],
-          [-0.24, 0.35, 0],
-          [-0.2, 0.58, 0],
-          [-0.11, 0.8, 0],
-          [0, 0.95, 0],
-          [0.11, 0.8, 0],
-          [0.2, 0.58, 0],
-          [0.24, 0.35, 0],
-          [0.24, -0.45, 0],
-          [-0.24, -0.45, 0],
+        strokes: [
+          {
+            kind: "polyline",
+            points: [
+              [-FRAME_EDGE, FRAME_EDGE, 0],
+              [FRAME_EDGE, FRAME_EDGE, 0],
+              [FRAME_EDGE, -FRAME_EDGE, 0],
+              [-FRAME_EDGE, -FRAME_EDGE, 0],
+              [-FRAME_EDGE, FRAME_EDGE, 0],
+            ],
+          },
         ],
-      },
-      {
-        kind: "arc",
-        center: [0, 0.22, 0],
-        radius: 0.1,
-        startAngle: Math.PI / 2,
-        endAngle: Math.PI / 2 + FULL_TURN,
-        ripples: 0,
-        rippleDepth: 0,
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-0.24, -0.05, 0],
-          [-0.52, -0.42, 0],
-          [-0.52, -0.6, 0],
-          [-0.24, -0.45, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [0.24, -0.05, 0],
-          [0.52, -0.42, 0],
-          [0.52, -0.6, 0],
-          [0.24, -0.45, 0],
-        ],
-      },
-      {
-        kind: "polyline",
-        points: [
-          [-0.14, -0.55, 0],
-          [-0.07, -0.78, 0],
-          [0, -0.63, 0],
-          [0.07, -0.94, 0],
-          [0.14, -0.55, 0],
-        ],
+        offset: [0, 0, 0],
+        scale: 1,
       },
     ],
   },
+}
+
+export const LISTENING_SHAPE: ScatterRingShape = {
+  seed: 20261004,
+  ringShare: 0.62,
+  radiusX: 0.625,
+  radiusY: 0.45,
+  ringJitter: 0.06,
+  scatterReach: 1.45,
+  startAngle: PEN_START_ANGLE,
+}
+
+export const DELIVERY_SHAPE: LaunchShape = {
+  seed: 20261008,
+  page: {
+    seed: 20261009,
+    jitter: LINE_ART_JITTER,
+    layers: [
+      {
+        strokes: BUILT_PAGE_STROKES,
+        offset: [0, 0.17, 0],
+        scale: 0.62,
+      },
+    ],
+  },
+  pageShare: 0.78,
+  trailX: 0,
+  trailTop: -0.15,
+  trailBottom: -0.54,
+  topWidth: 0.04,
+  bottomWidth: 0.36,
+  trailFalloff: 1.8,
+}
+
+export const GATHER_SHAPE: GatherShape = {
+  seed: 20261010,
+  perimeter: 0.84,
+  lineShare: 0.4,
+  lineJitter: 0.008,
+  spreadFalloff: 2,
+}
+
+export const DOT_FRAME_OUTSET: DotFrameOutset = {
+  maxPixels: 18,
+  slotRatio: 0.05,
 }
 
 export const IDENTITY_ROTATION = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1])
@@ -614,10 +743,49 @@ export const DOT_SCENE_MOTION: Record<string, DotSceneMotion> = {
   services: { share: 0.72, isThread: true },
 }
 
-const FLAT_LINE_ART_TUNING: DotShapeTuning = {
+const THREAD_LINE_ART_TUNING: DotShapeTuning = {
   fit: "contain",
-  sizeRatio: 0.4,
-  pointsPerArea: 0.042,
+  sizeRatio: 0.46,
+  pointsPerArea: 0.05,
+  pointCount: SHAPE_POINTS,
+  hasPerspective: true,
+  spinSpeed: 0,
+  pitch: 0.2,
+  roll: 0.05,
+  wobble: 0.04,
+  staticYaw: 0.3,
+  sway: 0.32,
+  farLight: 0.55,
+  depthRadius: 0.45,
+  dotSize: 2.5,
+  opacity: 1,
+  inkRatio: 0.65,
+}
+
+const PROCESS_LINE_ART_TUNING: DotShapeTuning = {
+  fit: "contain",
+  sizeRatio: 0.45,
+  pointsPerArea: 0.05,
+  pointCount: SHAPE_POINTS,
+  hasPerspective: true,
+  spinSpeed: 0,
+  pitch: 0.2,
+  roll: 0.05,
+  wobble: 0,
+  staticYaw: 0.3,
+  sway: 0,
+  farLight: 0.55,
+  depthRadius: 0.4,
+  dotSize: 2.5,
+  opacity: 1,
+  inkRatio: 0.65,
+}
+
+const PLATE_FRAME_TUNING: DotShapeTuning = {
+  fit: "fill",
+  sizeRatio: 1 / FRAME_EDGE,
+  pointsPerArea: 0.016,
+  pointCount: SHAPE_POINTS,
   hasPerspective: false,
   spinSpeed: 0,
   pitch: 0,
@@ -632,53 +800,31 @@ const FLAT_LINE_ART_TUNING: DotShapeTuning = {
   inkRatio: 0.65,
 }
 
-const THREAD_LINE_ART_TUNING: DotShapeTuning = {
-  fit: "contain",
-  sizeRatio: 0.42,
-  pointsPerArea: 0.05,
-  hasPerspective: true,
-  spinSpeed: 0,
-  pitch: 0.22,
-  roll: -0.05,
-  wobble: 0.04,
-  staticYaw: -0.25,
-  sway: 0.32,
-  farLight: 0.45,
-  depthRadius: 1.2,
-  dotSize: 2.5,
-  opacity: 1,
-  inkRatio: 0.65,
-}
-
 export const DOT_SHAPE_TUNING: Record<DotGeneratedShapeId, DotShapeTuning> = {
   branding: THREAD_LINE_ART_TUNING,
   "web-design": THREAD_LINE_ART_TUNING,
   development: THREAD_LINE_ART_TUNING,
-  listening: FLAT_LINE_ART_TUNING,
-  planning: FLAT_LINE_ART_TUNING,
-  visualising: FLAT_LINE_ART_TUNING,
-  delivery: FLAT_LINE_ART_TUNING,
-  building: {
-    fit: "contain",
-    sizeRatio: 0.26,
-    pointsPerArea: 0.042,
-    hasPerspective: true,
-    spinSpeed: 0.3,
-    pitch: 0.45,
-    roll: -0.2,
-    wobble: 0.07,
-    staticYaw: 0.6,
-    sway: 0,
-    farLight: 0.35,
-    depthRadius: Math.sqrt(3),
-    dotSize: 3,
-    opacity: 1,
-    inkRatio: 0.65,
+  listening: {
+    ...PROCESS_LINE_ART_TUNING,
+    dotSize: 2,
+    opacity: 0.7,
+  },
+  planning: PROCESS_LINE_ART_TUNING,
+  visualising: PROCESS_LINE_ART_TUNING,
+  building: PROCESS_LINE_ART_TUNING,
+  delivery: PROCESS_LINE_ART_TUNING,
+  frame: PLATE_FRAME_TUNING,
+  gather: {
+    ...PLATE_FRAME_TUNING,
+    sizeRatio: 1 / GATHER_SHAPE.perimeter,
+    pointsPerArea: 0.012,
+    dotSize: 2,
   },
   cube: {
     fit: "contain",
     sizeRatio: 0.26,
     pointsPerArea: 0.042,
+    pointCount: CUBE_POINTS,
     hasPerspective: true,
     spinSpeed: 0.3,
     pitch: 0.45,
@@ -689,23 +835,6 @@ export const DOT_SHAPE_TUNING: Record<DotGeneratedShapeId, DotShapeTuning> = {
     farLight: 0.35,
     depthRadius: Math.sqrt(3),
     dotSize: 3,
-    opacity: 1,
-    inkRatio: 0.65,
-  },
-  sphere: {
-    fit: "contain",
-    sizeRatio: 0.38,
-    pointsPerArea: 0.042,
-    hasPerspective: true,
-    spinSpeed: 0.2,
-    pitch: 0.35,
-    roll: -0.1,
-    wobble: 0.05,
-    staticYaw: 0.4,
-    sway: 0,
-    farLight: 0.3,
-    depthRadius: 1,
-    dotSize: 2.5,
     opacity: 1,
     inkRatio: 0.65,
   },
@@ -713,6 +842,7 @@ export const DOT_SHAPE_TUNING: Record<DotGeneratedShapeId, DotShapeTuning> = {
     fit: "fill",
     sizeRatio: 1,
     pointsPerArea: 0.0012,
+    pointCount: SHAPE_POINTS,
     hasPerspective: false,
     spinSpeed: 0,
     pitch: 0,
@@ -723,15 +853,9 @@ export const DOT_SHAPE_TUNING: Record<DotGeneratedShapeId, DotShapeTuning> = {
     farLight: 1,
     depthRadius: 1,
     dotSize: 2,
-    opacity: 0.45,
+    opacity: 0,
     inkRatio: 0.25,
   },
-}
-
-export const DOT_SPHERE_TUNING: DotSphereTuning = {
-  rings: 11,
-  meridians: 12,
-  jitter: 0.02,
 }
 
 export const CONTEXT_OPTIONS: WebGLContextAttributes = {

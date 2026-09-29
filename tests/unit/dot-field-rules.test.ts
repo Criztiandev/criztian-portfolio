@@ -5,13 +5,21 @@ import {
   DOT_FIELD_MORPH_TUNING,
   DOT_SCENE_MOTION,
   DOT_FIELD_TUNING,
+  DOT_FRAME_OUTSET,
   DOT_SHAPE_TUNING,
-  DOT_SPHERE_TUNING,
+  FRAME_EDGE,
+  GATHER_SHAPE,
   HIDDEN_RANK,
   MAX_CANVAS_PIXELS,
   SHAPE_POINTS,
   SHAPE_STRIDE,
 } from "@/data/hero.data"
+import {
+  CONTACT_SCENE_SHAPES,
+  FRAME_SCENE_SHAPES,
+  PROCESS_SCENE_SHAPES,
+  SERVICES_SCENE_SHAPES,
+} from "@/data/page-sections.data"
 import {
   buildCubeRotation,
   buildFontShorthand,
@@ -23,7 +31,6 @@ import {
   followTriggeredProgress,
   generateCubePoints,
   generateDustPoints,
-  generateSpherePoints,
   isShapeSpinning,
   padNamePoints,
   padShapePoints,
@@ -34,6 +41,7 @@ import {
   resolveCanvasPixelRatio,
   resolveDotPitch,
   resolveFontSize,
+  resolveFrameOutset,
   resolvePixelRatio,
   resolvePlacement,
   resolvePointTotal,
@@ -498,30 +506,6 @@ describe("generateCubePoints", () => {
   })
 })
 
-describe("generateSpherePoints", () => {
-  it("stipples rings and meridians on the unit sphere", () => {
-    const points = generateSpherePoints(600, DOT_SPHERE_TUNING)
-    const bound = DOT_SPHERE_TUNING.jitter * 1.5 * Math.sqrt(3) + 0.000001
-
-    expect(points).toHaveLength(600 * SHAPE_STRIDE)
-
-    for (let index = 0; index < 600; index += 1) {
-      const [pointX, pointY, pointZ, rank] = readShapePoint(points, index) as [
-        number,
-        number,
-        number,
-        number,
-      ]
-
-      expect(Math.abs(Math.hypot(pointX, pointY, pointZ) - 1)).toBeLessThan(
-        bound
-      )
-      expect(rank).toBeGreaterThanOrEqual(0)
-      expect(rank).toBeLessThan(1)
-    }
-  })
-})
-
 describe("generateDustPoints", () => {
   it("scatters flat dots across the unit square", () => {
     const points = generateDustPoints(300)
@@ -787,7 +771,7 @@ describe("followTimelineProgress", () => {
 
 describe("parseSceneShapes", () => {
   it("keeps known shapes in order and drops the rest", () => {
-    expect(parseSceneShapes("cube  bogus sphere")).toEqual(["cube", "sphere"])
+    expect(parseSceneShapes("cube  bogus frame")).toEqual(["cube", "frame"])
     expect(parseSceneShapes(undefined)).toEqual([])
   })
 })
@@ -877,7 +861,7 @@ describe("buildSceneKeyframes", () => {
       [
         buildScene({
           id: "steps",
-          shapes: ["cube", "sphere", "dust"],
+          shapes: ["cube", "frame", "dust"],
           containerTop: 1072,
         }),
       ],
@@ -892,7 +876,7 @@ describe("buildSceneKeyframes", () => {
 
     expect(ranges).toEqual([
       ["cube", 1000, 1090],
-      ["sphere", 1210, 1390],
+      ["frame", 1210, 1390],
       ["dust", 1510, 1600],
     ])
   })
@@ -902,7 +886,7 @@ describe("buildSceneKeyframes", () => {
       [
         buildScene({
           id: "services",
-          shapes: ["cube", "sphere", "dust"],
+          shapes: ["cube", "frame", "dust"],
           containerTop: 1072,
         }),
       ],
@@ -1248,6 +1232,60 @@ describe("resolvePlacement", () => {
     expect(Array.from(placement.rotation)).toEqual([1, 0, 0, 0, 1, 0, 0, 0, 1])
   })
 
+  it("frames a slotted plate just outside its rect", () => {
+    const slot = { x: 100, y: 200, width: 700, height: 490 }
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        { id: "project", shape: "frame", start: 900, end: 1500, slot },
+        {}
+      )
+    )
+    const outset = DOT_FRAME_OUTSET.maxPixels
+
+    expect(placement.center).toEqual({ x: 900, y: 890 })
+    expect(placement.halfSize.x * FRAME_EDGE).toBeCloseTo((350 + outset) * 2, 6)
+    expect(placement.halfSize.y * FRAME_EDGE).toBeCloseTo((245 + outset) * 2, 6)
+    expect(placement.cameraDistance).toBe(0)
+  })
+
+  it("lays the gather perimeter on the same outset round the form box", () => {
+    const slot = { x: 800, y: 200, width: 520, height: 442 }
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        { id: "contact", shape: "gather", start: 900, end: 1500, slot },
+        {}
+      )
+    )
+    const outset = DOT_FRAME_OUTSET.maxPixels
+
+    expect(placement.halfSize.x * GATHER_SHAPE.perimeter).toBeCloseTo(
+      (260 + outset) * 2,
+      6
+    )
+    expect(placement.halfSize.y * GATHER_SHAPE.perimeter).toBeCloseTo(
+      (221 + outset) * 2,
+      6
+    )
+  })
+
+  it("holds a still shape in one resting pose with or without motion", () => {
+    const keyframe: DotSceneKeyframe = {
+      id: "building",
+      shape: "building",
+      start: 0,
+      end: 100,
+      slot: SLOT,
+    }
+    const moving = resolvePlacement(
+      buildPlacementRequest(keyframe, { spinSeconds: 7 })
+    )
+    const still = resolvePlacement(
+      buildPlacementRequest(keyframe, { isStatic: true })
+    )
+
+    expect(Array.from(moving.rotation)).toEqual(Array.from(still.rotation))
+  })
+
   it("holds the resting pose under reduced motion", () => {
     const placement = resolvePlacement(
       buildPlacementRequest(TIMELINE[1] as DotSceneKeyframe, {
@@ -1263,11 +1301,46 @@ describe("resolvePlacement", () => {
   })
 })
 
+describe("resolveFrameOutset", () => {
+  it("sets a frame 18px out round a desktop plate and closer on a phone", () => {
+    expect(resolveFrameOutset({ x: 0, y: 0, width: 700, height: 490 })).toBe(
+      DOT_FRAME_OUTSET.maxPixels
+    )
+    expect(
+      resolveFrameOutset({ x: 0, y: 0, width: 342, height: 240 })
+    ).toBeCloseTo(240 * DOT_FRAME_OUTSET.slotRatio, 6)
+  })
+
+  it("gives a viewport-filling shape no outset", () => {
+    expect(resolveFrameOutset(null)).toBe(0)
+  })
+})
+
 describe("isShapeSpinning", () => {
   it("turns the cube and leaves the name and dust still", () => {
     expect(isShapeSpinning("cube")).toBe(true)
     expect(isShapeSpinning("name")).toBe(false)
     expect(isShapeSpinning("dust")).toBe(false)
+  })
+
+  it("holds every How I work state and every frame still, so the loop can sleep", () => {
+    const stillShapes = [
+      ...parseSceneShapes(PROCESS_SCENE_SHAPES),
+      ...parseSceneShapes(FRAME_SCENE_SHAPES),
+      ...parseSceneShapes(CONTACT_SCENE_SHAPES),
+    ]
+
+    expect(stillShapes).toHaveLength(7)
+
+    for (const shape of stillShapes) {
+      expect(isShapeSpinning(shape), shape).toBe(false)
+    }
+  })
+
+  it("sways every services stage like the cube turns", () => {
+    for (const shape of parseSceneShapes(SERVICES_SCENE_SHAPES)) {
+      expect(isShapeSpinning(shape), shape).toBe(true)
+    }
   })
 })
 

@@ -11,6 +11,7 @@ const SCENE_WALK = [
   { selector: "#about", scene: "about" },
   { selector: "#testimonials", scene: "testimonials" },
   { selector: "[data-dot-scene='dust']", scene: "dust" },
+  { selector: "#contact", scene: "contact" },
   { selector: "[data-dot-scene='footer']", scene: "footer" },
 ]
 
@@ -27,9 +28,20 @@ const JUMP_SKIPPED_SCENES = [
   "delivery",
   "about",
   "testimonials",
+  "dust",
 ]
 
 const HEADER_LINE_PX = 72
+
+const REST_WINDOW_MS = 500
+
+const REST_TIMEOUT_MS = 12000
+
+const RESTING_SCENES = [
+  { id: "listening", selector: "#process", step: 0, steps: 5 },
+  { id: "building", selector: "#process", step: 3, steps: 5 },
+  { id: "dust", selector: "[data-dot-scene='dust']", step: 0, steps: 1 },
+]
 
 function readLocationHash() {
   return window.location.hash
@@ -118,6 +130,57 @@ async function countLitPixels(page: Page, selector: string) {
   )
 }
 
+async function scrollToStepRest(
+  page: Page,
+  rest: { selector: string; step: number; steps: number }
+) {
+  await page.evaluate(function scrollToRest(target) {
+    const container = document.querySelector<HTMLElement>(target.selector)
+    const frame = container?.firstElementChild
+
+    if (container === null || frame === null || frame === undefined) {
+      return
+    }
+
+    const stickyTop = parseFloat(getComputedStyle(container).scrollMarginTop)
+    const containerTop = container.getBoundingClientRect().top + window.scrollY
+    const start = containerTop - stickyTop
+    let pitch = 0
+
+    if (target.steps > 1) {
+      const end =
+        containerTop +
+        container.getBoundingClientRect().height -
+        frame.getBoundingClientRect().height -
+        stickyTop
+
+      pitch = (end - start) / (target.steps - 1)
+    }
+
+    window.scrollTo({ top: start + target.step * pitch, behavior: "instant" })
+  }, rest)
+}
+
+async function countAnimationFrames(page: Page, durationMs: number) {
+  return page.evaluate(function countFrames(windowMs) {
+    return new Promise<number>(function measure(resolve) {
+      const original = window.requestAnimationFrame
+      let calls = 0
+
+      window.requestAnimationFrame = function countedFrame(callback) {
+        calls += 1
+
+        return original.call(window, callback)
+      }
+
+      window.setTimeout(function finish() {
+        window.requestAnimationFrame = original
+        resolve(calls)
+      }, windowMs)
+    })
+  }, durationMs)
+}
+
 async function scrollToTop(page: Page) {
   await page.evaluate(function scrollToTop() {
     window.scrollTo({ top: 0, behavior: "instant" })
@@ -165,7 +228,7 @@ test.describe("hero dot field", () => {
 
     const stage = await waitForRunningStage(page)
 
-    await expect(stage).toHaveAttribute("data-scene", "dust", {
+    await expect(stage).toHaveAttribute("data-scene", "contact", {
       timeout: 10000,
     })
   })
@@ -286,16 +349,16 @@ test.describe("scroll timeline", () => {
     const trail = jump.scenes
 
     expect(jump.endedByLenis).toBe(true)
-    expect(trail).toContain("dust")
+    expect(trail).toContain("contact")
 
     for (const skipped of JUMP_SKIPPED_SCENES) {
       expect(trail).not.toContain(skipped)
     }
 
-    const firstDust = trail.indexOf("dust")
+    const firstContact = trail.indexOf("contact")
 
-    for (const scene of trail.slice(firstDust)) {
-      expect(scene).toBe("dust")
+    for (const scene of trail.slice(firstContact)) {
+      expect(scene).toBe("contact")
     }
 
     const contactTop = await page.evaluate(function readContactTop() {
@@ -388,6 +451,36 @@ test.describe("scroll timeline", () => {
 
     expect(problems).toEqual([])
   })
+})
+
+test.describe("the loop at rest", () => {
+  for (const rest of RESTING_SCENES) {
+    test(`stops requesting frames once ${rest.id} has settled`, async ({
+      page,
+    }) => {
+      const problems = collectPageProblems(page)
+
+      await page.goto("/")
+
+      const stage = await waitForRunningStage(page)
+
+      await scrollToStepRest(page, rest)
+      await expect(stage).toHaveAttribute("data-scene", rest.id, {
+        timeout: 5000,
+      })
+      await expect
+        .poll(
+          function countRestingFrames() {
+            return countAnimationFrames(page, REST_WINDOW_MS)
+          },
+          { timeout: REST_TIMEOUT_MS }
+        )
+        .toBe(0)
+      await expect(stage).toHaveAttribute("data-scene", rest.id)
+
+      expect(problems).toEqual([])
+    })
+  }
 })
 
 test.describe("scroll timeline with reduced motion", () => {

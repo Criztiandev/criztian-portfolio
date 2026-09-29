@@ -98,10 +98,36 @@ export function SceneFitGate({ shapes }: Readonly<SceneFitGateProps>) {
         }
       }
 
+      function readFocusedInScene(): HTMLElement | null {
+        const focused = document.activeElement
+
+        if (focused instanceof HTMLElement && container.contains(focused)) {
+          return focused
+        }
+
+        return null
+      }
+
+      function keepFocusInPlace(
+        focused: HTMLElement,
+        paintedTop: number
+      ): void {
+        const shift = focused.getBoundingClientRect().top - paintedTop
+
+        if (shift !== 0) {
+          window.scrollBy({ top: shift, behavior: "instant" })
+        }
+
+        focused.scrollIntoView({ block: "nearest", behavior: "instant" })
+      }
+
       function checkFit(): void {
         frameId = 0
 
         const paintedRect = container.getBoundingClientRect()
+        const wasFlowing = container.dataset.fit === SCENE_FIT_FLOW
+        const focused = readFocusedInScene()
+        const focusedTop = focused?.getBoundingClientRect().top ?? 0
 
         delete container.dataset.fit
 
@@ -109,6 +135,13 @@ export function SceneFitGate({ shapes }: Readonly<SceneFitGateProps>) {
           flowScene()
         } else {
           pinScene()
+        }
+
+        const isFlowing = container.dataset.fit === SCENE_FIT_FLOW
+
+        if (focused !== null && isFlowing !== wasFlowing) {
+          keepFocusInPlace(focused, focusedTop)
+          return
         }
 
         keepReaderInPlace(paintedRect)
@@ -127,6 +160,7 @@ export function SceneFitGate({ shapes }: Readonly<SceneFitGateProps>) {
         : null
 
       observer?.observe(container)
+      observer?.observe(slot)
 
       for (const box of boxes) {
         for (const child of box.children) {

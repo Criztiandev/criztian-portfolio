@@ -3,16 +3,19 @@ import Image from "next/image"
 import {
   BODY_CLASS,
   CUE_CLASS,
-  PLACEHOLDER_SCENE_SHAPES,
+  FRAME_SCENE_SHAPES,
   PLATE_CHIP_CLASS,
   PLATE_CLASS,
   PROJECT_PLATE_CLASS,
+  PROJECT_PLATE_WINDOW_CLASS,
   PROJECT_SCREEN_COLUMNS_CLASS,
+  PROJECT_SCREEN_WINDOW_CLASS,
   SCREEN_CLASS,
   SCREEN_COPY_CLASS,
   SCREEN_HEIGHT_CLASS,
   SCREEN_LABEL_BOX_CLASS,
   SCREEN_LABEL_CLASS,
+  SCENE_FLOW_SHAPES,
   SCREEN_OBJECT_CLASS,
   SECTION_FRAME_CLASS,
   SECTION_LABEL_CLASS,
@@ -40,6 +43,7 @@ import type { ProjectItem } from "@/types/site-content.type"
 
 export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
   const visibleProjects = selectVisibleProjects(projects.items)
+  const hasProjects = visibleProjects.length > 0
   const screenClass = cn(SCREEN_CLASS, PROJECT_SCREEN_COLUMNS_CLASS)
   const plateClass = cn(PLATE_CLASS, SCREEN_OBJECT_CLASS, PROJECT_PLATE_CLASS)
 
@@ -68,26 +72,24 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
     )
   }
 
-  function renderPlate(project: ProjectItem) {
+  function renderPlateImage(project: ProjectItem) {
     const image = resolveProjectImage(project.image)
 
     if (image !== null) {
       return (
-        <div className={cn(plateClass, "overflow-hidden")}>
-          <Image
-            src={image.src}
-            alt={project.imageAlt}
-            fill
-            sizes={PROJECT_IMAGE_SIZES}
-            unoptimized={image.isRemote}
-            className="object-cover"
-          />
-        </div>
+        <Image
+          src={image.src}
+          alt={project.imageAlt}
+          fill
+          sizes={PROJECT_IMAGE_SIZES}
+          unoptimized={image.isRemote}
+          className="object-cover"
+        />
       )
     }
 
     return (
-      <div className={cn(plateClass, "overflow-hidden")}>
+      <>
         <Image
           src={PROJECT_PLACEHOLDER_IMAGE}
           alt=""
@@ -99,6 +101,18 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
         <span className={cn(PLATE_CHIP_CLASS, CUE_CLASS)}>
           {PROJECT_IMAGE_PLACEHOLDER_LABEL}
         </span>
+      </>
+    )
+  }
+
+  function renderPlate(project: ProjectItem) {
+    return (
+      <div className={plateClass}>
+        <span aria-hidden="true" className={PROJECT_PLATE_WINDOW_CLASS} />
+
+        <div className="absolute inset-0 overflow-hidden">
+          {renderPlateImage(project)}
+        </div>
       </div>
     )
   }
@@ -116,7 +130,7 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
         target="_blank"
         rel="noopener noreferrer"
         className={cn(
-          "scroll-mt-18 outline-none after:absolute after:inset-0",
+          "scroll-mt-18 outline-none after:absolute after:inset-[3px] split:after:inset-0",
           "focus-visible:outline-hidden",
           "focus-visible:after:ring-[3px]",
           "focus-visible:after:ring-foreground/50"
@@ -130,7 +144,14 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
   function renderProject(project: ProjectItem, index: number) {
     return (
       <li key={index}>
-        <article className={cn(screenClass, "relative", SCREEN_HEIGHT_CLASS)}>
+        <article
+          className={cn(
+            screenClass,
+            "relative",
+            SCREEN_HEIGHT_CLASS,
+            PROJECT_SCREEN_WINDOW_CLASS
+          )}
+        >
           {renderLabel(index)}
 
           {renderPlate(project)}
@@ -182,7 +203,7 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
     <section
       id="project"
       data-dot-scene="project"
-      data-dot-shapes={PLACEHOLDER_SCENE_SHAPES}
+      data-dot-shapes={hasProjects ? FRAME_SCENE_SHAPES : SCENE_FLOW_SHAPES}
       aria-labelledby={PROJECTS_HEADING_ID}
       className={cn(SECTION_FRAME_CLASS, "grid text-foreground")}
     >
@@ -194,21 +215,21 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
       >
         <div className={cn(SCREEN_LABEL_CLASS, SCREEN_LABEL_BOX_CLASS)} />
 
-        <div
-          data-dot-slot=""
-          aria-hidden="true"
-          className={cn(
-            plateClass,
-            "touch-pan-y touch-pinch-zoom",
-            "group-data-[status=unsupported]/stage:hidden"
-          )}
-        />
+        {hasProjects ? (
+          <div
+            data-dot-slot=""
+            aria-hidden="true"
+            className={cn(
+              plateClass,
+              "touch-pan-y touch-pinch-zoom",
+              "group-data-[status=unsupported]/stage:hidden"
+            )}
+          />
+        ) : null}
       </div>
 
-      <ol className="relative bg-background [grid-area:1/1] split:bg-transparent">
-        {visibleProjects.length === 0
-          ? renderEmptyScreen()
-          : visibleProjects.map(renderProject)}
+      <ol className="relative [grid-area:1/1]">
+        {hasProjects ? visibleProjects.map(renderProject) : renderEmptyScreen()}
       </ol>
     </section>
   )

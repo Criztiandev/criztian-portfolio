@@ -58,9 +58,9 @@ export function SitePage({
             className="scroll-mt-18"
           >
             <FaqSection />
-
-            <ContactSection />
           </div>
+
+          <ContactSection />
         </main>
 
         <SiteFooter name={content.hero.name} />

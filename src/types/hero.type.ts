@@ -4,13 +4,15 @@ export type LineArtShapeId =
   | "branding"
   | "web-design"
   | "development"
-  | "listening"
   | "planning"
   | "visualising"
   | "building"
-  | "delivery"
+  | "frame"
 
-export type DotGeneratedShapeId = "cube" | "sphere" | "dust" | LineArtShapeId
+export type ScatterShapeId = "listening" | "delivery" | "gather"
+
+export type DotGeneratedShapeId =
+  "cube" | "dust" | LineArtShapeId | ScatterShapeId
 
 export type DotShapeId = "name" | DotGeneratedShapeId
 
@@ -40,23 +42,55 @@ export type LineArtArc = {
   radius: number
   startAngle: number
   endAngle: number
-  ripples: number
-  rippleDepth: number
 }
 
-export type LineArtStar = {
-  kind: "star"
-  center: CubeVector
-  outerRadius: number
-  innerRadius: number
-  tips: number
-}
+export type LineArtStroke = LineArtPolyline | LineArtArc
 
-export type LineArtStroke = LineArtPolyline | LineArtArc | LineArtStar
+export type LineArtLayer = {
+  strokes: LineArtStroke[]
+  offset: CubeVector
+  scale: number
+}
 
 export type LineArtShape = {
   seed: number
-  strokes: LineArtStroke[]
+  jitter: number
+  layers: LineArtLayer[]
+}
+
+export type ScatterRingShape = {
+  seed: number
+  ringShare: number
+  radiusX: number
+  radiusY: number
+  ringJitter: number
+  scatterReach: number
+  startAngle: number
+}
+
+export type LaunchShape = {
+  seed: number
+  page: LineArtShape
+  pageShare: number
+  trailX: number
+  trailTop: number
+  trailBottom: number
+  topWidth: number
+  bottomWidth: number
+  trailFalloff: number
+}
+
+export type GatherShape = {
+  seed: number
+  perimeter: number
+  lineShare: number
+  lineJitter: number
+  spreadFalloff: number
+}
+
+export type DotFrameOutset = {
+  maxPixels: number
+  slotRatio: number
 }
 
 export type LineArtSegment = {
@@ -116,6 +150,7 @@ export type DotShapeTuning = {
   fit: DotShapeFit
   sizeRatio: number
   pointsPerArea: number
+  pointCount: number
   hasPerspective: boolean
   spinSpeed: number
   pitch: number
@@ -128,12 +163,6 @@ export type DotShapeTuning = {
   dotSize: number
   opacity: number
   inkRatio: number
-}
-
-export type DotSphereTuning = {
-  rings: number
-  meridians: number
-  jitter: number
 }
 
 export type DotFieldRect = {

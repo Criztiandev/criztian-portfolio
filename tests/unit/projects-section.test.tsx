@@ -2,6 +2,10 @@ import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import {
+  FRAME_SCENE_SHAPES,
+  SCENE_FLOW_SHAPES,
+} from "@/data/page-sections.data"
+import {
   PROJECT_IMAGE_PLACEHOLDER_LABEL,
   PROJECTS_LABEL,
 } from "@/data/portfolio.data"
@@ -104,6 +108,15 @@ describe("ProjectsSection", () => {
     expect(slots[0]).toHaveAttribute("aria-hidden", "true")
     expect(slots[0]).toBeEmptyDOMElement()
     expect(section?.firstElementChild?.contains(slots[0] ?? null)).toBe(true)
+    expect(section).toHaveAttribute("data-dot-shapes", FRAME_SCENE_SHAPES)
+  })
+
+  it("draws no frame round an empty plate when no project is visible", () => {
+    const { container } = renderProjects([buildProject({ title: "" })])
+    const section = container.querySelector("section[data-dot-scene]")
+
+    expect(container.querySelectorAll("[data-dot-slot]")).toHaveLength(0)
+    expect(section).toHaveAttribute("data-dot-shapes", SCENE_FLOW_SHAPES)
   })
 
   it("links the title to an https project in a new tab", () => {
