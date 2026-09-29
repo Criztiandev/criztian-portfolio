@@ -2,9 +2,9 @@
 
 > **For:** the next Claude Code session picking up this build.
 >
-> **Current phase:** **Phase 4, direction and mockups.** The brief is recorded (below) and the whole-page mockups are on a private Design canvas: https://claude.ai/artifact/JfBhfHpocuCtfDmcTkahob. **The owner picked B, "Statement", for the whole page, with `B-desktop-1` as the reference** (2026-09-29). B2 and the phone artboards were matched to B1 the same day. **The design is locked** (owner, 2026-09-29: "I still love this, please lock on this design"). Renders of it are in `plans/mockups/`, and every Phase 4 question is answered. **What's left of Phase 4 is the DESIGN.md rewrite.** To resume, paste the prompt under "Start here".
+> **Current phase:** **Phase 5, page structure and copy.** Phase 4 is done: the design is locked to mockup B ("Statement", with `B-desktop-1` as the reference), the renders are in `plans/mockups/`, and DESIGN.md describes the locked system (owner's yes, 2026-09-29). To resume, paste the prompt under "Start here".
 >
-> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Nothing is pushed.
+> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`, and Phase 4's DESIGN.md rewrite is the "Phase 4" docs commit after it. Nothing is pushed.
 >
 > **How this file works:** each phase is one conversation. It lists its scope, the owner inputs it needs and its acceptance. It ends with the prompt that starts the next conversation. When a phase ends, write its done note under it, move "Current phase" forward, and give the owner the next prompt.
 >
@@ -15,10 +15,10 @@
 Paste this into a new conversation to resume the current phase:
 
 ```text
-Continue the portfolio redesign: finish Phase 4 by rewriting DESIGN.md.
-Read CLAUDE.md, then plans/handoff.md ("Direction", and "Phase 4" with its locked design and decisions), PRODUCT.md and DESIGN.md.
-The design is locked to mockup B, with B-desktop-1 as the reference: look at plans/mockups/*.jpg, and the canvas https://claude.ai/artifact/JfBhfHpocuCtfDmcTkahob if you can open it.
-Rewrite DESIGN.md to that system as Phase 4's scope lists, show me the changes, and when I say yes, write Phase 4's done note, move "Current phase" to Phase 5 and give me Phase 5's prompt.
+Continue the portfolio redesign: Phase 5, page structure and copy.
+Read CLAUDE.md, then plans/handoff.md ("Direction", "The DOM contract", Phase 4's done note and "Phase 5"), PRODUCT.md and DESIGN.md.
+Follow the mockup pick and the approved copy recorded in Phase 4. Ask me Phase 5's open questions first.
+Build Phase 5 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 6, and end your reply with Phase 6's prompt from the handoff.
 Ask me before committing.
 ```
 
@@ -409,7 +409,7 @@ Each phase is one conversation.
   4. Give the owner the next phase's prompt, which is the code block at the end of the phase.
 - **Committing:** ask before committing. PowerShell 5.1 splits `-m` at quotes, so write the message to a file and use `git commit -F`.
 
-### Phase 4: direction and mockups (in progress)
+### Phase 4: direction and mockups (done)
 
 **Goal.** The owner picks the look from whole-page mockups, approves the short copy, and DESIGN.md is rewritten to the picked system before any section code changes.
 
@@ -487,6 +487,46 @@ What B means, as the mockups built it:
 - `pnpm format:check` passes.
 - The owner has read the DESIGN.md changes and said yes.
 
+**Done note (2026-09-29).**
+
+- **Shipped:**
+  - **DESIGN.md rewritten to B.** It covers:
+    - the page rule, the one idea and the references as history
+    - Rule Grey for dividers
+    - the Statement, Numeral, Title, Item and Section label roles (Headline is gone)
+    - the statement split and the new order
+    - "dots, and rings drawn in dots"
+    - a Motion section with the One-Motion and One-Scroll rules
+    - the Dot Story and the Draw-and-Frame Rule
+    - Thread, Orbit, Projects, About, Testimonials, FAQ and Contact rewritten for B
+  - A status note at its top says which parts the code doesn't show yet.
+  - **PRODUCT.md:** the planned order no longer waits on mockups, and the tagline is recorded as decided.
+  - **This handoff:** the gaps below were added to Phases 5, 8 and 11 and to "Open owner decisions".
+- **Evidence:**
+  - `pnpm format:check` passes.
+  - A five-lens review of the draft read it against its sources:
+    - the Phase 4 scope
+    - fidelity to the canvas markup
+    - code truth
+    - regressions against the old DESIGN.md
+    - accessibility and product
+  - An adversarial judge then went through the findings: 61 raised, 33 confirmed and fixed, 28 rejected as duplicates, target-state or nitpicks.
+  - The owner said yes.
+- **What the review changed from the first draft:**
+  - Statement sizes are caps, not fixed points. In the split a statement sizes from its column, and a word that can't wrap steps down: "Development" needs about 144px on desktop.
+  - FAQ is the named exception to the page rule and the One-Statement Rule.
+  - Numerals are hollow, so the ring shows through.
+  - Form text stays 16px on phones (iOS zoom).
+  - The focus ring is half-strength Lamp White. The shadcn `--ring` fails WCAG 1.4.11 on the public stage today.
+  - Reveals and the stats count-up replay on re-entry, as decided on 2026-09-28.
+  - The ring's dash gap is in `pathLength` units.
+  - The Services shapes' sway joins the WCAG 2.2.2 gap.
+- **Open:**
+  - The Send message button's voice.
+  - How several testimonials step through.
+  - The Projects heading and intro, which B has no place for (Phase 5 asks).
+  - `.impeccable/design.json` has been stale since Phase 3; regenerate it in Phase 11's docs pass.
+
 **Next conversation prompt (starts Phase 5):**
 
 ```text
@@ -504,7 +544,7 @@ Ask me before committing.
 **Owner inputs.**
 
 - Confirm the placeholder project images (the monochrome plates from the mockups, or others).
-- Ask the owner to set the published Projects heading and intro in the editor ("Featured projects", "Showcasing my most impactful work."), unless the approved copy changes them.
+- The Projects heading and intro. B shows neither: the label "Work · 01 / 03" stands in for the heading, and the intro has no slot (DESIGN.md, Projects). Ask whether the editor's heading drives the label's name and the intro is retired, or both are retired. Only if they stay, ask the owner to publish "Featured projects" and "Showcasing my most impactful work." in the editor. The schema stays as it is either way.
 
 **Scope.**
 
@@ -542,11 +582,28 @@ Ask me before committing.
   - apply the approved drafts to `src/data/page-sections.data.ts`
   - the tagline and quote live in `SiteContent`: the owner updates them in the editor, or the seed defaults change if they are still seed
 - **Typography:** add the Statement role and the label `<h2>` style as shared classes in `src/data/page-sections.data.ts`. Apply them to Quote, Projects, About, Testimonials, FAQ and Contact. Services and How I work change in Phases 7 and 8.
+  - **The Statement scale:** in the split it sizes from its column (container units), with a rem term for zoom. The mockup sizes are caps (DESIGN.md, Statement). Check each statement at the fit sizes and at 768×1024 and 1024×768.
+- **Surface** (DESIGN.md's status note lists what the code still shows):
+  - Body at 18px from 768px and 15px on a phone.
+  - Title at 56px and 44px.
+  - Cue at 11px with 0.22em tracking at every width.
+  - Rule Grey as its own token for dividers (the header rule, the lists, the FAQ rows, the stats and the footer). `--border` and `--input` stay Wire Grey.
+  - Nav links stay Lit Grey on the solid header, and the brand's © is Dim Grey.
+  - The Contact action's padding is 10px × 20px.
+  - The form:
+    - 44px fields with 12px padding, 16px text below 768px and 15px from 768px
+    - a 112px message box
+    - a full-width 48px submit
+    - a form box that grows (at least 520×440)
+    - a Lit Grey chevron
+  - `--ring` points at the foreground with the other public token overrides, so the vendored controls get the half-strength Lamp White focus ring (WCAG 1.4.11).
+  - Footer items are at least 44px tall below 1024px.
+  - The 80rem section cap goes. Set the maximum content width beyond 1440 and keep the column ratios below it, then record both in DESIGN.md.
 - **Tests:**
   - `site-page.test.tsx`: order, no Blog, no Connect, one `<h1>`, rule 9 focusables
   - `anchors.spec.ts`: the anchor list and deep links
-  - `hero.spec.ts` `SCENE_WALK`: About is no longer a scene
-  - `fit.spec.ts`: About no longer pins
+  - `hero.spec.ts` `SCENE_WALK`: the new order, with About after How I work (its slot on the photo plate) and Testimonials as a new scene
+  - `fit.spec.ts`: About and Testimonials pin as single-frame scenes (rule 12)
   - `contact.spec.ts`
 - **Docs:** update the CLAUDE.md lines that name the old order or the Connect and Blog sections.
 
@@ -696,6 +753,8 @@ Ask me before committing.
   - Replace the scroll-driven `orbit-turn`, `orbit-digit` and `orbit-reveal` animations with CSS transitions keyed on the stage's `data-thread`, using literal selectors as the Services captions do.
   - The ring's dots drift with the scroll all the time, as the ticks do today (Phase 4 decision 3, to be confirmed when the owner scrolls it).
   - No lock.
+  - **Crossings between two thread scenes.** `isThreadSegment` has no same-scene check. Once process is a thread scene, the Services → How I work crossing (and, after Phase 9, Projects → Services) becomes a triggered thread segment instead of a scrubbed burst flight. Decide which it should be, and update DESIGN.md's Thread "Entry and exit" and the One-Scroll Rule.
+- **The ring's dots** are one circle with round caps and a 3px stroke, dashed `0 <gap>`. With `pathLength` 3600, the gap is in path units (3600 × 10 ÷ the circumference in px), so it reads as a dot every 10px of arc (DESIGN.md, Shapes).
 - **Docs:** CLAUDE.md's "How I work's orbit" paragraphs, DESIGN.md's Orbit, and rule 14 here.
 
 **Acceptance.**
@@ -813,7 +872,7 @@ Ask me before committing.
 
 - An Android phone with USB debugging for the 16ms trace.
 - An iPhone with Safari 26.
-- A decision on a square "Pause motion" toggle (WCAG 2.2.2, because the cube spins endlessly). It uses the `isStatic` path.
+- A decision on a square "Pause motion" toggle (WCAG 2.2.2, because the cube spins and the Services shapes sway endlessly). It uses the `isStatic` path and stops both.
 
 **Scope.**
 
@@ -829,7 +888,7 @@ Ask me before committing.
 - **An accessibility pass** to WCAG 2.2 AA: keyboard, screen reader, zoom, text spacing and forced colours.
 - **A performance pass:** idle RAF, the frame budget, and image weights (the project and About images).
 - **Fix the Turbopack build warning** in `email-preview.adapter.ts`.
-- **Docs:** the final DESIGN.md, the CLAUDE.md "Hero dot field" block, and the README.
+- **Docs:** the final DESIGN.md and its sidecar `.impeccable/design.json` (stale since Phase 3), the CLAUDE.md "Hero dot field" block, and the README.
 
 **Acceptance.**
 
@@ -885,7 +944,8 @@ These are the ones CLAUDE.md doesn't already cover:
 
 ## Open owner decisions
 
-- **Phase 4:** the owner approves the DESIGN.md rewrite. Every other Phase 4 question is answered (see "Decisions" under Phase 4).
+- **Phase 5:** the Projects heading and intro, which B has no place for (see Phase 5's owner inputs).
+- **Testimonials with several quotes:** the label counts them ("01 / 03"), but how one quote gives way to the next is not designed. Decide when the real quotes arrive.
 - **To confirm later:** the black-and-white photo, when it arrives, and the drifting ring, when Phase 8 is scrolled.
 - **Phase 10:** heading parallax, the adaptive cursor, the cursive logo.
 - **Phase 11:** the pause-motion toggle (WCAG 2.2.2).

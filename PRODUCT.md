@@ -34,7 +34,7 @@ The site is built the same way. It has a hand-built WebGL hero, a real auth and 
 
 **Voice:** short, plain, precise, in the first person. The owner approves every line of public copy.
 
-Open decision: the seeded hero tagline ("Crafting timeless digital experiences through design, strategy, and code.") matches word for word the Framer template the hero was modelled on (adriavale.framer.website). It is placeholder text, not the owner's voice, and it also leans toward design and strategy rather than end-to-end product building. It is owner-editable content; replace it with the owner's own words.
+Decided (owner, 2026-09-29): the hero tagline becomes "I build whole products. Brand, design and code." The seeded one ("Crafting timeless digital experiences through design, strategy, and code.") matches word for word the Framer template the hero was modelled on (adriavale.framer.website). The tagline is owner-editable content, so the new line goes live when the owner publishes it in the editor, or through the seed defaults in Phase 5.
 
 ## Operating Context
 
@@ -55,7 +55,7 @@ The owner's own summary: "I specialize in crafting custom web solutions, includi
 **Public site:**
 
 - Single page. The anchors (`#home`, `#services`, `#about`, `#project`, `#process`, `#connect`, `#testimonials`, `#faq`, `#blog`, `#contact`) are the navigation. `#contact` must keep working because the e2e suite depends on it.
-- **Planned order** (owner, 2026-09-29; not built yet, waiting on the whole-page mockups in `plans/handoff.md` "Direction"):
+- **Planned order** (owner, 2026-09-29; not built yet. The design is locked to mockup B, recorded in DESIGN.md, and Phases 5–10 in `plans/handoff.md` build it):
   1. Hero
   2. Belief quote
   3. Projects
