@@ -4,7 +4,7 @@
 >
 > **Current phase:** **Phase 4, direction and mockups.** The brief is recorded (below) and the whole-page mockups are on a private Design canvas: https://claude.ai/artifact/JfBhfHpocuCtfDmcTkahob. **The owner picked B, "Statement", for the whole page, with `B-desktop-1` as the reference** (2026-09-29). B2 and the phone artboards were matched to B1 the same day. **The design is locked** (owner, 2026-09-29: "I still love this, please lock on this design"). Renders of it are in `plans/mockups/`, and every Phase 4 question is answered. **What's left of Phase 4 is the DESIGN.md rewrite.** To resume, paste the prompt under "Start here".
 >
-> **Branch:** `portfolio/phase-3` (HEAD `0f198b2`). This file's rewrite, the "Direction" section and the PRODUCT.md positioning are uncommitted until the owner asks.
+> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Nothing is pushed.
 >
 > **How this file works:** each phase is one conversation. It lists its scope, the owner inputs it needs and its acceptance. It ends with the prompt that starts the next conversation. When a phase ends, write its done note under it, move "Current phase" forward, and give the owner the next prompt.
 >
