@@ -6,6 +6,7 @@ import type {
   DotFieldMorphTuning,
   DotFieldTuning,
   DotGeneratedShapeId,
+  DotSceneMotion,
   DotShapeId,
   DotShapeTuning,
   DotSphereTuning,
@@ -57,6 +58,8 @@ export const DOT_SCENE_SELECTOR = "[data-dot-scene]"
 export const DOT_SLOT_SELECTOR = "[data-dot-slot]"
 
 export const IN_PAGE_ANCHOR_SELECTOR = 'a[href^="#"]'
+
+export const DOT_THREAD_COMMIT_EVENT = "dotthreadcommit"
 
 export const JUMP_CANCEL_EVENTS = [
   "wheel",
@@ -117,7 +120,7 @@ export const LINE_ART_SHAPES: Record<LineArtShapeId, LineArtShape> = {
     strokes: [
       {
         kind: "arc",
-        center: [0, 0, 0],
+        center: [0, 0, -0.3],
         radius: 0.88,
         startAngle: Math.PI / 2,
         endAngle: Math.PI / 2 + FULL_TURN,
@@ -135,7 +138,7 @@ export const LINE_ART_SHAPES: Record<LineArtShapeId, LineArtShape> = {
       },
       {
         kind: "star",
-        center: [0, 0, 0],
+        center: [0, 0, 0.35],
         outerRadius: 0.44,
         innerRadius: 0.18,
         tips: 5,
@@ -148,23 +151,23 @@ export const LINE_ART_SHAPES: Record<LineArtShapeId, LineArtShape> = {
       {
         kind: "polyline",
         points: [
-          [-0.95, 0.66, 0],
-          [0.95, 0.66, 0],
-          [0.95, -0.66, 0],
-          [-0.95, -0.66, 0],
-          [-0.95, 0.66, 0],
+          [-0.95, 0.66, -0.2],
+          [0.95, 0.66, -0.2],
+          [0.95, -0.66, -0.2],
+          [-0.95, -0.66, -0.2],
+          [-0.95, 0.66, -0.2],
         ],
       },
       {
         kind: "polyline",
         points: [
-          [-0.95, 0.4, 0],
-          [0.95, 0.4, 0],
+          [-0.95, 0.4, -0.2],
+          [0.95, 0.4, -0.2],
         ],
       },
       {
         kind: "arc",
-        center: [-0.82, 0.53, 0],
+        center: [-0.82, 0.53, 0.1],
         radius: 0.045,
         startAngle: 0,
         endAngle: FULL_TURN,
@@ -173,7 +176,7 @@ export const LINE_ART_SHAPES: Record<LineArtShapeId, LineArtShape> = {
       },
       {
         kind: "arc",
-        center: [-0.7, 0.53, 0],
+        center: [-0.7, 0.53, 0.1],
         radius: 0.045,
         startAngle: 0,
         endAngle: FULL_TURN,
@@ -182,7 +185,7 @@ export const LINE_ART_SHAPES: Record<LineArtShapeId, LineArtShape> = {
       },
       {
         kind: "arc",
-        center: [-0.58, 0.53, 0],
+        center: [-0.58, 0.53, 0.1],
         radius: 0.045,
         startAngle: 0,
         endAngle: FULL_TURN,
@@ -192,11 +195,11 @@ export const LINE_ART_SHAPES: Record<LineArtShapeId, LineArtShape> = {
       {
         kind: "polyline",
         points: [
-          [-0.4, 0.59, 0],
-          [0.8, 0.59, 0],
-          [0.8, 0.47, 0],
-          [-0.4, 0.47, 0],
-          [-0.4, 0.59, 0],
+          [-0.4, 0.59, 0.25],
+          [0.8, 0.59, 0.25],
+          [0.8, 0.47, 0.25],
+          [-0.4, 0.47, 0.25],
+          [-0.4, 0.59, 0.25],
         ],
       },
     ],
@@ -207,24 +210,24 @@ export const LINE_ART_SHAPES: Record<LineArtShapeId, LineArtShape> = {
       {
         kind: "polyline",
         points: [
-          [-0.42, 0.62, 0],
-          [-0.95, 0, 0],
-          [-0.42, -0.62, 0],
+          [-0.42, 0.62, -0.3],
+          [-0.95, 0, -0.3],
+          [-0.42, -0.62, -0.3],
         ],
       },
       {
         kind: "polyline",
         points: [
-          [-0.17, -0.8, 0],
-          [0.17, 0.8, 0],
+          [-0.17, -0.8, 0.3],
+          [0.17, 0.8, 0.3],
         ],
       },
       {
         kind: "polyline",
         points: [
-          [0.42, 0.62, 0],
-          [0.95, 0, 0],
-          [0.42, -0.62, 0],
+          [0.42, 0.62, -0.3],
+          [0.95, 0, -0.3],
+          [0.42, -0.62, -0.3],
         ],
       },
     ],
@@ -596,6 +599,19 @@ export const DOT_FIELD_MORPH_TUNING: DotFieldMorphTuning = {
   strikeSeconds: 0.3,
   strikeMinIntervalSeconds: 0.5,
   strikeImpulse: 1.6,
+  swaySpeed: 0.45,
+  threadStagger: 0.97,
+  threadJitter: 0.015,
+  threadArcPixels: 90,
+  threadBurst: 0.12,
+  threadSpin: 0.2,
+  threadTrigger: 0.12,
+  threadDrawSeconds: 1.6,
+  threadArriveSeconds: 0.9,
+}
+
+export const DOT_SCENE_MOTION: Record<string, DotSceneMotion> = {
+  services: { share: 0.72, isThread: true },
 }
 
 const FLAT_LINE_ART_TUNING: DotShapeTuning = {
@@ -608,6 +624,7 @@ const FLAT_LINE_ART_TUNING: DotShapeTuning = {
   roll: 0,
   wobble: 0,
   staticYaw: 0,
+  sway: 0,
   farLight: 1,
   depthRadius: 1,
   dotSize: 2.5,
@@ -615,10 +632,28 @@ const FLAT_LINE_ART_TUNING: DotShapeTuning = {
   inkRatio: 0.65,
 }
 
+const THREAD_LINE_ART_TUNING: DotShapeTuning = {
+  fit: "contain",
+  sizeRatio: 0.42,
+  pointsPerArea: 0.05,
+  hasPerspective: true,
+  spinSpeed: 0,
+  pitch: 0.22,
+  roll: -0.05,
+  wobble: 0.04,
+  staticYaw: -0.25,
+  sway: 0.32,
+  farLight: 0.45,
+  depthRadius: 1.2,
+  dotSize: 2.5,
+  opacity: 1,
+  inkRatio: 0.65,
+}
+
 export const DOT_SHAPE_TUNING: Record<DotGeneratedShapeId, DotShapeTuning> = {
-  branding: FLAT_LINE_ART_TUNING,
-  "web-design": FLAT_LINE_ART_TUNING,
-  development: FLAT_LINE_ART_TUNING,
+  branding: THREAD_LINE_ART_TUNING,
+  "web-design": THREAD_LINE_ART_TUNING,
+  development: THREAD_LINE_ART_TUNING,
   listening: FLAT_LINE_ART_TUNING,
   planning: FLAT_LINE_ART_TUNING,
   visualising: FLAT_LINE_ART_TUNING,
@@ -633,6 +668,7 @@ export const DOT_SHAPE_TUNING: Record<DotGeneratedShapeId, DotShapeTuning> = {
     roll: -0.2,
     wobble: 0.07,
     staticYaw: 0.6,
+    sway: 0,
     farLight: 0.35,
     depthRadius: Math.sqrt(3),
     dotSize: 3,
@@ -649,6 +685,7 @@ export const DOT_SHAPE_TUNING: Record<DotGeneratedShapeId, DotShapeTuning> = {
     roll: -0.2,
     wobble: 0.07,
     staticYaw: 0.6,
+    sway: 0,
     farLight: 0.35,
     depthRadius: Math.sqrt(3),
     dotSize: 3,
@@ -665,6 +702,7 @@ export const DOT_SHAPE_TUNING: Record<DotGeneratedShapeId, DotShapeTuning> = {
     roll: -0.1,
     wobble: 0.05,
     staticYaw: 0.4,
+    sway: 0,
     farLight: 0.3,
     depthRadius: 1,
     dotSize: 2.5,
@@ -681,6 +719,7 @@ export const DOT_SHAPE_TUNING: Record<DotGeneratedShapeId, DotShapeTuning> = {
     roll: 0,
     wobble: 0,
     staticYaw: 0,
+    sway: 0,
     farLight: 1,
     depthRadius: 1,
     dotSize: 2,

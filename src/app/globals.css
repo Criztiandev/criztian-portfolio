@@ -26,6 +26,16 @@
   }
 }
 
+@custom-variant staged {
+  @supports (animation-timeline: view()) {
+    @media screen and (prefers-reduced-motion: no-preference) and (height > 30rem) {
+      &:where([data-status="running"] *):not([data-fit], [data-fit] *) {
+        @slot;
+      }
+    }
+  }
+}
+
 @theme inline {
   --font-heading: var(--font-display);
   --font-sans: var(--font-sans);
@@ -165,5 +175,101 @@
     html {
       scroll-behavior: auto;
     }
+  }
+}
+
+@utility caption-line {
+  clip-path: inset(-20% 100% -20% 0);
+  translate: -24px 0;
+  transition-property: clip-path, translate;
+  transition-duration: var(--caption-hide-seconds);
+  transition-timing-function: var(--signal-ease);
+}
+
+@utility orbit-turn {
+  animation-name: orbit-turn;
+  animation-duration: auto;
+  animation-timing-function: var(--signal-ease);
+  animation-fill-mode: both;
+  animation-timeline: --step-scene;
+  animation-range: exit-crossing calc(var(--in-from) * var(--pitch))
+    exit-crossing calc(var(--in-to) * var(--pitch));
+}
+
+@utility orbit-spin {
+  animation-name: orbit-spin;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --step-scene;
+  animation-range: exit-crossing 0 exit-crossing
+    calc((var(--steps) - 1) * var(--pitch));
+}
+
+@utility orbit-digit {
+  animation-name: orbit-digit;
+  animation-duration: auto;
+  animation-timing-function: var(--signal-ease);
+  animation-fill-mode: both;
+  animation-timeline: --step-scene;
+  animation-range: exit-crossing calc(var(--assemble-from) * var(--pitch))
+    exit-crossing calc(var(--assemble-to) * var(--pitch));
+}
+
+@utility orbit-reveal {
+  animation-name: orbit-reveal;
+  animation-duration: auto;
+  animation-timing-function: var(--signal-ease);
+  animation-fill-mode: both;
+  animation-timeline: --step-scene;
+  animation-range: exit-crossing calc(var(--assemble-from) * var(--pitch))
+    exit-crossing calc(var(--assemble-to) * var(--pitch));
+}
+
+@keyframes orbit-turn {
+  to {
+    rotate: calc(-1 * var(--orbit-step-angle));
+  }
+}
+
+@keyframes orbit-spin {
+  from {
+    stroke-dashoffset: calc(var(--orbit-dash-from) * 1px);
+  }
+
+  to {
+    stroke-dashoffset: calc((var(--orbit-dash-from) - var(--orbit-spin)) * 1px);
+  }
+}
+
+@keyframes orbit-digit {
+  from {
+    opacity: 0;
+    translate: 0 0.4em;
+    rotate: var(--orbit-tilt);
+    scale: 0.5 1.5;
+  }
+}
+
+@keyframes orbit-reveal {
+  from {
+    clip-path: inset(-20% 100% -20% 0);
+  }
+
+  to {
+    clip-path: inset(-20% -4% -20% 0);
+  }
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  [data-thread="branding"] [data-caption="branding"] [data-caption-line],
+  [data-thread="web-design"] [data-caption="web-design"] [data-caption-line],
+  [data-thread="development"] [data-caption="development"] [data-caption-line] {
+    clip-path: inset(-20% -4% -20% 0);
+    translate: 0 0;
+    transition-duration: var(--caption-show-seconds);
+    transition-delay: calc(
+      var(--caption-show-delay) + var(--line) * var(--caption-stagger)
+    );
   }
 }

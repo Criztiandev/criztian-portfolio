@@ -1,10 +1,19 @@
 import { act, render } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-import { FINE_POINTER_QUERY, SMOOTH_SCROLL_LERP } from "@/data/motion.data"
+import { DOT_THREAD_COMMIT_EVENT } from "@/data/hero.data"
+import {
+  FINE_POINTER_QUERY,
+  SMOOTH_SCROLL_LERP,
+  WHEEL_GESTURE_QUIET_MS,
+} from "@/data/motion.data"
 import { SmoothScroll } from "@/features/portfolio/components/smooth-scroll.component"
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)"
+
+const SERVICE_REST_TOP = 1234
+
+const DRAW_SECONDS = 1.6
 
 type LenisOptions = {
   lerp: number
@@ -14,6 +23,8 @@ type LenisOptions = {
 type LenisDouble = {
   options: LenisOptions
   isScrolling: boolean | "native" | "smooth"
+  isLocked: boolean
+  isStopped: boolean
   time: number
   velocity: number
   listeners: Map<string, () => void>
@@ -21,6 +32,7 @@ type LenisDouble = {
   stop: ReturnType<typeof vi.fn>
   start: ReturnType<typeof vi.fn>
   destroy: ReturnType<typeof vi.fn>
+  scrollTo: ReturnType<typeof vi.fn>
 }
 
 const lenisInstances: LenisDouble[] = []
@@ -33,15 +45,22 @@ vi.mock("lenis", function mockLenis() {
       const instance: LenisDouble = {
         options,
         isScrolling: false,
+        isLocked: false,
+        isStopped: false,
         time: 1234,
         velocity: 4,
         listeners: new Map(),
         raf: vi.fn().mockImplementation(function advanceClock(time: number) {
           instance.time = time
         }),
-        stop: vi.fn(),
-        start: vi.fn(),
+        stop: vi.fn().mockImplementation(function stopLenis() {
+          instance.isStopped = true
+        }),
+        start: vi.fn().mockImplementation(function startLenis() {
+          instance.isStopped = false
+        }),
         destroy: vi.fn(),
+        scrollTo: vi.fn(),
       }
 
       Object.assign(instance, {
@@ -118,6 +137,28 @@ function runFrame(): void {
     for (const frame of frames) {
       frame(16)
     }
+  })
+}
+
+function runFrameAt(time: number): void {
+  act(function runPendingFramesAt() {
+    const frames = pendingFrames
+
+    pendingFrames = []
+
+    for (const frame of frames) {
+      frame(time)
+    }
+  })
+}
+
+function announceServiceCommit(): void {
+  act(function dispatchCommit() {
+    window.dispatchEvent(
+      new CustomEvent(DOT_THREAD_COMMIT_EVENT, {
+        detail: { top: SERVICE_REST_TOP, seconds: DRAW_SECONDS },
+      })
+    )
   })
 }
 
@@ -308,6 +349,113 @@ describe("SmoothScroll", () => {
     window.removeEventListener("scrollend", recordScrollEnd)
 
     expect(received).toEqual(["false"])
+  })
+
+  it("glides Lenis to a committed service with the scroll locked", () => {
+    stubMediaQueries({ [FINE_POINTER_QUERY]: true })
+
+    render(<SmoothScroll />)
+    announceServiceCommit()
+
+    expect(latestLenis().scrollTo).toHaveBeenCalledWith(
+      SERVICE_REST_TOP,
+      expect.objectContaining({ duration: DRAW_SECONDS, lock: true })
+    )
+    expect(pendingFrames).toHaveLength(1)
+  })
+
+  it("locks touch scrolling while it glides to a committed service", () => {
+    stubMediaQueries({})
+
+    const scrollTo = vi
+      .spyOn(window, "scrollTo")
+      .mockImplementation(function skipScroll() {
+        return
+      })
+
+    render(<SmoothScroll />)
+    announceServiceCommit()
+
+    expect(document.documentElement.style.overflow).toBe("hidden")
+
+    runFrameAt(100)
+    runFrameAt(100 + DRAW_SECONDS * 1000)
+
+    expect(scrollTo).toHaveBeenLastCalledWith({
+      top: SERVICE_REST_TOP,
+      behavior: "instant",
+    })
+    expect(document.documentElement.style.overflow).toBe("")
+  })
+
+  it("releases a touch glide when a nav link is clicked", () => {
+    stubMediaQueries({})
+    vi.spyOn(window, "scrollTo").mockImplementation(function skipScroll() {
+      return
+    })
+
+    const link = document.createElement("a")
+
+    link.href = "#contact"
+    document.body.append(link)
+    render(<SmoothScroll />)
+    announceServiceCommit()
+
+    act(function clickNavLink() {
+      link.click()
+    })
+
+    expect(document.documentElement.style.overflow).toBe("")
+    link.remove()
+  })
+
+  it("ignores a service commit under reduced motion", () => {
+    stubMediaQueries({ [REDUCED_MOTION_QUERY]: true })
+
+    render(<SmoothScroll />)
+    announceServiceCommit()
+
+    expect(document.documentElement.style.overflow).toBe("")
+    expect(pendingFrames).toHaveLength(0)
+  })
+
+  it("keeps the wheel held after a glide until the gesture goes quiet", () => {
+    stubMediaQueries({ [FINE_POINTER_QUERY]: true })
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+
+    let now = 1000
+
+    vi.spyOn(window.performance, "now").mockImplementation(function readNow() {
+      return now
+    })
+
+    render(<SmoothScroll />)
+
+    const lenis = latestLenis()
+
+    act(function wheel() {
+      lenis.listeners.get("virtual-scroll")?.()
+    })
+    announceServiceCommit()
+
+    const options = lenis.scrollTo.mock.calls[0]?.[1] as {
+      onComplete: () => void
+    }
+
+    now += WHEEL_GESTURE_QUIET_MS / 2
+    act(function landGlide() {
+      options.onComplete()
+    })
+
+    expect(lenis.isStopped).toBe(true)
+
+    now += WHEEL_GESTURE_QUIET_MS
+    act(function letGestureEnd() {
+      vi.runOnlyPendingTimers()
+    })
+
+    expect(lenis.isStopped).toBe(false)
+    vi.useRealTimers()
   })
 
   it("cancels the pending frame and destroys Lenis on unmount", () => {

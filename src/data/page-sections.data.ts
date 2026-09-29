@@ -30,6 +30,8 @@ export const SCENE_FLOW_SHAPES = "dust"
 
 export const SCENE_FIT_TOLERANCE_PX = 1
 
+export const SCENE_MIN_SLOT_PX = 64
+
 export const SCENE_ANCHOR_TOLERANCE_PX = 1
 
 export const SECTION_FRAME_CLASS =
@@ -51,6 +53,9 @@ export const SECTION_LABEL_CLASS = "text-xs tracking-[0.025em] uppercase"
 export const FOCUS_RING_CLASS =
   "scroll-mt-18 outline-none focus-visible:ring-[3px] focus-visible:ring-foreground/50 focus-visible:outline-hidden"
 
+export const ORBIT_CIRCLE_CLASS =
+  "fill-none stroke-current [cx:50%] [cy:calc(var(--orbit-radius)_+_6px)] [r:var(--orbit-radius)] staged:orbit-spin"
+
 export const DUST_SECTION_SPACING_CLASS =
   "pt-[max(6rem,14svh)] pb-[max(3rem,6svh)]"
 
@@ -60,7 +65,6 @@ export const SERVICES_SCENE: StepSceneContent = {
   heading: "My services",
   sceneId: "services",
   shapes: SERVICES_SCENE_SHAPES,
-  isNumbered: false,
   steps: [
     {
       title: "Branding",
@@ -122,7 +126,6 @@ export const PROCESS_SCENE: StepSceneContent = {
   heading: "How I work",
   sceneId: "process",
   shapes: PROCESS_SCENE_SHAPES,
-  isNumbered: true,
   steps: [
     {
       title: "Listening to your vision",

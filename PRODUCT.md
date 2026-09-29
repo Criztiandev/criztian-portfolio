@@ -54,7 +54,7 @@ The owner's own summary: "I specialize in crafting custom web solutions, includi
 - My services (`#services`): Branding, Web design and Development, each with the owner's paragraph and six items, as steps scrolling past a pinned dot shape.
 - Who am I (`#about`): "I am Criztian.", the owner's summary and three stats (5+ years experience, 500+ projects done, 140 happy clients).
 - Projects (`#project`): a pinned left column carries the heading, an intro and a "Let's talk" action to `#contact`, beside a placeholder dot sphere until the Phase 5 deck. The three seeded cards are visible placeholders ("Project one", "Screenshot to come").
-- How I work (`#process`): the owner's five numbered steps, scrolling past a pinned dot shape.
+- How I work (`#process`): the owner's five numbered steps on a turning orbit, each with its dot shape formed beside the step's numeral (above the orbit on a phone).
 - Let's connect (`#connect`, an "Email me" mailto action), Testimonials and Blog (visible placeholders: "Client quote to come", "Post to come"), FAQ (the owner's nine questions in native disclosures) and Get in touch (`#contact`, the form).
 - Contact form: name, email, a required "Service needed" select (Branding, Web design, Development, Something else) and "What can I help you with?". The service is stored with the message and shown in the notification.
 - Contact form anti-spam: a honeypot, a two-second minimum time-to-submit, and a limit of five submissions per hour per hashed IP. These are deliberate; do not weaken them.

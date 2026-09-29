@@ -88,12 +88,29 @@ export type DotFieldMorphTuning = {
   strikeSeconds: number
   strikeMinIntervalSeconds: number
   strikeImpulse: number
+  swaySpeed: number
+  threadStagger: number
+  threadJitter: number
+  threadArcPixels: number
+  threadBurst: number
+  threadSpin: number
+  threadTrigger: number
+  threadDrawSeconds: number
+  threadArriveSeconds: number
+}
+
+export type DotSceneMotion = {
+  share: number
+  isThread: boolean
 }
 
 export type DotFieldFollowTuning = Pick<
   DotFieldMorphTuning,
   "morphFollowRate" | "morphSettleEpsilon"
 >
+
+export type DotFieldTriggerTuning = DotFieldFollowTuning &
+  Pick<DotFieldMorphTuning, "threadTrigger" | "threadDrawSeconds">
 
 export type DotShapeTuning = {
   fit: DotShapeFit
@@ -105,6 +122,7 @@ export type DotShapeTuning = {
   roll: number
   wobble: number
   staticYaw: number
+  sway: number
   farLight: number
   depthRadius: number
   dotSize: number
@@ -141,6 +159,20 @@ export type DotSceneKeyframe = {
   start: number
   end: number
   slot: DotFieldRect | null
+  isThread?: boolean
+}
+
+export type DotTriggeredTargetRequest = {
+  keyframes: DotSceneKeyframe[]
+  scrollTarget: number
+  previousScrollTarget: number
+  committedTarget: number
+  trigger: number
+}
+
+export type DotThreadCommitDetail = {
+  top: number
+  seconds: number
 }
 
 export type DotTimelineSegment = {
@@ -204,6 +236,7 @@ export type DotFieldFrame = {
   wordBounds: DotFieldBounds
   progress: number
   strike: number
+  thread: number
   from: DotFieldPlacement
   to: DotFieldPlacement
 }
@@ -336,6 +369,11 @@ export type DotFieldUniforms = {
   swell: WebGLUniformLocation | null
   strikeSize: WebGLUniformLocation | null
   strike: WebGLUniformLocation | null
+  thread: WebGLUniformLocation | null
+  threadStagger: WebGLUniformLocation | null
+  threadJitter: WebGLUniformLocation | null
+  threadArc: WebGLUniformLocation | null
+  threadBurst: WebGLUniformLocation | null
   from: DotFieldPlacementUniforms
   to: DotFieldPlacementUniforms
 }

@@ -80,8 +80,13 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
 - **Scenes and timeline:**
   - Every section belongs to a `[data-dot-scene]` container, with shapes in `data-dot-shapes`.
   - A formed shape lives only in a pinned `[data-dot-slot]` inside the container's first child, a sticky frame. Dust scenes have no slot and fill the viewport.
-  - Pinned layouts choose by height as well as width with the `split` and `short` variants in `globals.css`, never `md:`.
-  - Frames that can grow use `min-h`. Sticky fixed-height copy boxes (the portrait step blocks) go through `SceneFitGate`, which drops the scene to dust when the copy can't fit. See DOM contract rules 12–13 in `plans/handoff.md`.
+  - Pinned layouts choose by height as well as width with the `split`, `short` and `staged` variants in `globals.css`, never `md:`.
+  - Frames that can grow use `min-h`. Sticky fixed-height copy boxes (the Services captions, the How I work step boxes and heading box) go through `SceneFitGate`, which drops the scene to dust when the copy can't fit. See DOM contract rules 12–14 in `plans/handoff.md`.
+  - **How I work's orbit** is scroll-driven CSS behind the `staged` variant, on the container's `--step-scene` view timeline, with ranges from `resolveStepHandover` (`step-motion.rules.ts`, which reads the scene's share: `DOT_SCENE_MOTION`, else `stepMorphShare`). Nested turn wrappers each rotate one `--orbit-step-angle` over one handover, about the circle centre far below the frame. The ring's ticks move by `stroke-dashoffset` on a small band SVG, never by rotating a huge layer.
+  - **The orbit's step box is identical staged and unstaged** (slot rect, container height, each step's height and width). The hook and the gate measure while the stage is still `idle`, and nothing re-measures when `running` switches `staged` on. Custom properties are namespaced `--orbit-*`; never redefine `--radius`, the token behind every `rounded-*`.
+  - **Services is triggered, not scrubbed.** Between two thread keyframes (`DOT_SCENE_MOTION` `isThread`), `resolveTriggeredTarget` commits the target to the next or previous shape once the scroll passes `threadTrigger` in that direction, and `followTriggeredProgress` plays it over `threadDrawSeconds`. The hook publishes the committed shape as the stage's `data-thread`; the captions are CSS transitions keyed on it (literal selectors in globals.css).
+  - **The glide lock.** On a thread-to-thread commit (not during a nav jump, never under reduced motion) the hook dispatches `DOT_THREAD_COMMIT_EVENT` with the shape's rest top. `SmoothScroll` glides there over `threadDrawSeconds` on `easeInOutSine`: through `lenis.scrollTo(…, { lock: true })` with Lenis, else a RAF glide with `overflow: hidden` on `<html>`. A key press or an in-page anchor click releases either lock. `SmoothScroll` therefore listens on every pointer type; only Lenis itself stays fine-pointer-only. Never key it on `data-scene`; no CSS keys on `data-scene` today. `staged` needs scroll-driven animations, motion allowed, height over 30rem, a running stage and no `data-fit`; everything else gets the Phase 2 layout.
+  - Use the `view-timeline-name` and `view-timeline-inset` longhands: the `view-timeline` shorthand resets the inset and puts every handover 72px late.
   - `buildSceneKeyframes` turns the measured scenes into keyframes. `resolveTimelinePosition` maps `scrollY` to one position `p` (keyframe index plus transit progress), which the loop smooths (`followTimelineProgress`, snapping jumps longer than one segment).
   - The stage's `data-scene` is the formed keyframe id or `moving`.
 - **Shapes:**
@@ -104,13 +109,13 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
   - The RAF loop sleeps once the dots are at rest, `p` has reached its target, the intro has settled, and no spinning shape (the cube, the placeholder sphere) is formed or in transit (`shouldLoopSleep`).
   - Scroll, pointer and resize input restart it. `visibilitychange` stops it.
   - There is no IntersectionObserver, because a fixed canvas is always on screen.
-- **No `useState` in the hook.** Status goes out as DOM attributes (`data-status` and `data-scene` on the stage, `data-point-count` on the canvas), which CSS and the e2e specs key off.
+- **No `useState` in the hook.** Status goes out as DOM attributes (`data-status`, `data-scene` and `data-thread` on the stage, `data-point-count` on the canvas), which CSS and the e2e specs key off.
 - **Font gate:** it must check only the primary family (`Antonio`), because `Antonio Fallback` (metric-adjusted Arial) always reports as loaded. Use `document.fonts.load()` followed by `check()`; `fonts.ready` alone is not enough.
 - **Fallbacks:**
   - No WebGL2 (or a lost context) falls back to the text `<h1>`. Slots hide and scene containers drop their pin height.
   - Reduced motion never starts the loop. It draws a keyframe only while the scroll is inside that keyframe's pin range, and clears the canvas between scenes.
   - There is no viewport gate; phones run the dots.
-  - `aria-hidden` goes on the canvas and the empty slots only.
+  - `aria-hidden` goes on decorative leaves only: the canvas, the empty slots, the orbit ring, the step numerals and the plate dots.
 
 **Other.**
 

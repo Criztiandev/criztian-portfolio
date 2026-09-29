@@ -145,6 +145,11 @@ function resolveUniformLocations(
     swell: context.getUniformLocation(program, "uSwell"),
     strikeSize: context.getUniformLocation(program, "uStrikeSize"),
     strike: context.getUniformLocation(program, "uStrike"),
+    thread: context.getUniformLocation(program, "uThread"),
+    threadStagger: context.getUniformLocation(program, "uThreadStagger"),
+    threadJitter: context.getUniformLocation(program, "uThreadJitter"),
+    threadArc: context.getUniformLocation(program, "uThreadArc"),
+    threadBurst: context.getUniformLocation(program, "uThreadBurst"),
     from: resolvePlacementUniforms(context, program, "uFrom"),
     to: resolvePlacementUniforms(context, program, "uTo"),
   }
@@ -322,6 +327,13 @@ export function applyStaticUniforms(
   )
   context.uniform1f(uniforms.swell, morphTuning.swell)
   context.uniform1f(uniforms.strikeSize, morphTuning.strikeSize)
+  context.uniform1f(uniforms.threadStagger, morphTuning.threadStagger)
+  context.uniform1f(uniforms.threadJitter, morphTuning.threadJitter)
+  context.uniform1f(
+    uniforms.threadArc,
+    morphTuning.threadArcPixels * pixelRatio
+  )
+  context.uniform1f(uniforms.threadBurst, morphTuning.threadBurst)
 }
 
 export function applyDotColor(
@@ -499,6 +511,7 @@ export function drawDotField(
   )
   context.uniform1f(uniforms.morph, frame.progress)
   context.uniform1f(uniforms.strike, frame.strike)
+  context.uniform1f(uniforms.thread, frame.thread)
   applyPlacement(context, uniforms.from, frame.from)
   applyPlacement(context, uniforms.to, frame.to)
 

@@ -1,7 +1,11 @@
 import { render, screen, within } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
-import { FAQ_SECTION } from "@/data/page-sections.data"
+import {
+  FAQ_SECTION,
+  PROCESS_SCENE,
+  SERVICES_SCENE,
+} from "@/data/page-sections.data"
 import { DEFAULT_HERO_NAME } from "@/data/site-content.data"
 import { SitePage } from "@/features/portfolio/components/site-page.component"
 import { createDefaultSiteContent } from "@/features/site-content/site-content.rules"
@@ -203,6 +207,89 @@ describe("SitePage", () => {
       "var(--foreground)"
     )
     expect(stage?.style.getPropertyValue("--input")).toBe("var(--border)")
+  })
+
+  it("keeps the step copy in reading order inside each scene's board", () => {
+    const { container } = renderPage()
+
+    for (const scene of [SERVICES_SCENE, PROCESS_SCENE]) {
+      const section = container.querySelector(`#${scene.id}`)
+      const titles: string[] = []
+      const expected: string[] = []
+
+      for (const title of section?.querySelectorAll("h3") ?? []) {
+        titles.push(title.textContent ?? "")
+      }
+
+      for (const step of scene.steps) {
+        expected.push(step.title)
+      }
+
+      expect(titles).toEqual(expected)
+    }
+  })
+
+  it("gates the services board and every orbit step, never the orbit board", () => {
+    const { container } = renderPage()
+    const services = container.querySelector("#services")
+    const process = container.querySelector("#process")
+    const steps = container.querySelectorAll("#process [data-orbit-step]")
+
+    expect(services?.children[1]).toHaveAttribute("data-fit-box")
+    expect(process?.children[1]).not.toHaveAttribute("data-fit-box")
+    expect(steps).toHaveLength(PROCESS_SCENE.steps.length)
+
+    for (const step of steps) {
+      expect(step).toHaveAttribute("data-fit-box")
+    }
+  })
+
+  it("keys every service caption to its shape", () => {
+    const { container } = renderPage()
+    const captions: string[] = []
+
+    for (const caption of container.querySelectorAll<HTMLElement>(
+      "#services [data-caption]"
+    )) {
+      captions.push(caption.dataset.caption ?? "")
+      expect(caption.querySelectorAll("[data-caption-line]")).toHaveLength(3)
+    }
+
+    expect(captions.join(" ")).toBe(SERVICES_SCENE.shapes)
+  })
+
+  it("puts one orbit step on the rim for every process shape, in order", () => {
+    const { container } = renderPage()
+    const shapes: string[] = []
+
+    for (const step of container.querySelectorAll<HTMLElement>(
+      "#process [data-orbit-step]"
+    )) {
+      shapes.push(step.dataset.orbitStep ?? "")
+    }
+
+    expect(shapes.join(" ")).toBe(PROCESS_SCENE.shapes)
+  })
+
+  it("hides only the decorative orbit leaves from assistive tech", () => {
+    const { container } = renderPage()
+    const ring = container.querySelector("#process svg")
+    const numerals: string[] = []
+
+    expect(ring).toHaveAttribute("aria-hidden", "true")
+
+    for (const step of container.querySelectorAll(
+      "#process [data-orbit-step]"
+    )) {
+      const numeral = step.firstElementChild
+
+      expect(numeral).toHaveAttribute("aria-hidden", "true")
+      numerals.push(numeral?.textContent ?? "")
+      expect(step.querySelector("h3")).not.toHaveAttribute("aria-hidden")
+      expect(step.querySelector("p")).not.toHaveAttribute("aria-hidden")
+    }
+
+    expect(numerals).toEqual(["01", "02", "03", "04", "05"])
   })
 
   it("names the footer as text, never as a second heading", () => {

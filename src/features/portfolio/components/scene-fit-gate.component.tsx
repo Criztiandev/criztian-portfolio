@@ -8,11 +8,13 @@ import {
   SCENE_FIT_FLOW,
   SCENE_FIT_TOLERANCE_PX,
   SCENE_FLOW_SHAPES,
+  SCENE_MIN_SLOT_PX,
   SCENE_SLOT_ATTRIBUTE,
 } from "@/data/page-sections.data"
 import {
   hasFontLoadingApi,
   hasResizeObserver,
+  readReducedMotionQuery,
 } from "@/features/portfolio/browser-capability.rules"
 import type { SceneFitGateProps } from "@/types/page-sections.type"
 
@@ -45,6 +47,10 @@ export function SceneFitGate({ shapes }: Readonly<SceneFitGateProps>) {
       let isCancelled = false
 
       function hasOverflowingBox(): boolean {
+        if (slot.clientHeight < SCENE_MIN_SLOT_PX) {
+          return true
+        }
+
         for (const box of boxes) {
           if (box.scrollHeight > box.clientHeight + SCENE_FIT_TOLERANCE_PX) {
             return true
@@ -128,6 +134,10 @@ export function SceneFitGate({ shapes }: Readonly<SceneFitGateProps>) {
         }
       }
 
+      const motionQuery = readReducedMotionQuery()
+
+      motionQuery?.addEventListener("change", scheduleCheck)
+
       if (hasFontLoadingApi()) {
         void document.fonts.ready.then(scheduleCheck)
       }
@@ -138,6 +148,7 @@ export function SceneFitGate({ shapes }: Readonly<SceneFitGateProps>) {
         isCancelled = true
         window.cancelAnimationFrame(frameId)
         observer?.disconnect()
+        motionQuery?.removeEventListener("change", scheduleCheck)
         pinScene()
       }
     },

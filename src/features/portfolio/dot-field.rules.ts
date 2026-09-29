@@ -4,6 +4,7 @@ import {
   CUBE_EDGES,
   CUBE_SEED,
   DOT_FIELD_MORPH_TUNING,
+  DOT_SCENE_MOTION,
   DOT_SHAPE_IDS,
   DOT_SHAPE_TUNING,
   DOT_SPHERE_TUNING,
@@ -38,6 +39,7 @@ import type {
   DotFieldPointCloud,
   DotFieldRect,
   DotFieldSizeRequest,
+  DotFieldTriggerTuning,
   DotFieldTuning,
   DotFieldVector,
   DotFieldViewport,
@@ -47,6 +49,7 @@ import type {
   DotShapeLibrary,
   DotSphereTuning,
   DotTimelineSegment,
+  DotTriggeredTargetRequest,
   HeroIntroTiming,
   LineArtArc,
   LineArtSegment,
@@ -301,6 +304,10 @@ export function easeInOutCubic(progress: number): number {
   }
 
   return 1 - Math.pow(-2 * progress + 2, 3) / 2
+}
+
+export function easeInOutSine(progress: number): number {
+  return 0.5 - 0.5 * Math.cos(Math.PI * progress)
 }
 
 export function resolveStageProgress(
@@ -839,6 +846,142 @@ export function followTimelineProgress(
   return followMorphProgress(current, target, deltaSeconds, tuning)
 }
 
+export function isThreadSegment(
+  from: DotSceneKeyframe | undefined,
+  to: DotSceneKeyframe | undefined
+): boolean {
+  return from?.isThread === true && to?.isThread === true
+}
+
+export function resolveTriggeredTarget(
+  request: DotTriggeredTargetRequest
+): number {
+  const {
+    keyframes,
+    scrollTarget,
+    previousScrollTarget,
+    committedTarget,
+    trigger,
+  } = request
+  const fromIndex = Math.floor(scrollTarget)
+  const toIndex = fromIndex + 1
+  const within = scrollTarget - fromIndex
+
+  if (
+    within === 0 ||
+    !isThreadSegment(keyframes[fromIndex], keyframes[toIndex])
+  ) {
+    return scrollTarget
+  }
+
+  if (Number.isNaN(previousScrollTarget)) {
+    return resolveNearerIndex(fromIndex, within)
+  }
+
+  if (committedTarget < fromIndex) {
+    return fromIndex
+  }
+
+  if (committedTarget > toIndex) {
+    return toIndex
+  }
+
+  if (scrollTarget > previousScrollTarget && within >= trigger) {
+    return toIndex
+  }
+
+  if (scrollTarget < previousScrollTarget && within <= 1 - trigger) {
+    return fromIndex
+  }
+
+  if (committedTarget === fromIndex || committedTarget === toIndex) {
+    return committedTarget
+  }
+
+  return resolveNearerIndex(fromIndex, within)
+}
+
+function resolveNearerIndex(fromIndex: number, within: number): number {
+  if (within >= 0.5) {
+    return fromIndex + 1
+  }
+
+  return fromIndex
+}
+
+export function isThreadKeyframeIndex(
+  keyframes: DotSceneKeyframe[],
+  target: number
+): boolean {
+  if (!Number.isInteger(target)) {
+    return false
+  }
+
+  return keyframes[target]?.isThread === true
+}
+
+export function followTriggeredProgress(
+  current: number,
+  target: number,
+  deltaSeconds: number,
+  keyframes: DotSceneKeyframe[],
+  tuning: DotFieldTriggerTuning
+): number {
+  const lower = Math.floor(Math.min(current, target))
+  const isThreadPlay =
+    Math.max(current, target) <= lower + 1 &&
+    isThreadSegment(keyframes[lower], keyframes[lower + 1])
+
+  if (!isThreadPlay) {
+    return followTimelineProgress(current, target, deltaSeconds, tuning)
+  }
+
+  const step = deltaSeconds / tuning.threadDrawSeconds
+
+  if (Math.abs(target - current) <= step) {
+    return target
+  }
+
+  return current + Math.sign(target - current) * step
+}
+
+export function resolveThreadCommit(
+  keyframes: DotSceneKeyframe[],
+  previousTarget: number,
+  nextTarget: number
+): DotSceneKeyframe | null {
+  if (previousTarget === nextTarget) {
+    return null
+  }
+
+  if (Math.abs(nextTarget - previousTarget) > 1) {
+    return null
+  }
+
+  if (!isThreadKeyframeIndex(keyframes, nextTarget)) {
+    return null
+  }
+
+  return keyframes[nextTarget] ?? null
+}
+
+export function resolveKeyframeRestTop(keyframe: DotSceneKeyframe): number {
+  return (keyframe.start + keyframe.end) / 2
+}
+
+export function resolveThreadState(
+  keyframes: DotSceneKeyframe[],
+  target: number
+): string | null {
+  const keyframe = keyframes[Math.round(target)]
+
+  if (keyframe?.isThread === true) {
+    return keyframe.id
+  }
+
+  return null
+}
+
 export function parseSceneShapes(value: string | undefined): DotShapeId[] {
   const shapes: DotShapeId[] = []
 
@@ -901,6 +1044,8 @@ export function buildSceneKeyframes(
     }
 
     const start = scene.containerTop - scene.stickyTop
+    const motion = DOT_SCENE_MOTION[scene.id]
+    const isThread = motion?.isThread === true
 
     let end = scene.containerBottom - viewportHeight
 
@@ -923,7 +1068,8 @@ export function buildSceneKeyframes(
 
     const lastIndex = scene.shapes.length - 1
     const stepPitch = (end - start) / lastIndex
-    const halfGap = (stepPitch * tuning.stepMorphShare) / 2
+    const share = motion?.share ?? tuning.stepMorphShare
+    const halfGap = (stepPitch * share) / 2
 
     let index = 0
 
@@ -939,13 +1085,19 @@ export function buildSceneKeyframes(
         stepEnd = end
       }
 
-      keyframes.push({
+      const keyframe: DotSceneKeyframe = {
         id: shape,
         shape,
         start: stepStart,
         end: stepEnd,
         slot: scene.slot,
-      })
+      }
+
+      if (isThread) {
+        keyframe.isThread = true
+      }
+
+      keyframes.push(keyframe)
       index += 1
     }
   }
@@ -1066,7 +1218,9 @@ export function isShapeSpinning(shape: DotShapeId): boolean {
     return false
   }
 
-  return DOT_SHAPE_TUNING[shape].spinSpeed > 0
+  const tuning = DOT_SHAPE_TUNING[shape]
+
+  return tuning.spinSpeed > 0 || tuning.sway > 0
 }
 
 function resolveKeyframeSlot(
@@ -1157,8 +1311,11 @@ export function resolvePlacement(
     const wobblePhase = spinSeconds * DOT_FIELD_MORPH_TUNING.wobbleSpeed
 
     cameraDistance = DOT_FIELD_MORPH_TUNING.cameraDistance
+    const sway =
+      tuning.sway * Math.sin(spinSeconds * DOT_FIELD_MORPH_TUNING.swaySpeed)
+
     rotation = buildCubeRotation(
-      spinSeconds * tuning.spinSpeed + yawOffset,
+      spinSeconds * tuning.spinSpeed + yawOffset + sway,
       tuning.pitch + tuning.wobble * Math.sin(wobblePhase),
       tuning.roll + tuning.wobble * Math.cos(wobblePhase)
     )

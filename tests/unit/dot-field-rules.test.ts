@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   CUBE_EDGE_JITTER,
   DOT_FIELD_MORPH_TUNING,
+  DOT_SCENE_MOTION,
   DOT_FIELD_TUNING,
   DOT_SHAPE_TUNING,
   DOT_SPHERE_TUNING,
@@ -19,6 +20,7 @@ import {
   createRandomSource,
   followMorphProgress,
   followTimelineProgress,
+  followTriggeredProgress,
   generateCubePoints,
   generateDustPoints,
   generateSpherePoints,
@@ -36,8 +38,12 @@ import {
   resolvePlacement,
   resolvePointTotal,
   resolveSceneState,
+  resolveKeyframeRestTop,
   resolveStaticKeyframe,
+  resolveThreadCommit,
+  resolveThreadState,
   resolveTimelinePosition,
+  resolveTriggeredTarget,
   resolveTimelineSegment,
   resolveViewportHeight,
   resolveVisibleFraction,
@@ -861,7 +867,7 @@ describe("buildSceneKeyframes", () => {
     const keyframes = buildSceneKeyframes(
       [
         buildScene({
-          id: "services",
+          id: "steps",
           shapes: ["cube", "sphere", "dust"],
           containerTop: 1072,
         }),
@@ -882,6 +888,39 @@ describe("buildSceneKeyframes", () => {
     ])
   })
 
+  it("gives a threaded scene its own morph share and threads its steps", () => {
+    const keyframes = buildSceneKeyframes(
+      [
+        buildScene({
+          id: "services",
+          shapes: ["cube", "sphere", "dust"],
+          containerTop: 1072,
+        }),
+      ],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+    const share = DOT_SCENE_MOTION.services?.share ?? 0
+    const halfGap = (300 * share) / 2
+
+    expect(keyframes[0]?.end).toBeCloseTo(1150 - halfGap, 6)
+    expect(keyframes[1]?.start).toBeCloseTo(1150 + halfGap, 6)
+
+    for (const keyframe of keyframes) {
+      expect(keyframe.isThread).toBe(true)
+    }
+  })
+
+  it("never threads a single-shape scene", () => {
+    const keyframes = buildSceneKeyframes(
+      [buildScene({ id: "services", shapes: ["dust"] })],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+
+    expect(keyframes[0]).not.toHaveProperty("isThread")
+  })
+
   it("skips a scene without a known shape", () => {
     expect(
       buildSceneKeyframes(
@@ -890,6 +929,159 @@ describe("buildSceneKeyframes", () => {
         DOT_FIELD_MORPH_TUNING
       )
     ).toEqual([])
+  })
+})
+
+const THREAD_TIMELINE: DotSceneKeyframe[] = [
+  { id: "cube", shape: "cube", start: 0, end: 100, slot: SLOT },
+  {
+    id: "branding",
+    shape: "branding",
+    start: 500,
+    end: 600,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "web-design",
+    shape: "web-design",
+    start: 1000,
+    end: 1100,
+    slot: SLOT,
+    isThread: true,
+  },
+]
+
+const TRIGGER = DOT_FIELD_MORPH_TUNING.threadTrigger
+
+function triggerAt(
+  scrollTarget: number,
+  previousScrollTarget: number,
+  committedTarget: number
+): number {
+  return resolveTriggeredTarget({
+    keyframes: THREAD_TIMELINE,
+    scrollTarget,
+    previousScrollTarget,
+    committedTarget,
+    trigger: TRIGGER,
+  })
+}
+
+describe("resolveTriggeredTarget", () => {
+  it("keeps scrubbing a segment that is not threaded", () => {
+    expect(triggerAt(0.4, 0.3, 0.3)).toBe(0.4)
+  })
+
+  it("commits to the next shape once a downward scroll passes the trigger", () => {
+    expect(triggerAt(1 + TRIGGER / 2, 1, 1)).toBe(1)
+    expect(triggerAt(1 + TRIGGER, 1 + TRIGGER / 2, 1)).toBe(2)
+  })
+
+  it("keeps playing forward while the reader keeps scrolling down", () => {
+    expect(triggerAt(1.6, 1.5, 2)).toBe(2)
+  })
+
+  it("commits back once an upward scroll passes the trigger from the end", () => {
+    expect(triggerAt(2 - TRIGGER / 2, 2, 2)).toBe(2)
+    expect(triggerAt(1.5, 1.6, 2)).toBe(1)
+  })
+
+  it("stops at the near shape when a fast scroll enters from outside", () => {
+    expect(triggerAt(1.5, 0.8, 0.8)).toBe(1)
+    expect(triggerAt(1.5, 2.4, 2.4)).toBe(2)
+  })
+
+  it("holds the committed shape when the scroll stops", () => {
+    expect(triggerAt(1.4, 1.4, 2)).toBe(2)
+  })
+
+  it("lands a fresh load on the nearer shape", () => {
+    expect(triggerAt(1.3, Number.NaN, 0.5)).toBe(1)
+    expect(triggerAt(1.7, Number.NaN, 0.5)).toBe(2)
+  })
+})
+
+describe("followTriggeredProgress", () => {
+  const seconds = DOT_FIELD_MORPH_TUNING.threadDrawSeconds
+
+  it("draws a threaded segment at a constant speed", () => {
+    expect(
+      followTriggeredProgress(
+        1,
+        2,
+        seconds / 4,
+        THREAD_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+    ).toBeCloseTo(1.25, 6)
+  })
+
+  it("lands exactly on the target", () => {
+    expect(
+      followTriggeredProgress(
+        1.99,
+        2,
+        seconds / 4,
+        THREAD_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+    ).toBe(2)
+  })
+
+  it("follows any other segment as before", () => {
+    expect(
+      followTriggeredProgress(
+        0.2,
+        0.6,
+        0.1,
+        THREAD_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+    ).toBe(followTimelineProgress(0.2, 0.6, 0.1, DOT_FIELD_MORPH_TUNING))
+  })
+})
+
+describe("resolveThreadCommit", () => {
+  it("announces a move from one threaded shape to the next", () => {
+    expect(resolveThreadCommit(THREAD_TIMELINE, 1, 2)?.id).toBe("web-design")
+    expect(resolveThreadCommit(THREAD_TIMELINE, 2, 1)?.id).toBe("branding")
+  })
+
+  it("announces an arrival into the threaded scene so the reader stops there", () => {
+    expect(resolveThreadCommit(THREAD_TIMELINE, 0.6, 1)?.id).toBe("branding")
+    expect(resolveThreadCommit(THREAD_TIMELINE, 0, 1)?.id).toBe("branding")
+  })
+
+  it("never holds the reader after a jump across scenes", () => {
+    expect(resolveThreadCommit(THREAD_TIMELINE, 0, 2)).toBeNull()
+  })
+
+  it("stays quiet when nothing changed or the target is not a threaded shape", () => {
+    expect(resolveThreadCommit(THREAD_TIMELINE, 2, 2)).toBeNull()
+    expect(resolveThreadCommit(THREAD_TIMELINE, 1, 0.4)).toBeNull()
+    expect(resolveThreadCommit(THREAD_TIMELINE, 1, 0)).toBeNull()
+  })
+
+  it("rests a committed shape at the middle of its range", () => {
+    const branding = THREAD_TIMELINE[1]
+
+    if (branding === undefined) {
+      throw new Error("missing keyframe")
+    }
+
+    expect(resolveKeyframeRestTop(branding)).toBe(550)
+  })
+})
+
+describe("resolveThreadState", () => {
+  it("names the threaded shape nearest the target", () => {
+    expect(resolveThreadState(THREAD_TIMELINE, 1)).toBe("branding")
+    expect(resolveThreadState(THREAD_TIMELINE, 1.6)).toBe("web-design")
+  })
+
+  it("names nothing away from a threaded scene", () => {
+    expect(resolveThreadState(THREAD_TIMELINE, 0.2)).toBeNull()
   })
 })
 

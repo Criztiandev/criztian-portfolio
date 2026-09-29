@@ -101,7 +101,7 @@ components:
 
 The site is a dark room with a display board. The name **Criztian** is not typeset. It is built from thousands of points of light that sit on black, scatter from a cursor or a finger, and spring back with a bounce. Everything around the board is quiet signage: small, tracked-out, uppercase labels at partial brightness that never compete with it. The board is what you remember, and the rest of the page exists so you can read it.
 
-The world is **black throughout** and **strictly monochrome**. Hierarchy is set by how brightly something is lit (full white, three-quarter, dimmed, ghost), never by hue. Every corner is square, because signage and hardware are square. The only round thing on the site is a dot. Motion is deliberate and cinematic. The name sweeps on dim, grows into place, and only then does the supporting copy lift in. The signature goes further: as you scroll, the dots leave the wordmark and re-form into a slowly turning cube drawn in stippled points, above a statement quote.
+The world is **black throughout** and **strictly monochrome**. Hierarchy is set by how brightly something is lit (full white, three-quarter, dimmed, ghost), never by hue. Every corner is square, because signage and hardware are square. The only round things on the site are dots, plus one owner-made curve: the How I work orbit, a track of dashes. Motion is deliberate and cinematic. The name sweeps on dim, grows into place, and only then does the supporting copy lift in. The signature goes further: as you scroll, the dots leave the wordmark and re-form into a slowly turning cube drawn in stippled points, above a statement quote.
 
 This file describes the public site. The owner surfaces (`/login`, `/dashboard`, the editor) are tools that use the stock shadcn neutral system with light and dark modes. Only the Square Signal Rule reaches them, because it is set at the token level.
 
@@ -110,12 +110,13 @@ This file describes the public site. The owner surfaces (`/login`, `/dashboard`,
 - Black ground from hero to footer. The public page ignores the OS colour scheme.
 - One display voice (Antonio, uppercase) and one working voice (Geist).
 - Brightness is the only emphasis tool. No accent hue.
-- Zero radius. Dots are the only curves.
+- Zero radius. Dots are the only curves, except the How I work orbit track.
 - The dot field is decorative. A real `<h1>` always carries the name.
 
 **References (inspiration, not specs to clone):**
 
-- **[jeffmilanes.com](https://www.jeffmilanes.com/)**. Borrow **Scene 03**: outlines of a phone and a browser drawn in scattered dots, forming shapes as the story advances. Here, that becomes the scroll-morph transition described under Components. Nothing else from this site is adopted: no scene counter, film strip, monospace labels or photography treatment.
+- **[jeffmilanes.com](https://www.jeffmilanes.com/)**. Borrow **Scene 03**: outlines of a phone and a browser drawn in scattered dots, forming shapes as the story advances. Here, that becomes the scroll-morph transition described under Components. Nothing else from this site is adopted: no scene counter, film strip, monospace labels or photography treatment. The How I work numbers are the owner's own 01–05.
+- **[buckssauce.com](https://buckssauce.com/)** (owner's request, 2026-09-29). Borrow the "Why Bucks Sauce" orbit: a huge dashed ring with only its top arc in view, steps riding the rim tangent to it, a giant outlined numeral, a label plate between two dots, and digits that assemble as a step comes into view. Translated into the system: monochrome, a square plate, Antonio numerals, and the dots in place of the mascot. Nothing else from this site is adopted: no hue, no rounded pill, no mascots, no arched headline.
 - **[adriavale.framer.website](https://adriavale.framer.website/)**. The Framer template the hero descends from: the dot-matrix name on black, the six-item nav, and the square outlined Contact action. The dot field is an original WebGL implementation of the same technique, not the template's component. The seeded hero tagline still matches this template word for word. It is a placeholder, not the owner's copy.
 
 ## Colors
@@ -159,11 +160,12 @@ The palette is a set of brightness levels on black. Every colour is white at som
 
 - **Display** (Antonio 700, uppercase, `min(25vw, 40svh)` on mobile and `clamp(3rem, 18vw, 16rem)` from 768px, line-height 1, tracking 0.05em in the dot sampler): the name, and nothing else. It is the source shape the dot field samples.
 - **Headline** (Antonio 700, uppercase, `clamp(1.75rem, 1rem + 3vw, 3.5rem)`, line-height 1.05): every section title (My services, Who am I, Featured projects, How I work and the dust sections), and the **statement quote** under the cube. The rem term keeps it growing under page zoom (WCAG 1.4.4). Keep it clearly below Display and clearly above everything in Geist.
-- **Title** (Antonio 700, uppercase, `clamp(1.5rem, 1rem + 1.5vw, 2.25rem)`, line-height 1.05): project card titles, service and process step titles, process step numbers, the About intro and the stat values. One step below Headline, so a list of cards never outshouts its section title.
+- **Title** (Antonio 700, uppercase, `clamp(1.5rem, 1rem + 1.5vw, 2.25rem)`, line-height 1.05): project card titles, service and process step titles, the About intro and the stat values. One step below Headline, so a list of cards never outshouts its section title.
 - **Body** (Geist 400, 16px, line-height 1.5): paragraphs and form text. Keep lines to about 65–75ch.
 - **Lede** (Geist 400, uppercase, 14px/1.625 with 0.14em tracking from 768px; 13px/1.7 with 0.05em tracking on mobile): the hero tagline and other one-line statements under a headline. Maximum width is 34rem.
 - **Label** (Geist 400, uppercase, 12px, 0.025em tracking): nav links and the Contact action.
 - **Cue** (Geist 400, uppercase, 11px with 0.22em tracking from 768px; 12px with 0.12em on mobile): the scroll cue and other quiet wayfinding.
+- **Orbit numeral** (Antonio 700 digits, line-height 0.86, outlined with a 2px Lit Grey stroke over an Unlit Black fill; up to 22rem in `split`, `clamp(4.5rem, 14svh, 7.5rem)` on a portrait phone): the How I work step numbers only. Decorative and `aria-hidden`; the step title carries the meaning. It is the one exception to "Display is the name, and nothing else", and it drops to Title size, solid Dim Grey, in the reading list.
 
 ### Named Rules
 
@@ -194,7 +196,10 @@ The layout is a single vertical scroll of full-width sections on one black groun
   - The card list on the right scrolls past it (48rem at most, 60px between cards).
   - Below 768px the black card list rises over the pinned frame like a curtain.
 - **Sections:** every section shares the Projects width (80rem at most) and the 24px / 40px gutters. Every anchor except `#home` has a 72px scroll margin, equal to the header, so an anchor jump lands exactly where its scene pins.
-  - **Step scenes (My services, How I work):** a pinned frame holds the heading and the shape slot, and the steps scroll past it, one frame-height step per shape. In `split` the frame is the left column and each step is centred in the right. On a portrait phone the slot is a band under the header and each step sticks, on an opaque black ground, directly below the band. When a step's copy cannot fit its box (WCAG text spacing, 400% zoom, an extreme size), the scene drops to a plain reading list over dust; the copy is never clipped or covered.
+  - **Step scenes (My services, How I work):** a pinned frame holds the heading and the shape slot, one pitch of scroll per shape. Each scene has its own layout: My services is centred ("Thread" under Components) and How I work is an orbit ("Orbit" under Components).
+    - **Staged (the default where it can run):** the copy never scrolls. It sits on one pinned board and changes only while the dots are in flight: How I work turns one step along its orbit.
+    - **Staged needs** scroll-driven animations, motion allowed, a viewport taller than 30rem, a running dot field and a scene that fits. Anywhere else the steps dock as opaque black curtains below the heading and the slot, so the copy never crosses either.
+    - When the copy cannot fit its box (WCAG text spacing, 400% zoom, an extreme size), the scene drops to a plain reading list over dust; the copy is never clipped or covered.
   - **Who am I (`#about`):** pinned. The slot sits left and the copy and stats right in `split`; on a portrait phone the slot stacks above the copy.
   - **Dust (Let's connect, Testimonials, FAQ, Blog, Get in touch):** normal flow under one dust scene, with more space above each heading than below it. Get in touch is at least one frame tall, so `#contact` lands on dust.
   - **Footer:** pinned. The name re-forms in its slot above a Cue-type bar (©, the footer nav, the email and Back to top) that is one row from 1024px and stacked and centred below.
@@ -209,9 +214,9 @@ The system is flat. Nothing casts a shadow. Depth comes only from light, meaning
 
 ## Shapes
 
-Every corner is square. Buttons, inputs, cards, image frames and focus rings are all square. The one curve in the system is the dot: each wordmark point is a circle (roundness 1), 4px across on a 3px pitch, so neighbours overlap and the letterforms read as nearly solid shapes made of light until the pointer pulls them apart.
+Every corner is square. Buttons, inputs, cards, image frames and focus rings are all square. The curves in the system are the dot and the How I work orbit track. Each wordmark point is a circle (roundness 1), 4px across on a 3px pitch, so neighbours overlap and the letterforms read as nearly solid shapes made of light until the pointer pulls them apart.
 
-**The Square Signal Rule.** Zero radius everywhere. The only round thing on the site is a dot.
+**The Square Signal Rule.** Zero radius everywhere. The only round things on the site are dots and the How I work orbit track.
 
 **How to apply:** the vendored shadcn components (`src/components/ui/`) must not be hand-edited, and they derive every radius from `--radius`. `--radius` is `0rem` in `src/app/globals.css`, which squares all of them at once, including the owner surfaces. It carries a unit because shadcn compares it with pixel lengths in `min()`.
 
@@ -233,7 +238,7 @@ The name as a matrix of lit points. It is a single WebGL2 canvas that samples An
   - At a 294px ink height the radius is 300px and the push 2px per frame. Both scale with the wordmark, so a phone gets a proportionally smaller radius.
   - It works with a mouse hover or a finger drag. Vertical swipes still scroll the page, and the dots bounce home when they do.
   - It is inactive during the intro and under reduced motion.
-- **Fallbacks:** no WebGL2 falls back to the text wordmark, with the same sweep and grow done in CSS. Reduced motion draws the settled dots once, with no loop. There is no viewport gate: phones run the dots. The `<h1>` is always present and readable. Only the canvas is `aria-hidden`.
+- **Fallbacks:** no WebGL2 falls back to the text wordmark, with the same sweep and grow done in CSS. Reduced motion draws the settled dots once, with no loop. There is no viewport gate: phones run the dots. The `<h1>` is always present and readable. Only decorative leaves are `aria-hidden`: the canvas, the empty slots and the orbit's ring, numerals and plate dots.
 - **Scroll morph.** Borrowed from jeffmilanes.com Scene 03. As the visitor scrolls, the name's own dots leave the wordmark and re-form as a cube drawn in stippled outlines, in the slot above the quote.
   - **Window:** the morph starts once 10% of the hero has scrolled away and completes when the quote section reaches the top of the viewport. Progress follows the scroll with a short ease, so flings read as a float, not a jitter.
   - **Flight:** the name dissolves left to right, echoing the intro sweep and the quote wipe. Each dot's departure is staggered, it travels on a gentle arc, and it eases in and out.
@@ -245,10 +250,10 @@ The name as a matrix of lit points. It is a single WebGL2 canvas that samples An
 - **Scene timeline.** The burst into Projects is retired. Every section is now a scene on one scroll timeline (see `plans/handoff.md`).
   - A formed shape sits in a pinned slot while its section is stuck under the header.
   - Between scenes, the dots fly from one slot to the next with the same staggered sweep and arc as the name-to-cube morph.
-  - Today the page runs name, then cube, then a placeholder sphere in My services, Who am I, Projects and How I work (until their own shapes land in Phases 3 to 5), then quiet dust behind the reading sections, then the name again in the footer.
+  - Today the page runs name, then cube, then the three service shapes, then a placeholder sphere in Who am I and Projects (until Phases 4 and 5), then the five process shapes, then quiet dust behind the reading sections, then the name again in the footer.
   - **Reduced motion:** no flight, spin or wobble. Each shape is drawn still, in its resting pose, only while its section is pinned. Between scenes the canvas is empty.
   - **No WebGL2:** slots collapse and the scenes stop pinning. The text `<h1>` and the quote carry all meaning either way.
-  - **Frames grow:** the Quote, About and footer frames and the split steps use a minimum height, so zoom or text spacing lengthens the pin instead of clipping the copy.
+  - **Frames grow:** the Quote, About and footer frames use a minimum height, so zoom or text spacing lengthens the pin instead of clipping the copy. Step boxes can't grow; they fit or the scene flows.
   - **Dot count:** every shape uses the same dots, at least 7,200, or the wordmark's count if it is larger.
 
 ### Statement Quote
@@ -257,6 +262,31 @@ The one quote on the page, owner-editable in the dashboard (text plus an optiona
 
 - **Reveal:** once the quote is 20% into the viewport (about when the cube locks in), a clip wipe opens it left to right while the text slides 24px into place, over 0.9s on `cubic-bezier(0.65, 0, 0.35, 1)`. The author lifts in 0.6s later. It plays once.
 - **Reduced motion:** it appears instantly. The hidden state never uses opacity, so the text stays readable to assistive tech throughout.
+
+### Thread (My services), prototype
+
+The three services drawn by one dotted line, with the scroll as the pen. A prototype awaiting the owner's feel (2026-09-28).
+
+- **Layout:** centred like the quote. A Lede-type "My services" label on top, the shape big and centred in 3D, and one caption area underneath: the service name in the Headline voice, the owner's paragraph, and the six items as one quiet Label-type line. The label replacing the Headline for this one section is a system change for the owner to confirm.
+- **Depth:** each service shape has depth layers (the seal's star floats in front of its rings; the browser's bar in front of its frame; the slash in front of the brackets), seen in perspective with a slow sway, so it turns like the cube instead of reading as a flat icon.
+- **The thread:** between two services the dots leave the old drawing in pen order and arrive at the new one in pen order, each on a short hop. So the old line unwinds from its start while the new one draws from its start, joined by a thin, bowed stream of dots.
+- **Triggered, not scrubbed:** the scroll triggers each drawing and it then plays by itself (1.6s, sine-eased pen), so a stopped scroll never leaves a half-drawn shape. Scrolling 12% into a transit commits to the next service; scrolling 12% back commits to the previous one, which un-draws.
+- **One gesture, one service:** as a drawing triggers, the page glides to that service's resting position over the same 1.6s and on the same ease, and scroll input is held until it lands and the current wheel or trackpad gesture has gone quiet, so a fling can't skip a service. Arriving from the quote or from Who am I glides onto the first or last service the same way (0.9s). A key press or a nav click releases the hold at once. Reduced motion never holds the scroll.
+- **Captions:** they follow the same trigger. The old caption wipes out at once (0.35s); the new one wipes in like the quote as the drawing finishes (after 0.88s, 0.9s per line, name, then paragraph, then items, 0.12s apart).
+- **Entry and exit** keep the classic burst flight (from the quote's cube, and on to Who am I).
+
+### Orbit (How I work)
+
+The five steps ride the top of a huge dashed orbit, after buckssauce.com (owner, 2026-09-29).
+
+- **Anatomy:** a Wire Grey track (foreground/40) of fine 1px dashes and ~10px radial ticks, of which only the top arc shows. Each step sits on the rim, tangent to it: the owner's number as an Orbit numeral centred on the track, the step title on a square Lamp White plate in black Title type between two small round dots, and the paragraph below in Lit Grey body, centred, at most 30ch. In `split` the heading sits top left and the dot shape upper right of the numeral, where the reference keeps its mascot, never under anything on the rim. On a portrait phone the shape is a band under the header, with the heading below it and the orbit below that.
+- **Turn:** the orbit holds still while a shape is formed. During each dot transit it turns one step on the signal ease, so the next step rises from the right edge to the top as its shape draws. The track's ticks stream right the whole time, with the scroll, at 0.8× the orbit's own turn and against it.
+- **Assembly:** a step assembles as it comes into view: its digits rise from a squashed, tilted, transparent state, and its plate and paragraph wipe in left to right. Scrubbed, so scrolling back takes it apart.
+- **Edges:** on wide screens about 100px of the next numeral peeks at the right edge, as in the reference. On a portrait phone the neighbours sit fully off screen.
+- **Plate exception (owner, 2026-09-29):** the plate is a non-interactive Lamp White fill, the one filled white surface that is not an action. Its dots and the square corners keep it signage, not a button.
+- **Fallback:** without scroll-driven animations or with reduced motion, there is no track, and each step docks as an opaque black curtain below the heading and the slot. Where a step can't fit (400% zoom, text spacing, short landscape phones), the section becomes a reading list over dust.
+
+**The Moving-Line Rule.** A line that travels is never Lamp White. It is Lit Grey or Wire Grey, like the orbit's track and the numerals' outline. Lamp White is for settled, lit states: a landed title, the plate, and the arrival strike, which flashes in place.
 
 ### Projects
 
@@ -301,15 +331,15 @@ Cue type in Dim Grey with a 14px down-right arrow. It lifts in (16px, 0.6s) 0.3s
 - **Do** keep every public section on Unlit Black (#000000) and express hierarchy through brightness steps: Lamp White, Lit Grey, Dim Grey.
 - **Do** set section titles and the statement quote in Antonio 700 uppercase and everything else in Geist.
 - **Do** track out uppercase Geist (0.025em for labels, 0.14em for ledes, 0.22em for cues).
-- **Do** keep a real, readable `<h1>` behind the dot field, and mark only the canvas `aria-hidden`.
+- **Do** keep a real, readable `<h1>` behind the dot field, and mark only decorative leaves `aria-hidden`.
 - **Do** route every motion through the reduced-motion preference. The dot field checks it separately, because it is not a `motion` component.
 - **Do** square corners through the `--radius` token rather than by editing vendored components.
 
 ### Don't:
 
 - **Don't** introduce an accent hue, gradient or tinted surface. The palette is white at different intensities on black.
-- **Don't** use a border radius anywhere. The only round thing is a dot.
+- **Don't** use a border radius anywhere. The only round things are dots and the How I work orbit track.
 - **Don't** use shadows or raised cards. Brightness, not elevation, brings things forward.
 - **Don't** put readable text in Ghost Grey (#737373). It fails AA at body sizes.
 - **Don't** let the public page follow the OS light or dark scheme.
-- **Don't** lift copy, layouts or components verbatim from the reference sites. The seeded tagline that matches adriavale.framer.website is a placeholder to replace with the owner's own words.
+- **Don't** lift copy, layouts or components verbatim from the reference sites. The seeded tagline that matches adriavale.framer.website is a placeholder to replace with the owner's own words. The How I work orbit follows buckssauce.com at the owner's explicit request, translated into this system.

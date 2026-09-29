@@ -4,7 +4,7 @@
 >
 > **Current phase:** **Phase 3, smooth scroll, shapes, dot choreography, section motion and the cursor.** Phases 0–2 are done (2026-09-28). Phase 1 is committed as `3f58984` and Phase 2 as `ba153d4`; both reached `main` in `5c2173c` (PR #1).
 >
-> **Phase 3 progress (2026-09-28):** the pre-flight, Part 0, Part 1 and the core of Part 2 are built and committed on `portfolio/phase-3`. **Resume with Part 2's open items** (see "Part 2 done note"), then 3B: Part 3, then Part 4. The done notes sit under Parts 1 and 2.
+> **Phase 3 progress (2026-09-28):** the pre-flight, Part 0, Part 1 and the core of Part 2 are built and committed on `portfolio/phase-3`. The owner then redirected My services and How I work: "Step scene motion" (after Part 2) is built, and How I work was redirected again into the buckssauce-style orbit ("Orbit (owner redirect #3, 2026-09-29)", after "Services thread"). **Resume with Part 2's open items** (see "Part 2 done note"), then 3B: Part 3, then Part 4. The done notes sit under Parts 1 and 2 and under "Step scene motion".
 >
 > **Branch:** `portfolio/phase-3`, cut from `main` at `5c2173c`. **Baseline for pixel diffs:** `0a3c97a`.
 >
@@ -233,19 +233,26 @@ Every section that takes part in the timeline follows these rules. The engine tr
      - `split` is `(min-width: 48rem), (max-height: 30rem) and (min-width: 34rem)`. A 740×360 landscape phone is split; 320×256 (400% zoom) is portrait.
      - `short` is `(max-height: 30rem), (width < 48rem) and (max-height: 38rem)`. It tightens the step type and the band, so small phones (375×548, 360×560) stay pinned.
    - No links inside steps. A covered link could still take focus (WCAG 2.4.11).
-   - `StepScene` implements this. Its maths: the frame and the list share one grid cell, the list starts `--band` below the top, each step is `F − band` tall, and step `k` sticks at `k·(F − band)`. The last step unsticks together with the frame. Split uses the same pitch with `F`-tall steps in the second column.
+   - `ServicesSection` and `ProcessSection` implement this in their unstaged layouts. Process's maths: the frame and the list share one grid cell, the list starts `--orbit-step-top` below the top (the band, or the heading and slot in split), each step is `F − step-top` tall and sticks at `step-top`, and `not-first:mt-[pitch − (F − step-top)]` keeps step `k` docking at `k·pitch`. Space docked curtains with `margin-top`, never `margin-bottom`: a sticky element's margin box must stay inside its containing block, so a bottom margin pushes every stuck curtain up by that margin as the list ends. The last step unsticks together with the frame.
 9. **In-scene anchors.** Every `id` inside a scene has `scroll-margin-top` equal to that scene's `stickyTop` (`scroll-mt-18`). A larger margin lands before the pin starts. `data-scene` then reads `moving`, and if a spinning shape is the outgoing one, the loop never sleeps.
    - **Focusables too (gap review).** Every focusable inside a scene also carries `scroll-mt-18` (`FOCUS_RING_CLASS` does). This keeps a Shift-Tab target clear of the 72px fixed header, because `scroll-padding-top` is banned (Phase 3, Part 0).
 10. **Dust scene endings.** The last section of a dust scene is at least one frame tall (`min-h-[calc(100svh_-_4.5rem)]`). Otherwise its anchor lands in the transit to the next scene, with a half-formed shape over it. `#contact` needed this.
 11. **Reveals on pinned elements.** A pinned element never moves, so a `whileInView` margin must already hold at its pinned position. The projects heading sat at 65% of a phone screen behind a −40% margin and never revealed; it is now −10%.
-12. **Frames that can grow, grow.** A single-frame scene (Quote, About, footer) and a split step use `min-h-[…]`, never a fixed `h-[…]`, and so does its container. Zoom or WCAG text spacing then lengthens the pin instead of clipping or overlapping the copy. The engine re-reads frame and container heights on every measure.
-13. **The fit gate.** A portrait band step cannot grow: it is sticky, and a taller step is covered by the next one. So `StepScene` renders `SceneFitGate` (a hidden `<span>`) as its **last** child. The frame stays first. How it works:
+12. **Frames that can grow, grow.** A single-frame scene (Quote, About, footer) uses `min-h-[…]`, never a fixed `h-[…]`, and so does its container. Step boxes are the exception: they are fixed and join the gate (rule 13), because a step that grows would move the next step's docking point. Zoom or WCAG text spacing then lengthens the pin instead of clipping or overlapping the copy. The engine re-reads frame and container heights on every measure.
+13. **The fit gate.** A docked step cannot grow: it is sticky, and a taller step is covered by the next one. So each step scene (`ServicesSection`, `ProcessSection`) renders `SceneFitGate` (a hidden `<span>`) as its **last** child. The frame stays first. How it works:
     - It checks every `[data-fit-box]` step.
     - If one overflows, it sets `data-fit="flow"` on the container, removes `data-dot-slot` from the slot and sets `data-dot-shapes="dust"`. The engine re-reads both attributes on its next measure, so the scene becomes a plain dust scene. It never sees a hidden 0×0 slot.
     - When everything fits again, it restores both attributes.
     - The check runs in `requestAnimationFrame`, scheduled by a ResizeObserver and by `document.fonts.ready`. It never mutates layout inside the observer callback, because that raises ResizeObserver loop errors, which the e2e specs count as page errors.
     - The `unpinned` variant styles flow mode and the no-WebGL path with one class list.
     - Any new sticky, fixed-height copy box must join the gate or follow rule 12.
+14. **Staged step scenes** (step scene motion, 2026-09-28). Under the `staged` variant a step scene's copy sits on one board instead of scrolling:
+    - **The board** is the container's second child, a sibling of the frame, never an ancestor of the slot. It is sticky, transparent, and ends with the container, so it pins on exactly the frame's pin range. The orbit's board is frame-tall at `top-18` and `pointer-events-none` because it covers the frame and the engine listens for pointer events on the slot itself. Only the numeral, plate and paragraph take pointer events when staged (the numeral so fit.spec's `elementFromPoint` scan can reach its digits); unstaged, the whole curtain does, so covered text can't be hovered or selected. The split slot must stay clear of the numeral's box (0.96em wide, starting 0.078em above the ink), not just its ink.
+    - **The container height is explicit** and equals the Phase 2 height: `F + (n − 1)·pitch`, where pitch is `F − band` in portrait and `F` in split. Staging on or off therefore never moves a pin, an anchor landing or the slot rect, and the engine needs no re-measure.
+    - **Measured before staging.** The hook's first measure (use-dot-field.hook.ts:331) and the gate's first check run while the stage is `idle`; `running` (:1173) switches `staged` on later and triggers neither. So the slot rect, the container height and every step box must be identical in both modes. `step-motion.spec.ts` flips the stage attribute and compares them.
+    - **Copy motion reads only the container's `--step-scene` view timeline** (`view-timeline-inset: 4.5rem 0`, so `exit-crossing 0` is the pin start), through `exit-crossing` length offsets in `--pitch` units from `resolveStepHandover`. Nothing in the stylesheet keys on `data-scene`.
+    - **Rule 8 in staged mode:** the board is transparent. Nothing scrolls under the band during the pin, so the opaque ground isn't needed, and the portrait exit transits are visible. The opaque sticky steps remain in the fallback layout.
+    - **Rules 12–13:** the Services board and each orbit step are fixed-height `[data-fit-box]`es, so an overflow flows the scene through the gate. The orbit board itself is not a fit box: its rotated neighbours would count toward its `scrollHeight`. It is `overflow: clip`, so they never widen the page.
 
 In-page anchor clicks snap the timeline to the destination scene (`onAnchorClick` in the hook). A smooth nav scroll therefore does not flash through every shape on the way. The snap is cleared on arrival, `scrollend`, wheel, touch or a key press.
 
@@ -379,7 +386,7 @@ Tuning points found by eye, left for later phases:
 What shipped:
 
 - **Sections.** Every section is built, in the final order, with the owner's copy verbatim.
-  - My services and How I work are `StepScene`s.
+  - My services and How I work each own their scene component (`ServicesSection`, `ProcessSection`); `StepScene` is gone.
   - Who am I is a pinned split with the stats as a `<dl>`.
   - Let's connect, Testimonials, FAQ, Blog and Get in touch share one dust scene.
   - The footer has the name slot, nav, email and ©.
@@ -652,10 +659,10 @@ Make every morph an event, not a slide from one slot to the next.
   **Decided (owner, 2026-09-28): realign to the copy.** Change the split as above, for every multi-step scene (Services and Process), before Part 1 wires the shapes. Keep `stepMorphShare`'s transits centred on the new boundaries, and update the rules tests.
 
 - **Transits hidden behind opaque steps.** On portrait phones, the services → about transit runs entirely behind the last services step, which is opaque by design (rule 8), so the flight is invisible there. Choreograph around it: start the transit as the last step unsticks, or route the flight through the band.
-  - **Process → dust has the same geometry** (gap review): the same `StepScene` last step (step-scene.component.tsx:83-92), followed directly by the dust container. Apply the same fix to both exits, keyed on the component rather than on a scene id.
+  - **Process → dust has the same geometry** (gap review): the last docked step, followed directly by the dust container (`StepScene` is gone; the orbit's staged board is transparent, so only the unstaged curtains hide the exit). Apply the same fix to both exits, keyed on the component rather than on a scene id.
 - **Engine follow-ups from the Phase 2 fit work** (the engine was off-limits then):
   - `resolveViewportHeight` takes the tallest `frameHeight + stickyTop`. A frame that grows past `F` (text spacing, 400% zoom) therefore shifts dust boundaries, and `data-scene` reads `moving` early near them. The text stays readable.
-  - Split steps that grow at short landscapes (740×304, 740×280) stretch the pin, so copy and shape drift apart in the tallest steps.
+  - Split steps that grew at short landscapes (740×304, 740×280): resolved. Both step scenes now flow there through the fit gate.
 - **Invariants:** every number lives in `hero.data.ts`. Reduced motion is unchanged: no flight, and still shapes only inside pin ranges. The loop still sleeps at rest.
 - **Acceptance:**
   - frame captures of every transit, name → cube → each service → about → project → each process step → dust → footer name, scrolling down and back up, at 1440 and 390, tuned with Part 0 on; the owner signs off "wow and professional" from them (gap review: the project transits, the exit to dust, the footer finale and the reverse direction were missing)
@@ -685,15 +692,197 @@ Make every morph an event, not a slide from one slot to the next.
   - a 1440 transit strip (branding → web-design) shows the seal loosening into a curl cloud and the browser drawing on frame-first
 - **Open, in this order:**
   1. **Copy crossings.** Transit dots still cross copy columns at full brightness. Choose arc bias or dimming from captures.
-  2. **Transits hidden behind opaque steps.** The portrait services → about and process → dust exits aren't fixed yet.
-  3. **The engine follow-ups from the Phase 2 fit work** (`resolveViewportHeight` with grown frames, and split steps at short landscapes).
+  2. **Transits hidden behind opaque steps.** Fixed wherever the step scenes are staged: the boards are transparent, so the portrait services → about and process → dust exits are visible. Still hidden in the fallback layout (reduced motion never flies, so that leaves only browsers without scroll-driven animations).
+  3. **The engine follow-up from the Phase 2 fit work:** `resolveViewportHeight` with grown frames. (Split steps at short landscapes are resolved: both step scenes flow there.)
   4. **Acceptance captures.** Frame captures of every transit, both directions, at 1440 and 390, tuned with Lenis on. Tune the strike size and impulse and the burst amplitude by eye, then ask the owner to sign off "wow and professional".
   5. **The 16ms trace on the owner's phone.** Ask whether they have an Android phone with USB debugging.
 - **The capture harness is not committed.** Scratch scripts did the pixel diff (above), the reduced-motion shape contact sheets (scroll to `start + k·pitch` per step, clip the slot) and the transit strips (scroll to `start + (k + 0.3 + 0.4f)·pitch`, wait about 1.6s, then screenshot). Rewrite them from these notes.
 
+#### Step scene motion (owner redirect, 2026-09-28)
+
+> **Superseded.** The Departure Board gave way to "Services thread" and the Signal Wire to "Orbit" (both below). This section is history; its code, tuning constants and tests are gone.
+
+**The owner's ask.** After Part 2: "I really like the shape shifting but scrolling is less interesting", and How I work "is similar to my services". Both were one `StepScene`, with frame-tall steps scrolling up a column past the pinned shape. The owner suggested horizontal motion or card stacking, "something that fits the design".
+
+**How it was designed.** A judge-panel workflow wrote five independent directions: signal-board, horizontal, stacking, lean CSS and dot-integrated. Three lens judges (owner, design system, engineering) scored every one against the code, and a synthesizer merged the winners and fixed their issues.
+
+- **Owner's picks:** the Departure Board for My services and the Signal Wire for How I work. The owner also approved mirroring How I work (shape on the right in split) and the lamp strike on landing.
+- **Rejected, with reasons:**
+  - a sideways service rail (a generic carousel and a film strip)
+  - 1:1 sticky card stacks (still copy sliding up)
+  - a 3D flip pad (breaks Lit-Not-Lifted)
+  - a shape that walks the wire (needs per-step slots in the engine)
+
+**How it works.** Components are in DESIGN.md; the contract is rule 14.
+
+- **No engine change and no JavaScript.** Both are compositor CSS scroll-driven animations behind the `staged` variant (globals.css), on the container's `--step-scene` view timeline.
+- **Sync.** `resolveStepHandover` (`step-motion.rules.ts`) returns each step's roll-in range in pitch units: `[−share, 0]` for step 0 and `k − 0.5 ± share/2` after it. That is exactly the engine's transit into shape k (`buildSceneKeyframes`). A unit test runs the real keyframe builder and asserts equality for Services and Process, in split and portrait pitches.
+- **Departure Board** (`departure-board.component.tsx`):
+  - Three panels overlap in one subgrid housing.
+  - Each text cell is an `overflow: clip` box with one flap span. The span carries both rolls (`board-flap`: roll in, then roll out, `animation-composition: add`), so an inactive flap is always translated out of its clip, and clipped content is neither painted nor hit-tested.
+  - The last panel has roll-in only.
+  - Cells roll bottom-up, and the title seats on the landing.
+- **Signal Wire** (`signal-wire.component.tsx`):
+  - Five nested wrappers each translate `−100%` over one handover (`wire-travel`). The `ol` sits `left: 100%` inside them, so station k reaches the read-head as shape k lands.
+  - The current (`wire-current`) scales in with the same range and ease, so its tip stays on the read-head.
+  - The lamp fills (`wire-lamp`) over the last quarter of the handover.
+  - The halo strike is the one `data-scene`-keyed rule (five literal selectors in globals.css).
+  - The board bleeds left to the screen edge under `overflow-x: clip`. A mask feathers the last `--numeral-gap` before the read-head, so passed stations fade out there instead of leaving text fragments in the gutter.
+- **Fallbacks.** `staged` needs `@supports (animation-timeline: view())`, `prefers-reduced-motion: no-preference`, height over 30rem, `data-status="running"` and no `data-fit`. Anything else is the Phase 2 layout (How I work mirrored), with no transforms:
+  - reduced motion
+  - no JavaScript (stage `idle`)
+  - no WebGL2
+  - flow mode
+  - 740×304, 740×280, 667×320 and 320×256
+  - Firefox without scroll-driven animations
+
+**Done note (2026-09-28): built, not yet committed.**
+
+- **Measured:**
+  - Container heights equal Phase 2 at every size (for example 2484 = 3×828 at 1440, and 1398 = 592 + 2×403 at 390×664).
+  - The timeline reads exactly 25%, 37.5% and 50% at the Services step marks.
+  - No horizontal overflow mid-transit at 1440, 390 and 375.
+- **Bug found and fixed:** the `view-timeline` shorthand also sets the inset. Emitted after `view-timeline-inset`, it reset the inset, and every handover ran 72px late. Use the longhands (now in CLAUDE.md).
+- **Tests:**
+  - `step-motion-rules.test.ts`: handovers, flap timing and order, the strike selectors, and the keyframe cross-check
+  - `site-page.test.tsx`: the mirror, reading order, one board per scene, the last panel never rolling out, one lamp per process shape
+  - `step-motion.spec.ts`, at 1440, 390 and 375: every panel or station whole at its keyframe, siblings clipped, the active title on top of hit testing, `data-scene` and the strike, no sideways scroll; plus reduced motion, 740×280 and no WebGL2
+  - fit.spec's two synchronous scans now run under reduced motion, because Chromium samples scroll timelines once per frame
+  - 336 unit tests and 60/60 e2e (including contact, editor and dashboard with Supabase up) pass on a production build
+- **Open:**
+  1. **Closed** (both boards replaced). It read: the owner scrolls it with a wheel, a trackpad and a phone, and signs off the feel. Tuning was `BOARD_FLAP_ROLL_SHARE`, `WIRE_LAMP_FILL_SHARE` and `WIRE_STRIKE_SCALE`; the handover length is the dots' own `stepMorphShare`.
+  2. **Safari 26 on an iPhone.** Its scroll-driven threading and the subgrid flaps are unverified.
+  3. **Part 2's 16ms trace** now covers these transits too (up to 16 flaps, or 14 wire animations, mid-roll alongside a heavy dot frame).
+  4. **Known limit:** find-in-page, or a screen-reader highlight, on a rolled-out service or another station lands on clipped text until the reader scrolls there.
+
+#### Services thread (owner redirect #2, 2026-09-28): prototype built
+
+**The owner's verdict on the above:** only the hero and the quote are liked, "the rest is garbage". Focus on Services and make the dots the show, not the copy. Of three directions, the owner picked **one line, three services**. The other two were an exploded 3D view and words in dots. The Departure Board is removed; a patch of it is kept outside the repo, for reference only.
+
+**What was built.** It is a prototype for the owner to scroll; see DESIGN.md "Thread (My services)".
+
+- **Engine:**
+  - **`DOT_SCENE_MOTION`** (hero.data.ts) gives a scene its own share and a thread flag. Today it holds `services: { share: 0.72, isThread: true }`. `buildSceneKeyframes` reads it and marks multi-shape keyframes `isThread`.
+  - **Thread segments.** A segment whose two ends are both thread keyframes gets `frame.thread = 1`. The shader then departs in pen order (`gl_VertexID`) as well as arriving in pen order, with:
+    - `threadStagger` 0.97 (a 3% flight window)
+    - `threadJitter` 0.015
+    - a coherent `threadArcPixels` 90 bow
+    - `threadBurst` 0.12
+    - `threadSpin` 0.2 (a damped transit yaw)
+  - **Invariant:** with `uThread` 0 the maths is identical, so every other transit is unchanged.
+- **Shapes:**
+  - The three service shapes carry z depth layers (`LINE_ART_SHAPES`) and `THREAD_LINE_ART_TUNING`: perspective, a pitch lean, and `sway` 0.32 rad at `swaySpeed` 0.45.
+  - `sway` counts as spinning (`isShapeSpinning`), so the loop stays awake while a service shape is formed, as it does for the cube.
+- **Layout** (`services-section.component.tsx`):
+  - It keeps the DOM contract: the container, a sticky frame first (label, flex slot, caption spacer) and one slot.
+  - The container is `F + 2·pitch` tall, with pitch `1.2·F`.
+  - Captions sit in a `--caption`-tall area: 15rem in split, 18rem in portrait and 17.75rem on short screens.
+  - **Staged:** one sticky board. Each caption line (`[data-caption-line]`, `staged:caption-line`) is hidden by a clip wipe, and it shows through a CSS transition while the stage's `data-thread` equals its `[data-caption]`. The literal selectors are in globals.css. Timings come from `buildThreadCaptionStyle`.
+  - **Base** (reduced motion, or no scroll-driven animations): each caption docks at `k·pitch` as an opaque sticky curtain.
+- **Triggered, not scrubbed** (owner, 2026-09-28: "automatically create the dot design rather than getting stuck between scrolls", and time the text with it):
+  - **Committing.** Inside a thread segment, `resolveTriggeredTarget` turns the scrubbed target into a committed whole shape. It moves forward once a downward scroll passes `threadTrigger` (0.12) of the transit, and back once an upward scroll passes it from the end. A stopped scroll keeps the commitment, and a fresh load takes the nearer shape.
+  - **Playing.** `followTriggeredProgress` plays the committed segment at a constant rate over `threadDrawSeconds` (1.6), and the frame applies `easeInOutSine` to the thread progress. Jumps of more than one segment still snap.
+  - **`data-thread`.** The hook publishes it (`resolveThreadState`: the thread keyframe nearest the committed target, else absent) next to `data-scene`.
+  - **Entry and exit stay scrubbed.** The seal would otherwise finish drawing over the outgoing quote.
+- **Glide lock** (owner, 2026-09-28: "lock it until the animation is done so we don't skip, but make it smooth"):
+  - **The event.** On a thread-to-thread commit, the hook (`announceThreadCommit`) dispatches `DOT_THREAD_COMMIT_EVENT` with the committed keyframe's rest top (`resolveKeyframeRestTop`, the middle of its range) and `threadDrawSeconds`. It never fires during a nav jump (`jumpScrollTop`) or under reduced motion.
+  - **Desktop.** `SmoothScroll` calls `lenis.scrollTo(top, { duration, easing: easeInOutSine, lock: true })`. Lenis swallows wheel input while locked (lenis.mjs:613).
+  - **Phones** (no Lenis): a RAF glide on the same ease, with `overflow: hidden` and `scrollbar-gutter: stable` on `<html>` until it lands.
+  - **Releases.** A key press, an in-page anchor click (a document capture listener, which runs before Lenis's anchor handler) or a switch to reduced motion releases either lock.
+  - **Measured on the dev server.** The desktop glide lands exactly on the rest top (3280, then 4204 at 1440), and a 3000px wheel during it is ignored. The phone glide lands exactly and restores `overflow`.
+  - **Accessibility note.** Holding the scroll for 1.6s is the owner's call. Reduced motion is exempt, and keyboard and nav stay free.
+- **Bug fixed (owner, 2026-09-28): "Branding instantly transitions to Web design."**
+  - **Cause.** The first step has only half a hold (about 140px at 1440), and the trigger sat 85px past it. Nothing caught the arrival from the scrubbed quote-to-seal entry, so wheel or trackpad momentum carried straight through Branding into the Web design trigger.
+  - **Fix 1, arrivals are commits.** `resolveThreadCommit` now also fires when the target enters a thread keyframe from outside, from above or below. The hook glides the reader onto it over `threadArriveSeconds` (0.9).
+  - **Fix 2, the near shape first.** `resolveTriggeredTarget` commits to the near keyframe first when the committed target is still outside the segment. A fast frame that lands mid-transit therefore stops at Branding, never at Web design.
+  - **Fix 3, one gesture, one service.** After a Lenis glide lands, `SmoothScroll` keeps Lenis stopped until the wheel stream has been quiet for `WHEEL_GESTURE_QUIET_MS` (180). Lenis emits `virtual-scroll` before its lock check, so trackpad momentum is absorbed.
+  - **No hold after jumps.** Commits are announced only from real scroll events and only when the target moved at most one segment. Loads, resizes, nav and multi-scene jumps never hold the reader.
+  - **Measured on the dev server (1440):**
+    - A trackpad-style fling from the quote, 24 fast wheel notches, and slow notches 0.4s apart all stop on Branding.
+    - With slow notches, the first notch after the landing stays on Branding and the second commits to Web design (`threadTrigger`).
+    - The e2e regression test flings from the quote and asserts Branding holds.
+- **Fit gate:**
+  - A slot shorter than `SCENE_MIN_SLOT_PX` (64) now flows the scene, so landscape phones (740×360, 740×304) get the reading list.
+  - It re-checks when reduced motion toggles (review finding).
+- **`staged` is screen-only** (review finding: printing dropped the step copy).
+
+**Evidence:**
+
+- 360 unit tests pass. Beyond the list below, they cover:
+  - thread commits, arrivals, the near-shape rule and the no-hold-after-jump rule
+  - the rest top
+  - the locked glide in `SmoothScroll` for Lenis, touch, a nav release and reduced motion
+  - the gesture-quiet hold
+
+  The earlier tests cover:
+  - the per-scene share and thread keyframes
+  - trigger direction, threshold and hysteresis
+  - the constant-speed triggered follow and the thread state
+  - the caption selectors
+  - a cramped slot flowing the scene
+
+- `pnpm check` is clean.
+- 66/66 e2e pass on a production build. `step-motion.spec.ts` checks:
+  - a fling from the quote stops on Branding
+  - a stopped scroll past the trigger finishes the drawing and the caption by itself
+  - a nudge below the trigger doesn't trigger
+  - the wheel stays locked during the glide and lands on the rest top
+  - the phone glide pauses touch scrolling and restores it
+
+**Open:**
+
+1. **The owner scrolls it** with a wheel, a trackpad and a phone. The knobs are `threadDrawSeconds`, `threadTrigger`, `threadStagger`, `threadArcPixels`, `sway`, `DOT_SCENE_MOTION.services.share` and the `CAPTION_*` timings in motion.data.ts.
+2. **Loop cost.** The sway keeps the loop awake in Services. Elsewhere it is still 0 RAF at rest.
+3. **Landscape phones** lose the pinned shapes in Services.
+4. **The Signal Wire's open review findings** are closed: the orbit replaced it (see below).
+
+#### Orbit (owner redirect #3, 2026-09-29): built
+
+**The owner's ask.** "For the how I work section … create orbit line, when I'm scrolling it will move right, similar to the functionality of https://buckssauce.com/", with a screenshot of its "Why Bucks Sauce" section. The Signal Wire is gone.
+
+**The reference, measured** in Edge at 1903×868 (the site sits behind a Vercel bot check, so curl and WebFetch get a 429):
+
+- A GSAP ScrollTrigger pin of 1736px.
+- A 1000px SVG ring scaled 8×, so R ≈ 3992px (2.1·W). Two dashed circles at 30% opacity: a fine dash and a bold tick, 1.94 units apart.
+- Three steps 12.8° apart, rotated tangent, numeral centre on the ring. Scrubbed linearly: the steps turn −25.8° while the ring turns +720°.
+- On entry, digits rise from `translate(0,100px) rotate(random) scale(.5,1.5) opacity 0`; the plate and copy fade in. A mascot stays fixed, upper right of the active numeral.
+
+**Owner decisions** (this session):
+
+1. The five process shapes stay, in a slot at the mascot's spot, upper right of the active numeral.
+2. Step-synced, not linear: the orbit turns one step during each dot transit and rests while the shape is formed. The ticks stream with the scroll the whole time.
+3. Direction as in the reference: ticks stream right, the next step enters from the right.
+4. The plate is a filled Lamp White plate, as in the screenshot (a DESIGN.md exception).
+
+**How it works** (`process-section.component.tsx`, `step-motion.rules.ts`, globals.css `orbit-*`):
+
+- **No engine change and no JavaScript.** CSS scroll-driven animation behind `staged`, on the container's `--step-scene` view timeline.
+- **Turn.** Four nested wrappers (steps 1–4) each rotate `−--orbit-step-angle` over one handover (`buildTravelStyle`, the wire's nesting pattern), about `50% calc(--orbit-ring-y + --orbit-radius)`. Step `i` sits at `rotate: i·angle` with its origin at the same circle centre, so step `i` reaches the top exactly while shape `i` is formed. The keyframe cross-check in `step-motion-rules.test.ts` still pins that.
+- **Ticks.** A band-shaped SVG (frame-wide, sagitta plus tick tall, the UA's `overflow: hidden` clipping it) with two `<circle pathLength="3600">`: `cx`, `cy` and `r` are CSS, so user units are px. `orbit-spin` moves `stroke-dashoffset` by `ORBIT_RING_SPIN_RATIO` (0.8) × the orbit's whole turn, linearly across the pin. It repaints a ~1500×110px band, never rotates a 6000px layer. The reference's 28× would alias (about 30px of tick travel per scrolled px against a 13px period).
+- **Assembly.** Each step's digits (`orbit-digit`, tilts from `ORBIT_DIGIT_TILTS_DEGREES`) and its plate and paragraph (`orbit-reveal`, a clip wipe) run over `resolveAssembleHandover`: steps 0 and 1 on the entry transit, step `i ≥ 2` as it turns in from the right edge.
+- **Geometry** (container classes; derived values computed in CSS from unitless numbers, all `--orbit-*`, never `--radius`):
+  - split: numeral `clamp(6rem, min(50svh − 8rem, 22vw), 22rem)`, R 210vw, spacing 52vw (θ ≈ 14.2°, the next numeral peeks ~100px like the reference), tick period 2.5 tenths of a degree (≈13px at 1440).
+  - portrait: numeral `clamp(4.5rem, 14svh, 7.5rem)`, R 260vw, spacing 115vw (neighbours fully off screen), period 8 (≈14px at 390).
+  - `--orbit-step-top` (the numeral top) is `max(heading block, 1rem + slot + 4px)` in split and `band + 0.75rem` in portrait. The split slot sits above that line, right of the numeral, so nothing on the rim ever sweeps the forming shape and the plate never meets it.
+  - Antonio has no `tnum` ("01" is 0.82em, the rest 0.96em). The numeral's line box is 0.86em with a −0.078em nudge, so its ink centre lands on the ring (`--orbit-ring-y = step-top + 0.43·numeral`).
+- **Modes.** Unstaged (reduced motion, no scroll-driven animations, idle), the steps are opaque sticky curtains docking below the heading and slot, and the ring is hidden. Split + short (height ≤ 30rem: 740×360/304/280) and 400% zoom flow to the reading list, like Services. Forced colours hide the ring and numerals (`forced-colors:hidden!`, which must beat `staged:block`) and border the plate.
+- **Pitfall found (curtains):** spacing the docked curtains with `not-last:mb-*` made every earlier curtain ride up into the heading and slot over the last pitch, because a sticky element's margin box must stay inside the list. `not-first:mt-*` docks identically and never pushes. `step-motion.spec` now sweeps the whole pin under reduced motion at 1440 and 390 and fails if any curtain enters the top band.
+- **Pitfall found (keyframes):** unitless `stroke-dashoffset` values (SVG's number quirk) and an `inset()` clip animated to an implicit `none` both animate discretely: the ticks jumped once mid-pin and the plate popped in. The keyframes use `calc(… * 1px)` and an explicit `to` inset; `readOrbit` hit-tests the active plate and paragraph and `checkOrbitTurns` asserts the dash offset differs at every formed position.
+- **Pitfall found (colour):** `--color-foreground` resolves once at `:root` (light theme, near black), so a stroke of `var(--color-foreground)` vanished on the dark stage. Use `var(--foreground)`, which the stage overrides.
+
+**Evidence** (2026-09-29): 366 unit tests; `pnpm check` clean; captures at 1920×1080, 1440×900, 1280×720, 768×1024, 390×664, 375×548 and 360×640 (formed positions, mid-turn, reduced motion, 740×280, forced colours), with `data-scene` right at every formed position, no sideways overflow, and staged/idle boxes identical. The new e2e: "turns the orbit one step per shape" (1440, 1920, 390, 375), "keeps the orbit's boxes identical staged and unstaged", the reduced-motion curtains, the 740×280 flow and forced colours; fit.spec's small-phone, text-spacing and 400% zoom checks now cover `#process` too.
+
+**Open:**
+
+1. **The owner scrolls it** on a wheel, a trackpad and a phone. Knobs: the numeral and slot sizes and `--orbit-radius-vw` / `--orbit-spacing-vw` in the section's classes, `ORBIT_RING_SPIN_RATIO` and `ORBIT_DIGIT_TILTS_DEGREES` in motion.data.ts, and the handover length (the dots' own `stepMorphShare`).
+2. **Dot density in the smaller slot.** At 1440 the slot is 317px (was ~504). The captures read well at the default `pointsPerArea`; if strokes look thin on the owner's screens, raise `FLAT_LINE_ART_TUNING.pointsPerArea` (Process-only) toward 0.06–0.08.
+3. **Known limits.** Find-in-page on a far step lands off the arc (far steps sit up to ~57° round a ~3000px radius in split, and up to ~101° round a ~1000px radius on a portrait phone). Short landscape phones lose the Process shapes. The tick period grows to about 23px at 2560 wide. On a portrait phone steps 02–05 assemble off screen (their neighbours sit fully off screen), so they arrive already assembled; only step 01's assembly plays in view.
+4. **Safari 26** and **the 16ms trace** (Part 2's open items) now cover the orbit too.
+5. **Services has the curtain bug the orbit fixed** (found 2026-09-29, not fixed: out of the orbit's scope). Under reduced motion at 1440, from about 1.25 pitches into the Services pin, the earlier captions ride up over the slot (`not-last:mb-[calc(var(--pitch)_-_var(--caption))]`, services-section.component.tsx). Fix: `not-first:mt-[…]` with `staged:mt-0` and `unpinned:mt-0`, then add a curtain sweep like Process's.
+
 #### Part 3: section motion
 
-One motion grammar, authored once, in the signal-board world: things power on like lamps, lines draw like wire, and copy wipes in like the quote. No per-section novelty.
+One motion grammar, authored once, in the signal-board world: things power on like lamps, lines draw like wire, and copy wipes in like the quote. No per-section novelty, with one owner-made exception: My services and How I work have their own motion ("Services thread" and "Orbit" above).
 
 - **Headline power-on.** Every section `<h2>` lights up the way the wordmark does. It starts at the 14% ghost, and a feathered sweep (26px feather, `SIGNAL_EASE`, about 0.9s) lights it left to right as it enters.
   - Use a CSS mask on the heading itself. Don't split it into letters, so screen readers still read it whole.
@@ -702,15 +891,8 @@ One motion grammar, authored once, in the signal-board world: things power on li
 - **Copy slides in.** Paragraphs rise line by line from behind a clip (100% up), staggered 60–80ms.
   - Line splitting must survive the WCAG 1.4.12 text-spacing re-measure (see Landmines) and re-split on resize (planning review). If it can't, rise per paragraph.
   - **SiteContent paragraphs rise per paragraph** (gap review). The Projects lede and the card summaries (projects-section.component.tsx:108-112, :170-178) come from SiteContent and change live in the editor preview, which re-renders `SitePage` on every message. A line splitter that re-splits only on resize would keep showing the old text there. Line splitting is only for static `src/data` copy.
-- **Hairlines draw** left to right, staggered: the service items, the stats rule, the FAQ rows, the testimonial and blog rules. Use scaleX from the left on a dedicated rule element or a pseudo-element.
-- **Step handovers** (Services, Process). The outgoing step's copy wipes out and the incoming one wipes in at the same scroll position as the shape morph, so copy and dots change together. In the portrait band, the incoming sticky step's content slides up 24px and wipes in when the outgoing shape leaves (see "Timing" below), wherever it is in its docking (gap review; docking is a scroll pitch, not the keyframe split).
-  - The boundaries live only in the hook, and the portrait docking pitch `k·(F − band)` is not the keyframe split (planning review). Key the copy off the stage's `data-scene`, not off a second scroll computation.
-  - **The exact rule** (gap review; the natural "lit when `data-scene` is my id" blanks every step on most paths). Each step `li` carries `data-step="<shape id>"`, taken from the scene's shapes by index.
-    - **What is wiped:** a step's content, meaning the `li`'s children. Never the `li` itself, which is rule 8's sticky, opaque block.
-    - **When:** only while the stage has `data-status=running` and `data-scene` equals the id of a sibling step in the same scene.
-    - **Every other value leaves all steps lit:** `name` (server render, no WebGL2), `moving` (every transit, including a scroll that comes to rest mid-transit), a flowed scene's container id, any other scene, and an id frozen by context loss (status is then `unsupported`).
-    - **Timing:** the incoming copy wipes in as the outgoing shape leaves, and the outgoing copy wipes out as the incoming shape lands. Both reverse on scroll back.
-  - **Literal selectors.** Write the eight selectors literally in globals.css, e.g. `[data-status=running][data-scene=web-design] [data-dot-scene=services] [data-step]:not([data-step=web-design]) > *`. Never build class names from the shape constants: Tailwind can't see them, so it generates nothing.
+- **Hairlines draw** left to right, staggered: the stats rule, the FAQ rows, the testimonial and blog rules. Use scaleX from the left on a dedicated rule element or a pseudo-element. The service items are excluded: their rails are the departure board's static housing.
+- **Step handovers (Services, Process): superseded, not built.** "Step scene motion" above replaced them (owner, 2026-09-28). The copy now changes on the scene's own scroll timeline, so the `data-scene`-keyed wipe, its eight literal selectors and `data-step` are dropped. Part 3 leaves the step copy alone: no paragraph rise and no service-item hairline draw inside a step scene. The thread's captions and the orbit are those sections' motion.
 - **About:** the stats count up (0 → 5+, 500+, 140) when the stats row enters view.
   - **The trigger** (gap review) is the same observer as every other reveal (`amount: 0`, margin 0 or more), never `data-scene`. A scroll that rests mid-transit leaves `data-scene` at `moving`, and a scene-keyed count would sit at 0 for as long as the reader stays. Under replay, the count re-arms (back to 0) only once the row has fully left the viewport.
   - **The real value never leaves the DOM** (gap review). The `<dd>` keeps "5+", "500+" and "140", transparent while armed or counting. The digits (0 while armed, then counting) are an `aria-hidden`, tabular-nums overlay rendered from a Motion value child. So assistive tech, find-in-page and translation never read "0 happy clients", and the real text reserves the width, which makes the old fixed-width note unnecessary.
@@ -730,7 +912,7 @@ One motion grammar, authored once, in the signal-board world: things power on li
     - If the heading's power-on is also a CSS animation, both share one `animation` declaration.
   - **Why not Motion:** `useScroll` plus `useTransform` on `y` is written from the main thread (`y` isn't an accelerated key, motion-dom accelerated-values.mjs:4-10), a frame behind a phone's compositor scroll. Neither `INSTANT_TRANSITION` nor `MotionConfig reducedMotion` reaches a scroll-bound value. The CSS version needs no client leaf.
   - Tune it with Part 0 on; on a stepped wheel, parallax looks cheap.
-- **Nav:** a single lit dot slides under the active centre link as the page scrolls (scroll-spy). The only round thing on the site is a dot, apart from the cursor's ring if the owner approves Part 4.
+- **Nav:** a single lit dot slides under the active centre link as the page scrolls (scroll-spy). The only round things on the site are dots and the How I work orbit track, apart from the cursor's ring if the owner approves Part 4.
   - There is no scroll-spy today (planning review). `activeSection` changes only on a click (portfolio-ui.store.ts:26-28, section-navigation.component.tsx:94-100), so `aria-current` shows the last click. Build the scroll-spy first, and correct DESIGN.md:271, which overstates it.
   - **Mechanism** (gap review):
     - **Resolver.** Resolve the active id inside the existing `useMotionValueEvent(scrollY)` handler (section-navigation.component.tsx:63-65), through a pure function in a rules file. The rule is the last of all ten `PORTFOLIO_NAVIGATION` targets, not the five centre links, whose `getBoundingClientRect().top` is 73px or less (the `scroll-mt-18` landing plus 1). The handler already fires when a deep link or restored scroll leaves `scrollY` above 0, so it needs no mount pass.
@@ -774,7 +956,7 @@ One motion grammar, authored once, in the signal-board world: things power on li
     - The rule is inert while scripts run, so the JS path and the hero pixel diff don't change.
     - If a `javaScriptEnabled: false` context doesn't match `scripting: none`, ship the same rule as `<noscript><style>` in page.tsx.
   - **Nothing that must end visible waits on `data-scene` or a pin alone** (gap review). Without WebGL2 the hook returns before publishing a scene, so `data-scene` stays `name`. In flow mode a step scene reports its container id.
-    - **What `unpinned:` covers** (globals.css:19-27): an unsupported stage, or a container with `data-fit="flow"`. Only `StepScene` renders the fit gate (step-scene.component.tsx:156), so it covers step copy on both paths, but About and the footer only on an unsupported stage. Under it, every step's copy, the stats and the footer links render their final state.
+    - **What `unpinned:` covers** (globals.css:19-27): an unsupported stage, or a container with `data-fit="flow"`. Only the step scenes (`ServicesSection`, `ProcessSection`) render the fit gate, so it covers step copy on both paths, but About and the footer only on an unsupported stage. Under it, every step's copy, the stats and the footer links render their final state.
     - **About never flows.** At 400% zoom its frame grows to the container's height, so its pin shrinks to about 1px. That is why the count-up and the footer stagger trigger on view, not on a pin or on `data-scene`.
   - **Arming** (gap review, widening the planning review's heading rule to every reveal):
     - Every reveal arms only if its element is outside the viewport (above or below) at hydration. Under replay, "above" matters too: after a deep link, the sections above it still reveal on the way back up. That covers the heading power-on, paragraph rise, hairlines, plates, the footer stagger, the address flicker, the count-up, and the existing quote and projects-heading reveals.
@@ -791,7 +973,7 @@ One motion grammar, authored once, in the signal-board world: things power on li
   - **Margins are 0 or more** (gap review). Never a negative bottom margin, the house precedent (`QUOTE_VIEWPORT` −20%, `PROJECTS_HEADING_VIEWPORT` −10%). A power-on heading resting in an excluded band would stay at the 14% ghost, about 1.3:1.
 - **Tuning:** every duration, stagger and feather goes in `src/data/motion.data.ts` (Part 0 creates it). `SIGNAL_EASE`, `INSTANT_TRANSITION` and the existing variants stay in `hero.data.ts`; reuse `resolveMotionTransition` (motion.rules.ts:5). Use the impeccable skill's `animate` reference for the pass.
 - **Tests** (gap review):
-  - **fit.spec's two scan tests** ("pinned scenes under WCAG text spacing" and "pinned scenes at 400% zoom", fit.spec.ts:311-364) get `test.use({ reducedMotion: "reduce" })`, as hero.spec.ts:352 does.
+  - **fit.spec's two scan tests** (now "<scene> under WCAG text spacing" and "<scene> at 400% zoom", looped over `#services` and `#process`) run under `test.use({ reducedMotion: "reduce" })`, as hero.spec.ts:352 does. Done.
     - The scan moves the page inside one synchronous evaluate (fit.spec.ts:151-156), so no IntersectionObserver, scroll handler or RAF runs during it. Armed reveals never fire, so line-rise clips and the quote wipe would read as never-visible lines. (`data-scene` stays `name`, which leaves step copy lit under the handover rule.)
     - Reduced motion renders every final state, which is the layout that WCAG 1.4.12 and 400% zoom are about. Don't loosen the scan instead.
     - The 375×548 overflow test stays motion-on, so armed steps are still measured. These scans don't prove a motion-on reveal fires; the armed guard below does.
@@ -805,7 +987,7 @@ One motion grammar, authored once, in the signal-board world: things power on li
   - reduced-motion screenshots with the DOM copy laid out as in Phase 2. The canvas (Part 1 changes its shapes), the new nav dot and the hairline are excluded (planning review).
   - a no-JavaScript render shows all copy: in a `javaScriptEnabled: false` context, every `[data-reveal]` element and every section h2 has computed opacity 1, clip-path none, transform none and mask-image none (the power-on hides with a mask). Assert computed styles, not `toBeVisible`, which counts opacity 0 as visible (gap review)
   - with `getContext('webgl2')` stubbed to null by `addInitScript`, again after `WEBGL_lose_context.loseContext()`, and at 320×256 (step scenes flowed): every step's copy is unclipped, the stats end at 5+, 500+ and 140 once in view, and the footer nav, email link and Back to top end at full brightness (gap review)
-  - at 1440 and 390, a scroll resting mid-transit in Services shows every step's copy unclipped. This needs a new assertion that lets frames run (gap review)
+  - step scenes: at every formed keyframe the matching caption or orbit step is whole and unclipped (`step-motion.spec.ts` asserts this; for the orbit, `readOrbit` hit-tests the active plate and paragraph). Mid-transit the orbit is mid-turn, which the owner accepted with the design (2026-09-29)
   - armed-reveal guard, in fit.spec.ts: after each step of a stepped top-to-bottom scroll, with frames between steps so observers fire, no `[data-reveal="armed"]` element intersects the viewport, at 1440×900, 390×664, 375×548 and 740×304 (gap review)
   - `toMatchAriaSnapshot` while the flicker runs: `#connect` has a link named "Email me" and a paragraph with the address exactly once. The About `<dl>` reads its real values before the scene forms. Scope both to their sections; the footer also renders the address (gap review)
   - after a contact submit, the acknowledgement is focused and the Get in touch section's height hasn't changed (gap review)
@@ -824,10 +1006,10 @@ One motion grammar, authored once, in the signal-board world: things power on li
 
 **Design change, needs the owner's sign-off.** A hollow ring is a second round thing on the site. These lines change:
 
-- DESIGN.md:104 and :214: "The only round thing on the site is a dot." → "The only round things on the site are dots and the cursor's ring."
-- DESIGN.md:113: "Zero radius. Dots are the only curves." → "Zero radius. Dots and the cursor's ring are the only curves."
-- DESIGN.md:212: "The one curve in the system is the dot" → "The curves in the system are the dot and the cursor's ring".
-- DESIGN.md:311: "…The only round thing is a dot." → "…anywhere except a dot or the cursor's ring."
+- DESIGN.md Overview and the Square Signal Rule (Shapes): "The only round things on the site are dots, plus one owner-made curve: the How I work orbit" / "…are dots and the How I work orbit track" → add the cursor's ring to each.
+- DESIGN.md Key Characteristics: "Zero radius. Dots are the only curves, except the How I work orbit track." → add the cursor's ring.
+- DESIGN.md Shapes: "The curves in the system are the dot and the How I work orbit track" → add the cursor's ring.
+- DESIGN.md Don'ts: "The only round things are dots and the How I work orbit track." → add the cursor's ring.
 - A new "Cursor" entry under Components records the anatomy, the states and the 0.3s state transition (a new duration).
 - Colour stays on-system: white under `mix-blend-mode: difference` is an inversion, not a hue (DESIGN.md:123, :139). No shadow (DESIGN.md:208).
 
@@ -1029,7 +1211,8 @@ These are the ones CLAUDE.md doesn't already cover:
 - **The published-content read is cached** for a year. Tag it and call `revalidateTag` on publish, or make it uncached (which makes `/` dynamic).
 - **Cursor anatomy (Part 4).** Two yeses are needed before building it: the trailing ring, a second round thing that needs the DESIGN.md changes listed in Part 4, and hiding the native cursor everywhere except form fields. No words are planned in the disc; if the owner wants a label on a target (for example the Phase 5 plates), the owner writes it.
 - **Smooth-scroll feel (Part 0).** The owner signs off `SMOOTH_SCROLL_LERP` with a wheel and a trackpad.
-- **Part 3 motion confirmation.** Before building Part 3, the owner confirms its motion choices. The confirmation now includes the step-handover timing and heading-only CSS parallax (FAQ and Get in touch, tablet and up, only in browsers with scroll-driven animations). The extras and replay are already decided (below); only their look is confirmed.
+- **Step scene motion feel.** The owner scrolls the Services thread and the How I work orbit on a real wheel, trackpad and phone and signs off the feel (see "Services thread" and "Orbit", Open 1).
+- **Part 3 motion confirmation.** Before building Part 3, the owner confirms its motion choices. The confirmation now includes heading-only CSS parallax (FAQ and Get in touch, tablet and up, only in browsers with scroll-driven animations). The step handovers are superseded by "Step scene motion". The extras and replay are already decided (below); only their look is confirmed.
 - **Decided 2026-09-28 (gap review).** These are recorded, not open:
   - reveals replay on re-entry
   - the direction-aware sweep keeps the natural mirror

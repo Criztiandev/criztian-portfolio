@@ -9,6 +9,7 @@ import {
   DOT_SCENE_SELECTOR,
   DOT_SLOT_SELECTOR,
   DOT_STAGE_SELECTOR,
+  DOT_THREAD_COMMIT_EVENT,
   HEIGHT_CHANGE_IGNORE_PX,
   HERO_INTRO_TIMING,
   IN_PAGE_ANCHOR_SELECTOR,
@@ -29,7 +30,8 @@ import {
   buildFontShorthand,
   buildSceneKeyframes,
   buildShapeLibrary,
-  followTimelineProgress,
+  easeInOutSine,
+  followTriggeredProgress,
   isShapeSpinning,
   parseCssPixels,
   parsePrimaryFontFamily,
@@ -39,9 +41,14 @@ import {
   resolveIntroFrame,
   resolvePlacement,
   resolveSceneState,
+  resolveKeyframeRestTop,
+  isThreadKeyframeIndex,
+  resolveThreadCommit,
+  resolveThreadState,
   resolveStaticKeyframe,
   resolveArrivalStrike,
   resolveTimelinePosition,
+  resolveTriggeredTarget,
   resolveTimelineSegment,
   resolveViewportHeight,
   shouldLoopSleep,
@@ -76,6 +83,7 @@ import type {
   DotFieldViewport,
   DotSceneKeyframe,
   DotSceneMeasure,
+  DotThreadCommitDetail,
   DotTimelineSegment,
   UseDotFieldRequest,
 } from "@/types/hero.type"
@@ -324,6 +332,8 @@ export function useDotField(request: UseDotFieldRequest): void {
       let keyframes = buildKeyframes(layout)
       let progress = 0
       let progressTarget = 0
+      let previousScrollTarget = Number.NaN
+      let threadState: string | null = null
       let staticIndex = -1
       let spinSeconds = 0
       let isFieldAtRest = true
@@ -514,7 +524,14 @@ export function useDotField(request: UseDotFieldRequest): void {
 
         const intro = resolveIntro()
         const nameSample = resolveNameSample()
-        const morphSpin = DOT_FIELD_MORPH_TUNING.morphSpin
+        const isThread =
+          fromKeyframe.isThread === true && toKeyframe.isThread === true
+
+        let morphSpin = DOT_FIELD_MORPH_TUNING.morphSpin
+
+        if (isThread) {
+          morphSpin *= DOT_FIELD_MORPH_TUNING.threadSpin
+        }
 
         return {
           intro,
@@ -523,8 +540,11 @@ export function useDotField(request: UseDotFieldRequest): void {
             y: nameSample.height / 2,
           },
           wordBounds: nameSample.bounds,
-          progress: segment.progress,
+          progress: isThread
+            ? easeInOutSine(segment.progress)
+            : segment.progress,
           strike: resolveStrike(),
+          thread: isThread ? 1 : 0,
           from: placeKeyframe(
             fromKeyframe,
             segment.progress * morphSpin,
@@ -553,9 +573,27 @@ export function useDotField(request: UseDotFieldRequest): void {
         stage.dataset.scene = nextState
       }
 
+      function publishThreadState(): void {
+        const nextState = resolveThreadState(keyframes, progressTarget)
+
+        if (nextState === threadState) {
+          return
+        }
+
+        threadState = nextState
+
+        if (nextState === null) {
+          delete stage.dataset.thread
+          return
+        }
+
+        stage.dataset.thread = nextState
+      }
+
       function drawSingleFrame(): void {
         drawDotField(runtime, buildFrame())
         publishSceneState()
+        publishThreadState()
       }
 
       function canPush(): boolean {
@@ -617,10 +655,11 @@ export function useDotField(request: UseDotFieldRequest): void {
         previousTimestamp = timestamp
         elapsedSeconds += deltaSeconds
 
-        progress = followTimelineProgress(
+        progress = followTriggeredProgress(
           progress,
           progressTarget,
           deltaSeconds,
+          keyframes,
           DOT_FIELD_MORPH_TUNING
         )
 
@@ -672,6 +711,7 @@ export function useDotField(request: UseDotFieldRequest): void {
 
         drawDotField(runtime, frame)
         publishSceneState()
+        publishThreadState()
 
         const isLoopDone = shouldLoopSleep({
           isFieldAtRest,
@@ -735,14 +775,54 @@ export function useDotField(request: UseDotFieldRequest): void {
         )
         const hasStaticChanged = nextStaticIndex !== staticIndex
 
-        progressTarget = resolveTimelinePosition(
+        const scrollTarget = resolveTimelinePosition(
           keyframes,
           scrolled,
           MORPH_LANDING_TOLERANCE_PX
         )
+
+        progressTarget = resolveTriggeredTarget({
+          keyframes,
+          scrollTarget,
+          previousScrollTarget,
+          committedTarget: progressTarget,
+          trigger: DOT_FIELD_MORPH_TUNING.threadTrigger,
+        })
+        previousScrollTarget = scrollTarget
         staticIndex = nextStaticIndex
 
         return hasStaticChanged
+      }
+
+      function announceThreadCommit(previousTarget: number): void {
+        if (jumpScrollTop !== null || prefersReducedMotion()) {
+          return
+        }
+
+        const committed = resolveThreadCommit(
+          keyframes,
+          previousTarget,
+          progressTarget
+        )
+
+        if (committed === null) {
+          return
+        }
+
+        let seconds = DOT_FIELD_MORPH_TUNING.threadArriveSeconds
+
+        if (isThreadKeyframeIndex(keyframes, previousTarget)) {
+          seconds = DOT_FIELD_MORPH_TUNING.threadDrawSeconds
+        }
+
+        const detail: DotThreadCommitDetail = {
+          top: resolveKeyframeRestTop(committed),
+          seconds,
+        }
+
+        window.dispatchEvent(
+          new CustomEvent(DOT_THREAD_COMMIT_EVENT, { detail })
+        )
       }
 
       function syncToScroll(): void {
@@ -752,7 +832,10 @@ export function useDotField(request: UseDotFieldRequest): void {
       }
 
       function onScroll(): void {
+        const previousTarget = progressTarget
         const hasStaticChanged = readScrollTargets()
+
+        announceThreadCommit(previousTarget)
 
         if (prefersReducedMotion()) {
           if (hasStaticChanged) {

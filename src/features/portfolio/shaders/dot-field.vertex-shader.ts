@@ -47,6 +47,11 @@ uniform float uBurstScale;
 uniform float uSwell;
 uniform float uStrikeSize;
 uniform float uStrike;
+uniform float uThread;
+uniform float uThreadStagger;
+uniform float uThreadJitter;
+uniform float uThreadArc;
+uniform float uThreadBurst;
 uniform Placement uFrom;
 uniform Placement uTo;
 
@@ -163,15 +168,18 @@ void main() {
   float sweepKey = mix(shapeKey, nameKey, step(0.5, hasName));
   float rank = mix(aTo.w, aFrom.w, step(0.5, uTo.isName));
   float randomKey = fract(rank * 97.13);
-  float departKey = mix(sweepKey, randomKey, uMorphJitter);
+  float sweepDepartKey = mix(sweepKey, randomKey, uMorphJitter);
   float penKey = min(float(gl_VertexID) / ${SHAPE_POINTS}.0, 1.0);
-  float arriveKey = mix(
-    mix(penKey, randomKey, uPenJitter),
-    departKey,
-    step(0.5, hasName)
+  float threadKey = mix(
+    penKey,
+    randomKey,
+    mix(uPenJitter, uThreadJitter, uThread)
   );
-  float departStart = departKey * uMorphStagger;
-  float arriveEnd = 1.0 - (1.0 - arriveKey) * uMorphStagger;
+  float departKey = mix(sweepDepartKey, threadKey, uThread);
+  float arriveKey = mix(threadKey, sweepDepartKey, step(0.5, hasName));
+  float stagger = mix(uMorphStagger, uThreadStagger, uThread);
+  float departStart = departKey * stagger;
+  float arriveEnd = 1.0 - (1.0 - arriveKey) * stagger;
   float localMorph = clamp(
     (uMorph - departStart) / max(arriveEnd - departStart, 0.001),
     0.0,
@@ -182,13 +190,16 @@ void main() {
 
   vec2 travel = to.position - from.position;
   vec2 side = vec2(-travel.y, travel.x) / max(length(travel), 1.0);
-  float arc = flight * (0.3 + 0.7 * randomKey) * uMorphArc;
+  float arcSpread = mix(0.3 + 0.7 * randomKey, 1.0, uThread);
+  float arc = flight * arcSpread * mix(uMorphArc, uThreadArc, uThread);
   vec2 position =
     mix(from.position, to.position, eased) + side * arc + aOffset;
 
   vec2 fieldPoint =
     position / max(uBurstScale, 1.0) + vec2(randomKey * 0.6, eased * 1.3);
-  vec2 burst = curlNoise(fieldPoint) * 0.6 * uBurstPixels * flight;
+  vec2 burst =
+    curlNoise(fieldPoint) * 0.6 * uBurstPixels * flight *
+    mix(1.0, uThreadBurst, uThread);
   position = clamp(
     position + burst,
     min(position, vec2(0.0)),

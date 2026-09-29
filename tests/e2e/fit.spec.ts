@@ -1,6 +1,11 @@
 import { expect, test } from "@playwright/test"
 import type { Page } from "@playwright/test"
 
+import {
+  PROCESS_SCENE_SHAPES,
+  SERVICES_SCENE_SHAPES,
+} from "@/data/page-sections.data"
+
 const GL_PROBLEM_PATTERN = /INVALID_|GL_INVALID|WebGL: /
 
 const TEXT_SPACING_CSS = `
@@ -26,6 +31,11 @@ const HEADER_LINE_PX = 72
 const DEEP_LINK_TOLERANCE_PX = 2
 
 const SCROLL_REST_FRAMES = 20
+
+const STEP_SCENES = [
+  { id: "services", shapes: SERVICES_SCENE_SHAPES },
+  { id: "process", shapes: PROCESS_SCENE_SHAPES },
+]
 
 const DEEP_LINK_HASHES = ["#about", "#project", "#process", "#contact"]
 
@@ -283,88 +293,89 @@ async function findOverlappingLines(page: Page, selector: string) {
   }, selector)
 }
 
-test.describe("pinned scenes on a small phone", () => {
-  test.use({ viewport: { width: 375, height: 548 } })
+for (const scene of STEP_SCENES) {
+  const selector = `#${scene.id}`
 
-  test("keeps the services pinned with every step inside its box", async ({
-    page,
-  }) => {
-    const problems = collectPageProblems(page)
+  test.describe(`${scene.id} on a small phone`, () => {
+    test.use({ viewport: { width: 375, height: 548 } })
 
-    await page.goto("/")
-    await waitForRunningStage(page)
-    await waitForFonts(page)
-    await page.waitForTimeout(GATE_SETTLE_MS)
+    test("keeps the scene pinned with every step inside its box", async ({
+      page,
+    }) => {
+      const problems = collectPageProblems(page)
 
-    const services = page.locator("#services")
+      await page.goto("/")
+      await waitForRunningStage(page)
+      await waitForFonts(page)
+      await page.waitForTimeout(GATE_SETTLE_MS)
 
-    await expect(services).not.toHaveAttribute("data-fit")
-    await expect(services).toHaveAttribute(
-      "data-dot-shapes",
-      "branding web-design development"
-    )
-    await expect(services.locator("[data-dot-slot]")).toHaveCount(1)
+      const section = page.locator(selector)
 
-    expect(await readOverflowingSteps(page, "#services")).toEqual([])
+      await expect(section).not.toHaveAttribute("data-fit")
+      await expect(section).toHaveAttribute("data-dot-shapes", scene.shapes)
+      await expect(section.locator("[data-dot-slot]")).toHaveCount(1)
 
-    expect(problems).toEqual([])
-  })
-})
+      expect(await readOverflowingSteps(page, selector)).toEqual([])
 
-test.describe("pinned scenes under WCAG text spacing", () => {
-  test.use({ viewport: { width: 360, height: 640 } })
-
-  test("fits or flows the services so every line can be read", async ({
-    page,
-  }) => {
-    const problems = collectPageProblems(page)
-
-    await page.goto("/")
-    await waitForRunningStage(page)
-    await waitForFonts(page)
-    await page.addStyleTag({ content: TEXT_SPACING_CSS })
-    await page.waitForTimeout(GATE_SETTLE_MS)
-
-    const services = page.locator("#services")
-    const fit = await services.getAttribute("data-fit")
-
-    if (fit === null) {
-      expect(await readOverflowingSteps(page, "#services")).toEqual([])
-    } else {
-      expect(fit).toBe("flow")
-      await expect(services).toHaveAttribute("data-dot-shapes", "dust")
-      await expect(services.locator("[data-dot-slot]")).toHaveCount(0)
-    }
-
-    expect(await findNeverVisibleLines(page, "#services")).toEqual([])
-
-    expect(problems).toEqual([])
-  })
-})
-
-test.describe("pinned scenes at 400% zoom", () => {
-  test.use({ viewport: { width: 320, height: 256 } })
-
-  test("flows the services without overlapping any text", async ({ page }) => {
-    const problems = collectPageProblems(page)
-
-    await page.goto("/")
-    await waitForFonts(page)
-
-    const services = page.locator("#services")
-
-    await expect(services).toHaveAttribute("data-fit", "flow", {
-      timeout: 10000,
+      expect(problems).toEqual([])
     })
-    await expect(services).toHaveAttribute("data-dot-shapes", "dust")
-    await expect(services.locator("[data-dot-slot]")).toHaveCount(0)
-
-    expect(await findOverlappingLines(page, "#services")).toEqual([])
-    expect(await findNeverVisibleLines(page, "#services")).toEqual([])
-
-    expect(problems).toEqual([])
   })
-})
+
+  test.describe(`${scene.id} under WCAG text spacing`, () => {
+    test.use({ viewport: { width: 360, height: 640 }, reducedMotion: "reduce" })
+
+    test("fits or flows the scene so every line can be read", async ({
+      page,
+    }) => {
+      const problems = collectPageProblems(page)
+
+      await page.goto("/")
+      await waitForRunningStage(page)
+      await waitForFonts(page)
+      await page.addStyleTag({ content: TEXT_SPACING_CSS })
+      await page.waitForTimeout(GATE_SETTLE_MS)
+
+      const section = page.locator(selector)
+      const fit = await section.getAttribute("data-fit")
+
+      if (fit === null) {
+        expect(await readOverflowingSteps(page, selector)).toEqual([])
+      } else {
+        expect(fit).toBe("flow")
+        await expect(section).toHaveAttribute("data-dot-shapes", "dust")
+        await expect(section.locator("[data-dot-slot]")).toHaveCount(0)
+      }
+
+      expect(await findNeverVisibleLines(page, selector)).toEqual([])
+
+      expect(problems).toEqual([])
+    })
+  })
+
+  test.describe(`${scene.id} at 400% zoom`, () => {
+    test.use({ viewport: { width: 320, height: 256 }, reducedMotion: "reduce" })
+
+    test("flows the scene without overlapping any text", async ({ page }) => {
+      const problems = collectPageProblems(page)
+
+      await page.goto("/")
+      await waitForFonts(page)
+
+      const section = page.locator(selector)
+
+      await expect(section).toHaveAttribute("data-fit", "flow", {
+        timeout: 10000,
+      })
+      await expect(section).toHaveAttribute("data-dot-shapes", "dust")
+      await expect(section.locator("[data-dot-slot]")).toHaveCount(0)
+
+      expect(await findOverlappingLines(page, selector)).toEqual([])
+      expect(await findNeverVisibleLines(page, selector)).toEqual([])
+
+      expect(problems).toEqual([])
+    })
+  })
+}
 
 for (const viewport of DEEP_LINK_VIEWPORTS) {
   test.describe(`deep links at ${viewport.width}x${viewport.height}`, () => {
