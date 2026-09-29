@@ -64,7 +64,9 @@ export const DOT_SLOT_SELECTOR = "[data-dot-slot]"
 
 export const IN_PAGE_ANCHOR_SELECTOR = 'a[href^="#"]'
 
-export const DOT_THREAD_COMMIT_EVENT = "dotthreadcommit"
+export const THREAD_REVEAL_PROPERTY_PREFIX = "--reveal-"
+
+export const THREAD_REVEAL_DECIMALS = 3
 
 export const JUMP_CANCEL_EVENTS = [
   "wheel",
@@ -736,7 +738,8 @@ export const DOT_FIELD_MORPH_TUNING: DotFieldMorphTuning = {
   threadSpin: 0.2,
   threadTrigger: 0.12,
   threadDrawSeconds: 1.6,
-  threadArriveSeconds: 0.9,
+  threadHurrySeconds: 0.15,
+  threadCaptionSpan: 0.5,
 }
 
 export const DOT_SCENE_MOTION: Record<string, DotSceneMotion> = {
@@ -745,7 +748,7 @@ export const DOT_SCENE_MOTION: Record<string, DotSceneMotion> = {
 
 const THREAD_LINE_ART_TUNING: DotShapeTuning = {
   fit: "contain",
-  sizeRatio: 0.46,
+  sizeRatio: 0.47,
   pointsPerArea: 0.05,
   pointCount: SHAPE_POINTS,
   hasPerspective: true,

@@ -55,6 +55,7 @@ const SINGLE_FRAME_VIEWPORTS = [
 const STATEMENT_SELECTORS = [
   "#quote blockquote p",
   "#project h3",
+  "#services h3",
   "#about p[class*='cqi']",
   "#testimonials blockquote p",
   "#faq p[class*='cqi']",

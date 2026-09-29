@@ -7,7 +7,7 @@ import { DOT_FIELD_MORPH_TUNING } from "@/data/hero.data"
 import { PROCESS_SCENE, SERVICES_SCENE } from "@/data/page-sections.data"
 import { buildSceneKeyframes } from "@/features/portfolio/dot-field.rules"
 import {
-  CAPTION_SHOW_DELAY_SHARE,
+  CAPTION_LINE_STAGGER,
   ORBIT_DIGIT_TILTS_DEGREES,
   ORBIT_RING_PATH_LENGTH,
   ORBIT_RING_SPIN_RATIO,
@@ -160,15 +160,13 @@ describe("copy and dots share one timeline", () => {
 })
 
 describe("the service captions", () => {
-  it("shows a caption as its drawing is finishing", () => {
+  it("staggers the caption lines as a share of the reveal", () => {
     const style = buildThreadCaptionStyle()
 
-    expect(style["--caption-show-delay"]).toBe(
-      `${DOT_FIELD_MORPH_TUNING.threadDrawSeconds * CAPTION_SHOW_DELAY_SHARE}s`
-    )
+    expect(style["--caption-stagger"]).toBe(CAPTION_LINE_STAGGER)
   })
 
-  it("has a literal caption selector for every service shape", () => {
+  it("keys every service caption and position to its shape's reveal", () => {
     const css = readFileSync(
       path.join(process.cwd(), "src/app/globals.css"),
       "utf8"
@@ -176,7 +174,7 @@ describe("the service captions", () => {
 
     for (const shape of SERVICES_SCENE.shapes.split(" ")) {
       const selector = new RegExp(
-        `\\[data-thread="${shape}"\\]\\s+\\[data-caption="${shape}"\\]\\s+\\[data-caption-line\\]`
+        `\\[data-caption="${shape}"\\],\\s*\\[data-position="${shape}"\\]\\s*\\{\\s*--caption-reveal:\\s*var\\(--reveal-${shape}\\);`
       )
 
       expect(css).toMatch(selector)

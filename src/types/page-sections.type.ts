@@ -18,6 +18,16 @@ export type StepSceneContent = PageSectionHeading & {
   steps: SceneStep[]
 }
 
+export type ServiceStep = SceneStep & {
+  size: StatementSize
+}
+
+export type ServicesSceneContent = PageSectionHeading & {
+  sceneId: string
+  shapes: string
+  steps: ServiceStep[]
+}
+
 export type StepHandover = {
   inFrom: number
   inTo: number
@@ -37,7 +47,8 @@ export type PlaceholderPlate = {
   label: string
 }
 
-export type StatementSize = "default" | "belief" | "client" | "contact" | "faq"
+export type StatementSize =
+  "default" | "service" | "longWord" | "belief" | "client" | "contact" | "faq"
 
 export type AboutSectionContent = PageSectionHeading & {
   sceneId: string

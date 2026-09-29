@@ -2,9 +2,9 @@
 
 > **For:** the next Claude Code session picking up this build.
 >
-> **Current phase:** **Phase 7, the Services restyle and one scroll rule.** Phase 6 is done: every dot object is drawn in one material and tells the one-product story, and its done note lists what is open. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference); the renders are in `plans/mockups/`. To resume, paste the prompt under "Start here".
+> **Current phase:** **Phase 8, How I work restyle and the triggered turn.** Phase 7 is done: Services is the B statement split, and nothing holds the scroll any more. Its done note lists what is open, including the owner's scroll test. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference); the renders are in `plans/mockups/`. To resume, paste the prompt under "Start here".
 >
-> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, Phase 5 is `ca4d45c`, and Phase 6 is the commit after it. Nothing is pushed.
+> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, Phase 5 is `ca4d45c`, Phase 6 is `bb808b1`, and Phase 7 is the commit after it. Nothing is pushed.
 >
 > **How this file works:** each phase is one conversation. It lists its scope, the owner inputs it needs and its acceptance. It ends with the prompt that starts the next conversation. When a phase ends, write its done note under it, move "Current phase" forward, and give the owner the next prompt.
 >
@@ -15,9 +15,9 @@
 Paste this into a new conversation to resume the current phase:
 
 ```text
-Continue the portfolio redesign: Phase 7, the Services restyle and one scroll rule.
-Read CLAUDE.md (especially the Services and glide-lock paragraphs), then plans/handoff.md ("Direction", "The DOM contract", Phase 6's done note and "Phase 7"), and DESIGN.md.
-Build Phase 7 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 8, and end your reply with Phase 8's prompt from the handoff.
+Continue the portfolio redesign: Phase 8, How I work restyle and the triggered turn.
+Read CLAUDE.md (the orbit paragraphs), then plans/handoff.md ("Direction", "The DOM contract" rule 14, Phase 7's done note and "Phase 8"), and DESIGN.md's Orbit.
+Build Phase 8 as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 9, and end your reply with Phase 9's prompt from the handoff.
 Ask me before committing.
 ```
 
@@ -190,7 +190,7 @@ The mockups use these, and the owner approved them all. Use them in place of the
 - **Hero tagline:** "I build whole products. Brand, design and code."
 - **Branding:** "Brand stories that connect with your audience and build long-term trust."
 - **Web design:** "Creative and functional, with no AI slop. Every layout and interaction is made for your brand."
-- **Development:** not drafted yet (the mockups don't show it).
+- **Development:** "High-performance, scalable websites tailored to your business." (the owner picked it from three cuts of the long copy, Phase 7)
 - **Bringing it to life:** "I build your project with precision and care."
 - **Delivering success:** "I launch it, then keep supporting and improving it."
 - **About:** "Branding, web design and development, made for your business."
@@ -217,7 +217,8 @@ The mockups use these, and the owner approved them all. Use them in place of the
   - Part 2, the dot choreography: pen draw-on, burst, swell and strike (`f33d351`)
   - the Services thread with its glide lock, and the How I work orbit (`0f198b2`)
 - **Phase 5** (`ca4d45c`): the B page order, the approved copy and the B surface for the quote, Work, About, Testimonials, FAQ, Contact, the header and the footer (see its done note).
-- **Phase 6** on `portfolio/phase-3`: the one-product dot shapes in one material, the plate frames, the Contact gather as its own gated scene, and FAQ on plain black (see its done note).
+- **Phase 6** (`bb808b1`): the one-product dot shapes in one material, the plate frames, the Contact gather as its own gated scene, and FAQ on plain black (see its done note).
+- **Phase 7** on `portfolio/phase-3`: Services on the B statement split, the glide lock removed (trigger, play, no lock) and the reduced-motion curtain bug fixed (see its done note).
 - **Not built:** old Part 3 (section motion, now Phase 10) and old Part 4 (the cursor, parked).
 - **Last evidence (2026-09-29):**
   - 366 unit tests pass and `pnpm check` is clean.
@@ -228,7 +229,7 @@ The mockups use these, and the owner approved them all. Use them in place of the
 
 | Item                                                                                                                    | Phase    |
 | ----------------------------------------------------------------------------------------------------------------------- | -------- |
-| Services curtain bug: under reduced motion, earlier captions ride up over the slot (`not-last:mb-*` → `not-first:mt-*`) | 7        |
+| Services curtain bug: under reduced motion, earlier captions ride up over the slot (`not-last:mb-*` → `not-first:mt-*`) | done (7) |
 | Copy crossings: transit dots cross copy columns at full brightness                                                      | 11       |
 | `resolveViewportHeight` with grown frames shifts dust boundaries: fixed in Phase 5, it reads the shortest pinned frame  | done (5) |
 | Transit captures of every scene, both directions, and the owner's "wow and professional" sign-off                       | 11       |
@@ -293,7 +294,7 @@ The timeline is pure and unit-tested, in `dot-field.rules.ts`.
   - It ends 1px before the next pin (`MORPH_LANDING_TOLERANCE_PX`). Fractional `svh` otherwise leaves `t` at 0.9999, the old `/#quote` bug.
 - **One global position `p`** (segment index + `t`) is smoothed, and the from/to pair is derived from `p`.
   - Smoothing `t` while the pair switches makes dots jump.
-  - `p` snaps when the target is more than one segment away, so a nav jump doesn't flash through every shape.
+  - `p` snaps only when one scroll event moves the target more than one segment (a nav jump, a scrollbar drag), so a jump doesn't flash through every shape. Continuous scrolling never snaps (Phase 7 bug fix): a snap on the committed target teleported the Services drawings on a fast scroll.
   - Generalise "deep link settles the intro" (today `morphTarget > 0`) to `p > 0`.
 - **Heights:** never read `window.innerHeight` in the timeline. Take heights from svh-sized DOM rects.
 
@@ -375,7 +376,7 @@ Every section that takes part in the timeline follows these rules. The engine tr
      - `split` is `(min-width: 48rem), (max-height: 30rem) and (min-width: 34rem)`. A 740×360 landscape phone is split; 320×256 (400% zoom) is portrait.
      - `short` is `(max-height: 30rem), (width < 48rem) and (max-height: 38rem)`. It tightens the step type and the band, so small phones (375×548, 360×560) stay pinned.
    - No links inside steps. A covered link could still take focus (WCAG 2.4.11).
-   - `ServicesSection` and `ProcessSection` implement this in their unstaged layouts. Process's maths: the frame and the list share one grid cell, the list starts `--orbit-step-top` below the top (the band, or the heading and slot in split), each step is `F − step-top` tall and sticks at `step-top`, and `not-first:mt-[pitch − (F − step-top)]` keeps step `k` docking at `k·pitch`. Space docked curtains with `margin-top`, never `margin-bottom`: a sticky element's margin box must stay inside its containing block, so a bottom margin pushes every stuck curtain up by that margin as the list ends. The last step unsticks together with the frame.
+   - `ServicesSection` and `ProcessSection` implement this in their unstaged layouts. Services' maths: each caption is `--caption` tall and sticks at `--caption-top` (the foot of a portrait frame, or one row gap under the label in the split's left column, where it never meets the slot), with its bottom inset as padding so the stuck curtains end with the frame, and `not-first:mt-[pitch − caption]` docks caption `k` at `k·pitch`. Process's maths: the frame and the list share one grid cell, the list starts `--orbit-step-top` below the top (the band, or the heading and slot in split), each step is `F − step-top` tall and sticks at `step-top`, and `not-first:mt-[pitch − (F − step-top)]` keeps step `k` docking at `k·pitch`. Space docked curtains with `margin-top`, never `margin-bottom`: a sticky element's margin box must stay inside its containing block, so a bottom margin pushes every stuck curtain up by that margin as the list ends. The last step unsticks together with the frame.
 9. **In-scene anchors.** Every `id` inside a scene has `scroll-margin-top` equal to that scene's `stickyTop` (`scroll-mt-18`). A larger margin lands before the pin starts. `data-scene` then reads `moving`, and if a spinning shape is the outgoing one, the loop never sleeps.
    - **Focusables too.** Every focusable inside a scene also carries `scroll-mt-18` (`FOCUS_RING_CLASS` does). This keeps a Shift-Tab target clear of the 72px fixed header, because `scroll-padding-top` is banned.
 10. **Dust scene endings.** The last section of a dust scene is at least one frame tall (`min-h-[calc(100svh_-_4.5rem)]`). Otherwise its anchor lands in the transit to the next scene, with a half-formed shape over it. `#contact` needed this until Phase 6; now FAQ is the dust scene's only section and carries it at every width.
@@ -392,8 +393,10 @@ Every section that takes part in the timeline follows these rules. The engine tr
 14. **Staged step scenes.** Under the `staged` variant a step scene's copy sits on one board instead of scrolling:
     - **The board** is the container's second child, a sibling of the frame, never an ancestor of the slot. It is sticky, transparent, and ends with the container, so it pins on exactly the frame's pin range. The orbit's board is frame-tall at `top-18` and `pointer-events-none` because it covers the frame and the engine listens for pointer events on the slot itself. Only the numeral, plate and paragraph take pointer events when staged (the numeral so fit.spec's `elementFromPoint` scan can reach its digits); unstaged, the whole curtain does, so covered text can't be hovered or selected. The split slot must stay clear of the numeral's box (0.96em wide, starting 0.078em above the ink), not just its ink.
     - **The container height is explicit** and equals the Phase 2 height: `F + (n − 1)·pitch`, where pitch is `F − band` in portrait and `F` in split. Staging on or off therefore never moves a pin, an anchor landing or the slot rect, and the engine needs no re-measure.
+    - **Animated decoration is ink, not copy.** The gate re-checks while staged too (on resize and font load), so nothing animated inside a fit box may add to its `scrollHeight`. The orbit numeral carries `contain: layout`, which turns its digits' assemble transforms into ink overflow. Without it, 67 wide sizes between 900 and 975px tall flowed How I work to the reading list (Phase 7 fix).
     - **Measured before staging.** The hook's first measure (use-dot-field.hook.ts:331) and the gate's first check run while the stage is `idle`; `running` (:1173) switches `staged` on later and triggers neither. So the slot rect, the container height and every step box must be identical in both modes. `step-motion.spec.ts` flips the stage attribute and compares them.
-    - **Copy motion reads only the container's `--step-scene` view timeline** (`view-timeline-inset: 4.5rem 0`, so `exit-crossing 0` is the pin start), through `exit-crossing` length offsets in `--pitch` units from `resolveStepHandover`. Nothing in the stylesheet keys on `data-scene`. (Phases 7 and 8 replace the scrubbed copy motion with triggered transitions keyed on `data-thread`; update this rule then.)
+    - **Copy motion.** Services' captions and its label's position count are drawn by the dots' own progress. The hook writes `--reveal-<shape>` on the thread scene's container (`resolveThreadReveal`), and literal selectors in globals.css map it to `--caption-reveal`, so the text sweeps at the pen's pace and never on a timer. The orbit still reads only the container's `--step-scene` view timeline (`view-timeline-inset: 4.5rem 0`, so `exit-crossing 0` is the pin start), through `exit-crossing` length offsets in `--pitch` units from `resolveStepHandover`, until Phase 8 moves it onto the same reveal; update this rule then. Nothing in the stylesheet keys on `data-scene`.
+    - **Services' board** is the caption box itself: `--caption` tall, sticky at `--caption-top`, with the frame's bottom inset (`--screen-bottom`) as its padding so it ends exactly with the container. In the split it covers only the left column under the label, so the slot on the right is never under it.
     - **Rule 8 in staged mode:** the board is transparent. Nothing scrolls under the band during the pin, so the opaque ground isn't needed, and the portrait exit transits are visible. The opaque sticky steps remain in the fallback layout.
     - **Rules 12–13:** the Services board and each orbit step are fixed-height `[data-fit-box]`es, so an overflow flows the scene through the gate. The orbit board itself is not a fit box: its rotated neighbours would count toward its `scrollHeight`. It is `overflow: clip`, so they never widen the page.
 
@@ -853,6 +856,79 @@ Ask me before committing.
 - `pnpm check`, the unit tests and e2e are green.
 - The owner scrolls it on a wheel, a trackpad and a phone.
 
+**Done note (2026-09-29).**
+
+- **Owner answers** (asked first):
+  - Phase 6 was committed on its own first (`bb808b1`).
+  - Development's short copy is "High-performance, scalable websites tailored to your business." The owner picked it from three cuts of their long copy.
+- **Shipped:**
+  - **Services on the B split** (`services-section.component.tsx`):
+    - The label `<h2>` "My services" carries an `aria-hidden` position count ("· 02 / 03", `data-position`). It shows only on the staged board, where it wipes with the captions. Curtains and the reading list show just "My services", because curtains follow the scroll and the count follows the trigger.
+    - Each service name is an `<h3>` statement. BRANDING measures 3.71em and DEVELOPMENT 4.98em, so the default factor overflowed at 768–1024 wide. Two new statement sizes fix that: `service` (23cqi in the split) for Branding and Web design, and `longWord` (16.5cqi) for Development.
+    - The short copy is in Body. The six items are an `<ol>` in the new `ITEM_CLASS`, each with an `aria-hidden` tabular Dim Grey number and a Rule Grey hairline, in two columns once the copy column is 30rem wide.
+    - The slot is 5:4 on the right (600×480 at 1440). On a phone it sits above the copy, at most 280px wide.
+    - The geometry lives on the container. `SCREEN_INSET_CLASS` repeats `SCREEN_CLASS`'s paddings as `--screen-top` and `--screen-bottom`, and `--caption-top` and `--caption` place the board. Phone caption heights are tiered on `--caption-stacked`: 25.5rem, 21.75rem from 38 to 44rem tall, and 18.25rem on short phones, with tighter item rows to match. So a 390×664 phone keeps a 200px slot; the first cut gave it 140.
+    - The caption board keeps rule 14: it is the second child, sticky, and ends exactly with the container.
+  - **No lock:**
+    - `SmoothScroll` is back to its Part 0 version (`39f62f5`).
+    - The hook no longer announces commits. `DOT_THREAD_COMMIT_EVENT`, `resolveThreadCommit`, `isThreadKeyframeIndex`, `resolveKeyframeRestTop`, `threadArriveSeconds`, `DotThreadCommitDetail` and `WHEEL_GESTURE_QUIET_MS` are deleted.
+    - Their tests went with them: 10 unit tests and three e2e tests (the wheel glide, the phone glide, and the arrival fling that stopped on Branding).
+    - `resolveTriggeredTarget`, `followTriggeredProgress`, arrivals as commits and the `data-thread` captions are unchanged.
+  - **The curtain bug:** fixed with `not-first:mt-[pitch − caption]`, with each curtain's bottom inset as padding so the stuck curtains end with the frame. To check the new sweep catches it, the old `not-last:mb` spacing went back in temporarily. The sweep caught captions riding up to 362px over the slot at 390×664 and 235px over the label at 1440×900, and was clean again once the fix was restored.
+  - **Shapes in the B slot:** `THREAD_LINE_ART_TUNING.sizeRatio` went from 0.46 to 0.47. The page now draws about 417px wide at 1440 (B1: about 420) and the code stage 420px. The pose is unchanged.
+  - **Dead code:** `SECTION_LEDE_CLASS` and `LABEL_CLASS`, which only the old Services used.
+  - **Docs:**
+    - CLAUDE.md: "No lock", "Services' B layout" and Sections.
+    - DESIGN.md: the status note, the Statement tables, Item and Thread.
+    - PRODUCT.md: the Services line.
+    - This handoff: rules 8 and 14, and the Development draft.
+- **Evidence:**
+  - `pnpm check` is clean and 374 unit tests pass: 376, less the 10 lock tests and the 2 `followTimelineProgress` tests, plus 10 new ones.
+  - **e2e:** all 136 specs pass on a production build at :3100 (a same-drive copy, webpack build, Supabase up, `draft = published` before and after). The suite ran after the review fixes and again after each of the three fixes that followed the owner's checks.
+  - **The acceptance, test by test:**
+    - A stopped scroll past the trigger finishes the drawing and the caption, and a nudge below the trigger doesn't trigger: "finishes a service drawing by itself when the scroll stops", at 1440×900, 390×664 and 375×548.
+    - A fast wheel is never held (new). Fifteen notches over 1.5 pitches land within 2px of their delta. `lenis-locked`, `lenis-stopped` and `overflow: hidden` never appear in any frame, and Development then plays by itself.
+    - A touch scroll past the trigger is never held (new): the scroll stays where it stopped and Web design plays by itself.
+    - The reduced-motion curtain sweep (new), at 1440×900 and 390×664: no curtain covers the slot or the label, and no position count shows.
+    - `smooth-scroll.spec.ts` and its unit test pass without the lock.
+    - The fit sizes pass. `fit.spec.ts`'s word-fit sweep now covers the Services statements at twelve sizes.
+  - **Also new in `step-motion.spec.ts`:**
+    - The staged and unstaged boxes are identical.
+    - The board sits one row gap under the label and ends with the frame.
+    - Only the active step's count is hit-testable.
+  - **Where Services pins** (measured on the dev server):
+    - It pins at 1920×1080, 1440×900, 1366×768, 1366×657, 1280×720, 1024×768, 820×1180, 768×1024, 390×844, 390×664, 360×640, 375×548 and 360×560.
+    - It flows at 740×360, 740×304, 740×280, 667×320, 320×256 and 320×568.
+    - With WCAG text spacing it also flows at 1440×900, 1024×768 and 360×640; 1920×1080 still pins.
+  - **Captures** at 1440×900, 1024×768, 390×844 and 390×664 match B1 and B's phone screen. They are in `.local/phase7/shots/`, git-ignored.
+  - **A five-lens review** (DOM contract, lock removal, accessibility, conventions, and fidelity with docs), each lens followed by an adversarial skeptic. Six findings came down to three distinct problems, all confirmed and fixed:
+    - The position count followed `data-thread` while the curtains follow the scroll, so under reduced motion it read "02 / 03" above Branding for about 440px of scroll. Four lenses found it independently. The fix shows the count only on the staged board, with an e2e assertion.
+    - A unit test could pass with no `<ol>` at all.
+    - DESIGN.md's "Where it pins" misstated when text spacing and 320px-wide phones flow the scene.
+  - **The hero pixel diff was not re-run:** Phase 7 changed no hero code (the component, the sampler, the shaders and the name tuning are untouched).
+- **Bug fix after the owner's first scroll ("speed scrolling doesn't render properly"):**
+  - **Cause:** `followTriggeredProgress` fell back to the snapping follow whenever the committed target was more than one shape ahead of the drawing. The lock used to stop a fast scroll from getting there. Without it, a fast wheel committed Development while Web design was still drawing, and the dots teleported to Development in one frame. Captured frame by frame: going down Web design was never drawn, and going up Branding appeared the same way. The same rule would snap on fast entries from Work and from How I work, because the trigger moves the target a whole shape ahead of the scroll.
+  - **Fix:** the rule never snaps now. Inside a thread it plays in pen order and hurries in proportion to how far behind it is (`threadHurrySeconds` 0.15), then draws the committed shape at its own 1.6s pace. Elsewhere it follows smoothly. The hook snaps only when one scroll event moves the target more than one segment (a nav jump), which is what the old snap was for. `followTimelineProgress` is gone.
+  - **Proof:** fast wheels down, back up, out into How I work, in from Work and back up from How I work, captured on the dev server (`.local/phase7/fling/strip-*.png`), all draw every shape in order with no jump. The fast-wheel e2e test now also asserts that Development forms at least half a draw after it is committed. With the fix it forms 1,884ms after the commit. With the old snap put back temporarily, it formed 0ms after, so the test fails there. Four new unit tests cover the rule.
+- **Second fix after the owner's scroll** ("when I enter Branding the shape is forming but the text is not there… make sure that the text animation, dot animation and scroll are sync"):
+  - **Cause:** the captions ran on their own clock. They were CSS transitions keyed on the committed shape: the old caption wiped out 0.35s after the commit, and the new one waited 0.88s, then swept for 0.9s. Measured on the dev server, the old text vanished while its drawing was still on screen, and there was about 0.75s of drawing with no text before the new name swept in. Entering Branding from Work, the dots flew in for 1.3s with no text at all.
+  - **Fix:** the dots' progress now draws the text. `resolveThreadReveal` gives each Services shape a reveal of 1 while the dots form it, eased to 0 half a hop away. The hook writes it as `--reveal-<shape>` on the Services container, and only when a value changes. `caption-line` turns it into each line's clip and slide, staggered by `CAPTION_LINE_STAGGER`. The caption timers (`CAPTION_SHOW_DELAY_SHARE`, `CAPTION_SHOW_SECONDS`, `CAPTION_HIDE_SECONDS`) are gone, and so are the transitions.
+  - **Proof:** re-measured, the old text wipes out as its drawing unwinds and the new name sweeps in as its drawing forms: fully in at 6.55s, with the drawing formed at 6.87s. Entering Branding, the text sweeps in with the arriving dots. The only textless moment is about 0.28s at the pen's midpoint, when the drawing itself is half one shape and half the other. A new e2e test runs at every staged size and checks, on every animation frame, four things:
+    - the two captions never show at once;
+    - the old caption stays whole until its drawing starts to unwind;
+    - the new name starts at least 300ms before its drawing forms;
+    - the new name is fully in within 50ms of the drawing forming.
+- **Third fix: How I work showed as a plain list** (the owner's screenshot, about 1474 wide). This bug predates Phase 7: the Phase 6 build flows the same way.
+  - **Cause:** the orbit numerals' assemble animation slides unassembled digits 0.4em down and tilts them. Those transforms added 2–19px to each step's `scrollHeight`. The gate re-checks while staged whenever something resizes or the fonts finish loading, so on wide screens between 900 and 975px tall (the numeral grows with the height there) it read the moving digits as copy that doesn't fit, and flowed How I work to the reading list.
+  - **Fix:** `contain: layout` on the numeral, so its transformed digits are ink overflow. The digits animate exactly as before: mid-turn frames are a zero-pixel diff against the Phase 6 build. Real copy overflow (text spacing, zoom) is outside the numeral and still flows the scene.
+  - **Proof:**
+    - A sweep of 725 sizes (1024–2560 wide, 600–1300 tall, resizing while staged): without the fix, 67 flowed although their unstaged layout fits. With it, none flow, and the staged verdict matches the unstaged one at every size.
+    - A new e2e test resizes a 1474×880 window to 1474×900, 1680×950 and 1920×975 while the page is staged, and How I work stays pinned.
+- **Open:**
+  - **Owner:** scroll Services on a wheel, a trackpad and a phone. This is the last acceptance item.
+  - **Where Services flows:** landscape phones, 320px-wide phones, and text spacing at laptop sizes show the reading list with no dots, where the Phase 3 layout pinned landscape phones. That is the gate working as designed. Revisit only if the owner wants the dots there.
+  - **For Phase 8:** under reduced motion the hook republishes `data-thread` only when the static keyframe changes, so inside a transit it can lag the committed target. Nothing visible reads it outside `staged` now. Keep it that way, or publish on every reduced-motion scroll, before keying anything visible on `data-thread` outside the staged board.
+
 **Next conversation prompt (starts Phase 8):**
 
 ```text
@@ -876,7 +952,8 @@ Ask me before committing.
   - Re-derive `--orbit-step-top` and the slot rect, and keep the staged and unstaged boxes identical (rule 14).
 - **The triggered turn:**
   - Add `process: { share, isThread: true }` to `DOT_SCENE_MOTION`, so the hook commits process steps and publishes `data-thread` for them too.
-  - Replace the scroll-driven `orbit-turn`, `orbit-digit` and `orbit-reveal` animations with CSS transitions keyed on the stage's `data-thread`, using literal selectors as the Services captions do.
+  - Keep `contain: layout` on the numerals (or on whatever decoration animates inside a step box), or the fit gate's staged re-checks flow the scene again (rule 14).
+  - Replace the scroll-driven `orbit-turn`, `orbit-digit` and `orbit-reveal` animations with the dots' own progress, as the Services captions read `--reveal-<shape>` (Phase 7). Don't use timed CSS transitions: the owner rejected text that runs on its own clock ("make sure that the text animation, dot animation and scroll are sync").
   - The ring's dots drift with the scroll all the time, as the ticks do today (Phase 4 decision 3, to be confirmed when the owner scrolls it).
   - No lock.
   - **Crossings between two thread scenes.** `isThreadSegment` has no same-scene check. Once process is a thread scene, the Services → How I work crossing (and, after Phase 9, Projects → Services) becomes a triggered thread segment instead of a scrubbed burst flight. Decide which it should be, and update DESIGN.md's Thread "Entry and exit" and the One-Scroll Rule.
@@ -1077,6 +1154,7 @@ These are the ones CLAUDE.md doesn't already cover:
 ## Open owner decisions
 
 - **Check the Phase 5 copy that went live locally (owner):** the e2e run published the draft Phase 5 wrote (the new tagline, the belief placeholder and the bracketed project placeholders), because `editor.spec.ts` publishes the whole draft. Keep it, or ask for the pre-Phase 5 published copy back (the row was backed up in the Phase 5 session).
+- **Scroll Services (Phase 7, for the owner):** on a wheel, a trackpad and a phone. Nothing should ever hold the scroll; a drawing plays by itself once the scroll passes 12% into a transit.
 - **Testimonials with several quotes:** the label counts them once there is more than one (owner, Phase 5), but how one quote gives way to the next is not designed. Decide when the real quotes arrive.
 - **To confirm later:** the black-and-white photo, when it arrives, and the drifting ring, when Phase 8 is scrolled.
 - **Contact on small phones (Phase 6, for the owner to see):** the gather shows wherever the whole form fits one pinned frame (desktop, tablets, a 390×844 phone). Below that the section flows as plain black and the gather gives way, so a pin never hides the submit button.
@@ -1084,6 +1162,7 @@ These are the ones CLAUDE.md doesn't already cover:
 - **Phase 11:** the pause-motion toggle (WCAG 2.2.2).
 - **Material:** the belief line, the story and photo, client quotes, real projects.
 - **Decided, recorded:**
+  - Phase 7 (owner, 2026-09-29): Phase 6 committed on its own first; Development's short copy is "High-performance, scalable websites tailored to your business."
   - Phase 6 (owner, 2026-09-29): Phase 5 committed on its own first; Work on a phone shows the frame through a clear window round each plate; frames never scatter under the pointer; the dust behind FAQ goes away (plain black); the Services B layout stays in Phase 7
   - Phase 5 (owner, 2026-09-29): the Projects heading and intro are retired; Work is one screen per project until the deck; the mockup's placeholder plates; the draft is written for the owner to publish; the submit button is uppercase; Testimonials shows no count while it has one quote; all nine FAQ answers are still true
   - positioning (PRODUCT.md)

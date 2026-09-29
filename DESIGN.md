@@ -132,7 +132,7 @@ components:
 
 # Design System: Criztian
 
-> **Status:** this is the locked design, mockup B ("Statement"), with `B-desktop-1` as the reference (owner, 2026-09-29). Phase 5 built the page order, the copy and the B surface: the statement split for the quote, Work, About, Testimonials, FAQ and Contact, the section label, Body, Title, Cue, Rule Grey, the form and the footer. Phase 6 drew every dot object in one material: the frames round the Work, About and client plates, the gather round the form, and the one product that Services and How I work build. Until Phases 7–10 land, the code still shows parts of the Phase 3 system: My services and How I work keep their Headline role, their 80rem cap and their layout (the white orbit plates, the corner shape, the glide lock). The renders are in `plans/mockups/`. Exact markup is in the artboards on the mockup canvas (linked from the handoff). When unsure how something should look, match B1.
+> **Status:** this is the locked design, mockup B ("Statement"), with `B-desktop-1` as the reference (owner, 2026-09-29). Phase 5 built the page order, the copy and the B surface: the statement split for the quote, Work, About, Testimonials, FAQ and Contact, the section label, Body, Title, Cue, Rule Grey, the form and the footer. Phase 6 drew every dot object in one material: the frames round the Work, About and client plates, the gather round the form, and the one product that Services and How I work build. Phase 7 moved My services onto the statement split and removed the glide lock. Until Phases 8–10 land, the code still shows parts of the Phase 3 system: How I work keeps its Headline role, its 80rem cap and its layout (the white orbit plates, the corner shape). The renders are in `plans/mockups/`. Exact markup is in the artboards on the mockup canvas (linked from the handoff). When unsure how something should look, match B1.
 
 ## Overview
 
@@ -206,32 +206,36 @@ The palette is a set of brightness levels on black. Every colour is white at som
 - **Display** (Antonio 700, uppercase, `min(25vw, 40svh)` on mobile and `clamp(3rem, 18vw, 16rem)` from 768px, line-height 1, tracking 0.05em in the dot sampler): the name, and nothing else. It is the source shape the dot field samples.
 - **Statement** (Antonio 700, uppercase, line-height 0.95, Lamp White, left-aligned and balanced): the one big line on each screen. It carries the section's meaning, so it is always real text (a heading, a quote or a line of copy), never dots or an image. Size follows length: a long line steps down so it sits on three or four lines, and a single word that cannot wrap steps down until it fits its column ("Development" fits the 720px column only at about 144px or less, and the 342px phone column at about 68px or less). Only "FAQ" steps up. The mockup sizes are caps at the reference widths, not fixed points:
 
-  | Statement                                                  | Desktop (1440) | Phone (390) |
-  | ---------------------------------------------------------- | -------------- | ----------- |
-  | Default: a project title, a service name, "I am Criztian." | 176px          | 72px        |
-  | The belief line, at most 11ch                              | 136px          | 52px        |
-  | A client's words                                           | 120px          | 68px        |
-  | "Let's start your project today.", on three lines          | 128px          | 52px        |
-  | "FAQ"                                                      | 240px          | 110px       |
+  | Statement                                                | Desktop (1440) | Phone (390) |
+  | -------------------------------------------------------- | -------------- | ----------- |
+  | Default: a project title, "I am Criztian."               | 176px          | 72px        |
+  | A service name ("Web design" wraps to two lines at 1440) | 176px          | 72px        |
+  | "Development", one long word                             | 127px          | 64px        |
+  | The belief line, at most 11ch                            | 136px          | 52px        |
+  | A client's words                                         | 120px          | 68px        |
+  | "Let's start your project today.", on three lines        | 128px          | 52px        |
+  | "FAQ"                                                    | 240px          | 110px       |
 
   A statement never overflows its column or its frame. From 48rem the left column is about half the viewport, so in the split a statement is sized from its column (container units), not from the viewport, and it keeps a rem term so it grows under page zoom (WCAG 1.4.4). The scale (`STATEMENT_SIZE_CLASSES`, set in Phase 5) is `min(cap, k·cqi + rem, h·svh)` with line-height 0.95:
 
-  | Statement | Phone               | Split                        |
-  | --------- | ------------------- | ---------------------------- |
-  | Default   | 19cqi + 0.5rem, 72  | 26cqi + 0.5rem, 176, 20svh   |
-  | Belief    | 14cqi + 0.5rem, 52  | 18cqi + 0.5rem, 136, 16svh   |
-  | Client    | 17cqi + 0.25rem, 68 | 15.5cqi + 0.5rem, 120, 14svh |
-  | Contact   | 14cqi + 0.5rem, 52  | 16.5cqi + 0.5rem, 128, 15svh |
-  | FAQ       | 30cqi + 0.5rem, 110 | 32cqi + 0.5rem, 240, 28svh   |
+  | Statement | Phone                | Split                        |
+  | --------- | -------------------- | ---------------------------- |
+  | Default   | 19cqi + 0.5rem, 72   | 26cqi + 0.5rem, 176, 20svh   |
+  | Service   | 19cqi + 0.5rem, 72   | 23cqi + 0.5rem, 176, 20svh   |
+  | Long word | 16.5cqi + 0.5rem, 72 | 16.5cqi + 0.5rem, 176, 20svh |
+  | Belief    | 14cqi + 0.5rem, 52   | 18cqi + 0.5rem, 136, 16svh   |
+  | Client    | 17cqi + 0.25rem, 68  | 15.5cqi + 0.5rem, 120, 14svh |
+  | Contact   | 14cqi + 0.5rem, 52   | 16.5cqi + 0.5rem, 128, 15svh |
+  | FAQ       | 30cqi + 0.5rem, 110  | 32cqi + 0.5rem, 240, 28svh   |
 
-  The svh term keeps a statement inside short frames (landscape phones, 1280×720). Each factor was checked so the widest word fits its column at the fit sizes and at 768×1024 and 1024×768 ("CRIZTIAN." is the tightest at 768 wide). A word that still cannot fit, such as an owner's long project title, breaks rather than overflows. Phase 7 checks the service names, "Development" included.
+  The svh term keeps a statement inside short frames (landscape phones, 1280×720). Each factor was checked so the widest word fits its column at the fit sizes and at 768×1024 and 1024×768 ("CRIZTIAN." is the tightest at 768 wide). A word that still cannot fit, such as an owner's long project title, breaks rather than overflows. The service names were measured in Phase 7: BRANDING is 3.71em wide and DEVELOPMENT 4.98em, so the default factor would overflow BRANDING in split columns under about 825px wide where the cap doesn't bind (1024 and 768 wide). Each service therefore names its size in `SERVICES_SCENE`: Branding and Web design take the Service size, and Development the Long word size, about 127px in the 720px column (it could fit 144px there, but the linear scale must also fit a 249px landscape column).
 
 - **Numeral** (Antonio 700 digits, line-height 0.86, outlined with a 2px Lit Grey stroke and no fill, so the ring's dots show through the digits where its top arc crosses them; about 340px on desktop and 150px on a phone): the How I work step numbers only. Phase 8 sizes them from the frame. They are decorative and `aria-hidden`; the step title carries the meaning. They are the one exception to "Display is the name, and nothing else", and they drop to Title size, solid Dim Grey, in the reading list.
 - **Title** (Antonio 700, uppercase, line-height 0.95, 56px at 1440 and 44px at 390, `clamp(2.75rem, 2.47rem + 1.14vw, 3.5rem)`): the How I work step titles and the About stat values. It sits one clear step below the statement.
 - **Body** (Geist 400, 15px/1.55 on a phone and 18px/1.5 from 768px, Lit Grey, at most 40ch): the paragraph under a statement, the About story and the FAQ answers. Form fields use 16px below 768px (iOS Safari zooms the page into a smaller field on focus) and 15px from 768px.
 - **Lede** (Geist 400, uppercase, 14px/1.625 with 0.14em tracking from 768px; 13px/1.7 with 0.05em tracking on mobile): the hero tagline only. Maximum width is 34rem.
 - **Label** (Geist 400, uppercase, 14px, 0.025em tracking): nav links and the Contact action. The project tag uses it at 12px. The submit button takes the Label voice in Geist 500 (owner, Phase 5).
-- **Item** (Geist 400, uppercase, 13px/16px, 0.08em tracking, Lit Grey, after a Dim Grey number): numbered lists, such as the six items under each service.
+- **Item** (Geist 400, uppercase, 13px/16px, 0.08em tracking, Lit Grey, after a Dim Grey tabular number): numbered lists, such as the six items under each service. Each row has a Rule Grey hairline under it and is 40px tall on the split (12px padding). On a phone it is 36px, tightening to 28px on phones up to 44rem tall and 24px on short ones, so the dot object keeps its room. The list is an `<ol>`, so the visible number is an `aria-hidden` duplicate.
 - **Section label** (Geist 400, uppercase, 11px on a phone and 12px from 768px, 0.22em tracking, 16px line-height, Dim Grey): the one `<h2>` style. It names the section and, where the section has steps or several items, the position: "My services · 02 / 03". Every section from Projects to Contact opens with it, at the top left of its frame; the hero, the quote and the footer have none.
 - **Cue** (Geist 400, uppercase, 11px with 0.22em tracking at every width, Dim Grey): the scroll cue, plate chips, captions (the quote's author, a client's name, a stat's label, a project's stack line), the "Or email me" line and the footer bar.
 
@@ -326,7 +330,7 @@ Every corner is square. Buttons, inputs, plates, tags and focus rings are all sq
 
 **The One-Motion Rule.** Section content moves in one of two ways, and no section gets its own trick:
 
-- **Text: the light sweep.** A wipe from left to right, about 0.9s on the signal ease (`SIGNAL_EASE`, `cubic-bezier(0.65, 0, 0.35, 1)`). The name's intro sweeps with a soft 26px edge in the shader; the quote and the Services captions use a hard-edged clip-path wipe today. Phase 10 brings one sweep to every section and decides whether text gets the soft edge.
+- **Text: the light sweep.** A wipe from left to right, about 0.9s on the signal ease (`SIGNAL_EASE`, `cubic-bezier(0.65, 0, 0.35, 1)`). The name's intro sweeps with a soft 26px edge in the shader; the quote and the Services captions use a hard-edged clip-path wipe today. The Services captions don't run on a clock: the dots' own progress draws them, so they sweep at the pen's pace (see Thread). Phase 10 brings one sweep to every section and decides whether text gets the soft edge.
 - **Dots: the pen-order draw.** A shape draws in the order a pen would draw it, and un-draws from its start. Between shapes the dots travel on a staggered sweep and a gentle arc.
 
 Interface motion is separate and stays small: the header drop-in, the scroll-cue lift, hover and active states, the menu and FAQ disclosures, the How I work turn and the stats count-up.
@@ -413,11 +417,13 @@ The proof section. It is owner-editable in the dashboard (up to six projects). T
 
 The three services build one product, drawn by one dotted line.
 
-- **Layout:** the section label "My services · 01 / 03", the service name as the statement, the owner's short copy in Body, and the six items as a numbered list in Item type between Rule Grey hairlines (two columns of three on desktop, one column on a phone). The shape is on the right, large and vertically centred (600×480 at 1440); on a phone it sits above the statement (280px).
+- **Layout:** the section label "My services · 01 / 03", the service name as the statement, the owner's short copy in Body, and the six items as a numbered list in Item type between Rule Grey hairlines (two columns of three once the copy column is 30rem wide, else one column). The copy is vertically centred in the left column under the label. The shape is on the right, large and vertically centred (a 5:4 slot, 600×480 at 1440, the page about 420px wide); on a phone it sits above the statement, in a slot at most 280px wide that takes whatever height the copy leaves (320px on a 390×844 phone, 200px at 390×664, 152px at 375×548).
+- **The label's position** ("· 02 / 03") is an `aria-hidden` visual duplicate that follows the committed service. It shows only on the staged board, where it wipes with the captions. Wherever the captions are docking curtains or a reading list (reduced motion, no scroll-driven animations, short screens, a scene that cannot fit), the label reads just "My services", because curtains follow the scroll, not the trigger.
 - **Shapes:** three stages of one product, the mark (branding: a circle in front of a square), the mark in a page layout (web design) and the layout opening into code (development: the page stepped back, a code panel in front overlapping its right third). Each is seen in a 3/4 view with a slow sway, so it turns like the cube instead of reading as a flat icon; the mark and the code stage are set in depth, with their back layer dimmer.
 - **The thread:** between two services the dots leave the old drawing in pen order and arrive at the new one in pen order, each on a short hop. So the old line unwinds from its start while the new one draws from its start, joined by a thin, bowed stream of dots.
-- **Triggered, not scrubbed:** the scroll triggers each drawing and it then plays by itself (1.6s, sine-eased pen). Scrolling 12% into a transit commits to the next service; scrolling 12% back commits to the previous one, which un-draws. The scroll is never held (the One-Scroll Rule).
-- **Captions:** they follow the same trigger. The old caption wipes out at once (0.35s); the new one sweeps in like the quote as the drawing finishes (after 0.88s, 0.9s per line: name, then paragraph, then items, 0.12s apart).
+- **Triggered, not scrubbed:** the scroll triggers each drawing and it then plays by itself (1.6s, sine-eased pen). Scrolling 12% into a transit commits to the next service; scrolling 12% back commits to the previous one, which un-draws. The scroll is never held (the One-Scroll Rule). A fast scroll never skips a drawing: when the reader has already passed the next service, the pen hurries through it and then draws the one they stopped on at its own pace.
+- **Captions:** drawn by the same pen, never by a timer (owner, Phase 7). The old caption wipes out as its drawing unwinds, over the first half of the hop. The new one sweeps in from the left as its drawing forms, over the second half: the name first, then the paragraph, then the items. So the name lands with the drawing at any scroll speed, a fast scroll wipes it through quickly, and scrolling back reverses both. At the middle of the hop, when the drawing is half one shape and half the other, the text box is briefly clear, so two captions never overlap.
+- **Where it pins:** desktop, tablets and portrait phones from 360px wide, down to 375×548. Landscape phones and 320px-wide phones flow it as a reading list, because the six items can't fit under the statement in their frame. So do 400% zoom, and WCAG text spacing on phones and at laptop sizes (1440×900, 1024×768), where "Web design"'s two lines at line height 1.5 outgrow the board; 1920×1080 still pins.
 - **Entry and exit:** the classic burst flight, in from the Projects plate and on to How I work. Once How I work (Phase 8) and the projects deck (Phase 9) are thread scenes too, `isThreadSegment` treats those crossings as thread segments, because it has no same-scene check. Phase 8 decides whether a crossing between two scenes triggers or stays a scrubbed flight, and updates this line and the One-Scroll Rule.
 
 ### Orbit (How I work)

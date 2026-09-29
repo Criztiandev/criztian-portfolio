@@ -6,10 +6,10 @@ import {
   CONTEXT_OPTIONS,
   DOT_FIELD_MORPH_TUNING,
   DOT_FIELD_TUNING,
+  DOT_SCENE_MOTION,
   DOT_SCENE_SELECTOR,
   DOT_SLOT_SELECTOR,
   DOT_STAGE_SELECTOR,
-  DOT_THREAD_COMMIT_EVENT,
   HEIGHT_CHANGE_IGNORE_PX,
   HERO_INTRO_TIMING,
   IN_PAGE_ANCHOR_SELECTOR,
@@ -18,6 +18,8 @@ import {
   MORPH_LANDING_TOLERANCE_PX,
   RESIZE_DEBOUNCE_MS,
   SETTLED_INTRO_SECONDS,
+  THREAD_REVEAL_DECIMALS,
+  THREAD_REVEAL_PROPERTY_PREFIX,
 } from "@/data/hero.data"
 import {
   hasFontLoadingApi,
@@ -41,9 +43,7 @@ import {
   resolveIntroFrame,
   resolvePlacement,
   resolveSceneState,
-  resolveKeyframeRestTop,
-  isThreadKeyframeIndex,
-  resolveThreadCommit,
+  resolveThreadReveal,
   resolveThreadState,
   resolveStaticKeyframe,
   resolveArrivalStrike,
@@ -83,7 +83,6 @@ import type {
   DotFieldViewport,
   DotSceneKeyframe,
   DotSceneMeasure,
-  DotThreadCommitDetail,
   DotTimelineSegment,
   UseDotFieldRequest,
 } from "@/types/hero.type"
@@ -189,6 +188,22 @@ function readLayout(
     viewportHeight: resolveViewportHeight(scenes, layerRect.height),
     scenes,
   }
+}
+
+function readThreadContainers(stage: HTMLElement): HTMLElement[] {
+  const containers: HTMLElement[] = []
+
+  for (const container of stage.querySelectorAll<HTMLElement>(
+    DOT_SCENE_SELECTOR
+  )) {
+    const motion = DOT_SCENE_MOTION[container.dataset.dotScene ?? ""]
+
+    if (motion?.isThread === true) {
+      containers.push(container)
+    }
+  }
+
+  return containers
 }
 
 function hasLayoutSizeChanged(
@@ -334,11 +349,14 @@ export function useDotField(request: UseDotFieldRequest): void {
       let progressTarget = 0
       let previousScrollTarget = Number.NaN
       let threadState: string | null = null
+      const threadContainers = readThreadContainers(stage)
+      const threadReveals = new Map<string, string>()
       let staticIndex = -1
       let spinSeconds = 0
       let isFieldAtRest = true
       let sceneState = stage.dataset.scene ?? ""
       let jumpScrollTop: number | null = null
+      let isSnapPending = false
       let landedIndex = -1
       let strikeStartSeconds = Number.NEGATIVE_INFINITY
 
@@ -590,10 +608,40 @@ export function useDotField(request: UseDotFieldRequest): void {
         stage.dataset.thread = nextState
       }
 
+      function publishThreadReveal(): void {
+        for (let index = 0; index < keyframes.length; index += 1) {
+          const keyframe = keyframes[index]
+
+          if (keyframe?.isThread !== true) {
+            continue
+          }
+
+          const reveal = resolveThreadReveal(
+            progress,
+            index,
+            DOT_FIELD_MORPH_TUNING.threadCaptionSpan
+          ).toFixed(THREAD_REVEAL_DECIMALS)
+
+          if (threadReveals.get(keyframe.id) === reveal) {
+            continue
+          }
+
+          threadReveals.set(keyframe.id, reveal)
+
+          for (const container of threadContainers) {
+            container.style.setProperty(
+              THREAD_REVEAL_PROPERTY_PREFIX + keyframe.id,
+              reveal
+            )
+          }
+        }
+      }
+
       function drawSingleFrame(): void {
         drawDotField(runtime, buildFrame())
         publishSceneState()
         publishThreadState()
+        publishThreadReveal()
       }
 
       function canPush(): boolean {
@@ -655,13 +703,18 @@ export function useDotField(request: UseDotFieldRequest): void {
         previousTimestamp = timestamp
         elapsedSeconds += deltaSeconds
 
-        progress = followTriggeredProgress(
-          progress,
-          progressTarget,
-          deltaSeconds,
-          keyframes,
-          DOT_FIELD_MORPH_TUNING
-        )
+        if (isSnapPending) {
+          progress = progressTarget
+          isSnapPending = false
+        } else {
+          progress = followTriggeredProgress(
+            progress,
+            progressTarget,
+            deltaSeconds,
+            keyframes,
+            DOT_FIELD_MORPH_TUNING
+          )
+        }
 
         if (progress >= 1) {
           notifySettled()
@@ -712,6 +765,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         drawDotField(runtime, frame)
         publishSceneState()
         publishThreadState()
+        publishThreadReveal()
 
         const isLoopDone = shouldLoopSleep({
           isFieldAtRest,
@@ -788,41 +842,15 @@ export function useDotField(request: UseDotFieldRequest): void {
           committedTarget: progressTarget,
           trigger: DOT_FIELD_MORPH_TUNING.threadTrigger,
         })
+
+        if (Math.abs(scrollTarget - previousScrollTarget) > 1) {
+          isSnapPending = true
+        }
+
         previousScrollTarget = scrollTarget
         staticIndex = nextStaticIndex
 
         return hasStaticChanged
-      }
-
-      function announceThreadCommit(previousTarget: number): void {
-        if (jumpScrollTop !== null || prefersReducedMotion()) {
-          return
-        }
-
-        const committed = resolveThreadCommit(
-          keyframes,
-          previousTarget,
-          progressTarget
-        )
-
-        if (committed === null) {
-          return
-        }
-
-        let seconds = DOT_FIELD_MORPH_TUNING.threadArriveSeconds
-
-        if (isThreadKeyframeIndex(keyframes, previousTarget)) {
-          seconds = DOT_FIELD_MORPH_TUNING.threadDrawSeconds
-        }
-
-        const detail: DotThreadCommitDetail = {
-          top: resolveKeyframeRestTop(committed),
-          seconds,
-        }
-
-        window.dispatchEvent(
-          new CustomEvent(DOT_THREAD_COMMIT_EVENT, { detail })
-        )
       }
 
       function syncToScroll(): void {
@@ -832,10 +860,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       }
 
       function onScroll(): void {
-        const previousTarget = progressTarget
         const hasStaticChanged = readScrollTargets()
-
-        announceThreadCommit(previousTarget)
 
         if (prefersReducedMotion()) {
           if (hasStaticChanged) {

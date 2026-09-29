@@ -180,11 +180,14 @@
 }
 
 @utility caption-line {
-  clip-path: inset(-20% 100% -20% 0);
-  translate: -24px 0;
-  transition-property: clip-path, translate;
-  transition-duration: var(--caption-hide-seconds);
-  transition-timing-function: var(--signal-ease);
+  --line-reveal: clamp(
+    0,
+    var(--caption-reveal, 0) * (1 + 2 * var(--caption-stagger)) - var(--line) *
+      var(--caption-stagger),
+    1
+  );
+  clip-path: inset(-20% calc(100% - var(--line-reveal) * 104%) -20% 0);
+  translate: calc((1 - var(--line-reveal)) * -24px) 0;
 }
 
 @utility orbit-turn {
@@ -262,15 +265,17 @@
   }
 }
 
-@media screen and (prefers-reduced-motion: no-preference) {
-  [data-thread="branding"] [data-caption="branding"] [data-caption-line],
-  [data-thread="web-design"] [data-caption="web-design"] [data-caption-line],
-  [data-thread="development"] [data-caption="development"] [data-caption-line] {
-    clip-path: inset(-20% -4% -20% 0);
-    translate: 0 0;
-    transition-duration: var(--caption-show-seconds);
-    transition-delay: calc(
-      var(--caption-show-delay) + var(--line) * var(--caption-stagger)
-    );
-  }
+[data-caption="branding"],
+[data-position="branding"] {
+  --caption-reveal: var(--reveal-branding);
+}
+
+[data-caption="web-design"],
+[data-position="web-design"] {
+  --caption-reveal: var(--reveal-web-design);
+}
+
+[data-caption="development"],
+[data-position="development"] {
+  --caption-reveal: var(--reveal-development);
 }

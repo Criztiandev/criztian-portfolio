@@ -362,6 +362,46 @@ describe("SitePage", () => {
     expect(captions.join(" ")).toBe(SERVICES_SCENE.shapes)
   })
 
+  it("names the services label and keys its hidden position to each shape", () => {
+    const { container } = renderPage()
+    const heading = container.querySelector("#services h2")
+    const positions: string[] = []
+    const shapes: string[] = []
+
+    expect(heading).toHaveAccessibleName(SERVICES_SCENE.heading)
+
+    for (const position of container.querySelectorAll<HTMLElement>(
+      "#services h2 [data-position]"
+    )) {
+      positions.push(position.textContent ?? "")
+      shapes.push(position.dataset.position ?? "")
+      expect(position.closest("[aria-hidden='true']")).not.toBeNull()
+    }
+
+    expect(positions).toEqual([" · 01 / 03", " · 02 / 03", " · 03 / 03"])
+    expect(shapes.join(" ")).toBe(SERVICES_SCENE.shapes)
+  })
+
+  it("numbers every service item as a list with a hidden visual number", () => {
+    const { container } = renderPage()
+    const lists = container.querySelectorAll("#services [data-caption] ol")
+
+    expect(lists).toHaveLength(SERVICES_SCENE.steps.length)
+
+    for (const list of lists) {
+      const numbers: string[] = []
+
+      for (const item of list.querySelectorAll(":scope > li")) {
+        const number = item.firstElementChild
+
+        expect(number).toHaveAttribute("aria-hidden", "true")
+        numbers.push(number?.textContent ?? "")
+      }
+
+      expect(numbers).toEqual(["01", "02", "03", "04", "05", "06"])
+    }
+  })
+
   it("puts one orbit step on the rim for every process shape, in order", () => {
     const { container } = renderPage()
     const shapes: string[] = []

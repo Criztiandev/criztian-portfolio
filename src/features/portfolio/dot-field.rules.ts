@@ -906,19 +906,6 @@ export function followMorphProgress(
   return current + gap * blend
 }
 
-export function followTimelineProgress(
-  current: number,
-  target: number,
-  deltaSeconds: number,
-  tuning: DotFieldFollowTuning
-): number {
-  if (Math.abs(target - current) > 1) {
-    return target
-  }
-
-  return followMorphProgress(current, target, deltaSeconds, tuning)
-}
-
 export function isThreadSegment(
   from: DotSceneKeyframe | undefined,
   to: DotSceneKeyframe | undefined
@@ -982,15 +969,12 @@ function resolveNearerIndex(fromIndex: number, within: number): number {
   return fromIndex
 }
 
-export function isThreadKeyframeIndex(
-  keyframes: DotSceneKeyframe[],
-  target: number
-): boolean {
-  if (!Number.isInteger(target)) {
-    return false
+function resolveTravelSegment(current: number, direction: number): number {
+  if (direction > 0) {
+    return Math.floor(current)
   }
 
-  return keyframes[target]?.isThread === true
+  return Math.ceil(current) - 1
 }
 
 export function followTriggeredProgress(
@@ -1000,46 +984,33 @@ export function followTriggeredProgress(
   keyframes: DotSceneKeyframe[],
   tuning: DotFieldTriggerTuning
 ): number {
-  const lower = Math.floor(Math.min(current, target))
-  const isThreadPlay =
-    Math.max(current, target) <= lower + 1 &&
-    isThreadSegment(keyframes[lower], keyframes[lower + 1])
+  const distance = Math.abs(target - current)
+  const direction = Math.sign(target - current)
+  const segment = resolveTravelSegment(current, direction)
 
-  if (!isThreadPlay) {
-    return followTimelineProgress(current, target, deltaSeconds, tuning)
+  if (!isThreadSegment(keyframes[segment], keyframes[segment + 1])) {
+    return followMorphProgress(current, target, deltaSeconds, tuning)
   }
 
-  const step = deltaSeconds / tuning.threadDrawSeconds
+  const hurry = Math.max(0, distance - 1) / tuning.threadHurrySeconds
+  const step = deltaSeconds * (1 / tuning.threadDrawSeconds + hurry)
 
-  if (Math.abs(target - current) <= step) {
+  if (distance <= step) {
     return target
   }
 
-  return current + Math.sign(target - current) * step
+  return current + direction * step
 }
 
-export function resolveThreadCommit(
-  keyframes: DotSceneKeyframe[],
-  previousTarget: number,
-  nextTarget: number
-): DotSceneKeyframe | null {
-  if (previousTarget === nextTarget) {
-    return null
-  }
+export function resolveThreadReveal(
+  progress: number,
+  index: number,
+  span: number
+): number {
+  const distance = Math.abs(progress - index)
+  const linear = Math.min(1, Math.max(0, 1 - distance / span))
 
-  if (Math.abs(nextTarget - previousTarget) > 1) {
-    return null
-  }
-
-  if (!isThreadKeyframeIndex(keyframes, nextTarget)) {
-    return null
-  }
-
-  return keyframes[nextTarget] ?? null
-}
-
-export function resolveKeyframeRestTop(keyframe: DotSceneKeyframe): number {
-  return (keyframe.start + keyframe.end) / 2
+  return easeInOutSine(linear)
 }
 
 export function resolveThreadState(

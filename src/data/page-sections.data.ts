@@ -3,6 +3,7 @@ import type {
   ContactSectionContent,
   FaqSectionContent,
   PlaceholderSectionContent,
+  ServicesSceneContent,
   StatementSize,
   StepSceneContent,
   TestimonialsSectionContent,
@@ -46,6 +47,9 @@ export const SCENE_ANCHOR_TOLERANCE_PX = 1
 export const SECTION_FRAME_CLASS =
   "mx-auto w-full max-w-[105rem] scroll-mt-18 px-6 md:px-10"
 
+export const SCREEN_INSET_CLASS =
+  "[--screen-top:1.75rem] [--screen-bottom:1.5rem] split:[--screen-top:min(3.5rem,6svh)] split:[--screen-bottom:min(4rem,7svh)] short:[--screen-top:1rem] short:[--screen-bottom:1rem]"
+
 export const SCREEN_CLASS =
   "flex flex-col pt-7 pb-6 split:grid split:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] split:grid-rows-[auto_1fr] split:gap-x-10 split:gap-y-4 split:pt-[min(3.5rem,6svh)] split:pb-[min(4rem,7svh)] short:pt-4 short:pb-4"
 
@@ -81,6 +85,10 @@ export const STATEMENT_CLASS =
 export const STATEMENT_SIZE_CLASSES: Record<StatementSize, string> = {
   default:
     "text-[length:min(4.5rem,calc(19cqi_+_0.5rem),max(10svh,2.5rem))]/[0.95] split:text-[length:min(11rem,calc(26cqi_+_0.5rem),20svh)]/[0.95]",
+  service:
+    "text-[length:min(4.5rem,calc(19cqi_+_0.5rem),max(10svh,2.5rem))]/[0.95] split:text-[length:min(11rem,calc(23cqi_+_0.5rem),20svh)]/[0.95]",
+  longWord:
+    "text-[length:min(4.5rem,calc(16.5cqi_+_0.5rem),max(10svh,2.5rem))]/[0.95] split:text-[length:min(11rem,calc(16.5cqi_+_0.5rem),20svh)]/[0.95]",
   belief:
     "text-[length:min(3.25rem,calc(14cqi_+_0.5rem))]/[0.95] split:text-[length:min(8.5rem,calc(18cqi_+_0.5rem),16svh)]/[0.95]",
   client:
@@ -95,6 +103,9 @@ export const BODY_CLASS =
 
 export const TITLE_CLASS =
   "font-display text-[length:clamp(2.75rem,2.47rem_+_1.14vw,3.5rem)] leading-[0.95] font-bold uppercase"
+
+export const ITEM_CLASS =
+  "text-[0.8125rem] leading-4 tracking-[0.08em] text-foreground/75 uppercase"
 
 export const CUE_CLASS =
   "text-[0.6875rem] leading-4 tracking-[0.22em] text-muted-foreground uppercase"
@@ -133,11 +144,6 @@ export const SECTION_TITLE_CLASS =
 
 export const SECTION_BODY_CLASS = "text-base text-foreground/75"
 
-export const SECTION_LEDE_CLASS =
-  "text-[0.8125rem] leading-[1.7] tracking-[0.05em] uppercase md:text-sm md:leading-relaxed md:tracking-[0.14em]"
-
-export const LABEL_CLASS = "text-xs tracking-[0.025em] uppercase"
-
 export const FOCUS_RING_CLASS =
   "scroll-mt-18 outline-none focus-visible:ring-[3px] focus-visible:ring-foreground/50 focus-visible:outline-hidden"
 
@@ -147,7 +153,7 @@ export const ORBIT_CIRCLE_CLASS =
 export const DUST_SECTION_SPACING_CLASS =
   "pt-[max(6rem,14svh)] pb-[max(3rem,6svh)]"
 
-export const SERVICES_SCENE: StepSceneContent = {
+export const SERVICES_SCENE: ServicesSceneContent = {
   id: "services",
   headingId: "services-heading",
   heading: "My services",
@@ -156,6 +162,7 @@ export const SERVICES_SCENE: StepSceneContent = {
   steps: [
     {
       title: "Branding",
+      size: "service",
       body: "Brand stories that connect with your audience and build long-term trust.",
       items: [
         "Visual content strategy",
@@ -168,6 +175,7 @@ export const SERVICES_SCENE: StepSceneContent = {
     },
     {
       title: "Web design",
+      size: "service",
       body: "Creative and functional, with no AI slop. Every layout and interaction is made for your brand.",
       items: [
         "Responsive design",
@@ -180,7 +188,8 @@ export const SERVICES_SCENE: StepSceneContent = {
     },
     {
       title: "Development",
-      body: "From static sites to full CMS solutions, I develop high-performance, scalable websites tailored to your business needs, ensuring fast loading speeds, security and flexibility.",
+      size: "longWord",
+      body: "High-performance, scalable websites tailored to your business.",
       items: [
         "Web development",
         "SEO-friendly structure",

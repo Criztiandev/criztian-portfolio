@@ -130,7 +130,8 @@ export type DotFieldMorphTuning = {
   threadSpin: number
   threadTrigger: number
   threadDrawSeconds: number
-  threadArriveSeconds: number
+  threadHurrySeconds: number
+  threadCaptionSpan: number
 }
 
 export type DotSceneMotion = {
@@ -144,7 +145,10 @@ export type DotFieldFollowTuning = Pick<
 >
 
 export type DotFieldTriggerTuning = DotFieldFollowTuning &
-  Pick<DotFieldMorphTuning, "threadTrigger" | "threadDrawSeconds">
+  Pick<
+    DotFieldMorphTuning,
+    "threadTrigger" | "threadDrawSeconds" | "threadHurrySeconds"
+  >
 
 export type DotShapeTuning = {
   fit: DotShapeFit
@@ -197,11 +201,6 @@ export type DotTriggeredTargetRequest = {
   previousScrollTarget: number
   committedTarget: number
   trigger: number
-}
-
-export type DotThreadCommitDetail = {
-  top: number
-  seconds: number
 }
 
 export type DotTimelineSegment = {

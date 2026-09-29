@@ -4,10 +4,7 @@ import {
   SIGNAL_EASE,
 } from "@/data/hero.data"
 import {
-  CAPTION_HIDE_SECONDS,
-  CAPTION_LINE_STAGGER_SECONDS,
-  CAPTION_SHOW_DELAY_SHARE,
-  CAPTION_SHOW_SECONDS,
+  CAPTION_LINE_STAGGER,
   ORBIT_DIGIT_TILTS_DEGREES,
   ORBIT_RING_PATH_LENGTH,
   ORBIT_RING_SPIN_RATIO,
@@ -63,14 +60,7 @@ export function buildStepSceneStyle(stepCount: number): StepMotionStyle {
 }
 
 export function buildThreadCaptionStyle(): StepMotionStyle {
-  return {
-    "--caption-show-delay": `${
-      DOT_FIELD_MORPH_TUNING.threadDrawSeconds * CAPTION_SHOW_DELAY_SHARE
-    }s`,
-    "--caption-show-seconds": `${CAPTION_SHOW_SECONDS}s`,
-    "--caption-stagger": `${CAPTION_LINE_STAGGER_SECONDS}s`,
-    "--caption-hide-seconds": `${CAPTION_HIDE_SECONDS}s`,
-  }
+  return { "--caption-stagger": CAPTION_LINE_STAGGER }
 }
 
 export function buildTravelStyle(handover: StepHandover): StepMotionStyle {

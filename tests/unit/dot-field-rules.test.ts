@@ -27,7 +27,6 @@ import {
   clampFontSize,
   createRandomSource,
   followMorphProgress,
-  followTimelineProgress,
   followTriggeredProgress,
   generateCubePoints,
   generateDustPoints,
@@ -46,9 +45,8 @@ import {
   resolvePlacement,
   resolvePointTotal,
   resolveSceneState,
-  resolveKeyframeRestTop,
   resolveStaticKeyframe,
-  resolveThreadCommit,
+  resolveThreadReveal,
   resolveThreadState,
   resolveTimelinePosition,
   resolveTriggeredTarget,
@@ -756,19 +754,6 @@ describe("followMorphProgress", () => {
   })
 })
 
-describe("followTimelineProgress", () => {
-  it("eases within one segment", () => {
-    const next = followTimelineProgress(1, 1.8, 1 / 60, DOT_FIELD_MORPH_TUNING)
-
-    expect(next).toBeGreaterThan(1)
-    expect(next).toBeLessThan(1.8)
-  })
-
-  it("snaps when the target is more than one segment away", () => {
-    expect(followTimelineProgress(0, 3, 1 / 60, DOT_FIELD_MORPH_TUNING)).toBe(3)
-  })
-})
-
 describe("parseSceneShapes", () => {
   it("keeps known shapes in order and drops the rest", () => {
     expect(parseSceneShapes("cube  bogus frame")).toEqual(["cube", "frame"])
@@ -945,6 +930,35 @@ const THREAD_TIMELINE: DotSceneKeyframe[] = [
   },
 ]
 
+const SERVICE_TIMELINE: DotSceneKeyframe[] = [
+  { id: "cube", shape: "cube", start: 0, end: 100, slot: SLOT },
+  {
+    id: "branding",
+    shape: "branding",
+    start: 500,
+    end: 600,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "web-design",
+    shape: "web-design",
+    start: 1000,
+    end: 1100,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "development",
+    shape: "development",
+    start: 1500,
+    end: 1600,
+    slot: SLOT,
+    isThread: true,
+  },
+  { id: "listening", shape: "listening", start: 2000, end: 2100, slot: SLOT },
+]
+
 const TRIGGER = DOT_FIELD_MORPH_TUNING.threadTrigger
 
 function triggerAt(
@@ -1031,39 +1045,111 @@ describe("followTriggeredProgress", () => {
         THREAD_TIMELINE,
         DOT_FIELD_MORPH_TUNING
       )
-    ).toBe(followTimelineProgress(0.2, 0.6, 0.1, DOT_FIELD_MORPH_TUNING))
+    ).toBe(followMorphProgress(0.2, 0.6, 0.1, DOT_FIELD_MORPH_TUNING))
+  })
+
+  it("hurries through a drawing the reader has already scrolled past, never skipping it", () => {
+    const frame = 1 / 60
+    const next = followTriggeredProgress(
+      1.4,
+      3,
+      frame,
+      SERVICE_TIMELINE,
+      DOT_FIELD_MORPH_TUNING
+    )
+
+    expect(next).toBeGreaterThan(1.4 + frame / seconds)
+    expect(next).toBeLessThan(2)
+  })
+
+  it("finishes the passed drawing fast, then draws the committed one at its own pace", () => {
+    const frame = 1 / 60
+    let progress = 1.4
+    let frames = 0
+    let framesToPassedShape = 0
+
+    while (progress < 3 && frames < 600) {
+      const next = followTriggeredProgress(
+        progress,
+        3,
+        frame,
+        SERVICE_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+
+      expect(next - progress).toBeLessThan(0.1)
+      progress = next
+      frames += 1
+
+      if (framesToPassedShape === 0 && progress >= 2) {
+        framesToPassedShape = frames
+      }
+    }
+
+    expect(progress).toBe(3)
+    expect(framesToPassedShape * frame).toBeLessThan(0.5)
+    expect(frames * frame).toBeLessThan(seconds + 0.5)
+  })
+
+  it("un-draws back through a threaded shape without skipping it", () => {
+    const next = followTriggeredProgress(
+      2.6,
+      1,
+      1 / 60,
+      SERVICE_TIMELINE,
+      DOT_FIELD_MORPH_TUNING
+    )
+
+    expect(next).toBeLessThan(2.6)
+    expect(next).toBeGreaterThan(2)
+  })
+
+  it("follows the flight out of the scene smoothly, even two segments behind", () => {
+    const next = followTriggeredProgress(
+      3,
+      4.8,
+      1 / 60,
+      SERVICE_TIMELINE,
+      DOT_FIELD_MORPH_TUNING
+    )
+
+    expect(next).toBe(
+      followMorphProgress(3, 4.8, 1 / 60, DOT_FIELD_MORPH_TUNING)
+    )
+    expect(next).toBeLessThan(4)
   })
 })
 
-describe("resolveThreadCommit", () => {
-  it("announces a move from one threaded shape to the next", () => {
-    expect(resolveThreadCommit(THREAD_TIMELINE, 1, 2)?.id).toBe("web-design")
-    expect(resolveThreadCommit(THREAD_TIMELINE, 2, 1)?.id).toBe("branding")
+describe("resolveThreadReveal", () => {
+  const span = DOT_FIELD_MORPH_TUNING.threadCaptionSpan
+
+  it("shows a caption fully while its drawing is formed", () => {
+    expect(resolveThreadReveal(2, 2, span)).toBe(1)
   })
 
-  it("announces an arrival into the threaded scene so the reader stops there", () => {
-    expect(resolveThreadCommit(THREAD_TIMELINE, 0.6, 1)?.id).toBe("branding")
-    expect(resolveThreadCommit(THREAD_TIMELINE, 0, 1)?.id).toBe("branding")
+  it("hides a caption once the pen is half way to the next drawing", () => {
+    expect(resolveThreadReveal(2 + span, 2, span)).toBe(0)
+    expect(resolveThreadReveal(2 - span, 2, span)).toBe(0)
+    expect(resolveThreadReveal(3.4, 2, span)).toBe(0)
   })
 
-  it("never holds the reader after a jump across scenes", () => {
-    expect(resolveThreadCommit(THREAD_TIMELINE, 0, 2)).toBeNull()
-  })
+  it("never shows two captions at once during a hop", () => {
+    for (let step = 0; step <= 20; step += 1) {
+      const progress = 1 + step / 20
+      const outgoing = resolveThreadReveal(progress, 1, span)
+      const incoming = resolveThreadReveal(progress, 2, span)
 
-  it("stays quiet when nothing changed or the target is not a threaded shape", () => {
-    expect(resolveThreadCommit(THREAD_TIMELINE, 2, 2)).toBeNull()
-    expect(resolveThreadCommit(THREAD_TIMELINE, 1, 0.4)).toBeNull()
-    expect(resolveThreadCommit(THREAD_TIMELINE, 1, 0)).toBeNull()
-  })
-
-  it("rests a committed shape at the middle of its range", () => {
-    const branding = THREAD_TIMELINE[1]
-
-    if (branding === undefined) {
-      throw new Error("missing keyframe")
+      expect(Math.min(outgoing, incoming)).toBe(0)
     }
+  })
 
-    expect(resolveKeyframeRestTop(branding)).toBe(550)
+  it("follows the pen both ways, so scrolling back reverses it", () => {
+    const early = resolveThreadReveal(1.7, 2, span)
+    const late = resolveThreadReveal(1.9, 2, span)
+
+    expect(early).toBeGreaterThan(0)
+    expect(late).toBeGreaterThan(early)
+    expect(resolveThreadReveal(2.3, 2, span)).toBeCloseTo(early, 9)
   })
 })
 

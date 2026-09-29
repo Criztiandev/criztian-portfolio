@@ -59,7 +59,7 @@ export function ProcessSection() {
       <span
         aria-hidden="true"
         className={cn(
-          "pointer-events-auto relative -top-[0.078em] block shrink-0 font-display text-[length:var(--orbit-numeral)] leading-[0.86] font-bold whitespace-nowrap text-background",
+          "pointer-events-auto relative -top-[0.078em] block shrink-0 font-display text-[length:var(--orbit-numeral)] leading-[0.86] font-bold whitespace-nowrap text-background [contain:layout]",
           "[-webkit-text-stroke:2px_color-mix(in_oklab,var(--foreground)_75%,transparent)]",
           "forced-colors:hidden",
           "unpinned:top-0 unpinned:text-[length:clamp(1.5rem,1rem_+_1.5vw,2.25rem)] unpinned:text-muted-foreground unpinned:[-webkit-text-stroke:0]"
