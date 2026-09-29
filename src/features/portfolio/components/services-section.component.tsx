@@ -14,11 +14,12 @@ import {
 import { SceneFitGate } from "@/features/portfolio/components/scene-fit-gate.component"
 import { formatSectionPosition } from "@/features/portfolio/section-label.rules"
 import {
+  buildLineStyle,
   buildStepSceneStyle,
   buildThreadCaptionStyle,
 } from "@/features/portfolio/step-motion.rules"
 import { cn } from "@/lib/utils"
-import type { ServiceStep, StepMotionStyle } from "@/types/page-sections.type"
+import type { ServiceStep } from "@/types/page-sections.type"
 
 export function ServicesSection() {
   const { id, headingId, heading, sceneId, shapes, steps } = SERVICES_SCENE
@@ -28,18 +29,12 @@ export function ServicesSection() {
     ...buildThreadCaptionStyle(),
   }
 
-  function buildLineStyle(line: number): React.CSSProperties {
-    const style: StepMotionStyle = { "--line": line }
-
-    return style as React.CSSProperties
-  }
-
   function renderPosition(shapeId: string, stepIndex: number) {
     return (
       <span
         key={shapeId}
         data-position={shapeId}
-        style={buildLineStyle(0)}
+        style={buildLineStyle(0) as React.CSSProperties}
         className="whitespace-pre [grid-area:1/1] staged:caption-line"
       >
         {formatSectionPosition(stepIndex, steps.length)}
@@ -82,7 +77,7 @@ export function ServicesSection() {
         <div className="@container w-full split:my-auto">
           <h3
             data-caption-line=""
-            style={buildLineStyle(0)}
+            style={buildLineStyle(0) as React.CSSProperties}
             className={cn(
               STATEMENT_CLASS,
               STATEMENT_SIZE_CLASSES[step.size],
@@ -94,7 +89,7 @@ export function ServicesSection() {
 
           <p
             data-caption-line=""
-            style={buildLineStyle(1)}
+            style={buildLineStyle(1) as React.CSSProperties}
             className={cn(
               BODY_CLASS,
               "mt-3 split:mt-[min(2rem,3.5svh)] short:mt-2 staged:caption-line"
@@ -105,7 +100,7 @@ export function ServicesSection() {
 
           <ol
             data-caption-line=""
-            style={buildLineStyle(2)}
+            style={buildLineStyle(2) as React.CSSProperties}
             className={cn(
               ITEM_CLASS,
               "mt-5 grid split:mt-[min(2.5rem,4svh)] short:mt-3",

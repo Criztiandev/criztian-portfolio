@@ -190,6 +190,16 @@
   translate: calc((1 - var(--line-reveal)) * -24px) 0;
 }
 
+@utility plate-sweep {
+  --line-reveal: clamp(
+    0,
+    var(--caption-reveal, 0) * (1 + 2 * var(--caption-stagger)) - var(--line) *
+      var(--caption-stagger),
+    1
+  );
+  clip-path: inset(0 calc(100% - var(--line-reveal) * 100%) 0 0);
+}
+
 @utility orbit-step {
   --orbit-assemble: clamp(
     0,
@@ -237,6 +247,38 @@
   to {
     stroke-dashoffset: calc(-1 * var(--orbit-spin));
   }
+}
+
+[data-caption="project-1"] {
+  --caption-reveal: var(--reveal-project-1);
+}
+
+[data-caption="project-2"] {
+  --caption-reveal: var(--reveal-project-2);
+}
+
+[data-caption="project-3"] {
+  --caption-reveal: var(--reveal-project-3);
+}
+
+[data-caption="project-4"] {
+  --caption-reveal: var(--reveal-project-4);
+}
+
+[data-caption="project-5"] {
+  --caption-reveal: var(--reveal-project-5);
+}
+
+[data-caption="project-6"] {
+  --caption-reveal: var(--reveal-project-6);
+}
+
+[data-deck]:has(:focus-visible) [data-caption] {
+  --caption-reveal: 0;
+}
+
+[data-deck] [data-caption]:has(:focus-visible) {
+  --caption-reveal: 1;
 }
 
 [data-caption="branding"],

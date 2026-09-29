@@ -3,19 +3,19 @@ import Image from "next/image"
 import {
   BODY_CLASS,
   CUE_CLASS,
-  FRAME_SCENE_SHAPES,
   PLATE_CHIP_CLASS,
   PLATE_CLASS,
+  PROJECT_CARD_CLASS,
   PROJECT_PLATE_CLASS,
   PROJECT_PLATE_WINDOW_CLASS,
   PROJECT_SCREEN_COLUMNS_CLASS,
   PROJECT_SCREEN_WINDOW_CLASS,
+  PROJECT_TITLE_LINK_CLASS,
   SCREEN_CLASS,
   SCREEN_COPY_CLASS,
   SCREEN_HEIGHT_CLASS,
   SCREEN_LABEL_BOX_CLASS,
   SCREEN_LABEL_CLASS,
-  SCENE_FLOW_SHAPES,
   SCREEN_OBJECT_CLASS,
   SECTION_FRAME_CLASS,
   SECTION_LABEL_CLASS,
@@ -30,25 +30,53 @@ import {
   PROJECT_PLACEHOLDER_IMAGE,
   PROJECTS_HEADING_ID,
   PROJECTS_LABEL,
+  PROJECTS_SCENE_ID,
 } from "@/data/portfolio.data"
+import { SceneFitGate } from "@/features/portfolio/components/scene-fit-gate.component"
+import { formatSceneStepId } from "@/features/portfolio/dot-field.rules"
 import {
+  buildDeckShapes,
   resolveProjectHref,
   resolveProjectImage,
   selectVisibleProjects,
 } from "@/features/portfolio/projects.rules"
 import { formatSectionPosition } from "@/features/portfolio/section-label.rules"
+import {
+  buildLineStyle,
+  buildShownCaptionStyle,
+  buildStepSceneStyle,
+  buildThreadCaptionStyle,
+} from "@/features/portfolio/step-motion.rules"
 import { cn } from "@/lib/utils"
 import type { ProjectsSectionProps } from "@/types/portfolio.type"
 import type { ProjectItem } from "@/types/site-content.type"
 
 export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
   const visibleProjects = selectVisibleProjects(projects.items)
-  const hasProjects = visibleProjects.length > 0
+  const projectCount = visibleProjects.length
+  const hasProjects = projectCount > 0
+  const isDeck = projectCount > 1
+  const shapes = buildDeckShapes(projectCount)
   const screenClass = cn(SCREEN_CLASS, PROJECT_SCREEN_COLUMNS_CLASS)
   const plateClass = cn(PLATE_CLASS, SCREEN_OBJECT_CLASS, PROJECT_PLATE_CLASS)
+  const sceneStyle = {
+    ...buildStepSceneStyle(Math.max(projectCount, 1)),
+    ...buildThreadCaptionStyle(),
+  }
+
+  function renderPosition(index: number) {
+    return (
+      <span
+        aria-hidden="true"
+        style={buildLineStyle(0) as React.CSSProperties}
+        className="inline-block whitespace-pre staged:pointer-events-auto staged:caption-line"
+      >
+        {formatSectionPosition(index, projectCount)}
+      </span>
+    )
+  }
 
   function renderLabel(index: number) {
-    const position = formatSectionPosition(index, visibleProjects.length)
     const labelClass = cn(
       SECTION_LABEL_CLASS,
       SCREEN_LABEL_CLASS,
@@ -58,8 +86,10 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
     if (index > 0) {
       return (
         <p aria-hidden="true" className={labelClass}>
-          {PROJECTS_LABEL}
-          {position}
+          <span className="inline-block staged:invisible">
+            {PROJECTS_LABEL}
+          </span>
+          {renderPosition(index)}
         </p>
       )
     }
@@ -67,7 +97,7 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
     return (
       <h2 id={PROJECTS_HEADING_ID} className={labelClass}>
         {PROJECTS_LABEL}
-        <span aria-hidden="true">{position}</span>
+        {renderPosition(index)}
       </h2>
     )
   }
@@ -107,7 +137,13 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
 
   function renderPlate(project: ProjectItem) {
     return (
-      <div className={plateClass}>
+      <div
+        style={buildLineStyle(0) as React.CSSProperties}
+        className={cn(
+          plateClass,
+          "staged:pointer-events-auto staged:plate-sweep"
+        )}
+      >
         <span aria-hidden="true" className={PROJECT_PLATE_WINDOW_CLASS} />
 
         <div className="absolute inset-0 overflow-hidden">
@@ -129,12 +165,7 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className={cn(
-          "scroll-mt-18 outline-none after:absolute after:inset-[3px] split:after:inset-0",
-          "focus-visible:outline-hidden",
-          "focus-visible:after:ring-[3px]",
-          "focus-visible:after:ring-foreground/50"
-        )}
+        className={PROJECT_TITLE_LINK_CLASS}
       >
         {project.title} <span className="sr-only">{PROJECT_NEW_TAB_LABEL}</span>
       </a>
@@ -142,33 +173,56 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
   }
 
   function renderProject(project: ProjectItem, index: number) {
+    const captionId = isDeck
+      ? formatSceneStepId(PROJECTS_SCENE_ID, index)
+      : undefined
+    const captionStyle = isDeck ? undefined : buildShownCaptionStyle()
+
     return (
-      <li key={index}>
+      <li
+        key={index}
+        data-caption={captionId}
+        style={captionStyle as React.CSSProperties}
+        className={cn(PROJECT_SCREEN_WINDOW_CLASS, "staged:[grid-area:1/1]")}
+      >
         <article
-          className={cn(
-            screenClass,
-            "relative",
-            SCREEN_HEIGHT_CLASS,
-            PROJECT_SCREEN_WINDOW_CLASS
-          )}
+          data-fit-box=""
+          className={cn(screenClass, SCREEN_HEIGHT_CLASS, PROJECT_CARD_CLASS)}
         >
           {renderLabel(index)}
 
           {renderPlate(project)}
 
           <div className={cn(SCREEN_COPY_CLASS, SHORT_SCREEN_COPY_GAP_CLASS)}>
-            <h3 className={cn(STATEMENT_CLASS, STATEMENT_SIZE_CLASSES.default)}>
+            <h3
+              style={buildLineStyle(0) as React.CSSProperties}
+              className={cn(
+                STATEMENT_CLASS,
+                STATEMENT_SIZE_CLASSES.default,
+                "staged:pointer-events-auto staged:relative staged:caption-line"
+              )}
+            >
               {renderTitle(project)}
             </h3>
 
             <p
               hidden={project.summary === ""}
-              className={cn(BODY_CLASS, "mt-4 split:mt-8")}
+              style={buildLineStyle(1) as React.CSSProperties}
+              className={cn(
+                BODY_CLASS,
+                "mt-4 split:mt-8 staged:pointer-events-auto staged:caption-line"
+              )}
             >
               {project.summary}
             </p>
 
-            <div className="mt-5 flex flex-wrap items-center gap-4 split:mt-6 split:gap-5">
+            <div
+              style={buildLineStyle(2) as React.CSSProperties}
+              className={cn(
+                "mt-5 flex flex-wrap items-center gap-4 split:mt-6 split:gap-5",
+                "staged:pointer-events-auto staged:caption-line"
+              )}
+            >
               <span
                 hidden={project.tag === ""}
                 className={cn(
@@ -201,11 +255,16 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
 
   return (
     <section
-      id="project"
-      data-dot-scene="project"
-      data-dot-shapes={hasProjects ? FRAME_SCENE_SHAPES : SCENE_FLOW_SHAPES}
+      id={PROJECTS_SCENE_ID}
+      data-dot-scene={PROJECTS_SCENE_ID}
+      data-dot-shapes={shapes}
       aria-labelledby={PROJECTS_HEADING_ID}
-      className={cn(SECTION_FRAME_CLASS, "grid text-foreground")}
+      style={sceneStyle as React.CSSProperties}
+      className={cn(
+        SECTION_FRAME_CLASS,
+        "grid text-foreground",
+        "h-[calc(var(--steps)_*_(100svh_-_4.5rem))] unpinned:h-auto [@media(scripting:none)]:h-auto"
+      )}
     >
       <div
         className={cn(
@@ -221,16 +280,23 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
             aria-hidden="true"
             className={cn(
               plateClass,
-              "touch-pan-y touch-pinch-zoom",
-              "group-data-[status=unsupported]/stage:hidden"
+              "pointer-events-none group-data-[status=unsupported]/stage:hidden"
             )}
           />
         ) : null}
       </div>
 
-      <ol className="relative [grid-area:1/1]">
+      <ol
+        data-deck=""
+        className={cn(
+          "relative [grid-area:1/1]",
+          "staged:pointer-events-none staged:sticky staged:top-18 staged:grid staged:h-[calc(100svh_-_4.5rem)] staged:self-start"
+        )}
+      >
         {hasProjects ? visibleProjects.map(renderProject) : renderEmptyScreen()}
       </ol>
+
+      <SceneFitGate shapes={shapes} />
     </section>
   )
 }

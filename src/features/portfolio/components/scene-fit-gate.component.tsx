@@ -183,7 +183,11 @@ export function SceneFitGate({ shapes }: Readonly<SceneFitGateProps>) {
         window.cancelAnimationFrame(frameId)
         observer?.disconnect()
         motionQuery?.removeEventListener("change", scheduleCheck)
-        pinScene()
+        delete container.dataset.fit
+
+        if (!slot.hasAttribute(SCENE_SLOT_ATTRIBUTE)) {
+          slot.setAttribute(SCENE_SLOT_ATTRIBUTE, "")
+        }
       }
     },
     [shapes]

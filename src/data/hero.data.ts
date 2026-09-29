@@ -70,6 +70,8 @@ export const THREAD_REVEAL_DECIMALS = 3
 
 export const THREAD_TURN_PROPERTY = "--thread-turn"
 
+export const SCENE_STEP_ID_SEPARATOR = "-"
+
 export const JUMP_CANCEL_EVENTS = [
   "wheel",
   "touchstart",
@@ -742,9 +744,11 @@ export const DOT_FIELD_MORPH_TUNING: DotFieldMorphTuning = {
   threadDrawSeconds: 1.6,
   threadHurrySeconds: 0.15,
   threadCaptionSpan: 0.5,
+  redrawEdge: 0.02,
 }
 
 export const DOT_SCENE_MOTION: Record<string, DotSceneMotion> = {
+  project: { share: 0.72, isThread: true, hasTurn: false },
   services: { share: 0.72, isThread: true, hasTurn: false },
   process: { share: 0.4, isThread: true, hasTurn: true },
 }

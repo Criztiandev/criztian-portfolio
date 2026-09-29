@@ -14,13 +14,14 @@ import { SceneFitGate } from "@/features/portfolio/components/scene-fit-gate.com
 import { formatSectionPosition } from "@/features/portfolio/section-label.rules"
 import {
   buildDigitStyle,
+  buildLineStyle,
   buildOrbitStepStyle,
   buildOrbitStyle,
   buildStepSceneStyle,
   buildThreadCaptionStyle,
 } from "@/features/portfolio/step-motion.rules"
 import { cn } from "@/lib/utils"
-import type { SceneStep, StepMotionStyle } from "@/types/page-sections.type"
+import type { SceneStep } from "@/types/page-sections.type"
 
 export function ProcessSection() {
   const { id, headingId, heading, sceneId, shapes, steps } = PROCESS_SCENE
@@ -31,18 +32,12 @@ export function ProcessSection() {
     ...buildOrbitStyle(),
   }
 
-  function buildLineStyle(line: number): React.CSSProperties {
-    const style: StepMotionStyle = { "--line": line }
-
-    return style as React.CSSProperties
-  }
-
   function renderPosition(shapeId: string, stepIndex: number) {
     return (
       <span
         key={shapeId}
         data-position={shapeId}
-        style={buildLineStyle(0)}
+        style={buildLineStyle(0) as React.CSSProperties}
         className="whitespace-pre [grid-area:1/1] staged:caption-line"
       >
         {formatSectionPosition(stepIndex, steps.length)}
@@ -103,7 +98,7 @@ export function ProcessSection() {
         {renderNumeral(stepIndex)}
 
         <h3
-          style={buildLineStyle(0)}
+          style={buildLineStyle(0) as React.CSSProperties}
           className={cn(
             TITLE_CLASS,
             "pointer-events-auto mt-[calc(0.12_*_var(--orbit-numeral))] text-balance",
@@ -116,7 +111,7 @@ export function ProcessSection() {
         </h3>
 
         <p
-          style={buildLineStyle(1)}
+          style={buildLineStyle(1) as React.CSSProperties}
           className={cn(
             BODY_CLASS,
             "pointer-events-auto mt-4 text-balance short:mt-2 short:text-sm",

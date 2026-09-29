@@ -3,8 +3,10 @@ import type { Page } from "@playwright/test"
 
 import {
   PROCESS_SCENE_SHAPES,
+  PROJECT_PLATE_WINDOW_CLASS,
   SERVICES_SCENE_SHAPES,
 } from "@/data/page-sections.data"
+import { buildDeckShapes } from "@/features/portfolio/projects.rules"
 
 const GL_PROBLEM_PATTERN = /INVALID_|GL_INVALID|WebGL: /
 
@@ -33,9 +35,14 @@ const DEEP_LINK_TOLERANCE_PX = 2
 const SCROLL_REST_FRAMES = 20
 
 const STEP_SCENES = [
+  { id: "project", shapes: null },
   { id: "services", shapes: SERVICES_SCENE_SHAPES },
   { id: "process", shapes: PROCESS_SCENE_SHAPES },
 ]
+
+const TRANSPARENT_BACKGROUND_PATTERN = /^rgba\(\d+, \d+, \d+, 0\)$/
+
+const OPAQUE_BACKGROUND_PATTERN = /^rgb\(/
 
 const SINGLE_FRAME_SCENES = ["#about", "#testimonials"]
 
@@ -108,6 +115,20 @@ const DEEP_LINK_HASHES = [
   "#contact",
 ]
 
+const DECK_SELECTOR = "#project"
+
+const DECK_FIT_VIEWPORTS = [
+  { width: 375, height: 548, hasTextSpacing: false },
+  { width: 360, height: 560, hasTextSpacing: false },
+  { width: 390, height: 664, hasTextSpacing: false },
+  { width: 740, height: 360, hasTextSpacing: false },
+  { width: 740, height: 304, hasTextSpacing: false },
+  { width: 740, height: 280, hasTextSpacing: false },
+  { width: 667, height: 320, hasTextSpacing: false },
+  { width: 1440, height: 900, hasTextSpacing: true },
+  { width: 740, height: 360, hasTextSpacing: true },
+]
+
 const DEEP_LINK_VIEWPORTS = [
   { width: 320, height: 256, isServicesFlowing: true },
   { width: 375, height: 548, isServicesFlowing: false },
@@ -178,6 +199,22 @@ async function waitForScrollRest(page: Page) {
   }, SCROLL_REST_FRAMES)
 }
 
+async function readSceneShapes(
+  page: Page,
+  sceneId: string,
+  shapes: string | null
+) {
+  if (shapes !== null) {
+    return shapes
+  }
+
+  const cardCount = await page.locator(`#${sceneId} [data-fit-box]`).count()
+
+  expect(cardCount).toBeGreaterThan(0)
+
+  return buildDeckShapes(cardCount)
+}
+
 async function readOverflowingSteps(page: Page, selector: string) {
   return page.evaluate(
     function findOverflowingSteps(input) {
@@ -185,6 +222,10 @@ async function readOverflowingSteps(page: Page, selector: string) {
       const boxes = document.querySelectorAll<HTMLElement>(
         input.selector + " [data-fit-box]"
       )
+
+      if (boxes.length === 0) {
+        overflowing.push("no fit boxes in " + input.selector)
+      }
 
       for (const box of boxes) {
         if (box.scrollHeight > box.clientHeight + input.tolerance) {
@@ -336,9 +377,13 @@ async function findStatementOverflows(page: Page) {
     document.body.appendChild(probe)
 
     for (const selector of selectors) {
-      for (const statement of document.querySelectorAll<HTMLElement>(
-        selector
-      )) {
+      const statements = document.querySelectorAll<HTMLElement>(selector)
+
+      if (statements.length === 0) {
+        overflows.push(selector + " matched nothing")
+      }
+
+      for (const statement of statements) {
         const style = getComputedStyle(statement)
 
         probe.style.font = style.font
@@ -490,9 +535,10 @@ for (const scene of STEP_SCENES) {
       await page.waitForTimeout(GATE_SETTLE_MS)
 
       const section = page.locator(selector)
+      const shapes = await readSceneShapes(page, scene.id, scene.shapes)
 
       await expect(section).not.toHaveAttribute("data-fit")
-      await expect(section).toHaveAttribute("data-dot-shapes", scene.shapes)
+      await expect(section).toHaveAttribute("data-dot-shapes", shapes)
       await expect(section.locator("[data-dot-slot]")).toHaveCount(1)
 
       expect(await readOverflowingSteps(page, selector)).toEqual([])
@@ -795,8 +841,67 @@ test.describe("#contact when fixed errors pin it again on a phone", () => {
   })
 })
 
-test.describe("Work on a phone in forced colours", () => {
-  test.use({ viewport: { width: 390, height: 844 }, forcedColors: "active" })
+async function readProjectWindows(page: Page) {
+  return page.evaluate(function readScreenWindows(windowClass) {
+    const deck = document.querySelector("#project [data-deck]")
+    const backgrounds: string[] = []
+    const ringDisplays: string[] = []
+    const laterLabelDisplays: string[] = []
+
+    for (const screen of document.querySelectorAll(
+      "#project [data-deck] > li"
+    )) {
+      backgrounds.push(getComputedStyle(screen).backgroundColor)
+    }
+
+    for (const ring of document.querySelectorAll("#project span")) {
+      if (ring.className === windowClass) {
+        ringDisplays.push(getComputedStyle(ring).display)
+      }
+    }
+
+    for (const word of document.querySelectorAll(
+      "#project [data-deck] article > p:first-child > span:first-child"
+    )) {
+      laterLabelDisplays.push(getComputedStyle(word).display)
+    }
+
+    return {
+      deckPosition: deck === null ? "" : getComputedStyle(deck).position,
+      backgrounds,
+      ringDisplays,
+      laterLabelDisplays,
+    }
+  }, PROJECT_PLATE_WINDOW_CLASS)
+}
+
+async function expectDeckFit(page: Page) {
+  const section = page.locator(DECK_SELECTOR)
+  const fit = await section.getAttribute("data-fit")
+
+  if (fit === null) {
+    await expect(section).toHaveAttribute(
+      "data-dot-shapes",
+      await readSceneShapes(page, "project", null)
+    )
+    await expect(section.locator("[data-dot-slot]")).toHaveCount(1)
+    expect(await readOverflowingSteps(page, DECK_SELECTOR)).toEqual([])
+    return
+  }
+
+  expect(fit).toBe("flow")
+  await expect(section).toHaveAttribute("data-dot-shapes", "dust")
+  await expect(section.locator("[data-dot-slot]")).toHaveCount(0)
+  expect(await findOverlappingLines(page, DECK_SELECTOR)).toEqual([])
+  expect(await findNeverVisibleLines(page, DECK_SELECTOR)).toEqual([])
+}
+
+test.describe("Work's reading list on a phone in forced colours", () => {
+  test.use({
+    viewport: { width: 390, height: 844 },
+    forcedColors: "active",
+    reducedMotion: "reduce",
+  })
 
   test("keeps each project screen opaque so the frame never crosses copy", async ({
     page,
@@ -804,23 +909,80 @@ test.describe("Work on a phone in forced colours", () => {
     await page.goto("/#project")
     await waitForRunningStage(page)
 
-    const backgrounds = await page.evaluate(function readScreenBackgrounds() {
-      const found: string[] = []
+    const windows = await readProjectWindows(page)
+    const cardCount = await page.locator("#project [data-fit-box]").count()
 
-      for (const article of document.querySelectorAll("#project article")) {
-        found.push(getComputedStyle(article).backgroundColor)
-      }
+    expect(windows.deckPosition).toBe("relative")
+    expect(cardCount).toBeGreaterThan(0)
+    expect(windows.backgrounds.length).toBe(cardCount)
 
-      return found
-    })
-
-    expect(backgrounds.length).toBeGreaterThan(0)
-
-    for (const background of backgrounds) {
-      expect(background).not.toMatch(/rgba(.*, 0)$|transparent/)
+    for (const background of windows.backgrounds) {
+      expect(background).toMatch(OPAQUE_BACKGROUND_PATTERN)
     }
   })
 })
+
+test.describe("Work's staged deck on a phone in forced colours", () => {
+  test.use({ viewport: { width: 390, height: 844 }, forcedColors: "active" })
+
+  test("keeps the stacked screens clear so they never hide the frame", async ({
+    page,
+  }) => {
+    await page.goto("/#project")
+    await waitForRunningStage(page)
+
+    const windows = await readProjectWindows(page)
+    const cardCount = await page.locator("#project [data-fit-box]").count()
+
+    expect(windows.deckPosition).toBe("sticky")
+    expect(cardCount).toBeGreaterThan(0)
+    expect(windows.backgrounds.length).toBe(cardCount)
+    expect(windows.ringDisplays.length).toBe(cardCount)
+    expect(windows.laterLabelDisplays.length).toBe(cardCount - 1)
+
+    for (const background of windows.backgrounds) {
+      expect(background).toMatch(TRANSPARENT_BACKGROUND_PATTERN)
+    }
+
+    for (const display of windows.ringDisplays) {
+      expect(display).toBe("none")
+    }
+
+    for (const display of windows.laterLabelDisplays) {
+      expect(display, "no line backplate over the h2").toBe("inline-block")
+    }
+  })
+})
+
+for (const viewport of DECK_FIT_VIEWPORTS) {
+  const spacing = viewport.hasTextSpacing ? " with text spacing" : ""
+
+  test.describe(`${DECK_SELECTOR} at ${viewport.width}x${viewport.height}${spacing}`, () => {
+    test.use({
+      viewport: { width: viewport.width, height: viewport.height },
+      reducedMotion: "reduce",
+    })
+
+    test("pins the deck where every card fits and flows it where one cannot", async ({
+      page,
+    }) => {
+      const problems = collectPageProblems(page)
+
+      await page.goto("/")
+      await waitForRunningStage(page)
+      await waitForFonts(page)
+
+      if (viewport.hasTextSpacing) {
+        await page.addStyleTag({ content: TEXT_SPACING_CSS })
+      }
+
+      await page.waitForTimeout(GATE_SETTLE_MS)
+      await expectDeckFit(page)
+
+      expect(problems).toEqual([])
+    })
+  })
+}
 
 test.describe("#contact with every error showing at 1024x768", () => {
   test.use({ viewport: { width: 1024, height: 768 }, reducedMotion: "reduce" })

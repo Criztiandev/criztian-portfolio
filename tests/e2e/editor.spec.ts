@@ -1,8 +1,11 @@
-import type { Page } from "@playwright/test"
+import type { Locator, Page } from "@playwright/test"
 import { expect, test } from "@playwright/test"
 
 import { LOGIN_PATH } from "@/data/auth.data"
+import { PROJECTS_SCENE_ID } from "@/data/portfolio.data"
 import { EDITOR_PATH, EDITOR_PREVIEW_PATH } from "@/data/site-content.data"
+import { formatSceneStepId } from "@/features/portfolio/dot-field.rules"
+import { buildDeckShapes } from "@/features/portfolio/projects.rules"
 
 import {
   createTestOwner,
@@ -12,6 +15,14 @@ import {
 } from "./owner-account"
 
 const PREVIEW_FRAME = "iframe[title='Site preview']"
+
+const PROJECT_TITLE_LABEL = /^Project \d+ title$/
+
+const EDITED_PROJECT_TITLE_LABEL = "Project 2 title"
+
+const PREVIEW_SCROLL_TIMEOUT_MS = 10_000
+
+const DRAFT_SAVE_PROCEDURE = "siteContent.saveDraft"
 
 test.describe.configure({ mode: "serial" })
 
@@ -30,10 +41,32 @@ async function signInToEditor(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Sign in" }).click()
   await page.waitForURL(`**${EDITOR_PATH}`)
 
+  await waitForRunningPreview(page)
+}
+
+async function waitForRunningPreview(page: Page): Promise<void> {
   await page
     .frameLocator(PREVIEW_FRAME)
     .locator("[data-status='running']")
     .waitFor({ timeout: 60_000 })
+}
+
+async function fillAndSaveDraft(
+  page: Page,
+  field: Locator,
+  value: string
+): Promise<void> {
+  const saved = page.waitForResponse(function isDraftSave(response) {
+    return response.url().includes(DRAFT_SAVE_PROCEDURE)
+  })
+
+  await field.fill(value)
+
+  expect((await saved).ok()).toBe(true)
+  await expect(page.locator("[data-save-state]")).toHaveAttribute(
+    "data-save-state",
+    "saved"
+  )
 }
 
 async function publishFromEditor(page: Page): Promise<void> {
@@ -47,6 +80,52 @@ async function publishFromEditor(page: Page): Promise<void> {
     "data-unpublished",
     "false"
   )
+}
+
+async function readVisibleProjectTitles(page: Page): Promise<string[]> {
+  const titles: string[] = []
+
+  for (const field of await page.getByLabel(PROJECT_TITLE_LABEL).all()) {
+    const title = (await field.inputValue()).trim()
+
+    if (title !== "") {
+      titles.push(title)
+    }
+  }
+
+  return titles
+}
+
+async function expectPreviewDeck(page: Page, titles: string[]) {
+  const deck = page.frameLocator(PREVIEW_FRAME).locator("#project")
+  const captions = deck.locator("[data-caption]")
+
+  await expect(deck).toHaveAttribute(
+    "data-dot-shapes",
+    buildDeckShapes(titles.length)
+  )
+  await expect(captions).toHaveCount(titles.length)
+  await expect(deck.locator("[data-fit-box]")).toHaveCount(titles.length)
+  await expect(deck.locator("[data-fit-box] h3")).toContainText(titles)
+
+  for (let stepIndex = 0; stepIndex < titles.length; stepIndex += 1) {
+    await expect(captions.nth(stepIndex)).toHaveAttribute(
+      "data-caption",
+      formatSceneStepId(PROJECTS_SCENE_ID, stepIndex)
+    )
+  }
+}
+
+async function isTitleShown(title: Locator): Promise<boolean> {
+  return title.evaluate(function hitTestTitle(element) {
+    const rect = element.getBoundingClientRect()
+    const hit = element.ownerDocument.elementFromPoint(
+      rect.left + rect.width / 2,
+      rect.top + rect.height / 2
+    )
+
+    return hit !== null && element.contains(hit)
+  })
 }
 
 async function readPublishedHeroName(page: Page): Promise<string> {
@@ -81,6 +160,74 @@ test("sends a logged-out visitor from the preview to the login page", async ({
       url.searchParams.get("next") === EDITOR_PREVIEW_PATH
     )
   })
+})
+
+test("renders the projects deck in the preview", async ({ page }) => {
+  test.setTimeout(120_000)
+
+  await signInToEditor(page)
+
+  await page
+    .getByRole("navigation", { name: "Sections" })
+    .getByRole("button", { name: "Projects" })
+    .click()
+
+  const originalTitles = await readVisibleProjectTitles(page)
+
+  expect(originalTitles.length).toBeGreaterThan(1)
+
+  await expectPreviewDeck(page, originalTitles)
+
+  const firstCard = page
+    .frameLocator(PREVIEW_FRAME)
+    .locator("#project [data-fit-box]")
+    .first()
+  const firstTitle = firstCard.locator("h3")
+
+  await expect
+    .poll(
+      function readFirstTitleShown() {
+        return isTitleShown(firstTitle)
+      },
+      { timeout: PREVIEW_SCROLL_TIMEOUT_MS }
+    )
+    .toBe(true)
+
+  const plateBox = await firstCard.locator(":scope > div").first().boundingBox()
+  const titleBox = await firstTitle.boundingBox()
+
+  expect(plateBox).not.toBeNull()
+  expect(titleBox).not.toBeNull()
+  expect((plateBox?.y ?? 0) + (plateBox?.height ?? 0)).toBeLessThanOrEqual(
+    titleBox?.y ?? Number.NaN
+  )
+
+  const titleField = page.getByLabel(EDITED_PROJECT_TITLE_LABEL, {
+    exact: true,
+  })
+  const originalTitle = await titleField.inputValue()
+
+  expect(originalTitle.trim()).not.toBe("")
+
+  try {
+    await fillAndSaveDraft(page, titleField, "")
+
+    const blankedTitles = await readVisibleProjectTitles(page)
+
+    expect(blankedTitles.length).toBe(originalTitles.length - 1)
+
+    await expectPreviewDeck(page, blankedTitles)
+  } finally {
+    await fillAndSaveDraft(page, titleField, originalTitle)
+  }
+
+  await expectPreviewDeck(page, originalTitles)
+
+  await page.reload()
+  await waitForRunningPreview(page)
+
+  expect(await readVisibleProjectTitles(page)).toEqual(originalTitles)
+  await expectPreviewDeck(page, originalTitles)
 })
 
 test("edits the hero live, autosaves the draft, and publishes it", async ({

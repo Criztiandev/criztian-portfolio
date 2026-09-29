@@ -35,6 +35,7 @@ import {
   buildShapeLibrary,
   easeInOutSine,
   followTriggeredProgress,
+  isRedrawSegment,
   isShapeSpinning,
   isThreadSegment,
   parseCssPixels,
@@ -545,6 +546,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         const intro = resolveIntro()
         const nameSample = resolveNameSample()
         const isThread = isThreadSegment(fromKeyframe, toKeyframe)
+        const isRedraw = isRedrawSegment(fromKeyframe, toKeyframe)
 
         let morphSpin = DOT_FIELD_MORPH_TUNING.morphSpin
 
@@ -564,6 +566,7 @@ export function useDotField(request: UseDotFieldRequest): void {
             : segment.progress,
           strike: resolveStrike(),
           thread: isThread ? 1 : 0,
+          redraw: isRedraw ? 1 : 0,
           from: placeKeyframe(
             fromKeyframe,
             segment.progress * morphSpin,

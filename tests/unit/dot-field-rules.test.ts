@@ -20,6 +20,7 @@ import {
   PROCESS_SCENE_SHAPES,
   SERVICES_SCENE_SHAPES,
 } from "@/data/page-sections.data"
+import { PROJECTS_SCENE_ID } from "@/data/portfolio.data"
 import {
   buildCubeRotation,
   buildFontShorthand,
@@ -28,8 +29,10 @@ import {
   createRandomSource,
   followMorphProgress,
   followTriggeredProgress,
+  formatSceneStepId,
   generateCubePoints,
   generateDustPoints,
+  isRedrawSegment,
   isShapeSpinning,
   isThreadSegment,
   padNamePoints,
@@ -939,6 +942,65 @@ describe("buildSceneKeyframes", () => {
     expect(keyframes[0]).not.toHaveProperty("isThread")
   })
 
+  it("numbers each step of a scene that repeats its shape", () => {
+    const keyframes = buildSceneKeyframes(
+      [
+        buildScene({
+          id: PROJECTS_SCENE_ID,
+          shapes: ["frame", "frame", "frame"],
+          containerTop: 1072,
+        }),
+      ],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+    const share = DOT_SCENE_MOTION.project?.share ?? 0
+    const halfGap = (300 * share) / 2
+    const ranges: (string | number)[][] = []
+
+    for (const keyframe of keyframes) {
+      ranges.push([keyframe.id, keyframe.start, keyframe.end])
+      expect(keyframe.scene).toBe(PROJECTS_SCENE_ID)
+      expect(keyframe.shape).toBe("frame")
+      expect(keyframe.slot).toEqual(SLOT)
+      expect(keyframe.isThread).toBe(true)
+    }
+
+    expect(ranges).toEqual([
+      ["project-1", 1000, 1150 - halfGap],
+      ["project-2", 1150 + halfGap, 1450 - halfGap],
+      ["project-3", 1450 + halfGap, 1600],
+    ])
+  })
+
+  it("keeps the shape ids for a scene whose shapes are all different", () => {
+    const shapes = parseSceneShapes(SERVICES_SCENE_SHAPES)
+    const keyframes = buildSceneKeyframes(
+      [buildScene({ id: "services", shapes })],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+    const ids: string[] = []
+
+    for (const keyframe of keyframes) {
+      ids.push(keyframe.id)
+    }
+
+    expect(ids).toEqual(shapes)
+  })
+
+  it("keeps the scene id for a one-project deck and never threads it", () => {
+    const keyframes = buildSceneKeyframes(
+      [buildScene({ id: PROJECTS_SCENE_ID, shapes: ["frame"] })],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+
+    expect(keyframes).toHaveLength(1)
+    expect(keyframes[0]?.id).toBe(PROJECTS_SCENE_ID)
+    expect(keyframes[0]).not.toHaveProperty("isThread")
+  })
+
   it("skips a scene without a known shape", () => {
     expect(
       buildSceneKeyframes(
@@ -1016,10 +1078,11 @@ const TRIGGER = DOT_FIELD_MORPH_TUNING.threadTrigger
 function triggerAt(
   scrollTarget: number,
   previousScrollTarget: number,
-  committedTarget: number
+  committedTarget: number,
+  keyframes: DotSceneKeyframe[] = THREAD_TIMELINE
 ): number {
   return resolveTriggeredTarget({
-    keyframes: THREAD_TIMELINE,
+    keyframes,
     scrollTarget,
     previousScrollTarget,
     committedTarget,
@@ -1318,6 +1381,165 @@ describe("resolveThreadState", () => {
 
   it("names nothing away from a threaded scene", () => {
     expect(resolveThreadState(THREAD_TIMELINE, 0.2)).toBeNull()
+  })
+})
+
+describe("formatSceneStepId", () => {
+  it("numbers a scene's steps from one", () => {
+    expect(formatSceneStepId(PROJECTS_SCENE_ID, 0)).toBe("project-1")
+    expect(formatSceneStepId(PROJECTS_SCENE_ID, 5)).toBe("project-6")
+  })
+})
+
+const DECK_TIMELINE: DotSceneKeyframe[] = [
+  { id: "cube", scene: "cube", shape: "cube", start: 0, end: 100, slot: SLOT },
+  {
+    id: "project-1",
+    scene: PROJECTS_SCENE_ID,
+    shape: "frame",
+    start: 500,
+    end: 600,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "project-2",
+    scene: PROJECTS_SCENE_ID,
+    shape: "frame",
+    start: 1000,
+    end: 1100,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "project-3",
+    scene: PROJECTS_SCENE_ID,
+    shape: "frame",
+    start: 1500,
+    end: 1600,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "branding",
+    scene: "services",
+    shape: "branding",
+    start: 2000,
+    end: 2100,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "web-design",
+    scene: "services",
+    shape: "web-design",
+    start: 2500,
+    end: 2600,
+    slot: SLOT,
+    isThread: true,
+  },
+]
+
+const ABOUT_FRAME: DotSceneKeyframe = {
+  id: "about",
+  scene: "about",
+  shape: "frame",
+  start: 3000,
+  end: 3100,
+  slot: SLOT,
+}
+
+describe("the projects deck", () => {
+  it("threads the deck like Services, with no turn", () => {
+    expect(DOT_SCENE_MOTION[PROJECTS_SCENE_ID]).toMatchObject({
+      isThread: true,
+      hasTurn: false,
+    })
+    expect(DOT_SCENE_MOTION[PROJECTS_SCENE_ID]?.share).toBe(
+      DOT_SCENE_MOTION.services?.share
+    )
+  })
+
+  it("softens the redraw's pen edge by a small positive share", () => {
+    expect(DOT_FIELD_MORPH_TUNING.redrawEdge).toBeGreaterThan(0)
+    expect(DOT_FIELD_MORPH_TUNING.redrawEdge).toBeLessThan(0.1)
+  })
+
+  it("redraws the frame between two projects of the deck", () => {
+    expect(isThreadSegment(DECK_TIMELINE[1], DECK_TIMELINE[2])).toBe(true)
+    expect(isRedrawSegment(DECK_TIMELINE[1], DECK_TIMELINE[2])).toBe(true)
+    expect(isRedrawSegment(DECK_TIMELINE[2], DECK_TIMELINE[3])).toBe(true)
+  })
+
+  it("never redraws between two shapes or across scenes", () => {
+    expect(isRedrawSegment(DECK_TIMELINE[4], DECK_TIMELINE[5])).toBe(false)
+    expect(isRedrawSegment(DECK_TIMELINE[0], DECK_TIMELINE[1])).toBe(false)
+    expect(isRedrawSegment(DECK_TIMELINE[3], DECK_TIMELINE[4])).toBe(false)
+    expect(isRedrawSegment(DECK_TIMELINE[3], ABOUT_FRAME)).toBe(false)
+  })
+
+  it("never redraws at the ends of the timeline", () => {
+    expect(isRedrawSegment(DECK_TIMELINE[3], undefined)).toBe(false)
+    expect(isRedrawSegment(undefined, DECK_TIMELINE[1])).toBe(false)
+    expect(isRedrawSegment(undefined, undefined)).toBe(false)
+  })
+
+  it("commits the next project once the scroll passes the trigger, not before", () => {
+    expect(triggerAt(1 + TRIGGER / 2, 1, 1, DECK_TIMELINE)).toBe(1)
+    expect(triggerAt(1 + TRIGGER, 1 + TRIGGER / 2, 1, DECK_TIMELINE)).toBe(2)
+  })
+
+  it("commits back once an upward scroll passes the trigger from the end", () => {
+    expect(triggerAt(3 - TRIGGER / 2, 3, 3, DECK_TIMELINE)).toBe(3)
+    expect(triggerAt(3 - 2 * TRIGGER, 3 - TRIGGER / 2, 3, DECK_TIMELINE)).toBe(
+      2
+    )
+  })
+
+  it("scrubs the flights into and out of the deck", () => {
+    expect(triggerAt(0.4, 0.3, 0.3, DECK_TIMELINE)).toBe(0.4)
+    expect(triggerAt(3.4, 3.3, 3.3, DECK_TIMELINE)).toBe(3.4)
+  })
+
+  it("plays a hop between two projects at the drawing's pace, both ways", () => {
+    const seconds = DOT_FIELD_MORPH_TUNING.threadDrawSeconds
+
+    expect(
+      followTriggeredProgress(
+        1,
+        2,
+        seconds / 4,
+        DECK_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+    ).toBeCloseTo(1.25, 6)
+    expect(
+      followTriggeredProgress(
+        3,
+        2,
+        seconds / 4,
+        DECK_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+    ).toBeCloseTo(2.75, 6)
+  })
+
+  it("names the committed project", () => {
+    expect(resolveThreadState(DECK_TIMELINE, 2)).toBe("project-2")
+    expect(resolveThreadState(DECK_TIMELINE, 2.6)).toBe("project-3")
+    expect(resolveThreadState(DECK_TIMELINE, 0.2)).toBeNull()
+  })
+
+  it("hides both projects' copy at the half hop, where the frame is unwound", () => {
+    const span = DOT_FIELD_MORPH_TUNING.threadCaptionSpan
+
+    expect(resolveThreadReveal(2, 1, span)).toBe(0)
+    expect(resolveThreadReveal(2, 2, span)).toBe(1)
+    expect(resolveThreadReveal(2, 3, span)).toBe(0)
+    expect(resolveThreadReveal(1.5, 1, span)).toBe(0)
+    expect(resolveThreadReveal(1.5, 2, span)).toBe(0)
+    expect(resolveThreadReveal(1.25, 1, span)).toBeGreaterThan(0)
+    expect(resolveThreadReveal(1.75, 2, span)).toBeGreaterThan(0)
   })
 })
 

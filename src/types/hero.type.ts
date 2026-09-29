@@ -132,6 +132,7 @@ export type DotFieldMorphTuning = {
   threadDrawSeconds: number
   threadHurrySeconds: number
   threadCaptionSpan: number
+  redrawEdge: number
 }
 
 export type DotSceneMotion = {
@@ -267,6 +268,7 @@ export type DotFieldFrame = {
   progress: number
   strike: number
   thread: number
+  redraw: number
   from: DotFieldPlacement
   to: DotFieldPlacement
 }
@@ -404,6 +406,8 @@ export type DotFieldUniforms = {
   threadJitter: WebGLUniformLocation | null
   threadArc: WebGLUniformLocation | null
   threadBurst: WebGLUniformLocation | null
+  redraw: WebGLUniformLocation | null
+  redrawEdge: WebGLUniformLocation | null
   from: DotFieldPlacementUniforms
   to: DotFieldPlacementUniforms
 }

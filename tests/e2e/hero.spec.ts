@@ -1,11 +1,18 @@
 import { expect, test } from "@playwright/test"
 import type { Page } from "@playwright/test"
 
+import { PROJECTS_SCENE_ID } from "@/data/portfolio.data"
+import { formatSceneStepId } from "@/features/portfolio/dot-field.rules"
+
 const GL_PROBLEM_PATTERN = /INVALID_|GL_INVALID|WebGL: /
+
+const FIRST_PROJECT_SCENE = formatSceneStepId(PROJECTS_SCENE_ID, 0)
+
+const DECK_CARD_SELECTOR = "#project [data-fit-box]"
 
 const SCENE_WALK = [
   { selector: "#quote", scene: "cube" },
-  { selector: "#project", scene: "project" },
+  { selector: "#project", scene: FIRST_PROJECT_SCENE },
   { selector: "#services", scene: "branding" },
   { selector: "#process", scene: "listening" },
   { selector: "#about", scene: "about" },
@@ -17,7 +24,7 @@ const SCENE_WALK = [
 
 const JUMP_SKIPPED_SCENES = [
   "cube",
-  "project",
+  PROJECTS_SCENE_ID,
   "branding",
   "web-design",
   "development",
@@ -38,9 +45,10 @@ const REST_WINDOW_MS = 500
 const REST_TIMEOUT_MS = 12000
 
 const RESTING_SCENES = [
-  { id: "listening", selector: "#process", step: 0, steps: 5 },
-  { id: "building", selector: "#process", step: 3, steps: 5 },
-  { id: "dust", selector: "[data-dot-scene='dust']", step: 0, steps: 1 },
+  { id: FIRST_PROJECT_SCENE, selector: "#project", step: 0 },
+  { id: "listening", selector: "#process", step: 0 },
+  { id: "building", selector: "#process", step: 3 },
+  { id: "dust", selector: "[data-dot-scene='dust']", step: 0 },
 ]
 
 function readLocationHash() {
@@ -130,9 +138,20 @@ async function countLitPixels(page: Page, selector: string) {
   )
 }
 
+async function readDeckSceneIds(page: Page) {
+  const cardCount = await page.locator(DECK_CARD_SELECTOR).count()
+  const ids: string[] = []
+
+  for (let stepIndex = 0; stepIndex < cardCount; stepIndex += 1) {
+    ids.push(formatSceneStepId(PROJECTS_SCENE_ID, stepIndex))
+  }
+
+  return ids
+}
+
 async function scrollToStepRest(
   page: Page,
-  rest: { selector: string; step: number; steps: number }
+  rest: { selector: string; step: number }
 ) {
   await page.evaluate(function scrollToRest(target) {
     const container = document.querySelector<HTMLElement>(target.selector)
@@ -145,16 +164,17 @@ async function scrollToStepRest(
     const stickyTop = parseFloat(getComputedStyle(container).scrollMarginTop)
     const containerTop = container.getBoundingClientRect().top + window.scrollY
     const start = containerTop - stickyTop
+    const steps = container.dataset.dotShapes?.split(" ").length ?? 1
     let pitch = 0
 
-    if (target.steps > 1) {
+    if (steps > 1) {
       const end =
         containerTop +
         container.getBoundingClientRect().height -
         frame.getBoundingClientRect().height -
         stickyTop
 
-      pitch = (end - start) / (target.steps - 1)
+      pitch = (end - start) / (steps - 1)
     }
 
     window.scrollTo({ top: start + target.step * pitch, behavior: "instant" })
@@ -307,6 +327,10 @@ test.describe("scroll timeline", () => {
     await page.goto("/")
     await waitForRunningStage(page)
 
+    const deckSceneIds = await readDeckSceneIds(page)
+
+    expect(deckSceneIds.length).toBeGreaterThan(0)
+
     const jump = await page.evaluate(function followJump() {
       return new Promise<{ scenes: string[]; endedByLenis: boolean }>(
         function record(resolve) {
@@ -351,7 +375,7 @@ test.describe("scroll timeline", () => {
     expect(jump.endedByLenis).toBe(true)
     expect(trail).toContain("contact")
 
-    for (const skipped of JUMP_SKIPPED_SCENES) {
+    for (const skipped of [...JUMP_SKIPPED_SCENES, ...deckSceneIds]) {
       expect(trail).not.toContain(skipped)
     }
 
@@ -394,7 +418,7 @@ test.describe("scroll timeline", () => {
 
     const stage = await waitForRunningStage(page)
 
-    await expect(stage).toHaveAttribute("data-scene", "project", {
+    await expect(stage).toHaveAttribute("data-scene", FIRST_PROJECT_SCENE, {
       timeout: 10000,
     })
     await expect(page.locator("#project h2")).toBeVisible()
@@ -567,7 +591,7 @@ test.describe("hero dot field on a phone", () => {
 
     const stage = await waitForRunningStage(page)
 
-    await expect(stage).toHaveAttribute("data-scene", "project", {
+    await expect(stage).toHaveAttribute("data-scene", FIRST_PROJECT_SCENE, {
       timeout: 10000,
     })
   })

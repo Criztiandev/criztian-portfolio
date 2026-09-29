@@ -120,10 +120,16 @@ export const PROJECT_PLATE_CLASS =
   "mt-6 split:mt-0 split:w-[min(100%,calc((100svh_-_12rem)_*_10_/_7))]"
 
 export const PROJECT_SCREEN_WINDOW_CLASS =
-  "isolate -mx-6 overflow-clip px-6 forced-colors:bg-background split:mx-0 split:overflow-visible split:px-0 split:forced-colors:bg-transparent"
+  "isolate -mx-6 overflow-clip px-6 forced-colors:bg-background split:mx-0 split:overflow-visible split:px-0 split:forced-colors:bg-transparent staged:forced-colors:bg-transparent"
 
 export const PROJECT_PLATE_WINDOW_CLASS =
-  "absolute -inset-6 -z-10 shadow-[0_0_0_100vmax_var(--background)] split:hidden"
+  "absolute -inset-6 -z-10 shadow-[0_0_0_100vmax_var(--background)] split:hidden staged:hidden"
+
+export const PROJECT_CARD_CLASS =
+  "relative h-[calc(100svh_-_4.5rem)] unpinned:h-auto [@media(scripting:none)]:h-auto"
+
+export const PROJECT_TITLE_LINK_CLASS =
+  "scroll-mt-18 outline-none decoration-[length:max(2px,0.04em)] underline-offset-[0.12em] after:absolute after:inset-[3px] hover:underline focus-visible:after:ring-[3px] focus-visible:after:ring-foreground/50 focus-visible:after:outline-2 focus-visible:after:outline-transparent split:after:inset-0 staged:after:inset-[3px]"
 
 export const ABOUT_PLATE_CLASS =
   "split:aspect-[4/5] split:w-[min(80%,calc((100svh_-_12rem)_*_0.8))]"

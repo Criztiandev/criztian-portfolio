@@ -1,4 +1,8 @@
 import {
+  FRAME_SCENE_SHAPES,
+  SCENE_FLOW_SHAPES,
+} from "@/data/page-sections.data"
+import {
   PROJECT_IMAGE_PATH_PATTERN,
   PROJECT_LINK_PROTOCOL,
 } from "@/data/portfolio.data"
@@ -57,4 +61,18 @@ export function selectVisibleProjects(items: ProjectItem[]): ProjectItem[] {
   }
 
   return visible
+}
+
+export function buildDeckShapes(projectCount: number): string {
+  if (projectCount <= 0) {
+    return SCENE_FLOW_SHAPES
+  }
+
+  const shapes: string[] = []
+
+  for (let index = 0; index < projectCount; index += 1) {
+    shapes.push(FRAME_SCENE_SHAPES)
+  }
+
+  return shapes.join(" ")
 }

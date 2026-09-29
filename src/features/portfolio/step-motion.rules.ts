@@ -13,6 +13,14 @@ export function buildThreadCaptionStyle(): StepMotionStyle {
   return { "--caption-stagger": CAPTION_LINE_STAGGER }
 }
 
+export function buildLineStyle(line: number): StepMotionStyle {
+  return { "--line": line }
+}
+
+export function buildShownCaptionStyle(): StepMotionStyle {
+  return { "--caption-reveal": 1 }
+}
+
 export function buildOrbitStyle(): StepMotionStyle {
   return { "--orbit-spin-ratio": ORBIT_RING_SPIN_RATIO }
 }

@@ -3,17 +3,25 @@ import path from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-import { THREAD_TURN_PROPERTY } from "@/data/hero.data"
+import {
+  THREAD_REVEAL_PROPERTY_PREFIX,
+  THREAD_TURN_PROPERTY,
+} from "@/data/hero.data"
 import {
   CAPTION_LINE_STAGGER,
   ORBIT_DIGIT_TILTS_DEGREES,
   ORBIT_RING_SPIN_RATIO,
 } from "@/data/motion.data"
 import { PROCESS_SCENE, SERVICES_SCENE } from "@/data/page-sections.data"
+import { PROJECTS_SCENE_ID } from "@/data/portfolio.data"
+import { PROJECTS_MAX } from "@/data/site-content.data"
+import { formatSceneStepId } from "@/features/portfolio/dot-field.rules"
 import {
   buildDigitStyle,
   buildOrbitStepStyle,
   buildOrbitStyle,
+  buildLineStyle,
+  buildShownCaptionStyle,
   buildStepSceneStyle,
   buildThreadCaptionStyle,
 } from "@/features/portfolio/step-motion.rules"
@@ -55,6 +63,60 @@ describe("the service captions", () => {
 
       expect(css).toMatch(selector)
     }
+  })
+})
+
+describe("the caption lines", () => {
+  it("numbers each line for the stagger of its sweep", () => {
+    expect(buildLineStyle(0)).toEqual({ "--line": 0 })
+    expect(buildLineStyle(2)).toEqual({ "--line": 2 })
+  })
+})
+
+describe("the projects deck", () => {
+  it("shows a lone project's copy in full", () => {
+    expect(buildShownCaptionStyle()).toEqual({ "--caption-reveal": 1 })
+  })
+
+  it("keys every project card to its step's reveal, up to the most projects", () => {
+    const css = readStylesheet()
+
+    for (let index = 0; index < PROJECTS_MAX; index += 1) {
+      const step = formatSceneStepId(PROJECTS_SCENE_ID, index)
+      const selector = new RegExp(
+        `\\[data-caption="${step}"\\]\\s*\\{\\s*--caption-reveal:\\s*var\\(${THREAD_REVEAL_PROPERTY_PREFIX}${step}\\);`
+      )
+
+      expect(css).toMatch(selector)
+    }
+  })
+
+  it("shows the focused project's card and hides the rest, in that order", () => {
+    const css = readStylesheet()
+    const hideRest = css.search(
+      /\[data-deck\]:has\(:focus-visible\) \[data-caption\]\s*\{\s*--caption-reveal:\s*0;/
+    )
+    const showFocused = css.search(
+      /\[data-deck\] \[data-caption\]:has\(:focus-visible\)\s*\{\s*--caption-reveal:\s*1;/
+    )
+
+    expect(hideRest).toBeGreaterThan(-1)
+    expect(showFocused).toBeGreaterThan(hideRest)
+  })
+
+  it("wipes the plate in from the left on the caption reveal, never sliding it", () => {
+    const css = readStylesheet()
+    const plate = readUtility(css, "plate-sweep")
+    const lineReveal = readUtility(css, "caption-line").match(
+      /--line-reveal:[^;]*;/
+    )
+
+    expect(lineReveal).not.toBeNull()
+    expect(plate).toContain(lineReveal?.[0])
+    expect(plate).toMatch(
+      /clip-path:\s*inset\(0 calc\(100% - var\(--line-reveal\) \* 100%\) 0 0\);/
+    )
+    expect(plate).not.toMatch(/translate|transform/)
   })
 })
 

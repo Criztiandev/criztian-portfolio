@@ -7,6 +7,8 @@ export const INITIAL_PORTFOLIO_UI_STATE: PortfolioUiState = {
   activeSection: DEFAULT_PORTFOLIO_SECTION,
 }
 
+export const PROJECTS_SCENE_ID = "project"
+
 export const PROJECTS_HEADING_ID = "project-heading"
 
 export const PROJECTS_LABEL = "Work"

@@ -8,13 +8,30 @@ import {
 } from "@/data/hero.data"
 import {
   PROCESS_SCENE_SHAPES,
+  PROJECT_TITLE_LINK_CLASS,
+  SCENE_FIT_TOLERANCE_PX,
   SERVICES_SCENE_SHAPES,
 } from "@/data/page-sections.data"
+import {
+  PROJECT_NEW_TAB_LABEL,
+  PROJECTS_LABEL,
+  PROJECTS_SCENE_ID,
+} from "@/data/portfolio.data"
+import {
+  formatSceneStepId,
+  resolveFrameOutset,
+} from "@/features/portfolio/dot-field.rules"
+import { formatSectionPosition } from "@/features/portfolio/section-label.rules"
 
 const STAGED_VIEWPORTS = [
   { width: 1440, height: 900 },
   { width: 390, height: 664 },
   { width: 375, height: 548 },
+]
+
+const NO_SCRIPT_VIEWPORTS = [
+  { width: 1440, height: 900 },
+  { width: 320, height: 256 },
 ]
 
 const SCENE_TIMEOUT_MS = 5000
@@ -37,6 +54,54 @@ const PROCESS_SHARE =
 
 const FIRST_PROCESS_START = 0.5 - PROCESS_SHARE / 2
 
+const PROJECT_SHARE =
+  DOT_SCENE_MOTION.project?.share ?? DOT_FIELD_MORPH_TUNING.stepMorphShare
+
+const FIRST_PROJECT_START = 0.5 - PROJECT_SHARE / 2
+
+const STICKY_TOP_PX = 72
+
+const SLOT_TOLERANCE_PX = 1
+
+const INJECTED_LINK_HREF = "https://example.com/"
+
+const DECK_CARDS = `#${PROJECTS_SCENE_ID} [data-deck] > li`
+
+const DECK_PLATE = "article > :nth-child(2)"
+
+const DECK_POSITION = "article > :first-child > :last-child"
+
+const DECK_LINES = `${DECK_POSITION}, ${DECK_PLATE}, h3, h3 + p, h3 + p + div`
+
+const SERVICES_CAPTION_GROUPS = [
+  { name: "title", selector: "#services [data-fit-box] > li h3" },
+  { name: "position", selector: "#services h2 [data-position]" },
+]
+
+const DECK_CAPTION_GROUPS = [
+  { name: "title", selector: `${DECK_CARDS} h3` },
+  { name: "summary", selector: `${DECK_CARDS} h3 + p` },
+  { name: "plate", selector: `${DECK_CARDS} > ${DECK_PLATE}` },
+  { name: "position", selector: `${DECK_CARDS} > ${DECK_POSITION}` },
+  { name: "tag and stack", selector: `${DECK_CARDS} h3 ~ div` },
+]
+
+const SERVICES_SYNC = { sceneId: "services", parts: ["h3"] }
+
+const DECK_SYNC = { sceneId: PROJECTS_SCENE_ID, parts: ["h3", DECK_PLATE] }
+
+const SERVICES_BOXES = {
+  sceneId: "services",
+  boxSelector: "[data-caption] > div",
+  plateSelector: null,
+}
+
+const DECK_BOXES = {
+  sceneId: PROJECTS_SCENE_ID,
+  boxSelector: "[data-deck] > li, [data-deck] article",
+  plateSelector: `[data-deck] ${DECK_PLATE}`,
+}
+
 const NUDGE_SHARE = DOT_FIELD_MORPH_TUNING.threadTrigger / 2
 
 const PAST_TRIGGER_SHARE = DOT_FIELD_MORPH_TUNING.threadTrigger * 2
@@ -56,6 +121,26 @@ const CAPTION_LAND_SLACK_MS = 50
 const GATE_SETTLE_MS = 800
 
 const SCROLL_REST_FRAMES = 20
+
+const FRAME_BAND_HEIGHT_PX = 40
+
+const FRAME_BAND_GAP_PX = 2
+
+const FRAME_SETTLE_MS = 600
+
+const PLAY_SLACK_MS = 400
+
+const FORMED_BAND_MIN_LIT = 400
+
+const UNWOUND_BAND_SHARE = 0.3
+
+const REDRAWN_BAND_SHARE = 0.8
+
+const MID_HOP_MS = 800
+
+const LANDED_SLEEP_TIMEOUT_MS = 5000
+
+const SLEEP_WINDOW_MS = 600
 
 const SCENES = [
   { id: "services", shapes: SERVICES_SCENE_SHAPES.split(" ") },
@@ -107,7 +192,7 @@ async function scrollToStep(page: Page, sceneId: string, position: number) {
       const pitch =
         (containerRect.height - frame.getBoundingClientRect().height) /
         Math.max(1, steps - 1)
-      const pinStart = containerRect.top + window.scrollY - 72
+      const pinStart = containerRect.top + window.scrollY - input.stickyTop
 
       window.scrollTo({
         top: pinStart + input.position * pitch,
@@ -122,68 +207,76 @@ async function scrollToStep(page: Page, sceneId: string, position: number) {
         })
       })
     },
-    { sceneId, position }
+    { sceneId, position, stickyTop: STICKY_TOP_PX }
   )
 }
 
-async function readCaptions(page: Page, stepIndex: number) {
-  return page.evaluate(function hitTestCaptions(activeIndex) {
-    const problems: string[] = []
-    const groups = [
-      { name: "title", selector: "#services [data-fit-box] > li h3" },
-      { name: "position", selector: "#services h2 [data-position]" },
-    ]
+async function readCaptions(
+  page: Page,
+  groups: { name: string; selector: string }[],
+  stepIndex: number
+) {
+  return page.evaluate(
+    function hitTestCaptions(input) {
+      const problems: string[] = []
+      const activeIndex = input.activeIndex
 
-    for (const group of groups) {
-      const elements = document.querySelectorAll<HTMLElement>(group.selector)
+      for (const group of input.groups) {
+        const elements = document.querySelectorAll<HTMLElement>(group.selector)
 
-      if (elements.length === 0) {
-        problems.push("no " + group.name)
-      }
-
-      for (
-        let elementIndex = 0;
-        elementIndex < elements.length;
-        elementIndex += 1
-      ) {
-        const element = elements[elementIndex]
-
-        if (element === undefined) {
-          continue
+        if (elements.length === 0) {
+          problems.push("no " + group.name)
         }
 
-        const rect = element.getBoundingClientRect()
+        for (
+          let elementIndex = 0;
+          elementIndex < elements.length;
+          elementIndex += 1
+        ) {
+          const element = elements[elementIndex]
 
-        for (const fraction of [0.2, 0.5, 0.8]) {
-          const hit = document.elementFromPoint(
-            rect.left + rect.width * fraction,
-            rect.top + rect.height / 2
-          )
-          const isHit = hit !== null && element.contains(hit)
-
-          if (elementIndex === activeIndex && !isHit) {
-            problems.push("active " + group.name + " hidden at " + fraction)
+          if (element === undefined) {
+            continue
           }
 
-          if (elementIndex !== activeIndex && isHit) {
-            problems.push("showing " + (element.textContent ?? ""))
+          const rect = element.getBoundingClientRect()
+
+          for (const fraction of [0.2, 0.5, 0.8]) {
+            const hit = document.elementFromPoint(
+              rect.left + rect.width * fraction,
+              rect.top + rect.height / 2
+            )
+            const isHit = hit !== null && element.contains(hit)
+
+            if (elementIndex === activeIndex && !isHit) {
+              problems.push("active " + group.name + " hidden at " + fraction)
+            }
+
+            if (elementIndex !== activeIndex && isHit) {
+              problems.push("showing " + (element.textContent ?? ""))
+            }
           }
         }
       }
-    }
 
-    return problems
-  }, stepIndex)
+      return problems
+    },
+    { groups, activeIndex: stepIndex }
+  )
 }
 
-async function watchCaptionSync(page: Page) {
-  await page.evaluate(function installCaptionWatch() {
+async function watchCaptionSync(
+  page: Page,
+  request: { sceneId: string; parts: string[] }
+) {
+  await page.evaluate(function installCaptionWatch(input) {
     const stage = document.querySelector<HTMLElement>("[data-status]")
     const samples: {
       time: number
       scene: string
       started: string[]
       full: string[]
+      reveals: Record<string, number>
     }[] = []
 
     Object.assign(window, { captionSamples: samples })
@@ -207,22 +300,42 @@ async function watchCaptionSync(page: Page) {
     function sampleCaptions() {
       const started: string[] = []
       const full: string[] = []
+      const reveals: Record<string, number> = {}
 
       for (const caption of document.querySelectorAll<HTMLElement>(
-        "#services [data-caption]"
+        `#${input.sceneId} [data-caption]`
       )) {
-        const statement = caption.querySelector<HTMLElement>("h3")
         const shape = caption.dataset.caption ?? ""
+        let isFull = true
 
-        if (statement === null) {
-          continue
+        reveals[shape] = Number(
+          getComputedStyle(caption).getPropertyValue("--caption-reveal")
+        )
+
+        for (
+          let partIndex = 0;
+          partIndex < input.parts.length;
+          partIndex += 1
+        ) {
+          const part = caption.querySelector<HTMLElement>(
+            input.parts[partIndex] ?? ""
+          )
+
+          if (part === null) {
+            isFull = false
+            continue
+          }
+
+          if (partIndex === 0 && isHitAt(part, 0.1)) {
+            started.push(shape)
+          }
+
+          if (!isHitAt(part, 0.9)) {
+            isFull = false
+          }
         }
 
-        if (isHitAt(statement, 0.1)) {
-          started.push(shape)
-        }
-
-        if (isHitAt(statement, 0.9)) {
+        if (isFull) {
           full.push(shape)
         }
       }
@@ -232,13 +345,19 @@ async function watchCaptionSync(page: Page) {
         scene: observedStage.dataset.scene ?? "",
         started,
         full,
+        reveals,
       })
 
       window.requestAnimationFrame(sampleCaptions)
     }
 
-    window.requestAnimationFrame(sampleCaptions)
-  })
+    return new Promise<void>(function waitForFirstSample(resolve) {
+      window.requestAnimationFrame(function takeFirstSample() {
+        sampleCaptions()
+        resolve()
+      })
+    })
+  }, request)
 }
 
 async function readCaptionSync(page: Page) {
@@ -249,6 +368,7 @@ async function readCaptionSync(page: Page) {
         scene: string
         started: string[]
         full: string[]
+        reveals: Record<string, number>
       }[]
     }
 
@@ -833,10 +953,17 @@ async function checkServicesCurtains(page: Page) {
   }
 }
 
-async function readServicesBoxes(page: Page) {
-  return page.evaluate(function compareServicesModes() {
+async function readSceneBoxes(
+  page: Page,
+  request: {
+    sceneId: string
+    boxSelector: string
+    plateSelector: string | null
+  }
+) {
+  return page.evaluate(function compareSceneModes(input) {
     const stage = document.querySelector<HTMLElement>("[data-status]")
-    const container = document.getElementById("services")
+    const container = document.getElementById(input.sceneId)
 
     if (stage === null || container === null) {
       return null
@@ -845,26 +972,34 @@ async function readServicesBoxes(page: Page) {
     const section: HTMLElement = container
     const status = stage.dataset.status ?? ""
 
+    function readRect(element: Element): number[] {
+      const rect = element.getBoundingClientRect()
+
+      return [rect.left, rect.top, rect.width, rect.height]
+    }
+
     function snapshot() {
       const slot = section.querySelector("[data-dot-slot]")
-      const slotRect = slot?.getBoundingClientRect()
-      const captions: number[] = []
+      const boxes: number[] = []
+      const plates: number[][] = []
 
-      for (const copy of section.querySelectorAll<HTMLElement>(
-        "[data-caption] > div"
-      )) {
-        const rect = copy.getBoundingClientRect()
+      for (const box of section.querySelectorAll(input.boxSelector)) {
+        const rect = box.getBoundingClientRect()
 
-        captions.push(rect.width, rect.height)
+        boxes.push(rect.width, rect.height)
+      }
+
+      if (input.plateSelector !== null) {
+        for (const plate of section.querySelectorAll(input.plateSelector)) {
+          plates.push(readRect(plate))
+        }
       }
 
       return {
-        slot:
-          slotRect === undefined
-            ? []
-            : [slotRect.left, slotRect.top, slotRect.width, slotRect.height],
+        slot: slot === null ? [] : readRect(slot),
         height: section.getBoundingClientRect().height,
-        captions,
+        boxes,
+        plates,
       }
     }
 
@@ -877,7 +1012,7 @@ async function readServicesBoxes(page: Page) {
     stage.dataset.status = status
 
     return { staged, unstaged }
-  })
+  }, request)
 }
 
 async function readCaptionBoard(page: Page) {
@@ -1066,6 +1201,520 @@ async function readFrameCentre(page: Page, sceneId: string) {
   }, sceneId)
 }
 
+async function readDeckIds(page: Page) {
+  const cardCount = await page.locator(DECK_CARDS).count()
+  const ids: string[] = []
+
+  for (let cardIndex = 0; cardIndex < cardCount; cardIndex += 1) {
+    ids.push(formatSceneStepId(PROJECTS_SCENE_ID, cardIndex))
+  }
+
+  expect(ids.length, "a deck needs two projects").toBeGreaterThanOrEqual(2)
+
+  return ids
+}
+
+function buildRevealRow(count: number, shownIndex: number): number[] {
+  const row: number[] = []
+
+  for (let cardIndex = 0; cardIndex < count; cardIndex += 1) {
+    row.push(cardIndex === shownIndex ? 1 : 0)
+  }
+
+  return row
+}
+
+async function readCardReveals(page: Page, sceneId: string) {
+  return page.evaluate(function readReveals(id) {
+    const reveals: number[] = []
+
+    for (const caption of document.querySelectorAll(`#${id} [data-caption]`)) {
+      reveals.push(
+        Number(getComputedStyle(caption).getPropertyValue("--caption-reveal"))
+      )
+    }
+
+    return reveals
+  }, sceneId)
+}
+
+function isClipWhole(clipPath: string): boolean {
+  if (clipPath === "none") {
+    return true
+  }
+
+  const match = /^inset\((.+)\)$/.exec(clipPath)
+
+  if (match === null) {
+    return false
+  }
+
+  for (const inset of (match[1] ?? "").split(" ")) {
+    if (parseFloat(inset) > 0) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function expectRectOnSlot(
+  rect: number[] | undefined,
+  slot: number[] | undefined,
+  message: string
+) {
+  expect(slot?.length, message).toBe(4)
+  expect(rect?.length, message).toBe(4)
+
+  for (let edgeIndex = 0; edgeIndex < 4; edgeIndex += 1) {
+    const offset = (rect?.[edgeIndex] ?? 0) - (slot?.[edgeIndex] ?? 0)
+
+    expect(Math.abs(offset), message).toBeLessThanOrEqual(SLOT_TOLERANCE_PX)
+  }
+}
+
+async function readDeckList(page: Page) {
+  return page.evaluate(
+    function measureDeckList(input) {
+      const section = document.getElementById(input.sceneId)
+      const cards: {
+        top: number
+        height: number
+        label: string
+        isLabelShown: boolean
+        clips: string[]
+        boxOverflow: number
+      }[] = []
+
+      for (const card of section?.querySelectorAll("[data-deck] > li") ?? []) {
+        const rect = card.getBoundingClientRect()
+        const box = card.querySelector("[data-fit-box]")
+        const label = card.querySelector("article > :first-child")
+        const clips: string[] = []
+        let isLabelShown =
+          label?.checkVisibility({ visibilityProperty: true }) ?? false
+
+        for (const part of label?.children ?? []) {
+          if (!part.checkVisibility({ visibilityProperty: true })) {
+            isLabelShown = false
+          }
+        }
+
+        for (const line of card.querySelectorAll(input.lines)) {
+          clips.push(getComputedStyle(line).clipPath)
+        }
+
+        cards.push({
+          top: rect.top + window.scrollY,
+          height: rect.height,
+          label: label?.textContent ?? "",
+          isLabelShown,
+          clips,
+          boxOverflow:
+            box === null ? Number.NaN : box.scrollHeight - box.clientHeight,
+        })
+      }
+
+      return {
+        frameHeight: window.innerHeight - input.stickyTop,
+        sectionHeight: section?.getBoundingClientRect().height ?? Number.NaN,
+        sectionHeightValue:
+          section?.computedStyleMap().get("height")?.toString() ?? "",
+        cards,
+      }
+    },
+    {
+      sceneId: PROJECTS_SCENE_ID,
+      lines: DECK_LINES,
+      stickyTop: STICKY_TOP_PX,
+    }
+  )
+}
+
+function expectCardsInOrder(
+  cards: { top: number; height: number }[],
+  cardCount: number
+) {
+  expect(cards.length).toBe(cardCount)
+
+  let previousBottom = Number.NaN
+
+  for (let cardIndex = 0; cardIndex < cards.length; cardIndex += 1) {
+    const card = cards[cardIndex]
+
+    if (card === undefined) {
+      continue
+    }
+
+    if (cardIndex > 0) {
+      expect(card.top, `card ${cardIndex} follows`).toBeCloseTo(
+        previousBottom,
+        0
+      )
+    }
+
+    previousBottom = card.top + card.height
+  }
+}
+
+async function checkDeckList(page: Page) {
+  const stage = page.locator("[data-status]")
+  const ids = await readDeckIds(page)
+  const list = await readDeckList(page)
+
+  expect(await readBoardPosition(page, PROJECTS_SCENE_ID)).not.toBe("sticky")
+  await expect(
+    page.locator(`#${PROJECTS_SCENE_ID} [data-dot-slot]`)
+  ).toBeVisible()
+  expectCardsInOrder(list.cards, ids.length)
+
+  for (let cardIndex = 0; cardIndex < list.cards.length; cardIndex += 1) {
+    const card = list.cards[cardIndex]
+
+    expect(card?.height, `card ${cardIndex}`).toBe(list.frameHeight)
+    expect(card?.label).toBe(
+      PROJECTS_LABEL + formatSectionPosition(cardIndex, ids.length)
+    )
+    expect(card?.isLabelShown, `label ${cardIndex}`).toBe(true)
+    expect(card?.clips.length).toBe(DECK_LINES.split(",").length)
+
+    for (const clip of card?.clips ?? []) {
+      expect(clip, `card ${cardIndex}`).toBe("none")
+    }
+  }
+
+  for (let stepIndex = 0; stepIndex < ids.length; stepIndex += 1) {
+    await scrollToStep(page, PROJECTS_SCENE_ID, stepIndex)
+
+    const boxes = await readSceneBoxes(page, DECK_BOXES)
+
+    expectRectOnSlot(
+      boxes?.unstaged.plates[stepIndex],
+      boxes?.unstaged.slot,
+      `plate ${stepIndex}`
+    )
+    await expect(stage).toHaveAttribute("data-scene", ids[stepIndex] ?? "", {
+      timeout: SCENE_TIMEOUT_MS,
+    })
+
+    if (stepIndex < ids.length - 1) {
+      await scrollToStep(page, PROJECTS_SCENE_ID, stepIndex + 0.5)
+      await expect(stage).toHaveAttribute("data-scene", "moving", {
+        timeout: SCENE_TIMEOUT_MS,
+      })
+    }
+  }
+}
+
+async function linkDeckTitles(page: Page) {
+  return page.evaluate(
+    function wrapTitlesInLinks(input) {
+      let linked = 0
+
+      for (const title of document.querySelectorAll(input.selector)) {
+        const link = document.createElement("a")
+        const note = document.createElement("span")
+
+        link.href = input.href
+        link.target = "_blank"
+        link.rel = "noopener noreferrer"
+        link.className = input.linkClass
+        note.className = "sr-only"
+        note.textContent = input.newTabLabel
+        link.append(title.textContent ?? "", " ", note)
+        title.replaceChildren(link)
+        linked += 1
+      }
+
+      return linked
+    },
+    {
+      selector: `${DECK_CARDS} h3`,
+      href: INJECTED_LINK_HREF,
+      linkClass: PROJECT_TITLE_LINK_CLASS,
+      newTabLabel: PROJECT_NEW_TAB_LABEL,
+    }
+  )
+}
+
+async function readFocusedLink(page: Page) {
+  return page.evaluate(function inspectFocusedLink() {
+    const link = document.activeElement
+
+    if (!(link instanceof HTMLAnchorElement)) {
+      return ["no link focused"]
+    }
+
+    const problems: string[] = []
+    const rect = link.getBoundingClientRect()
+    const hit = document.elementFromPoint(
+      rect.left + rect.width / 2,
+      rect.top + rect.height / 2
+    )
+    const isInView =
+      rect.left >= 0 &&
+      rect.top >= 0 &&
+      rect.right <= window.innerWidth &&
+      rect.bottom <= window.innerHeight
+
+    if (!link.matches(":focus-visible")) {
+      problems.push("no focus ring")
+    }
+
+    if (!isInView) {
+      problems.push("link outside the viewport")
+    }
+
+    if (hit === null || !link.contains(hit)) {
+      problems.push("link covered")
+    }
+
+    const title = link.closest("h3")
+    const ring = getComputedStyle(link, "::after")
+
+    if (ring.content === "none" || ring.boxShadow === "none") {
+      problems.push("no ring on the title")
+    }
+
+    if (
+      title === null ||
+      getComputedStyle(title).position !== "relative" ||
+      getComputedStyle(link).position !== "static"
+    ) {
+      problems.push("ring not placed in the title")
+    }
+
+    for (const inset of [ring.top, ring.right, ring.bottom, ring.left]) {
+      const offset = parseFloat(inset)
+
+      if (Number.isNaN(offset) || offset < 0) {
+        problems.push("ring outside the title at " + inset)
+      }
+    }
+
+    return problems
+  })
+}
+
+async function readFrameBand(page: Page) {
+  const slot = await page
+    .locator(`#${PROJECTS_SCENE_ID} [data-dot-slot]`)
+    .boundingBox()
+
+  if (slot === null) {
+    throw new Error("missing deck slot")
+  }
+
+  const outset = resolveFrameOutset(slot)
+
+  return {
+    x: slot.x - outset,
+    y: slot.y - FRAME_BAND_GAP_PX - FRAME_BAND_HEIGHT_PX,
+    width: slot.width + outset * 2,
+    height: FRAME_BAND_HEIGHT_PX,
+  }
+}
+
+async function countLitPixels(page: Page, image: Buffer) {
+  return page.evaluate(
+    async function countLit(source) {
+      const picture = new Image()
+
+      await new Promise(function waitForImage(resolve) {
+        picture.onload = resolve
+        picture.src = source
+      })
+
+      const canvas = document.createElement("canvas")
+
+      canvas.width = picture.width
+      canvas.height = picture.height
+
+      const context = canvas.getContext("2d", { willReadFrequently: true })
+
+      if (context === null) {
+        return 0
+      }
+
+      context.drawImage(picture, 0, 0)
+
+      const pixels = context.getImageData(0, 0, picture.width, picture.height)
+      let lit = 0
+
+      for (let index = 0; index < pixels.data.length; index += 4) {
+        if ((pixels.data[index] ?? 0) > 128) {
+          lit += 1
+        }
+      }
+
+      return lit
+    },
+    "data:image/png;base64," + image.toString("base64")
+  )
+}
+
+async function countBandPixels(
+  page: Page,
+  band: { x: number; y: number; width: number; height: number }
+) {
+  return countLitPixels(page, await page.screenshot({ clip: band }))
+}
+
+function buildDeckHops(ids: string[]) {
+  const firstId = ids[0] ?? ""
+  const secondId = ids[1] ?? ""
+
+  return [
+    {
+      from: firstId,
+      to: secondId,
+      rest: 0,
+      nudge: FIRST_PROJECT_START + PROJECT_SHARE * NUDGE_SHARE,
+      past: FIRST_PROJECT_START + PROJECT_SHARE * PAST_TRIGGER_SHARE,
+    },
+    {
+      from: secondId,
+      to: firstId,
+      rest: 1,
+      nudge: FIRST_PROJECT_START + PROJECT_SHARE * (1 - NUDGE_SHARE),
+      past: FIRST_PROJECT_START + PROJECT_SHARE * (1 - PAST_TRIGGER_SHARE),
+    },
+  ]
+}
+
+async function watchSlotHits(
+  page: Page,
+  request: { x: number; y: number; landingId: string }
+) {
+  await page.evaluate(
+    function installHitWatch(input) {
+      const stage = document.querySelector<HTMLElement>("[data-status]")
+      const record = { samples: 0, slotHits: 0, exposedSamples: 0 }
+
+      Object.assign(window, { slotHitRecord: record })
+
+      if (stage === null) {
+        return
+      }
+
+      const observedStage: HTMLElement = stage
+
+      function sampleHit() {
+        if (observedStage.dataset.scene === input.landingId) {
+          return
+        }
+
+        const hit = document.elementFromPoint(input.x, input.y)
+
+        record.samples += 1
+
+        if (hit !== null && hit.closest("[data-dot-slot]") !== null) {
+          record.slotHits += 1
+        }
+
+        if (hit !== null && hit.closest(input.plate) === null) {
+          record.exposedSamples += 1
+        }
+
+        window.requestAnimationFrame(sampleHit)
+      }
+
+      window.requestAnimationFrame(sampleHit)
+    },
+    { ...request, plate: DECK_PLATE }
+  )
+}
+
+async function readSlotHits(page: Page) {
+  return page.evaluate(function readHits() {
+    const holder = window as unknown as {
+      slotHitRecord?: {
+        samples: number
+        slotHits: number
+        exposedSamples: number
+      }
+    }
+
+    return holder.slotHitRecord ?? null
+  })
+}
+
+async function countAnimationFrames(page: Page, durationMs: number) {
+  return page.evaluate(function countFrames(windowMs) {
+    return new Promise<number>(function measure(resolve) {
+      const original = window.requestAnimationFrame
+      let calls = 0
+
+      window.requestAnimationFrame = function countedFrame(callback) {
+        calls += 1
+
+        return original.call(window, callback)
+      }
+
+      window.setTimeout(function finish() {
+        window.requestAnimationFrame = original
+        resolve(calls)
+      }, windowMs)
+    })
+  }, durationMs)
+}
+
+async function checkPlainCards(page: Page) {
+  const ids = await readDeckIds(page)
+  const list = await readDeckList(page)
+  const titles = page.locator(`${DECK_CARDS} h3`)
+  let cardsHeight = 0
+
+  expect(await readBoardPosition(page, PROJECTS_SCENE_ID)).not.toBe("sticky")
+  expect(list.sectionHeightValue).toBe("auto")
+  expectCardsInOrder(list.cards, ids.length)
+
+  for (let cardIndex = 0; cardIndex < list.cards.length; cardIndex += 1) {
+    const card = list.cards[cardIndex]
+
+    expect(card?.height, `card ${cardIndex}`).toBeGreaterThanOrEqual(
+      list.frameHeight
+    )
+    expect(card?.boxOverflow, `card ${cardIndex}`).toBeLessThanOrEqual(
+      SCENE_FIT_TOLERANCE_PX
+    )
+    cardsHeight += card?.height ?? Number.NaN
+  }
+
+  expect(list.sectionHeight).toBeCloseTo(cardsHeight, 0)
+  await expect(titles).toHaveCount(ids.length)
+
+  for (const title of await titles.all()) {
+    await title.scrollIntoViewIfNeeded()
+    await expect(title).toBeVisible()
+  }
+}
+
+async function openPageWithoutWebgl2(page: Page) {
+  await page.addInitScript(function stubWebgl2() {
+    const original = HTMLCanvasElement.prototype.getContext
+
+    HTMLCanvasElement.prototype.getContext = function getContext(
+      this: HTMLCanvasElement,
+      kind: string,
+      ...rest: unknown[]
+    ) {
+      if (kind === "webgl2") {
+        return null
+      }
+
+      return Reflect.apply(original, this, [kind, ...rest])
+    } as typeof HTMLCanvasElement.prototype.getContext
+  })
+
+  await page.goto("/")
+  await expect(page.locator("[data-status]")).toHaveAttribute(
+    "data-status",
+    "unsupported",
+    { timeout: 15000 }
+  )
+}
+
 for (const viewport of STAGED_VIEWPORTS) {
   test.describe(`staged step scenes at ${viewport.width}x${viewport.height}`, () => {
     test.use({ viewport })
@@ -1096,7 +1745,7 @@ for (const viewport of STAGED_VIEWPORTS) {
         await expect
           .poll(
             function readActiveCaption() {
-              return readCaptions(page, stepIndex)
+              return readCaptions(page, SERVICES_CAPTION_GROUPS, stepIndex)
             },
             { message: `step ${stepIndex}`, timeout: SCENE_TIMEOUT_MS }
           )
@@ -1137,7 +1786,7 @@ for (const viewport of STAGED_VIEWPORTS) {
       await expect
         .poll(
           function readActiveCaption() {
-            return readCaptions(page, 1)
+            return readCaptions(page, SERVICES_CAPTION_GROUPS, 1)
           },
           { timeout: SCENE_TIMEOUT_MS }
         )
@@ -1150,7 +1799,7 @@ for (const viewport of STAGED_VIEWPORTS) {
       await openRunningPage(page)
       await scrollToStep(page, "services", 0)
 
-      const boxes = await readServicesBoxes(page)
+      const boxes = await readSceneBoxes(page, SERVICES_BOXES)
 
       expect(boxes).not.toBeNull()
       expect(boxes?.unstaged).toEqual(boxes?.staged)
@@ -1169,13 +1818,13 @@ for (const viewport of STAGED_VIEWPORTS) {
       await expect
         .poll(
           function readBrandingCaption() {
-            return readCaptions(page, 0)
+            return readCaptions(page, SERVICES_CAPTION_GROUPS, 0)
           },
           { timeout: SCENE_TIMEOUT_MS }
         )
         .toEqual([])
 
-      await watchCaptionSync(page)
+      await watchCaptionSync(page, SERVICES_SYNC)
       await scrollToStep(
         page,
         "services",
@@ -1256,6 +1905,221 @@ for (const viewport of STAGED_VIEWPORTS) {
         }
       }
     })
+
+    test("shows one project per commit, whole and alone on the board", async ({
+      page,
+    }) => {
+      const problems = collectPageProblems(page)
+      const stage = page.locator("[data-status]")
+
+      await openRunningPage(page)
+
+      const ids = await readDeckIds(page)
+      const positions = page.locator(`${DECK_CARDS} > ${DECK_POSITION}`)
+      const plates = page.locator(`${DECK_CARDS} > ${DECK_PLATE}`)
+
+      expect(await readBoardPosition(page, PROJECTS_SCENE_ID)).toBe("sticky")
+
+      for (const group of DECK_CAPTION_GROUPS) {
+        await expect(page.locator(group.selector)).toHaveCount(ids.length)
+      }
+
+      for (let stepIndex = 0; stepIndex < ids.length; stepIndex += 1) {
+        const id = ids[stepIndex] ?? ""
+
+        await scrollToStep(
+          page,
+          PROJECTS_SCENE_ID,
+          resolveFormedPosition(stepIndex, ids.length)
+        )
+        await expect(stage).toHaveAttribute("data-scene", id, {
+          timeout: SCENE_TIMEOUT_MS,
+        })
+        await expect(stage).toHaveAttribute("data-thread", id)
+        expect(await readCardReveals(page, PROJECTS_SCENE_ID), id).toEqual(
+          buildRevealRow(ids.length, stepIndex)
+        )
+        await expect
+          .poll(
+            function readActiveCard() {
+              return readCaptions(page, DECK_CAPTION_GROUPS, stepIndex)
+            },
+            { message: id, timeout: SCENE_TIMEOUT_MS }
+          )
+          .toEqual([])
+        await expect(positions.nth(stepIndex)).toHaveText(
+          formatSectionPosition(stepIndex, ids.length)
+        )
+        expect(
+          isClipWhole(
+            await plates.nth(stepIndex).evaluate(function readClip(plate) {
+              return getComputedStyle(plate).clipPath
+            })
+          ),
+          `${id} plate whole`
+        ).toBe(true)
+      }
+
+      expect(problems).toEqual([])
+    })
+
+    test("commits the next project past the trigger and plays it by itself, both ways", async ({
+      page,
+    }) => {
+      const stage = page.locator("[data-status]")
+
+      await openRunningPage(page)
+
+      const ids = await readDeckIds(page)
+
+      await watchScrollHold(page)
+
+      for (const hop of buildDeckHops(ids)) {
+        await scrollToStep(page, PROJECTS_SCENE_ID, hop.rest)
+        await expect(stage).toHaveAttribute("data-scene", hop.from, {
+          timeout: SCENE_TIMEOUT_MS,
+        })
+
+        await scrollToStep(page, PROJECTS_SCENE_ID, hop.nudge)
+        await page.waitForTimeout(
+          DOT_FIELD_MORPH_TUNING.threadDrawSeconds * 1000
+        )
+        await expect(stage).toHaveAttribute("data-thread", hop.from)
+        await expect(stage).toHaveAttribute("data-scene", hop.from)
+
+        await watchThreadDraw(page, hop.to)
+        await scrollToStep(page, PROJECTS_SCENE_ID, hop.past)
+
+        const stoppedTop = await readScrollTop(page)
+
+        await expect(stage).toHaveAttribute("data-thread", hop.to)
+        await expect(stage).toHaveAttribute("data-scene", hop.to, {
+          timeout: SCENE_TIMEOUT_MS,
+        })
+        expect(await readScrollTop(page), hop.to).toBe(stoppedTop)
+        expect(await readThreadDrawMs(page), hop.to).toBeGreaterThanOrEqual(
+          DOT_FIELD_MORPH_TUNING.threadDrawSeconds * 1000 * MIN_DRAW_SHARE
+        )
+      }
+
+      expect(await readScrollHeld(page)).toBe(false)
+    })
+
+    test("wipes one card out and the next in with its frame", async ({
+      page,
+    }) => {
+      const stage = page.locator("[data-status]")
+
+      await openRunningPage(page)
+
+      const ids = await readDeckIds(page)
+      const oldId = ids[0] ?? ""
+      const newId = ids[1] ?? ""
+
+      await scrollToStep(page, PROJECTS_SCENE_ID, 0)
+      await expect(stage).toHaveAttribute("data-scene", oldId, {
+        timeout: SCENE_TIMEOUT_MS,
+      })
+      await expect
+        .poll(
+          function readFirstCard() {
+            return readCaptions(page, DECK_CAPTION_GROUPS, 0)
+          },
+          { timeout: SCENE_TIMEOUT_MS }
+        )
+        .toEqual([])
+
+      await watchCaptionSync(page, DECK_SYNC)
+      await scrollToStep(
+        page,
+        PROJECTS_SCENE_ID,
+        FIRST_PROJECT_START + PROJECT_SHARE * PAST_TRIGGER_SHARE
+      )
+      await expect(stage).toHaveAttribute("data-scene", newId, {
+        timeout: SCENE_TIMEOUT_MS,
+      })
+
+      const samples = await readCaptionSync(page)
+      let wholeOldSamples = 0
+      let startedAt = Number.NaN
+      let fullAt = Number.NaN
+      let formedAt = Number.NaN
+
+      for (const sample of samples) {
+        let shownCount = 0
+
+        for (const id of ids) {
+          if ((sample.reveals[id] ?? 0) > 0) {
+            shownCount += 1
+          }
+        }
+
+        expect(shownCount, "two cards at once").toBeLessThanOrEqual(1)
+        expect(sample.started, "two titles at once").not.toEqual(
+          expect.arrayContaining([oldId, newId])
+        )
+
+        if (sample.reveals[oldId] === 1) {
+          wholeOldSamples += 1
+          expect(sample.full, "the old card left before its reveal").toEqual([
+            oldId,
+          ])
+        }
+
+        if (Number.isNaN(startedAt) && sample.started.includes(newId)) {
+          startedAt = sample.time
+        }
+
+        if (Number.isNaN(fullAt) && sample.full.includes(newId)) {
+          fullAt = sample.time
+        }
+
+        if (Number.isNaN(formedAt) && sample.scene === newId) {
+          formedAt = sample.time
+        }
+      }
+
+      expect(wholeOldSamples).toBeGreaterThan(0)
+      expect(formedAt - startedAt).toBeGreaterThanOrEqual(CAPTION_LEAD_MS)
+      expect(fullAt - formedAt).toBeLessThanOrEqual(CAPTION_LAND_SLACK_MS)
+    })
+
+    test("keeps the deck's boxes identical staged and unstaged, each plate on the slot", async ({
+      page,
+    }) => {
+      await openRunningPage(page)
+
+      const ids = await readDeckIds(page)
+
+      for (let stepIndex = 0; stepIndex < ids.length; stepIndex += 1) {
+        await scrollToStep(page, PROJECTS_SCENE_ID, stepIndex)
+
+        const boxes = await readSceneBoxes(page, DECK_BOXES)
+        const staged = boxes?.staged
+        const unstaged = boxes?.unstaged
+
+        expect(boxes).not.toBeNull()
+        expect(staged?.boxes.length).toBe(ids.length * 4)
+        expect(staged?.plates.length).toBe(ids.length)
+        expect(unstaged?.slot).toEqual(staged?.slot)
+        expect(unstaged?.height).toBe(staged?.height)
+        expect(unstaged?.boxes).toEqual(staged?.boxes)
+
+        for (let plateIndex = 0; plateIndex < ids.length; plateIndex += 1) {
+          expectRectOnSlot(
+            staged?.plates[plateIndex],
+            staged?.slot,
+            `staged plate ${plateIndex} at ${stepIndex}`
+          )
+        }
+
+        expectRectOnSlot(
+          unstaged?.plates[stepIndex],
+          unstaged?.slot,
+          `unstaged plate ${stepIndex}`
+        )
+      }
+    })
   })
 }
 
@@ -1316,12 +2180,12 @@ async function readScrollHeld(page: Page) {
   })
 }
 
-async function watchDevelopmentDraw(page: Page) {
-  await page.evaluate(function installDrawWatch() {
+async function watchThreadDraw(page: Page, keyframeId: string) {
+  await page.evaluate(function installDrawWatch(watchedId) {
     const stage = document.querySelector<HTMLElement>("[data-status]")
     const record = { committedAt: 0, formedAt: 0 }
 
-    Object.assign(window, { developmentDraw: record })
+    Object.assign(window, { threadDraw: record })
 
     if (stage === null) {
       return
@@ -1334,15 +2198,12 @@ async function watchDevelopmentDraw(page: Page) {
 
       if (
         record.committedAt === 0 &&
-        observedStage.dataset.thread === "development"
+        observedStage.dataset.thread === watchedId
       ) {
         record.committedAt = now
       }
 
-      if (
-        record.formedAt === 0 &&
-        observedStage.dataset.scene === "development"
-      ) {
+      if (record.formedAt === 0 && observedStage.dataset.scene === watchedId) {
         record.formedAt = now
       }
     }
@@ -1351,15 +2212,15 @@ async function watchDevelopmentDraw(page: Page) {
       attributes: true,
       attributeFilter: ["data-thread", "data-scene"],
     })
-  })
+  }, keyframeId)
 }
 
-async function readDevelopmentDrawMs(page: Page) {
+async function readThreadDrawMs(page: Page) {
   return page.evaluate(function readDraw() {
     const holder = window as unknown as {
-      developmentDraw?: { committedAt: number; formedAt: number }
+      threadDraw?: { committedAt: number; formedAt: number }
     }
-    const record = holder.developmentDraw
+    const record = holder.threadDraw
 
     if (record === undefined || record.committedAt === 0) {
       return Number.NaN
@@ -1416,7 +2277,7 @@ test.describe("a fast wheel through the services", () => {
     const notch = distance / FAST_WHEEL_NOTCHES
 
     await watchScrollHold(page)
-    await watchDevelopmentDraw(page)
+    await watchThreadDraw(page, "development")
     await page.mouse.move(720, 450)
 
     for (let notchIndex = 0; notchIndex < FAST_WHEEL_NOTCHES; notchIndex += 1) {
@@ -1433,7 +2294,7 @@ test.describe("a fast wheel through the services", () => {
     await expect(stage).toHaveAttribute("data-scene", "development", {
       timeout: SCENE_TIMEOUT_MS,
     })
-    expect(await readDevelopmentDrawMs(page)).toBeGreaterThanOrEqual(
+    expect(await readThreadDrawMs(page)).toBeGreaterThanOrEqual(
       DOT_FIELD_MORPH_TUNING.threadDrawSeconds * 1000 * MIN_DRAW_SHARE
     )
     expect(problems).toEqual([])
@@ -1491,6 +2352,11 @@ test.describe("step scenes under reduced motion", () => {
     await checkServicesCurtains(page)
     await checkCurtainClearance(page)
   })
+
+  test("lists the projects past the pinned frame", async ({ page }) => {
+    await openRunningPage(page)
+    await checkDeckList(page)
+  })
 })
 
 test.describe("step scenes under reduced motion on a phone", () => {
@@ -1505,6 +2371,170 @@ test.describe("step scenes under reduced motion on a phone", () => {
     expect(await readBoardPosition(page, "process")).not.toBe("sticky")
     await checkServicesCurtains(page)
     await checkCurtainClearance(page)
+  })
+
+  test("lists the projects past the pinned frame", async ({ page }) => {
+    await openRunningPage(page)
+    await checkDeckList(page)
+  })
+})
+
+test.describe("the deck from the keyboard", () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test("shows a tabbed project and hands the board back when focus leaves", async ({
+    page,
+  }) => {
+    const stage = page.locator("[data-status]")
+
+    await openRunningPage(page)
+
+    const ids = await readDeckIds(page)
+    const links = page.locator(`${DECK_CARDS} h3 a`)
+
+    await scrollToStep(page, PROJECTS_SCENE_ID, 0)
+    await expect(stage).toHaveAttribute("data-scene", ids[0] ?? "", {
+      timeout: SCENE_TIMEOUT_MS,
+    })
+    expect(await linkDeckTitles(page)).toBe(ids.length)
+
+    const startTop = await readScrollTop(page)
+
+    await links.first().focus()
+
+    for (let cardIndex = 0; cardIndex < ids.length; cardIndex += 1) {
+      if (cardIndex > 0) {
+        await page.keyboard.press("Tab")
+      }
+
+      await expect(links.nth(cardIndex)).toBeFocused()
+      expect(await readCardReveals(page, PROJECTS_SCENE_ID)).toEqual(
+        buildRevealRow(ids.length, cardIndex)
+      )
+      expect(await readFocusedLink(page), `link ${cardIndex}`).toEqual([])
+      expect(await readScrollTop(page)).toBe(startTop)
+    }
+
+    await links.last().blur()
+
+    expect(await readCardReveals(page, PROJECTS_SCENE_ID)).toEqual(
+      buildRevealRow(ids.length, 0)
+    )
+    await expect(stage).toHaveAttribute("data-thread", ids[0] ?? "")
+    expect(await readScrollTop(page)).toBe(startTop)
+  })
+})
+
+test.describe("the deck's frame between two projects", () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test("unwinds the frame and redraws it in place, both ways", async ({
+    page,
+  }) => {
+    const stage = page.locator("[data-status]")
+
+    await openRunningPage(page)
+
+    const ids = await readDeckIds(page)
+
+    for (const hop of buildDeckHops(ids)) {
+      await scrollToStep(page, PROJECTS_SCENE_ID, hop.rest)
+      await expect(stage).toHaveAttribute("data-scene", hop.from, {
+        timeout: SCENE_TIMEOUT_MS,
+      })
+      await page.waitForTimeout(FRAME_SETTLE_MS)
+
+      const band = await readFrameBand(page)
+      const formedLit = await countBandPixels(page, band)
+      const playImages: Buffer[] = []
+      const playEnd =
+        Date.now() +
+        DOT_FIELD_MORPH_TUNING.threadDrawSeconds * 1000 +
+        PLAY_SLACK_MS
+      let fewestLit = formedLit
+
+      expect(formedLit, hop.from).toBeGreaterThan(FORMED_BAND_MIN_LIT)
+
+      await scrollToStep(page, PROJECTS_SCENE_ID, hop.past)
+
+      while (Date.now() < playEnd) {
+        playImages.push(await page.screenshot({ clip: band }))
+      }
+
+      for (const image of playImages) {
+        fewestLit = Math.min(fewestLit, await countLitPixels(page, image))
+      }
+
+      expect(fewestLit, `${hop.to} unwound`).toBeLessThan(
+        formedLit * UNWOUND_BAND_SHARE
+      )
+
+      await expect(stage).toHaveAttribute("data-scene", hop.to, {
+        timeout: SCENE_TIMEOUT_MS,
+      })
+      await page.waitForTimeout(FRAME_SETTLE_MS)
+
+      expect(
+        await countBandPixels(page, band),
+        `${hop.to} redrawn`
+      ).toBeGreaterThanOrEqual(formedLit * REDRAWN_BAND_SHARE)
+    }
+  })
+
+  test("never pushes the frame from under a swept plate, so the loop sleeps", async ({
+    page,
+  }) => {
+    const stage = page.locator("[data-status]")
+
+    await openRunningPage(page)
+
+    const ids = await readDeckIds(page)
+
+    await scrollToStep(page, PROJECTS_SCENE_ID, 0)
+    await expect(stage).toHaveAttribute("data-scene", ids[0] ?? "", {
+      timeout: SCENE_TIMEOUT_MS,
+    })
+
+    const plate = await page
+      .locator(`${DECK_CARDS} > ${DECK_PLATE}`)
+      .first()
+      .boundingBox()
+
+    expect(plate).not.toBeNull()
+
+    const pointerX = (plate?.x ?? 0) + (plate?.width ?? 0) / 2
+    const pointerY = (plate?.y ?? 0) + (plate?.height ?? 0) / 2
+
+    await page.mouse.move(pointerX, pointerY)
+    await watchSlotHits(page, {
+      x: pointerX,
+      y: pointerY,
+      landingId: ids[1] ?? "",
+    })
+    await scrollToStep(
+      page,
+      PROJECTS_SCENE_ID,
+      FIRST_PROJECT_START + PROJECT_SHARE * PAST_TRIGGER_SHARE
+    )
+    await page.waitForTimeout(MID_HOP_MS)
+    await page.mouse.move(pointerX + 1, pointerY)
+    await expect(stage).toHaveAttribute("data-scene", ids[1] ?? "", {
+      timeout: SCENE_TIMEOUT_MS,
+    })
+
+    const hits = await readSlotHits(page)
+
+    expect(hits?.exposedSamples, "the plate swept away").toBeGreaterThan(0)
+    expect(hits?.slotHits, "the slot under the pointer").toBe(0)
+
+    await expect
+      .poll(
+        function countLandedFrames() {
+          return countAnimationFrames(page, SLEEP_WINDOW_MS)
+        },
+        { message: "the loop sleeps", timeout: LANDED_SLEEP_TIMEOUT_MS }
+      )
+      .toBe(0)
   })
 })
 
@@ -1611,28 +2641,7 @@ test.describe("step scenes without WebGL2", () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
   test("lists every step as plain copy", async ({ page }) => {
-    await page.addInitScript(function stubWebgl2() {
-      const original = HTMLCanvasElement.prototype.getContext
-
-      HTMLCanvasElement.prototype.getContext = function getContext(
-        this: HTMLCanvasElement,
-        kind: string,
-        ...rest: unknown[]
-      ) {
-        if (kind === "webgl2") {
-          return null
-        }
-
-        return Reflect.apply(original, this, [kind, ...rest])
-      } as typeof HTMLCanvasElement.prototype.getContext
-    })
-
-    await page.goto("/")
-    await expect(page.locator("[data-status]")).toHaveAttribute(
-      "data-status",
-      "unsupported",
-      { timeout: 15000 }
-    )
+    await openPageWithoutWebgl2(page)
 
     for (const scene of SCENES) {
       expect(await readBoardPosition(page, scene.id)).not.toBe("sticky")
@@ -1643,4 +2652,29 @@ test.describe("step scenes without WebGL2", () => {
       }
     }
   })
+
+  test("lists the projects as plain cards", async ({ page }) => {
+    await openPageWithoutWebgl2(page)
+
+    const slot = page.locator(
+      `#${PROJECTS_SCENE_ID} > :first-child > [aria-hidden]`
+    )
+
+    await expect(slot).toHaveCount(1)
+    await expect(slot).toBeHidden()
+    await checkPlainCards(page)
+  })
 })
+
+for (const viewport of NO_SCRIPT_VIEWPORTS) {
+  test.describe(`the deck without JavaScript at ${viewport.width}x${viewport.height}`, () => {
+    test.use({ viewport, javaScriptEnabled: false })
+
+    test("lists the projects as plain cards that grow to fit", async ({
+      page,
+    }) => {
+      await page.goto("/")
+      await checkPlainCards(page)
+    })
+  })
+}

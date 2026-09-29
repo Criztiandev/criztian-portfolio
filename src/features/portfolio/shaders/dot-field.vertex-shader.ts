@@ -52,6 +52,8 @@ uniform float uThreadStagger;
 uniform float uThreadJitter;
 uniform float uThreadArc;
 uniform float uThreadBurst;
+uniform float uRedraw;
+uniform float uRedrawEdge;
 uniform Placement uFrom;
 uniform Placement uTo;
 
@@ -186,7 +188,7 @@ void main() {
     1.0
   );
   float eased = easeInOutCubic(localMorph);
-  float flight = sin(3.14159265 * eased);
+  float flight = sin(3.14159265 * eased) * (1.0 - uRedraw);
 
   vec2 travel = to.position - from.position;
   vec2 side = vec2(-travel.y, travel.x) / max(length(travel), 1.0);
@@ -212,10 +214,17 @@ void main() {
   vPointSize =
     max(mix(from.size, to.size, eased) * uPixelRatio * swell * strike, 1.0);
   vShade = mix(from.shade, to.shade, eased);
+
+  float unwound = uMorph * 2.0 * (1.0 + uRedrawEdge);
+  float redrawn = (uMorph * 2.0 - 1.0) * (1.0 + uRedrawEdge);
+  float kept = smoothstep(unwound - uRedrawEdge, unwound, threadKey);
+  float drawn = 1.0 - smoothstep(redrawn - uRedrawEdge, redrawn, threadKey);
+  float redrawShown = mix(1.0, max(kept, drawn), uRedraw);
+
   vOpacity = min(
     mix(from.opacity, to.opacity, eased) * (1.0 + 0.5 * uSwell * flight),
     1.0
-  );
+  ) * redrawShown;
 
   if (vOpacity <= 0.0) {
     gl_Position = vec4(vec3(${OFFSCREEN_CLIP_POSITION}.0), 1.0);

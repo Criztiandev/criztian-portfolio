@@ -24,6 +24,7 @@ import {
   PIXEL_RATIO_STEPS,
   POINT_STRIDE,
   REFERENCE_FRAME_RATE,
+  SCENE_STEP_ID_SEPARATOR,
   SHAPE_POINTS,
   SHAPE_STRIDE,
 } from "@/data/hero.data"
@@ -917,6 +918,17 @@ export function isThreadSegment(
   return from.scene === to.scene
 }
 
+export function isRedrawSegment(
+  from: DotSceneKeyframe | undefined,
+  to: DotSceneKeyframe | undefined
+): boolean {
+  if (!isThreadSegment(from, to)) {
+    return false
+  }
+
+  return from?.shape === to?.shape
+}
+
 export function resolveTriggeredTarget(
   request: DotTriggeredTargetRequest
 ): number {
@@ -1112,6 +1124,25 @@ export function resolveViewportHeight(
   return height
 }
 
+export function formatSceneStepId(sceneId: string, stepIndex: number): string {
+  return sceneId + SCENE_STEP_ID_SEPARATOR + String(stepIndex + 1)
+}
+
+function resolveStepId(
+  scene: DotSceneMeasure,
+  shape: DotShapeId,
+  stepIndex: number
+): string {
+  const isRepeated =
+    scene.shapes.indexOf(shape) !== scene.shapes.lastIndexOf(shape)
+
+  if (isRepeated) {
+    return formatSceneStepId(scene.id, stepIndex)
+  }
+
+  return shape
+}
+
 export function buildSceneKeyframes(
   scenes: DotSceneMeasure[],
   viewportHeight: number,
@@ -1170,7 +1201,7 @@ export function buildSceneKeyframes(
       }
 
       const keyframe: DotSceneKeyframe = {
-        id: shape,
+        id: resolveStepId(scene, shape, index),
         scene: scene.id,
         shape,
         start: stepStart,

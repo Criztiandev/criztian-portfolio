@@ -1,10 +1,8 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-import {
-  FRAME_SCENE_SHAPES,
-  SCENE_FLOW_SHAPES,
-} from "@/data/page-sections.data"
+import { DOT_FIELD_MORPH_TUNING } from "@/data/hero.data"
+import { SCENE_FLOW_SHAPES } from "@/data/page-sections.data"
 import {
   PROJECT_IMAGE_PLACEHOLDER_LABEL,
   PROJECTS_LABEL,
@@ -14,6 +12,11 @@ import {
   NEW_PROJECT_ITEM,
 } from "@/data/site-content.data"
 import { ProjectsSection } from "@/features/portfolio/components/projects-section.component"
+import {
+  buildSceneKeyframes,
+  parseSceneShapes,
+} from "@/features/portfolio/dot-field.rules"
+import { buildDeckShapes } from "@/features/portfolio/projects.rules"
 import { createDefaultSiteContent } from "@/features/site-content/site-content.rules"
 import type { ProjectItem } from "@/types/site-content.type"
 
@@ -27,6 +30,18 @@ function renderProjects(items: ProjectItem[]) {
 
 function buildProject(overrides: Partial<ProjectItem>): ProjectItem {
   return { ...NEW_PROJECT_ITEM, ...overrides }
+}
+
+function findScene(container: HTMLElement): HTMLElement {
+  const section = container.querySelector<HTMLElement>(
+    "section[data-dot-scene]"
+  )
+
+  if (section === null) {
+    throw new Error("the projects scene is missing")
+  }
+
+  return section
 }
 
 describe("ProjectsSection", () => {
@@ -60,6 +75,9 @@ describe("ProjectsSection", () => {
     expect(container.querySelector("article h2")).toHaveAccessibleName(
       PROJECTS_LABEL
     )
+    expect(
+      container.querySelector("article h2 > [aria-hidden='true']")
+    ).toHaveTextContent("· 01 / 03")
 
     for (const label of container.querySelectorAll("article > p:first-child")) {
       expect(label).toHaveAttribute("aria-hidden", "true")
@@ -108,7 +126,105 @@ describe("ProjectsSection", () => {
     expect(slots[0]).toHaveAttribute("aria-hidden", "true")
     expect(slots[0]).toBeEmptyDOMElement()
     expect(section?.firstElementChild?.contains(slots[0] ?? null)).toBe(true)
-    expect(section).toHaveAttribute("data-dot-shapes", FRAME_SCENE_SHAPES)
+    expect(section).toHaveAttribute("data-dot-shapes", buildDeckShapes(3))
+  })
+
+  it("is one frame per visible project, and one with none", () => {
+    const blank = buildProject({ title: "" })
+    const cases = [
+      { items: DEFAULT_PROJECT_ITEMS, count: 3, steps: "3" },
+      {
+        items: [
+          buildProject({ title: "Shop" }),
+          blank,
+          buildProject({ title: "Docs" }),
+        ],
+        count: 2,
+        steps: "2",
+      },
+      { items: [blank], count: 0, steps: "1" },
+    ]
+
+    for (const scene of cases) {
+      const section = findScene(renderProjects(scene.items).container)
+
+      expect(section).toHaveAttribute(
+        "data-dot-shapes",
+        buildDeckShapes(scene.count)
+      )
+      expect(section.style.getPropertyValue("--steps")).toBe(scene.steps)
+    }
+  })
+
+  it("stacks the cards on a board between the pinned frame and the fit gate", () => {
+    const section = findScene(renderProjects(DEFAULT_PROJECT_ITEMS).container)
+    const board = section.children[1]
+    const gate = section.lastElementChild
+
+    expect(section.children).toHaveLength(3)
+    expect(board?.tagName).toBe("OL")
+    expect(board).toHaveAttribute("data-deck")
+    expect(gate?.tagName).toBe("SPAN")
+    expect(gate).toHaveAttribute("hidden")
+  })
+
+  it("makes every card a fit box", () => {
+    const section = findScene(renderProjects(DEFAULT_PROJECT_ITEMS).container)
+    const cards = section.querySelectorAll("[data-deck] > li")
+
+    expect(cards).toHaveLength(3)
+    expect(section.querySelectorAll("[data-fit-box]")).toHaveLength(3)
+
+    for (const card of cards) {
+      expect(card.firstElementChild?.tagName).toBe("ARTICLE")
+      expect(card.firstElementChild).toHaveAttribute("data-fit-box")
+    }
+  })
+
+  it("keys each card to the step the engine gives its project", () => {
+    const section = findScene(renderProjects(DEFAULT_PROJECT_ITEMS).container)
+    const keyframes = buildSceneKeyframes(
+      [
+        {
+          id: section.dataset.dotScene ?? "",
+          shapes: parseSceneShapes(section.dataset.dotShapes),
+          containerTop: 1000,
+          containerBottom: 4000,
+          stickyTop: 72,
+          frameHeight: 828,
+          slot: { x: 700, y: 237, width: 700, height: 490 },
+        },
+      ],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+    const captions: string[] = []
+    const steps: string[] = []
+
+    for (const card of section.querySelectorAll<HTMLElement>(
+      "[data-deck] > li"
+    )) {
+      captions.push(card.dataset.caption ?? "")
+      expect(card.style.getPropertyValue("--caption-reveal")).toBe("")
+    }
+
+    for (const keyframe of keyframes) {
+      steps.push(keyframe.id)
+      expect(keyframe.isThread).toBe(true)
+    }
+
+    expect(captions).toHaveLength(3)
+    expect(captions).toEqual(steps)
+  })
+
+  it("shows a lone project's card in full, with no step to key it to", () => {
+    const section = findScene(
+      renderProjects([buildProject({ title: "Shop" })]).container
+    )
+    const card = section.querySelector<HTMLElement>("[data-deck] > li")
+
+    expect(card).not.toHaveAttribute("data-caption")
+    expect(card?.style.getPropertyValue("--caption-reveal")).toBe("1")
   })
 
   it("draws no frame round an empty plate when no project is visible", () => {
@@ -117,6 +233,27 @@ describe("ProjectsSection", () => {
 
     expect(container.querySelectorAll("[data-dot-slot]")).toHaveLength(0)
     expect(section).toHaveAttribute("data-dot-shapes", SCENE_FLOW_SHAPES)
+  })
+
+  it("keeps an emptied deck on dust when the editor hides every project", () => {
+    const projects = createDefaultSiteContent().projects
+    const { container, rerender } = render(
+      <ProjectsSection
+        projects={{ ...projects, items: DEFAULT_PROJECT_ITEMS }}
+      />
+    )
+
+    rerender(
+      <ProjectsSection
+        projects={{ ...projects, items: [buildProject({ title: "" })] }}
+      />
+    )
+
+    const section = findScene(container)
+
+    expect(section).toHaveAttribute("data-dot-shapes", SCENE_FLOW_SHAPES)
+    expect(section).not.toHaveAttribute("data-fit")
+    expect(container.querySelectorAll("[data-dot-slot]")).toHaveLength(0)
   })
 
   it("links the title to an https project in a new tab", () => {
@@ -129,6 +266,25 @@ describe("ProjectsSection", () => {
     expect(link).toHaveAttribute("rel", "noopener noreferrer")
     expect(link).toHaveAccessibleName("Shop (opens in a new tab)")
     expect(link.closest("h3")).not.toBeNull()
+  })
+
+  it("links each https title once, in reading order", () => {
+    const { container } = renderProjects([
+      buildProject({ title: "Shop", link: "https://shop.test" }),
+      buildProject({ title: "Blog", link: "http://blog.test" }),
+      buildProject({ title: "Docs", link: "https://docs.test" }),
+    ])
+    const links = screen.getAllByRole("link")
+    const linksPerCard: number[] = []
+
+    for (const article of container.querySelectorAll("article")) {
+      linksPerCard.push(article.querySelectorAll("a").length)
+    }
+
+    expect(linksPerCard).toEqual([1, 0, 1])
+    expect(links).toHaveLength(2)
+    expect(links[0]).toHaveAccessibleName("Shop (opens in a new tab)")
+    expect(links[1]).toHaveAccessibleName("Docs (opens in a new tab)")
   })
 
   it("renders no link for unsafe or plain http links", () => {
