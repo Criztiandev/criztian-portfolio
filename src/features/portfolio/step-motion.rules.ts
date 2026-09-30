@@ -1,5 +1,7 @@
 import {
+  CAPTION_CASCADE_SPREAD,
   CAPTION_LINE_STAGGER,
+  COPY_DRIFT_PX,
   ORBIT_DIGIT_TILTS_DEGREES,
   ORBIT_RING_SPIN_RATIO,
 } from "@/data/motion.data"
@@ -13,12 +15,21 @@ export function buildThreadCaptionStyle(): StepMotionStyle {
   return { "--caption-stagger": CAPTION_LINE_STAGGER }
 }
 
-export function buildLineStyle(line: number): StepMotionStyle {
-  return { "--line": line }
+export function buildSceneCaptionStyle(lastLine: number): StepMotionStyle {
+  const spreadStagger = CAPTION_CASCADE_SPREAD / Math.max(lastLine, 1)
+
+  return {
+    "--caption-stagger": Math.min(CAPTION_LINE_STAGGER, spreadStagger),
+    "--caption-last": lastLine,
+  }
 }
 
-export function buildShownCaptionStyle(): StepMotionStyle {
-  return { "--caption-reveal": 1 }
+export function buildCopyDriftStyle(): StepMotionStyle {
+  return { "--copy-drift": `${COPY_DRIFT_PX}px` }
+}
+
+export function buildLineStyle(line: number): StepMotionStyle {
+  return { "--line": line }
 }
 
 export function buildOrbitStyle(): StepMotionStyle {

@@ -8,6 +8,7 @@ import {
   SCREEN_LABEL_BOX_CLASS,
   SECTION_LABEL_CLASS,
   STEP_NUMBER_DIGITS,
+  SWEPT_LABEL_CLASS,
   TITLE_CLASS,
 } from "@/data/page-sections.data"
 import { SceneFitGate } from "@/features/portfolio/components/scene-fit-gate.component"
@@ -180,7 +181,12 @@ export function ProcessSection() {
             id={headingId}
             className={cn(SECTION_LABEL_CLASS, SCREEN_LABEL_BOX_CLASS)}
           >
-            {heading}
+            <span
+              style={buildLineStyle(0) as React.CSSProperties}
+              className={SWEPT_LABEL_CLASS}
+            >
+              {heading}
+            </span>
             <span aria-hidden="true" className="hidden staged:inline-grid">
               {shapeIds.map(renderPosition)}
             </span>

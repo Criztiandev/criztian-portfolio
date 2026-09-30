@@ -10,6 +10,7 @@ import {
   STATEMENT_CLASS,
   STATEMENT_SIZE_CLASSES,
   STEP_NUMBER_DIGITS,
+  SWEPT_LABEL_CLASS,
 } from "@/data/page-sections.data"
 import { SceneFitGate } from "@/features/portfolio/components/scene-fit-gate.component"
 import { formatSectionPosition } from "@/features/portfolio/section-label.rules"
@@ -149,7 +150,12 @@ export function ServicesSection() {
             SCREEN_LABEL_BOX_CLASS
           )}
         >
-          {heading}
+          <span
+            style={buildLineStyle(0) as React.CSSProperties}
+            className={SWEPT_LABEL_CLASS}
+          >
+            {heading}
+          </span>
           <span aria-hidden="true" className="hidden staged:inline-grid">
             {shapeIds.map(renderPosition)}
           </span>

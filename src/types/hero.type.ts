@@ -132,6 +132,7 @@ export type DotFieldMorphTuning = {
   threadDrawSeconds: number
   threadHurrySeconds: number
   threadCaptionSpan: number
+  sceneRevealSpan: number
   redrawEdge: number
 }
 
@@ -139,6 +140,11 @@ export type DotSceneMotion = {
   share: number
   isThread: boolean
   hasTurn: boolean
+}
+
+export type DotSceneRange = {
+  firstIndex: number
+  lastIndex: number
 }
 
 export type DotFieldFollowTuning = Pick<
@@ -196,6 +202,7 @@ export type DotSceneKeyframe = {
   end: number
   slot: DotFieldRect | null
   isThread?: boolean
+  isGrown?: boolean
 }
 
 export type DotTriggeredTargetRequest = {

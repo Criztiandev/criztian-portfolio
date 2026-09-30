@@ -22,13 +22,22 @@ describe("portfolio UI store", () => {
     expect(store.state.isMobileNavOpen).toBe(false)
   })
 
-  it("closes the panel when a section is selected", () => {
+  it("keeps an open menu open when the active section changes", () => {
     const store = createPortfolioUiStore()
     store.actions.toggleMobileNav()
-    store.actions.selectSection("contact")
+    store.actions.setActiveSection("contact")
+    expect(store.state).toEqual({
+      isMobileNavOpen: true,
+      activeSection: "contact",
+    })
+  })
+
+  it("keeps a closed menu closed when the active section changes", () => {
+    const store = createPortfolioUiStore()
+    store.actions.setActiveSection("testimonials")
     expect(store.state).toEqual({
       isMobileNavOpen: false,
-      activeSection: "contact",
+      activeSection: "testimonials",
     })
   })
 

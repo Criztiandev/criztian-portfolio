@@ -148,6 +148,30 @@ export const SECTION_HEADLINE_CLASS =
 export const FOCUS_RING_CLASS =
   "scroll-mt-18 outline-none focus-visible:ring-[3px] focus-visible:ring-foreground/50 focus-visible:outline-hidden"
 
+export const SWEPT_LINE_CLASS = "swept:caption-line"
+
+export const SWEPT_LABEL_CLASS = "inline-block swept:caption-line"
+
+export const SCENE_LIT_CAPTION_CLASS = "[--caption-reveal:var(--scene-lit)]"
+
+export const SCREEN_TIMELINE_CLASS = "screen-timeline"
+
+export const COPY_DRIFT_CLASS = "copy-drift"
+
+export const STAT_COUNT_PATTERN = /^(\d+)(\D*)$/
+
+export const STAT_OVERLAY_CLASS =
+  "stat-count pointer-events-none absolute inset-0 hidden swept:block forced-colors:hidden!"
+
+export const STAT_VALUE_CLASS =
+  "swept:text-transparent forced-colors:text-[CanvasText]!"
+
+export const FAQ_DISCLOSURE_CLASS =
+  "[interpolate-size:allow-keywords] details-content:h-0 details-content:overflow-clip open:details-content:h-auto motion-safe:details-content:transition-[height,content-visibility] motion-safe:details-content:transition-discrete motion-safe:details-content:duration-350 motion-safe:details-content:ease-signal"
+
+export const FAQ_PLUS_TURN_CLASS =
+  "motion-safe:transition-[rotate] motion-safe:duration-350 motion-safe:ease-signal"
+
 export const ORBIT_CIRCLE_CLASS =
   "fill-none stroke-current [stroke-dasharray:0_10px] [stroke-linecap:round] [stroke-width:3px] [cx:50%] [cy:calc(var(--orbit-radius)_+_6px)] [r:var(--orbit-radius)] staged:orbit-spin"
 

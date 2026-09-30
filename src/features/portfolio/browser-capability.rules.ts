@@ -1,4 +1,4 @@
-import { FINE_POINTER_QUERY } from "@/data/motion.data"
+import { CUSTOM_CURSOR_QUERY, FINE_POINTER_QUERY } from "@/data/motion.data"
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)"
 
@@ -44,6 +44,10 @@ export function prefersReducedMotion(): boolean {
 
 export function prefersFinePointer(): boolean {
   return matchesMediaQuery(FINE_POINTER_QUERY)
+}
+
+export function supportsCustomCursor(): boolean {
+  return matchesMediaQuery(CUSTOM_CURSOR_QUERY)
 }
 
 export function readReducedMotionQuery(): MediaQueryList | null {

@@ -11,6 +11,7 @@ import {
   PROJECT_SCREEN_COLUMNS_CLASS,
   PROJECT_SCREEN_WINDOW_CLASS,
   PROJECT_TITLE_LINK_CLASS,
+  SCENE_LIT_CAPTION_CLASS,
   SCREEN_CLASS,
   SCREEN_COPY_CLASS,
   SCREEN_HEIGHT_CLASS,
@@ -22,6 +23,7 @@ import {
   SHORT_SCREEN_COPY_GAP_CLASS,
   STATEMENT_CLASS,
   STATEMENT_SIZE_CLASSES,
+  SWEPT_LABEL_CLASS,
 } from "@/data/page-sections.data"
 import {
   PROJECT_IMAGE_PLACEHOLDER_LABEL,
@@ -43,7 +45,6 @@ import {
 import { formatSectionPosition } from "@/features/portfolio/section-label.rules"
 import {
   buildLineStyle,
-  buildShownCaptionStyle,
   buildStepSceneStyle,
   buildThreadCaptionStyle,
 } from "@/features/portfolio/step-motion.rules"
@@ -86,7 +87,14 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
     if (index > 0) {
       return (
         <p aria-hidden="true" className={labelClass}>
-          <span className="inline-block staged:invisible">
+          <span
+            style={buildLineStyle(0) as React.CSSProperties}
+            className={cn(
+              SWEPT_LABEL_CLASS,
+              SCENE_LIT_CAPTION_CLASS,
+              "staged:invisible"
+            )}
+          >
             {PROJECTS_LABEL}
           </span>
           {renderPosition(index)}
@@ -96,7 +104,12 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
 
     return (
       <h2 id={PROJECTS_HEADING_ID} className={labelClass}>
-        {PROJECTS_LABEL}
+        <span
+          style={buildLineStyle(0) as React.CSSProperties}
+          className={cn(SWEPT_LABEL_CLASS, SCENE_LIT_CAPTION_CLASS)}
+        >
+          {PROJECTS_LABEL}
+        </span>
         {renderPosition(index)}
       </h2>
     )
@@ -176,13 +189,11 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
     const captionId = isDeck
       ? formatSceneStepId(PROJECTS_SCENE_ID, index)
       : undefined
-    const captionStyle = isDeck ? undefined : buildShownCaptionStyle()
 
     return (
       <li
         key={index}
         data-caption={captionId}
-        style={captionStyle as React.CSSProperties}
         className={cn(PROJECT_SCREEN_WINDOW_CLASS, "staged:[grid-area:1/1]")}
       >
         <article

@@ -12,6 +12,7 @@ import {
   DUST_SEED,
   GATHER_SHAPE,
   GATHER_SIDES,
+  GROWN_FRAME_TOLERANCE_PX,
   HIDDEN_RANK,
   IDENTITY_ROTATION,
   JITTER_SPAN,
@@ -48,6 +49,7 @@ import type {
   DotFieldViewport,
   DotSceneKeyframe,
   DotSceneMeasure,
+  DotSceneRange,
   DotShapeId,
   DotShapeLibrary,
   DotTimelineSegment,
@@ -192,6 +194,13 @@ export function samplePixelGrid(
   }
 }
 
+export function resolvePushRadius(
+  inkHeight: number,
+  tuning: DotFieldTuning
+): number {
+  return tuning.pointerRadius * (inkHeight / tuning.referenceInkHeight)
+}
+
 export function stepDotPhysics(
   request: DotFieldPhysicsRequest,
   tuning: DotFieldTuning
@@ -201,7 +210,7 @@ export function stepDotPhysics(
 
   const steps = deltaSeconds * REFERENCE_FRAME_RATE
   const scale = inkHeight / tuning.referenceInkHeight
-  const radius = tuning.pointerRadius * scale
+  const radius = resolvePushRadius(inkHeight, tuning)
   const radiusSquared = radius * radius
   const push = tuning.pointerPush * scale * steps
   const spring = tuning.springStiffness * steps
@@ -1018,29 +1027,15 @@ export function followTriggeredProgress(
   return current + direction * step
 }
 
-export function resolveThreadReveal(
-  progress: number,
-  index: number,
-  span: number
-): number {
-  const distance = Math.abs(progress - index)
-  const linear = Math.min(1, Math.max(0, 1 - distance / span))
-
-  return easeInOutSine(linear)
-}
-
-export function resolveThreadTurn(
+export function resolveSceneRange(
   keyframes: DotSceneKeyframe[],
-  sceneId: string,
-  progress: number
-): number | null {
+  sceneId: string
+): DotSceneRange | null {
   let firstIndex = -1
   let lastIndex = -1
 
   for (let index = 0; index < keyframes.length; index += 1) {
-    const keyframe = keyframes[index]
-
-    if (keyframe?.scene !== sceneId || keyframe.isThread !== true) {
+    if (keyframes[index]?.scene !== sceneId) {
       continue
     }
 
@@ -1055,9 +1050,72 @@ export function resolveThreadTurn(
     return null
   }
 
+  return { firstIndex, lastIndex }
+}
+
+export function resolveRevealRange(
+  keyframes: DotSceneKeyframe[],
+  sceneId: string
+): DotSceneRange | null {
+  const range = resolveSceneRange(keyframes, sceneId)
+
+  if (range === null) {
+    return null
+  }
+
+  const lastKeyframe = keyframes[range.lastIndex]
+  const hasNextKeyframe = range.lastIndex + 1 < keyframes.length
+  const isReadAfterPin =
+    lastKeyframe?.slot === null || lastKeyframe?.isGrown === true
+
+  if (!isReadAfterPin || !hasNextKeyframe) {
+    return range
+  }
+
+  return { firstIndex: range.firstIndex, lastIndex: range.lastIndex + 1 }
+}
+
+export function resolveSceneReveal(
+  progress: number,
+  range: DotSceneRange,
+  span: number
+): number {
+  const distance = Math.max(
+    0,
+    range.firstIndex - progress,
+    progress - range.lastIndex
+  )
+  const linear = Math.min(1, Math.max(0, 1 - distance / span))
+
+  return easeInOutSine(linear)
+}
+
+export function resolveThreadReveal(
+  progress: number,
+  index: number,
+  span: number
+): number {
+  return resolveSceneReveal(
+    progress,
+    { firstIndex: index, lastIndex: index },
+    span
+  )
+}
+
+export function resolveThreadTurn(
+  keyframes: DotSceneKeyframe[],
+  sceneId: string,
+  progress: number
+): number | null {
+  const range = resolveSceneRange(keyframes, sceneId)
+
+  if (range === null || keyframes[range.firstIndex]?.isThread !== true) {
+    return null
+  }
+
   const local = Math.min(
-    Math.max(progress - firstIndex, -1),
-    lastIndex - firstIndex
+    Math.max(progress - range.firstIndex, -1),
+    range.lastIndex - range.firstIndex
   )
   const whole = Math.floor(local)
 
@@ -1160,6 +1218,10 @@ export function buildSceneKeyframes(
     const start = scene.containerTop - scene.stickyTop
     const motion = DOT_SCENE_MOTION[scene.id]
     const isThread = motion?.isThread === true
+    const isGrown =
+      scene.slot !== null &&
+      scene.frameHeight + scene.stickyTop >
+        viewportHeight + GROWN_FRAME_TOLERANCE_PX
 
     let end = scene.containerBottom - viewportHeight
 
@@ -1170,14 +1232,20 @@ export function buildSceneKeyframes(
     end = Math.max(start, end)
 
     if (scene.shapes.length === 1) {
-      keyframes.push({
+      const keyframe: DotSceneKeyframe = {
         id: scene.id,
         scene: scene.id,
         shape: firstShape,
         start,
         end,
         slot: scene.slot,
-      })
+      }
+
+      if (isGrown) {
+        keyframe.isGrown = true
+      }
+
+      keyframes.push(keyframe)
       continue
     }
 
@@ -1211,6 +1279,10 @@ export function buildSceneKeyframes(
 
       if (isThread) {
         keyframe.isThread = true
+      }
+
+      if (isGrown) {
+        keyframe.isGrown = true
       }
 
       keyframes.push(keyframe)

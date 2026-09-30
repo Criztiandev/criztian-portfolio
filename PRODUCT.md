@@ -55,7 +55,7 @@ The owner's own summary: "I specialize in crafting custom web solutions, includi
 **Public site:**
 
 - Single page. The anchors (`#home`, `#quote`, `#project`, `#services`, `#process`, `#about`, `#testimonials`, `#faq`, `#contact`) are the navigation. `#contact` must keep working because the e2e suite depends on it.
-- **Order** (owner, 2026-09-29; built in Phase 5. The design is locked to mockup B, recorded in DESIGN.md, and Phases 6–10 in `plans/handoff.md` finish the dots, Services, How I work, the projects deck and the motion):
+- **Order** (owner, 2026-09-29; built in Phase 5. The design is locked to mockup B, recorded in DESIGN.md, and Phases 6–10 in `plans/handoff.md` built the dots, Services, How I work, the projects deck and the motion):
   1. Hero
   2. Belief quote
   3. Projects
@@ -84,6 +84,7 @@ The owner's own summary: "I specialize in crafting custom web solutions, includi
 - Contact form: name, email, a required "Service needed" select (Branding, Web design, Development, Something else) and "What can I help you with?". The service is stored with the message and shown in the notification.
 - Contact form anti-spam: a honeypot, a two-second minimum time-to-submit, and a limit of five submissions per hour per hashed IP. These are deliberate; do not weaken them.
 - Contact notifications are written as local HTML previews. No email is actually sent yet.
+- Motion (Phase 10): every section's text sweeps in with the dots and out as they leave, and About's stats count up with it. On desktop the copy of the quote, About, Testimonials, FAQ and Contact drifts as each screen arrives and leaves, and a custom cursor (a dot and a trailing ring) adapts to links, fields and the dots. A scroll-spy dot marks the current section in the header nav, over a hairline that fills with the page's scroll. A sent message keeps its box and takes focus.
 
 **Owner side:**
 
@@ -145,6 +146,8 @@ The target is **WCAG 2.2 AA** for the public site.
 Already in place:
 
 - real anchor navigation that works from the keyboard
-- `prefers-reduced-motion` respected globally (`MotionConfig reducedMotion="user"`), with a separate check for the dot field
+- `prefers-reduced-motion` respected globally (`MotionConfig reducedMotion="user"`), with a separate check for the dot field, and every sweep, drift, count and slide off under it
 - an accessible text `<h1>` behind the WebGL canvas
-- the canvas alone marked `aria-hidden`
+- `aria-hidden` only on decorative leaves (the canvas, the slots, the orbit ring and numerals, the nav dot, the hairline) and on visual duplicates of text that stays exposed
+- every piece of copy readable without JavaScript and without WebGL2
+- keyboard focus that lights a whole swept section, and a sent message that takes focus

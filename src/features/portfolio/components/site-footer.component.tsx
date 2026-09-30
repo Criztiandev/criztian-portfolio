@@ -9,6 +9,7 @@ import {
   OWNER_EMAIL_ADDRESS,
   PIN_SPACER_CLASS,
   OWNER_EMAIL_HREF,
+  SWEPT_LINE_CLASS,
 } from "@/data/page-sections.data"
 import {
   FOOTER_BACK_TO_TOP_LABEL,
@@ -16,14 +17,22 @@ import {
   FOOTER_NAVIGATION_LABEL,
   FOOTER_YEAR,
 } from "@/data/portfolio.data"
+import {
+  buildLineStyle,
+  buildSceneCaptionStyle,
+} from "@/features/portfolio/step-motion.rules"
 import { cn } from "@/lib/utils"
 import type { SiteFooterProps } from "@/types/page-sections.type"
 
 export function SiteFooter({ name }: Readonly<SiteFooterProps>) {
+  const emailLine = PORTFOLIO_PRIMARY_NAVIGATION.length + 1
+  const backToTopLine = emailLine + 1
+
   return (
     <footer
       data-dot-scene="footer"
       data-dot-shapes="name"
+      style={buildSceneCaptionStyle(backToTopLine) as React.CSSProperties}
       className="scroll-mt-18 text-foreground"
     >
       <div
@@ -62,31 +71,50 @@ export function SiteFooter({ name }: Readonly<SiteFooterProps>) {
             CUE_CLASS
           )}
         >
-          <p className="flex min-h-11 items-center lg:min-h-0">
+          <p
+            style={buildLineStyle(0) as React.CSSProperties}
+            className={cn(
+              "flex min-h-11 items-center lg:min-h-0",
+              SWEPT_LINE_CLASS
+            )}
+          >
             © {FOOTER_YEAR} {name}
           </p>
 
           <nav aria-label={FOOTER_NAVIGATION_LABEL}>
             <ul className="flex flex-wrap justify-center lg:gap-x-2">
-              {PORTFOLIO_PRIMARY_NAVIGATION.map(function renderLink(item) {
-                return (
-                  <li key={item.id}>
-                    <a href={item.href} className={FOOTER_LINK_CLASS}>
-                      {item.label}
-                    </a>
-                  </li>
-                )
-              })}
+              {PORTFOLIO_PRIMARY_NAVIGATION.map(
+                function renderLink(item, itemIndex) {
+                  return (
+                    <li
+                      key={item.id}
+                      style={
+                        buildLineStyle(itemIndex + 1) as React.CSSProperties
+                      }
+                      className={SWEPT_LINE_CLASS}
+                    >
+                      <a href={item.href} className={FOOTER_LINK_CLASS}>
+                        {item.label}
+                      </a>
+                    </li>
+                  )
+                }
+              )}
             </ul>
           </nav>
 
-          <a href={OWNER_EMAIL_HREF} className={FOOTER_LINK_CLASS}>
+          <a
+            href={OWNER_EMAIL_HREF}
+            style={buildLineStyle(emailLine) as React.CSSProperties}
+            className={cn(FOOTER_LINK_CLASS, SWEPT_LINE_CLASS)}
+          >
             {OWNER_EMAIL_ADDRESS}
           </a>
 
           <a
             href={PORTFOLIO_HOME_NAVIGATION.href}
-            className={FOOTER_LINK_CLASS}
+            style={buildLineStyle(backToTopLine) as React.CSSProperties}
+            className={cn(FOOTER_LINK_CLASS, SWEPT_LINE_CLASS)}
           >
             {FOOTER_BACK_TO_TOP_LABEL}
             <ArrowUpRight aria-hidden="true" className="size-3.5" />

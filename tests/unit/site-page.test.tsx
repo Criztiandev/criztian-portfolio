@@ -1,15 +1,28 @@
 import { render, screen, within } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
+import { PORTFOLIO_PRIMARY_NAVIGATION } from "@/data/navigation.data"
 import {
   ABOUT_SECTION,
+  CONTACT_SECTION,
+  COPY_DRIFT_CLASS,
+  FAQ_DISCLOSURE_CLASS,
+  FAQ_PLUS_TURN_CLASS,
   FAQ_SECTION,
   OWNER_EMAIL_HREF,
   PROCESS_SCENE,
+  SCREEN_TIMELINE_CLASS,
   SERVICES_SCENE,
+  STAT_OVERLAY_CLASS,
+  STAT_VALUE_CLASS,
+  SWEPT_LABEL_CLASS,
+  SWEPT_LINE_CLASS,
+  TESTIMONIALS_SECTION,
 } from "@/data/page-sections.data"
+import { FOOTER_LINK_CLASS, PROJECTS_LABEL } from "@/data/portfolio.data"
 import { DEFAULT_HERO_NAME } from "@/data/site-content.data"
 import { SitePage } from "@/features/portfolio/components/site-page.component"
+import { buildCopyDriftStyle } from "@/features/portfolio/step-motion.rules"
 import { createDefaultSiteContent } from "@/features/site-content/site-content.rules"
 
 vi.mock(
@@ -62,6 +75,37 @@ const PLACEHOLDER_PLATE_SECTION_IDS = ["project", "about", "testimonials"]
 
 const PLATE_SLOT_SECTION_IDS = ["about", "testimonials"]
 
+const DRIFTING_SECTION_IDS = [
+  "quote",
+  "about",
+  "testimonials",
+  "faq",
+  "contact",
+]
+
+const SCENE_SWEEP_IDS = [
+  "cube",
+  "about",
+  "testimonials",
+  "dust",
+  "contact",
+  "footer",
+]
+
+const DEFAULT_LAST_LINE = 2
+
+const FAQ_FIRST_ROW_LINE = 2
+
+const SECTION_LABELS = [
+  { id: "project", heading: PROJECTS_LABEL },
+  { id: "services", heading: SERVICES_SCENE.heading },
+  { id: "process", heading: PROCESS_SCENE.heading },
+  { id: "about", heading: ABOUT_SECTION.heading },
+  { id: "testimonials", heading: TESTIMONIALS_SECTION.heading },
+  { id: "faq", heading: FAQ_SECTION.heading },
+  { id: "contact", heading: CONTACT_SECTION.heading },
+]
+
 function renderPage() {
   return render(
     <SitePage
@@ -73,6 +117,40 @@ function renderPage() {
 
 function readScenes(container: HTMLElement): HTMLElement[] {
   return Array.from(container.querySelectorAll<HTMLElement>("[data-dot-scene]"))
+}
+
+function findStaggeredAncestor(element: HTMLElement): HTMLElement | null {
+  let current: HTMLElement | null = element
+
+  while (current !== null) {
+    if (current.style.getPropertyValue("--caption-stagger") !== "") {
+      return current
+    }
+
+    current = current.parentElement
+  }
+
+  return null
+}
+
+function readLastLine(scene: HTMLElement): number {
+  const lastLine = scene.style.getPropertyValue("--caption-last")
+
+  if (lastLine === "") {
+    return DEFAULT_LAST_LINE
+  }
+
+  return Number(lastLine)
+}
+
+function findFooter(container: HTMLElement): HTMLElement {
+  const footer = container.querySelector<HTMLElement>("footer")
+
+  if (footer === null) {
+    throw new Error("footer not found")
+  }
+
+  return footer
 }
 
 describe("SitePage", () => {
@@ -475,5 +553,186 @@ describe("SitePage", () => {
     expect(
       screen.getByRole("navigation", { name: "Footer" })
     ).toBeInTheDocument()
+  })
+
+  it("numbers every swept line inside a scene that staggers it", () => {
+    const { container } = renderPage()
+    const lines = container.querySelectorAll<HTMLElement>(
+      "[class*='caption-line']"
+    )
+
+    expect(lines.length).toBeGreaterThan(0)
+
+    for (const line of lines) {
+      const name = line.outerHTML.slice(0, 80)
+      const lineNumber = line.style.getPropertyValue("--line")
+      const scene = findStaggeredAncestor(line)
+
+      expect(lineNumber, name).not.toBe("")
+      expect(line.closest("[data-dot-scene]"), name).not.toBeNull()
+
+      if (scene === null) {
+        throw new Error(`no stagger above ${name}`)
+      }
+
+      expect(Number(lineNumber), name).toBeLessThanOrEqual(readLastLine(scene))
+    }
+  })
+
+  it("numbers a scene sweep's lines once each, in reading order, up to its last", () => {
+    const { container } = renderPage()
+    const sweptScenes: string[] = []
+
+    for (const scene of readScenes(container)) {
+      const lastLine = scene.style.getPropertyValue("--caption-last")
+      const lines: number[] = []
+      const expected: number[] = []
+
+      if (lastLine === "") {
+        continue
+      }
+
+      for (const line of scene.querySelectorAll<HTMLElement>(
+        "[class*='caption-line']"
+      )) {
+        lines.push(Number(line.style.getPropertyValue("--line")))
+      }
+
+      for (
+        let lineNumber = 0;
+        lineNumber <= Number(lastLine);
+        lineNumber += 1
+      ) {
+        expected.push(lineNumber)
+      }
+
+      sweptScenes.push(scene.dataset.dotScene ?? "")
+      expect(lines, scene.dataset.dotScene).toEqual(expected)
+    }
+
+    expect(sweptScenes).toEqual(SCENE_SWEEP_IDS)
+  })
+
+  it("drifts only the five single-frame copy columns, each on its own screen", () => {
+    const { container } = renderPage()
+    const driftIds: string[] = []
+    const timelineIds: string[] = []
+    const drift = buildCopyDriftStyle()["--copy-drift"]
+
+    for (const column of container.querySelectorAll(`.${COPY_DRIFT_CLASS}`)) {
+      const section = column.closest("section")
+
+      driftIds.push(section?.id ?? "")
+      expect(section).toHaveClass(SCREEN_TIMELINE_CLASS)
+      expect(section?.style.getPropertyValue("--copy-drift")).toBe(drift)
+      expect(column.querySelector("p[class*='cqi']")).not.toBeNull()
+    }
+
+    for (const section of container.querySelectorAll(
+      `.${SCREEN_TIMELINE_CLASS}`
+    )) {
+      timelineIds.push(section.id)
+    }
+
+    expect(driftIds).toEqual(DRIFTING_SECTION_IDS)
+    expect(timelineIds).toEqual(DRIFTING_SECTION_IDS)
+  })
+
+  it("counts each About stat on a hidden overlay over its real value", () => {
+    const { container } = renderPage()
+    const values = container.querySelectorAll<HTMLElement>("#about dl dd")
+
+    expect(values).toHaveLength(ABOUT_SECTION.stats.length)
+
+    for (const [index, value] of values.entries()) {
+      const stat = ABOUT_SECTION.stats[index]
+      const overlays = value.querySelectorAll<HTMLElement>(
+        "[aria-hidden='true']"
+      )
+      const overlay = overlays[0]
+
+      expect(value.textContent).toBe(stat?.value)
+      expect(value).toHaveClass("relative", "w-fit")
+      expect(value.firstElementChild).toHaveClass(STAT_VALUE_CLASS)
+      expect(value.firstElementChild).toHaveTextContent(stat?.value ?? "")
+      expect(overlays).toHaveLength(1)
+      expect(overlay).toHaveClass(STAT_OVERLAY_CLASS)
+      expect(overlay).toBeEmptyDOMElement()
+      expect(overlay).toHaveAttribute("data-suffix")
+      expect(
+        `${overlay?.style.getPropertyValue("--stat-value")}${overlay?.dataset.suffix}`
+      ).toBe(stat?.value)
+    }
+  })
+
+  it("opens every answer in an eased disclosure on a row that sweeps in", () => {
+    const { container } = renderPage()
+    const rows = container.querySelectorAll<HTMLElement>("#faq details")
+
+    expect(rows).toHaveLength(FAQ_SECTION.items.length)
+    expect(rows[0]?.parentElement).not.toHaveClass("border-b")
+
+    for (const [index, row] of rows.entries()) {
+      expect(row).toHaveClass(
+        "group/faq",
+        "last:border-b",
+        FAQ_DISCLOSURE_CLASS,
+        SWEPT_LINE_CLASS
+      )
+      expect(row.style.getPropertyValue("--line")).toBe(
+        String(FAQ_FIRST_ROW_LINE + index)
+      )
+      expect(row.firstElementChild?.tagName).toBe("SUMMARY")
+      expect(row.querySelector("summary > svg")).toHaveClass(
+        FAQ_PLUS_TURN_CLASS
+      )
+    }
+  })
+
+  it("sweeps the footer bar in line by line, with no drift", () => {
+    const { container } = renderPage()
+    const footer = findFooter(container)
+    const navigationCount = PORTFOLIO_PRIMARY_NAVIGATION.length
+    const lines: string[] = []
+    const expected = ["P 0"]
+
+    for (let item = 1; item <= navigationCount; item += 1) {
+      expected.push(`LI ${item}`)
+    }
+
+    expected.push(`A ${navigationCount + 1}`, `A ${navigationCount + 2}`)
+
+    for (const line of footer.querySelectorAll<HTMLElement>(
+      "[class*='caption-line']"
+    )) {
+      lines.push(`${line.tagName} ${line.style.getPropertyValue("--line")}`)
+    }
+
+    expect(lines).toEqual(expected)
+    expect(footer.style.getPropertyValue("--caption-last")).toBe(
+      String(navigationCount + 2)
+    )
+    expect(footer.querySelector(`.${COPY_DRIFT_CLASS}`)).toBeNull()
+
+    for (const link of footer.querySelectorAll("a")) {
+      expect(link).toHaveClass(FOOTER_LINK_CLASS)
+    }
+  })
+
+  it("sweeps only each label's word and keeps the label's name", () => {
+    const { container } = renderPage()
+
+    for (const label of SECTION_LABELS) {
+      const heading = container.querySelector(`#${label.id} h2`)
+      const word = heading?.querySelector<HTMLElement>(":scope > :first-child")
+
+      expect(heading, label.id).toHaveAccessibleName(label.heading)
+      expect(heading, label.id).toHaveClass("scroll-mt-18")
+      expect(heading?.className, label.id).not.toContain("caption-line")
+      expect(word?.textContent, label.id).toBe(label.heading)
+      expect(word, label.id).toHaveClass(SWEPT_LABEL_CLASS)
+      expect(word, label.id).not.toHaveAttribute("aria-hidden")
+      expect(word?.style.getPropertyValue("--line"), label.id).toBe("0")
+    }
   })
 })

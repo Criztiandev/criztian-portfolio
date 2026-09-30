@@ -2,9 +2,9 @@
 
 > **For:** the next Claude Code session picking up this build.
 >
-> **Current phase:** **Phase 10, section motion in one style.** Phase 9 is done: Projects is a pinned deck, one project per trigger, whose frame the dots unwind and redraw in place round each plate. Its done note lists what is open, including the owner's scroll test. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference), except How I work's centred wheel (owner, Phase 8); the renders are in `plans/mockups/`. To resume, paste the prompt under "Start here".
+> **Current phase:** **Phase 11, polish and proof (not started).** Phase 10 is done (see its done note); the owner's sign-off on its two screen recordings is still open. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference), except How I work's centred wheel (owner, Phase 8); the renders are in `plans/mockups/`. To start, paste the prompt under "Start here".
 >
-> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, Phase 5 is `ca4d45c`, Phase 6 is `bb808b1`, Phase 7 is `32efb4b`, Phase 8 is `e8cbbe5`, and Phase 9 is the commit after it. Nothing is pushed.
+> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, Phase 5 is `ca4d45c`, Phase 6 is `bb808b1`, Phase 7 is `32efb4b`, Phase 8 is `e8cbbe5`, and Phase 9 is `684db97`. Phase 10 is one commit on top of `684db97`, made on the owner's OK. Nothing is pushed.
 >
 > **How this file works:** each phase is one conversation. It lists its scope, the owner inputs it needs and its acceptance. It ends with the prompt that starts the next conversation. When a phase ends, write its done note under it, move "Current phase" forward, and give the owner the next prompt.
 >
@@ -12,12 +12,12 @@
 
 ## Start here
 
-Paste this into a new conversation to resume the current phase:
+Paste this into a new conversation to start the current phase:
 
 ```text
-Continue the portfolio redesign: Phase 10, section motion in one style.
-Read CLAUDE.md, then plans/handoff.md ("Direction", "The DOM contract", Phase 9's done note and "Phase 10"), and the old Part 3 design with `git show 0f198b2:plans/handoff.md` (section "Part 3: section motion").
-Ask me Phase 10's open questions first. Build it as scoped and meet its acceptance, then write its done note, move "Current phase" to Phase 11, and end your reply with Phase 11's prompt from the handoff.
+Continue the portfolio redesign: Phase 11, polish and proof.
+Read CLAUDE.md, then plans/handoff.md ("What is built today" carried-over items, Phase 10's done note and "Phase 11"), PRODUCT.md and DESIGN.md.
+Ask me Phase 11's open questions first. Work through it as scoped, then write its done note, move "Current phase" to "Deployment (to plan)", and tell me what deployment needs.
 Ask me before committing.
 ```
 
@@ -220,28 +220,29 @@ The mockups use these, and the owner approved them all. Use them in place of the
 - **Phase 6** (`bb808b1`): the one-product dot shapes in one material, the plate frames, the Contact gather as its own gated scene, and FAQ on plain black (see its done note).
 - **Phase 7** (`32efb4b`): Services on the B statement split, the glide lock removed (trigger, play, no lock) and the reduced-motion curtain bug fixed (see its done note).
 - **Phase 8** (`e8cbbe5`): How I work as a centred wheel (owner), no plates, the ring drawn in dots, the shape at full size above the numeral, and the turn triggered and played by the dots' own progress (see its done note).
-- **Phase 9** on `portfolio/phase-3`: the projects deck, one step per visible project on a sticky board, `project-k` step ids, the frame unwound and redrawn in place (`isRedrawSegment`, `uRedraw`), the keyboard rule, and the Phase 5 list as the fallback (see its done note).
-- **Not built:** old Part 3 (section motion, now Phase 10) and old Part 4 (the cursor, parked).
-- **Last evidence (2026-09-30, Phase 9):**
-  - 410 unit tests pass and `pnpm check` is clean.
-  - e2e was green on a production build at :3100, with Supabase up (174 specs).
-  - The hero pixel diff held: 0 pixels against Phase 8, and the known 20/24-pixel residue against `0a3c97a`, inside the name's box. The method is in the history and the landmines.
+- **Phase 9** (`684db97`): the projects deck, one step per visible project on a sticky board, `project-k` step ids, the frame unwound and redrawn in place (`isRedrawSegment`, `uRedraw`), the keyboard rule, and the Phase 5 list as the fallback (see its done note).
+- **Phase 10** (one commit on top of `684db97`): every section's text swept by the dots, the About count-up, the desktop copy drift, the scroll-spy with the nav dot, the scroll-progress hairline, the menu wipe, the contact success moment, the FAQ disclosure, the no-JS fix and the adaptive cursor (old Part 4) (see its done note).
+- **Last evidence (2026-09-30, Phase 10):**
+  - 499 unit tests pass and `pnpm check` is clean.
+  - e2e was green on a production build at :3100, with Supabase up (245 specs).
+  - The hero pixel diff held: 0 pixels against Phase 9, and the known 20/24-pixel residue against `0a3c97a`, inside the name's box. The method is in the history and the landmines.
 
 **Carried-over open items,** each assigned to a phase:
 
-| Item                                                                                                                    | Phase    |
-| ----------------------------------------------------------------------------------------------------------------------- | -------- |
-| Services curtain bug: under reduced motion, earlier captions ride up over the slot (`not-last:mb-*` → `not-first:mt-*`) | done (7) |
-| Copy crossings: transit dots cross copy columns at full brightness                                                      | 11       |
-| `resolveViewportHeight` with grown frames shifts dust boundaries: fixed in Phase 5, it reads the shortest pinned frame  | done (5) |
-| Transit captures of every scene, both directions, and the owner's "wow and professional" sign-off                       | 11       |
-| The 16ms frame trace on the owner's phone (ask for an Android with USB debugging)                                       | 11       |
-| Safari 26 on an iPhone (scroll-driven animations, Lenis at 60fps)                                                       | 11       |
-| The real-phone fling test (Phase 1)                                                                                     | 11       |
-| The smooth-scroll feel sign-off (`SMOOTH_SCROLL_LERP`)                                                                  | 11       |
-| The published-content read is cached for a year (tag it and `revalidateTag` on publish, or make it uncached)            | 11       |
-| The Projects heading in the live record still has old text: retired with the intro (owner, Phase 5)                     | done (5) |
-| Existing reveals hide content without JavaScript (`data-reveal` plus `@media (scripting: none)`)                        | 10       |
+| Item                                                                                                                       | Phase     |
+| -------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Services curtain bug: under reduced motion, earlier captions ride up over the slot (`not-last:mb-*` → `not-first:mt-*`)    | done (7)  |
+| Copy crossings: transit dots cross copy columns at full brightness                                                         | 11        |
+| `resolveViewportHeight` with grown frames shifts dust boundaries: fixed in Phase 5, it reads the shortest pinned frame     | done (5)  |
+| Transit captures of every scene, both directions, and the owner's "wow and professional" sign-off                          | 11        |
+| The 16ms frame trace on the owner's phone (ask for an Android with USB debugging)                                          | 11        |
+| Safari 26 on an iPhone (scroll-driven animations, Lenis at 60fps)                                                          | 11        |
+| The real-phone fling test (Phase 1)                                                                                        | 11        |
+| The smooth-scroll feel sign-off (`SMOOTH_SCROLL_LERP`)                                                                     | 11        |
+| The published-content read is cached for a year (tag it and `revalidateTag` on publish, or make it uncached)               | 11        |
+| The Projects heading in the live record still has old text: retired with the intro (owner, Phase 5)                        | done (5)  |
+| Existing reveals hide content without JavaScript (`data-reveal` plus `@media (scripting: none)`)                           | done (10) |
+| A cold load at 1440×900 shifts the hero once (CLS 0.008): the tagline wraps to two lines in `Geist Fallback`, one in Geist | 11        |
 
 ## The architecture this needs
 
@@ -368,7 +369,7 @@ Every section that takes part in the timeline follows these rules. The engine tr
    - any ancestor of a slot
    - any ancestor of the canvas
 
-   `getBoundingClientRect` includes transforms, and these properties also create stacking contexts. Motion reveals (`LIFT_VARIANTS`, `QUOTE_REVEAL_VARIANTS`) go on inner text only.
+   `getBoundingClientRect` includes transforms, and these properties also create stacking contexts. Motion reveals (`LIFT_VARIANTS`) go on inner text only, and the copy drift (Phase 10) animates only the children of a copy column.
 
 5. **Overflow.** Ancestors of sticky elements use `overflow: visible` or `clip` only. `hidden`, `auto` and `overflow-x-hidden` silently stop the pin.
 6. **Named groups only.** Tailwind groups are named (`group/stage`). An unnamed `group` on the page wrapper would make every unnamed `group-*` react to the whole page.
@@ -384,7 +385,7 @@ Every section that takes part in the timeline follows these rules. The engine tr
 9. **In-scene anchors.** Every `id` inside a scene has `scroll-margin-top` equal to that scene's `stickyTop` (`scroll-mt-18`). A larger margin lands before the pin starts. `data-scene` then reads `moving`, and if a spinning shape is the outgoing one, the loop never sleeps.
    - **Focusables too.** Every focusable inside a scene also carries `scroll-mt-18` (`FOCUS_RING_CLASS` does). This keeps a Shift-Tab target clear of the 72px fixed header, because `scroll-padding-top` is banned.
 10. **Dust scene endings.** The last section of a dust scene is at least one frame tall (`min-h-[calc(100svh_-_4.5rem)]`). Otherwise its anchor lands in the transit to the next scene, with a half-formed shape over it. `#contact` needed this until Phase 6; now FAQ is the dust scene's only section and carries it at every width.
-11. **Reveals on pinned elements.** A pinned element never moves, so a `whileInView` margin must already hold at its pinned position. The old projects heading sat at 65% of a phone screen behind a −40% margin and never revealed until it moved to −10%; Phase 5 retired that heading and its reveal.
+11. **Reveals are drawn by the dots.** Since Phase 10 no section text reveals on an observer, a margin or a timer: it sweeps from its scene's `--scene-reveal`, so a pinned element can never wait for a margin it doesn't cross. (That was this rule's old hazard: the retired projects heading sat at 65% of a phone screen behind a −40% margin and never revealed.) A scene without a slot, or a pinned frame that grew past the viewport under rule 12 (`isGrown`), stays lit through the transit after it (`resolveRevealRange`), because a grown frame's lower lines only come into view after its pin.
 12. **Frames that can grow, grow.** A single-frame scene (Quote, About, Testimonials, footer) uses `min-h-[…]`, never a fixed `h-[…]`. Contact is the exception and follows rule 13 instead: its gather needs the whole form in one pinned frame, and a grown frame would hide the submit button for the length of the pin. Its pin length comes from a fixed spacer after the frame (`PIN_SPACER_CLASS`: 50svh; 60svh for the quote, 25svh for the footer; hidden without WebGL), never from a container `min-h`: a grown frame then keeps its whole pin instead of dropping it to zero (Phase 5 review). Work's frame is an exception: it is fixed and holds only the slot. Its cards are fixed-height step boxes, one frame each (`PROJECT_CARD_CLASS`), and join the gate (rule 13); they grow from a one-frame minimum only when `unpinned` or without JavaScript (Phase 9). Step boxes are the other exception: they are fixed and join the gate (rule 13), because a step that grows would move the next step's docking point. Zoom or WCAG text spacing then lengthens the frame instead of clipping or overlapping the copy. The engine re-reads frame and container heights on every measure.
 13. **The fit gate.** A docked step cannot grow: it is sticky, and a taller step is covered by the next one. A deck card cannot grow either: the cards share one frame-tall board, and in the list a taller card would slide its plate off the pinned slot. So each step scene (`ProjectsSection`, `ServicesSection`, `ProcessSection`) renders `SceneFitGate` (a hidden `<span>`) as its **last** child. The frame stays first. `ContactSection` does the same, with its fixed-height frame as the fit box (Phase 6). How it works:
     - It checks every `[data-fit-box]` step or card.
@@ -398,9 +399,9 @@ Every section that takes part in the timeline follows these rules. The engine tr
 14. **Staged step scenes.** Under the `staged` variant a step scene's copy sits on one board instead of scrolling:
     - **The board** is the container's second child, a sibling of the frame, never an ancestor of the slot. It is sticky, transparent, and ends with the container, so it pins on exactly the frame's pin range. The orbit's board is frame-tall at `top-18` and `pointer-events-none` because it covers the frame and the engine listens for pointer events on the slot itself. Only the title and paragraph take pointer events when staged, and a step's own sweep clips them while it is hidden, so a hidden step never takes a hit; the numeral takes none, so a turning neighbour can't steal the slot's pointer. Unstaged, the whole curtain does, so covered text can't be hovered or selected. The slot must stay clear of the numeral's box (0.96em wide, starting 0.078em above the ink), not just its ink: the slot's height drops `max(0, 0.078em − 0.5rem)` of the numeral from `--orbit-slot`, so it ends at or above the box's top while `--orbit-step-top` stays put (Phase 8 review). The deck's board is the `<ol data-deck>`: frame-tall at `top-18`, `pointer-events-none`, with every card stacked in one grid cell. Only the swept lines and the plate take pointer events, and a hidden card's sweep clips them. Its plates sit exactly on the slot, and the slot itself is `pointer-events-none`, because a plate is clipped away mid-hop and a pointer that reached the slot would scatter the next frame (Phase 9 review).
     - **The container height is explicit:** `F + (n − 1)·pitch`, where pitch is `F − step-top + 0.75rem` in portrait and `F` in split. The deck's pitch is `F` at every width, so its container is `n·F` (`--steps`), or `auto` when `unpinned` or without JavaScript. Staging on or off therefore never moves a pin, an anchor landing or the slot rect, and the engine needs no re-measure.
-    - **Animated decoration is ink, not copy.** The gate re-checks while staged too (on resize and font load), so nothing animated inside a fit box may add to its `scrollHeight`. The orbit numeral carries `contain: layout`, which turns its digits' assemble transforms into ink overflow. Without it, 67 wide sizes between 900 and 975px tall flowed How I work to the reading list (Phase 7 fix). Phase 8's geometry no longer overflows there without it, so `step-motion.spec.ts` asserts the containment directly.
+    - **Animated decoration is ink, not copy.** The gate re-checks while staged too (on resize and font load), so nothing animated inside a fit box may add to its `scrollHeight`. The orbit numeral carries `contain: layout`, which turns its digits' assemble transforms into ink overflow. Without it, 67 wide sizes between 900 and 975px tall flowed How I work to the reading list (Phase 7 fix). Phase 8's geometry no longer overflows there without it, so `step-motion.spec.ts` asserts the containment directly. The copy drift's column carries `contain: layout` for the same reason, since Contact's frame is a fit box (Phase 10 review).
     - **Measured before staging.** The hook's first measure (`readLayout`, at the top of the GL effect) and the gate's first check run while the stage is `idle`; setting `data-status="running"` (in the geometry effect) switches `staged` on later and triggers neither. So the slot rect, the container height and every step box must be identical in both modes. `step-motion.spec.ts` flips the stage attribute and compares them, including the deck's cards, and puts every staged plate on the slot.
-    - **Copy motion.** All three step scenes are drawn by the dots' own progress, never on a timer or the scroll timeline. The hook writes `--reveal-<keyframe id>` (the shape, or `project-k` in the deck) on each thread scene's container (`resolveThreadReveal`), and literal selectors in globals.css map it to `--caption-reveal` for Services' captions, the deck's cards (`[data-caption="project-k"]`, up to `PROJECTS_MAX`; the count, the caption lines and `plate-sweep` read it) and both labels' position counts. While a deck link has `:focus-visible`, every card's reveal is 0 but the focused card's, which is 1 (owner, Phase 9). For the orbit it also writes `--thread-turn` (`resolveThreadTurn`), and the `orbit-step` utility derives each step's rotation, `--orbit-assemble` and `--orbit-lit` from it (Phase 8). The container's `--step-scene` view timeline (`view-timeline-inset: 4.5rem 0`) now drives only the ring's drift. Nothing in the stylesheet keys on `data-scene`.
+    - **Copy motion.** All three step scenes are drawn by the dots' own progress, never on a timer or the scroll timeline. Since Phase 10 every other scene's text is drawn the same way, from `--scene-reveal` (CLAUDE.md, "Every section's text sweeps with the dots"). The hook writes `--reveal-<keyframe id>` (the shape, or `project-k` in the deck) on each thread scene's container (`resolveThreadReveal`), and literal selectors in globals.css map it to `--caption-reveal` for Services' captions, the deck's cards (`[data-caption="project-k"]`, up to `PROJECTS_MAX`; the count, the caption lines and `plate-sweep` read it) and both labels' position counts. While a deck link has `:focus-visible`, every card's reveal is 0 but the focused card's, which is 1 (owner, Phase 9). For the orbit it also writes `--thread-turn` (`resolveThreadTurn`), and the `orbit-step` utility derives each step's rotation, `--orbit-assemble` and `--orbit-lit` from it (Phase 8). The container's `--step-scene` view timeline (`view-timeline-inset: 4.5rem 0`) now drives only the ring's drift. Nothing in the stylesheet keys on `data-scene`.
     - **Services' board** is the caption box itself: `--caption` tall, sticky at `--caption-top`, with the frame's bottom inset (`--screen-bottom`) as its padding so it ends exactly with the container. In the split it covers only the left column under the label, so the slot on the right is never under it.
     - **Rule 8 in staged mode:** the board is transparent. Nothing scrolls under the band during the pin, so the opaque ground isn't needed, and the portrait exit transits are visible. The opaque sticky steps remain in the fallback layout. The deck's phone windows (`PROJECT_PLATE_WINDOW_CLASS`) hide while staged, and its forced-colours ground turns transparent.
     - **Rules 12–13:** the Services board, each orbit step and each project card (`article[data-fit-box]`) are fixed-height `[data-fit-box]`es, so an overflow flows the scene through the gate. The orbit board itself is not a fit box: its rotated neighbours would count toward its `scrollHeight`. It is `overflow: clip`, so they never widen the page.
@@ -1175,6 +1176,95 @@ Ask me before committing.
 - e2e green
 - screen recordings at 1440 and 390, signed off by the owner
 
+**Done note (2026-09-30).**
+
+- **Owner answers** (asked first; recorded under "Open owner decisions"):
+  - Phase 9 was committed on its own first (`684db97`).
+  - **Text reveal: "with the dots".** The dots' own progress draws every section's label, statement and copy: in as the section's dots land, out as they leave, replayed on every visit. Body copy sweeps per paragraph, never a line rise, and the stats count with it. This replaces old Part 3's timed, observer-armed reveals: the arming rules, the `data-reveal="armed"` guard and the observer margins are gone, and the one-style guard replaces the armed guard.
+  - **Sweep edge:** hard, everywhere (`caption-line`).
+  - **Scroll-progress hairline:** 1px Wire Grey (the foreground at 40%).
+  - **Nav dot:** 6px Lamp White, shared with the cursor's dot (size, colour and `INDICATOR_TRANSITION`).
+  - **Heading parallax:** first "no", then "I think we add parallax". Asked where, the owner chose every single-frame screen (the quote, About, Testimonials, FAQ, Contact), desktop only. It is built as the copy drift.
+  - **Adaptive cursor:** yes, as old Part 4 designs it.
+  - **Cursive logo:** yes, from the owner's own SVG at `public/brand/logo.svg`. It hasn't arrived, so it isn't wired (see Open).
+- **Shipped:**
+  - **Engine:** `resolveSceneRange`, `resolveRevealRange`, `resolveSceneReveal` and `resolvePushRadius` in `dot-field.rules.ts`. The hook writes `--scene-reveal` on every scene container and `data-push-radius` on the stage while `canPush()`, and slots also listen to `pointerover`. A scene without a slot, or a pinned frame that grew past the viewport (`isGrown`, a review fix), stays lit through the transit after it.
+  - **CSS (`globals.css`):**
+    - the `swept:` variant, and `[data-dot-scene]` → `--scene-lit` → `--caption-reveal` with its `:focus-visible` rule;
+    - `caption-line` with `--caption-last`, a ±100% vertical clip allowance, and a focused line that drops its clip;
+    - `stat-count` (`@property --stat-count`: the number in `::before`, the suffix pinned in `::after`);
+    - `screen-timeline`, and `copy-drift` with `contain: layout`;
+    - `scroll-progress`, the `@media (scripting: none)` reset, the native-cursor rule, and one `--ease-signal` token for every CSS transition.
+  - **Sections:**
+    - Every label word, statement and copy line sweeps, including the About stats row (whose rule draws with it), the FAQ rows and the footer bar. A lone project card follows its scene's reveal too.
+    - The quote is a server component with no Motion, and the timed reveal constants are deleted.
+    - The About counts are an `aria-hidden` counter overlay (`parseStatCount`).
+    - The FAQ disclosure eases height and the plus over 0.35s.
+    - The five single-frame screens drift on desktop.
+  - **Header:**
+    - `setActiveSection` replaces `selectSection`, and clicks only close the menu.
+    - The scroll-spy is `resolveActiveSection` in `navigation.rules.ts`, measuring each section against its own `scroll-margin-top`.
+    - The nav dot is a `layoutId` `motion.span`, in the Primary nav only.
+    - Also: the hairline, the menu wipe, and `data-reveal` on the header, its groups and the four hero Motion elements.
+  - **Contact:** the form turns `invisible` in a shared grid cell. The acknowledgement takes focus through a module-level callback ref and sweeps in with `@starting-style`. The form is `method="post"`, so a submit without JavaScript no longer puts personal data in the URL.
+  - **Cursor:** `AdaptiveCursor` (mounted only in `src/app/page.tsx`), `cursor.rules.ts` and `supportsCustomCursor()`.
+  - **Docs:** CLAUDE.md, DESIGN.md (the status note, Motion, the Square Signal Rule for the cursor ring, the sections, Navigation and a new Cursor entry), PRODUCT.md, and this handoff (DOM contract rules 4, 11 and 14, the carried-over items and the landmines).
+- **Evidence:**
+  - `pnpm check` is clean and 499 unit tests pass (410 at Phase 9).
+  - **e2e:** 245 specs pass on a production build at :3100 (a same-drive copy, webpack build, Supabase up), run serially in 12.7 minutes, with `draft = published` before and after. A full run before the review fixes passed 239 of 239. The new specs:
+    - `section-motion.spec.ts` (21):
+      - formed scenes show their text whole and the other scenes' text hidden, at 1440×900 and 390×844, and each step scene's label word is whole at every step;
+      - the sweep follows the dots both ways and replays;
+      - the one-style guard: a stepped scroll at 1440×900, 390×664, 375×548 and 740×304, with every formed scene's lines whole;
+      - keyboard focus lights the scene and unclips the focused line;
+      - the About stats: the counts at their targets, each overlay as wide as its real value, a count mid-arrival, the aria snapshot and forced colours;
+      - reduced motion;
+      - the grown-frame guard: every quote, About and Testimonials line whole at some stop in full view, at 740×304, 640×304, 320×256 and 1440×900 with text spacing.
+    - `motion-fallbacks.spec.ts` (15):
+      - no JavaScript, WebGL2 off, context loss (which also drops the push radius) and 320×256;
+      - the copy drift: positive on arrival, none while pinned, negative on leaving, and none on phones or under reduced motion. Every column is layout-contained, and a raised drift never flows Contact;
+      - the FAQ disclosure and its snap;
+      - CLS 0 at 1440×900 and 390×844, counted from the moment the fonts are loaded.
+    - `navigation.spec.ts` (11):
+      - the scroll-spy and the one nav dot at every section, and the deep link;
+      - a nav flight stepping in order;
+      - reduced motion and forced colours;
+      - the hairline, the menu wipe, and an open menu following the spy.
+    - `cursor.spec.ts` (22): old Part 4's acceptance on today's page.
+    - **Changed:**
+      - `hero.spec`: the quote's sweep.
+      - `contact.spec`: the focused acknowledgement, and a 390×844 submit that keeps the section's and slot's heights.
+      - `smooth-scroll.spec`: waits for the menu wipe.
+      - `editor.spec`: no cursor in the editor or its preview.
+  - **Mutation checks:** every new test was shown to fail against a break applied in the page (an injected rule, attribute or custom property, or an emulated media feature). The review's new guards were also shown to fail on the build from before the review fixes and to pass after it.
+  - **Hero pixel diff:** 0 pixels against Phase 9 (`684db97`, a worktree on :3201) at DPR 1 and 2, at rest and with reduced motion. Against `0a3c97a` it is the same 20 pixels (up to 2/255) and 24 (up to 1/255), all in the name's box.
+  - **Recordings** for the owner's sign-off, in full Chromium, git-ignored:
+    - `.local/phase10/recordings/phase10-1440x900.webm`: a wheel scroll, 84s.
+    - `.local/phase10/recordings/phase10-390x844.webm`: touch swipes, 81s.
+  - **A five-lens review** (engine and DOM contract, accessibility, conventions and simplicity, tests, docs), each lens followed by an adversarial skeptic. It raised 22 findings. The skeptics confirmed 15, which come to 14 distinct problems once the engine and accessibility lenses' shared finding is merged; all 14 are fixed. The ones that mattered:
+    - **Grown frames were never read whole.** Where rule 12 grows a single-frame screen past the viewport (landscape phones, 400% zoom, text spacing), its lower lines came into view only after its pin, while the sweep was already wiping them out. About's stats read "1+ 123+ 34" at 740×304, and were never readable at 320×256 or with text spacing. Those keyframes are now `isGrown` and stay lit through the transit after them (`resolveRevealRange`), like the FAQ.
+    - **The copy drift's containment was a false claim.** The column's `@container` contains nothing, so a large drift could flow Contact on the next gate check. `copy-drift` now gives its column `contain: layout`, and the docs say so.
+    - **A lost WebGL context left `data-push-radius` on the stage,** so the cursor showed a push ring over the text name. `markUnsupported` deletes it, and `canPush()` returns false on a lost context. That also closes a race where a resize before React's cleanup wrote "0".
+    - **A lone project card ignored the scene's reveal.** Its inline `--caption-reveal: 1` (`buildShownCaptionStyle`) is gone.
+    - **Tests:** the spy's unit tests now land at 90px, so a fixed offset fails them. The stat overlay's width is checked against the real value, and a vacuous unit test was deleted.
+    - **Conventions:** one `--ease-signal` token replaced four hand-copied eases, and `resolveThreadTurn` reuses `resolveSceneRange`.
+    - **Docs:** the caption-stagger rule, the stat overlay's geometry, the no-JS rule (the cursor and the drift), DESIGN.md's motion rules (three ways, and the two named property exceptions) and Contact's box.
+  - **Found and fixed while finishing the specs:** the About counter moved its "+" each time the count gained a digit, a layout shift at both widths. The number is now in `::before` and the suffix is pinned in `::after`, so each `dd` is `relative w-fit`. The settled overlay is pixel-identical to the real value.
+- **Open:**
+  - **Owner:**
+    - Sign off the two recordings (the last acceptance item).
+    - The scroll tests for Services (Phase 7), How I work (Phase 8) and the deck (Phase 9) are still waiting.
+  - **The cursive logo** hasn't arrived. When the owner saves `public/brand/logo.svg`, wire it into the header brand: keep "Criztian" as the accessible name, render it in Lamp White (a CSS mask or `currentColor`) at the placeholder's height, and update DESIGN.md's Brand line.
+  - **A cold load at 1440×900 shifts the hero once** (CLS 0.008, source `#home > div`): the tagline wraps to two lines in `Geist Fallback` and to one in Geist. It is the same at `0a3c97a` and Phase 9, so it goes to Phase 11's performance pass. The CLS specs count from the moment the fonts are loaded.
+  - **Stale reveal under reduced motion:** `resolveContainerReveal` uses the live `progress` while `publishSceneState` uses `staticIndex`, so `--scene-reveal` can go stale there. Nothing reads it then, because `swept:` and `staged:` both need motion allowed.
+  - **Reduced-motion details:**
+    - The nav dot lands on the second frame after an instant scroll: Motion's `layoutId` projection paints the old spot once, then snaps, with no slide.
+    - If reduced motion turns on while the cursor ring is in push, that one shrink still animates for 0.3s.
+    - The cursor's springs keep stepping, which costs frames only.
+    - The cursor's `useScroll` and `useVelocity` also run on phones, with no DOM writes, listeners or frames at rest.
+  - **Without JavaScript,** the copy drift still runs (plain CSS that hides nothing), and a submit is a POST that still delivers nothing, as before.
+  - **Data-folder convention:** `section-navigation.component.tsx` still defines `MOBILE_PANEL_ID`, `SOLID_AFTER_SCROLL_PX` and the header variants inline. This predates Phase 10.
+
 **Next conversation prompt (starts Phase 11):**
 
 ```text
@@ -1266,6 +1356,11 @@ These are the ones CLAUDE.md doesn't already cover:
   `tests/e2e/fit.spec.ts` covers the gate.
 
 - **The mockup canvas is private.** Only the owner can share it (Share menu). Read its comments with the artifact comments tool; never publish site code to it.
+- **A finished conversation's background workflow keeps running** (Phase 10). The first Phase 10 conversation ended its turn while its e2e agents still worked, and they went on editing specs and running against :3100 for about 45 minutes. That collided with the next session, which the first conversation then took for a rogue agent. Before resuming, check `ListAgents` and the previous session's `subagents/workflows/*/journal.jsonl` for agents still running.
+- **Keep parallel Playwright agents to about four.** Eight at once crashed Chromium (`Target crashed`, exit 0xC0000142) from machine load, not from the tests.
+- **Tailwind 4's `!` utilities are `!important` inside `@layer utilities`,** so a test can't override them with an injected unlayered `!important` rule: a layered important declaration beats an unlayered one. Break them by removing the class instead.
+- **With JavaScript off in Playwright,** `page.addStyleTag` hangs and `requestAnimationFrame` from `page.evaluate` never fires. Inject a `<style>` through `evaluate`, and poll.
+- **Touch scrolls for recordings:** CDP `Input.synthesizeScrollGesture` with `gestureSourceType: "touch"` scrolls nothing in this Chromium. Drive swipes with `Input.dispatchTouchEvent`, as `.local/phase10/record.mjs` does.
 
 ## Open owner decisions
 
@@ -1277,10 +1372,11 @@ These are the ones CLAUDE.md doesn't already cover:
 - **Where the deck flows (Phase 9, for the owner to see):** landscape phones at 740×360 (by 2px), 740×304 and 667×320 show the reading list with no dots, while 740×280 pins, because the statement's height cap shrinks the title there. A small cut to the card's copy would keep 740×360 pinned. Revisit only if the owner wants the dots there.
 - **To confirm later:** the black-and-white photo, when it arrives, and the drifting ring dots, when the owner scrolls How I work.
 - **Contact on small phones (Phase 6, for the owner to see):** the gather shows wherever the whole form fits one pinned frame (desktop, tablets, a 390×844 phone). Below that the section flows as plain black and the gather gives way, so a pin never hides the submit button.
-- **Phase 10:** heading parallax, the adaptive cursor, the cursive logo.
+- **Phase 10 (for the owner):** sign off the two screen recordings in `.local/phase10/recordings/` (1440×900 and 390×844); save the cursive logo as `public/brand/logo.svg` so a session can wire it (see Phase 10's done note).
 - **Phase 11:** the pause-motion toggle (WCAG 2.2.2).
 - **Material:** the belief line, the story and photo, client quotes, real projects.
 - **Decided, recorded:**
+  - Phase 10 (owner, 2026-09-30): Phase 9 committed on its own first (`684db97`); section text sweeps with the dots (in as they land, out as they leave, replayed every visit, body per paragraph, the stats counting with it); a hard edge for every text sweep; a 1px Wire Grey scroll-progress hairline; a 6px Lamp White nav dot shared with the cursor dot; parallax on every single-frame screen, desktop only (the owner first said no, then "I think we add parallax"); the adaptive cursor as old Part 4 designs it; the cursive logo, from the owner's own SVG
   - Phase 9 (owner, 2026-09-29): Phase 8 committed on its own first; between two projects the frame unwinds with the old project and redraws round the new plate, in place, and never flies; tabbing onto a hidden project's link brings that project onto the board, so every card stays in the tab order and the screen-reader order
   - Phase 8 (owner, 2026-09-29): Phase 7 committed on its own first; How I work is a centred wheel ("so the rotation is genuine"), with the shape centred above the numeral and the neighbouring steps dim at both edges
   - Phase 7 (owner, 2026-09-29): Phase 6 committed on its own first; Development's short copy is "High-performance, scalable websites tailored to your business."

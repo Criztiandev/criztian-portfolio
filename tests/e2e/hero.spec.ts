@@ -10,6 +10,10 @@ const FIRST_PROJECT_SCENE = formatSceneStepId(PROJECTS_SCENE_ID, 0)
 
 const DECK_CARD_SELECTOR = "#project [data-fit-box]"
 
+const QUOTE_LINE_SELECTOR = "#quote blockquote p"
+
+const WHOLE_TRANSLATES = ["none", "0px"]
+
 const SCENE_WALK = [
   { selector: "#quote", scene: "cube" },
   { selector: "#project", scene: FIRST_PROJECT_SCENE },
@@ -207,6 +211,47 @@ async function scrollToTop(page: Page) {
   })
 }
 
+function isClipWhole(clipPath: string): boolean {
+  if (clipPath === "none") {
+    return true
+  }
+
+  const match = /^inset\((.+)\)$/.exec(clipPath)
+
+  if (match === null) {
+    return false
+  }
+
+  for (const inset of (match[1] ?? "").split(" ")) {
+    if (parseFloat(inset) > 0) {
+      return false
+    }
+  }
+
+  return true
+}
+
+async function readQuoteSweepProblems(page: Page) {
+  const sweep = await page
+    .locator(QUOTE_LINE_SELECTOR)
+    .evaluate(function readSweep(line) {
+      const style = getComputedStyle(line)
+
+      return { clipPath: style.clipPath, translate: style.translate }
+    })
+  const problems: string[] = []
+
+  if (!isClipWhole(sweep.clipPath)) {
+    problems.push(`clip-path ${sweep.clipPath}`)
+  }
+
+  if (!WHOLE_TRANSLATES.includes(sweep.translate)) {
+    problems.push(`translate ${sweep.translate}`)
+  }
+
+  return problems
+}
+
 test.describe("hero dot field", () => {
   test("renders the name as an accessible heading exactly once", async ({
     page,
@@ -272,11 +317,18 @@ test.describe("scroll timeline", () => {
       timeout: 5000,
     })
 
-    const quote = page.locator("#quote blockquote p")
+    const quote = page.locator(QUOTE_LINE_SELECTOR)
 
     await expect(quote).toBeVisible()
     await expect(quote).not.toHaveText("")
-    await expect(quote).toHaveCSS("clip-path", "inset(0%)", { timeout: 5000 })
+    await expect
+      .poll(
+        function readQuoteSweep() {
+          return readQuoteSweepProblems(page)
+        },
+        { message: "the quote is whole with the cube", timeout: 5000 }
+      )
+      .toEqual([])
     await expect(page.locator("canvas")).toHaveCSS("opacity", "1")
     await page.waitForTimeout(600)
 
@@ -522,10 +574,11 @@ test.describe("scroll timeline with reduced motion", () => {
     await expect(stage).toHaveAttribute("data-scene", "cube", {
       timeout: 10000,
     })
-    await expect(page.locator("#quote blockquote p")).toHaveCSS(
-      "clip-path",
-      "inset(0%)"
-    )
+
+    const quote = page.locator(QUOTE_LINE_SELECTOR)
+
+    await expect(quote).toHaveCSS("clip-path", "none")
+    await expect(quote).toHaveCSS("translate", "none")
 
     expect(problems).toEqual([])
   })

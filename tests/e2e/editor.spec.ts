@@ -24,6 +24,8 @@ const PREVIEW_SCROLL_TIMEOUT_MS = 10_000
 
 const DRAFT_SAVE_PROCEDURE = "siteContent.saveDraft"
 
+const CURSOR_SELECTOR = "[data-cursor-state]"
+
 test.describe.configure({ mode: "serial" })
 
 test.beforeAll(async function createOwner() {
@@ -160,6 +162,19 @@ test("sends a logged-out visitor from the preview to the login page", async ({
       url.searchParams.get("next") === EDITOR_PREVIEW_PATH
     )
   })
+})
+
+test("keeps the adaptive cursor out of the editor and its preview", async ({
+  page,
+}) => {
+  await signInToEditor(page)
+  await page.mouse.move(400, 300)
+
+  await expect(page.locator(CURSOR_SELECTOR)).toHaveCount(0)
+  await expect(
+    page.frameLocator(PREVIEW_FRAME).locator(CURSOR_SELECTOR)
+  ).toHaveCount(0)
+  await expect(page.locator("html")).not.toHaveAttribute("data-cursor")
 })
 
 test("renders the projects deck in the preview", async ({ page }) => {

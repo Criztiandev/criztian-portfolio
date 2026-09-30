@@ -3,41 +3,65 @@ import path from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import { CONTACT_ACKNOWLEDGEMENT_CLASS } from "@/data/contact.data"
 import {
+  SCENE_REVEAL_PROPERTY,
+  SIGNAL_EASE,
   THREAD_REVEAL_PROPERTY_PREFIX,
   THREAD_TURN_PROPERTY,
 } from "@/data/hero.data"
 import {
+  CAPTION_CASCADE_SPREAD,
   CAPTION_LINE_STAGGER,
+  COPY_DRIFT_PX,
+  MOBILE_MENU_WIPE_CLASS,
   ORBIT_DIGIT_TILTS_DEGREES,
   ORBIT_RING_SPIN_RATIO,
 } from "@/data/motion.data"
-import { PROCESS_SCENE, SERVICES_SCENE } from "@/data/page-sections.data"
+import {
+  COPY_DRIFT_CLASS,
+  FAQ_DISCLOSURE_CLASS,
+  FAQ_PLUS_TURN_CLASS,
+  PROCESS_SCENE,
+  SCREEN_TIMELINE_CLASS,
+  SERVICES_SCENE,
+} from "@/data/page-sections.data"
 import { PROJECTS_SCENE_ID } from "@/data/portfolio.data"
 import { PROJECTS_MAX } from "@/data/site-content.data"
 import { formatSceneStepId } from "@/features/portfolio/dot-field.rules"
 import {
+  buildCopyDriftStyle,
   buildDigitStyle,
   buildOrbitStepStyle,
   buildOrbitStyle,
   buildLineStyle,
-  buildShownCaptionStyle,
+  buildSceneCaptionStyle,
   buildStepSceneStyle,
   buildThreadCaptionStyle,
 } from "@/features/portfolio/step-motion.rules"
+
+const FULL_STAGGER_LINES = 4
+
+const LONGEST_SCENE_LINES = 12
+
+const SPREAD_TOLERANCE = 1e-9
 
 function readStylesheet(): string {
   return readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8")
 }
 
-function readUtility(css: string, name: string): string {
-  const start = css.indexOf(`@utility ${name} {`)
+function readBlock(css: string, header: string): string {
+  const start = css.indexOf(`${header} {`)
 
   if (start === -1) {
     return ""
   }
 
   return css.slice(start, css.indexOf("\n}", start))
+}
+
+function readUtility(css: string, name: string): string {
+  return readBlock(css, `@utility ${name}`)
 }
 
 describe("the step scenes", () => {
@@ -71,13 +95,17 @@ describe("the caption lines", () => {
     expect(buildLineStyle(0)).toEqual({ "--line": 0 })
     expect(buildLineStyle(2)).toEqual({ "--line": 2 })
   })
+
+  it("wipes across and leaves a full line above and below, so padded links keep their tap area", () => {
+    const line = readUtility(readStylesheet(), "caption-line")
+
+    expect(line).toMatch(
+      /clip-path:\s*inset\(-100% calc\(100% - var\(--line-reveal\) \* 104%\) -100% 0\);/
+    )
+  })
 })
 
 describe("the projects deck", () => {
-  it("shows a lone project's copy in full", () => {
-    expect(buildShownCaptionStyle()).toEqual({ "--caption-reveal": 1 })
-  })
-
   it("keys every project card to its step's reveal, up to the most projects", () => {
     const css = readStylesheet()
 
@@ -180,5 +208,193 @@ describe("the orbit", () => {
 
   it("has no data-scene keyed rule left in the stylesheet", () => {
     expect(readStylesheet()).not.toMatch(/\[data-scene=/)
+  })
+})
+
+describe("the scene sweep", () => {
+  it("staggers up to four lines by the caption stagger, then spreads them", () => {
+    for (let lastLine = 1; lastLine <= LONGEST_SCENE_LINES; lastLine += 1) {
+      const style = buildSceneCaptionStyle(lastLine)
+      const stagger = Number(style["--caption-stagger"])
+
+      expect(style["--caption-last"]).toBe(lastLine)
+      expect(lastLine * stagger).toBeLessThanOrEqual(
+        CAPTION_CASCADE_SPREAD + SPREAD_TOLERANCE
+      )
+
+      if (lastLine <= FULL_STAGGER_LINES) {
+        expect(stagger, `${lastLine}`).toBe(CAPTION_LINE_STAGGER)
+      } else {
+        expect(stagger, `${lastLine}`).toBeCloseTo(
+          CAPTION_CASCADE_SPREAD / lastLine
+        )
+      }
+    }
+  })
+
+  it("sweeps only on a screen with motion, on a running stage, never in a flowed scene", () => {
+    const swept = readBlock(readStylesheet(), "@custom-variant swept")
+
+    expect(swept).toContain(
+      "@media screen and (prefers-reduced-motion: no-preference)"
+    )
+    expect(swept).toContain(
+      '&:where([data-status="running"] *):not([data-fit], [data-fit] *)'
+    )
+    expect(swept).not.toMatch(/animation-timeline|height/)
+  })
+
+  it("lights every scene from its dots' own reveal, and fully while it holds focus", () => {
+    const css = readStylesheet()
+    const scene = readBlock(css, "[data-dot-scene]")
+
+    expect(scene).toContain(`--scene-lit: var(${SCENE_REVEAL_PROPERTY}, 1);`)
+    expect(scene).toContain("--caption-reveal: var(--scene-lit);")
+    expect(readBlock(css, "[data-dot-scene]:has(:focus-visible)")).toMatch(
+      /--scene-lit:\s*1;/
+    )
+  })
+
+  it("staggers each line up to the scene's last and never clips a focused one", () => {
+    const line = readUtility(readStylesheet(), "caption-line")
+
+    expect(line).toContain("var(--caption-last, 2)")
+    expect(line).toMatch(
+      /&:focus-visible,\s*&:has\(:focus-visible\)\s*\{\s*clip-path:\s*none;\s*translate:\s*none;/
+    )
+  })
+})
+
+describe("the stats", () => {
+  it("counts a whole number up on its line's reveal and pins the suffix to the value's end", () => {
+    const css = readStylesheet()
+    const property = readBlock(css, "@property --stat-count")
+    const count = readUtility(css, "stat-count")
+
+    expect(property).toMatch(/syntax:\s*"<integer>";/)
+    expect(property).toMatch(/inherits:\s*false;/)
+    expect(property).toMatch(/initial-value:\s*0;/)
+    expect(count).toContain(
+      "--stat-count: calc(var(--stat-value) * var(--line-reveal, 1));"
+    )
+    expect(count).toContain("counter-reset: stat-count var(--stat-count);")
+    expect(count).toMatch(
+      /&::before\s*\{\s*content:\s*counter\(stat-count\);\s*\}/
+    )
+    expect(count).toMatch(
+      /&::after\s*\{\s*content:\s*attr\(data-suffix\);\s*position:\s*absolute;\s*inset-inline-end:\s*0;\s*\}/
+    )
+  })
+})
+
+describe("the parallax", () => {
+  it("drifts the copy by the fixed distance", () => {
+    expect(buildCopyDriftStyle()).toEqual({
+      "--copy-drift": `${COPY_DRIFT_PX}px`,
+    })
+  })
+
+  it("names each screen's view timeline with the longhands, under the header", () => {
+    const timeline = readUtility(readStylesheet(), SCREEN_TIMELINE_CLASS)
+
+    expect(timeline).toMatch(/view-timeline-name:\s*--screen;/)
+    expect(timeline).toMatch(/view-timeline-inset:\s*4\.5rem 0;/)
+    expect(timeline).not.toMatch(/view-timeline:/)
+  })
+
+  it("drifts the column's children on the screen, wide and with motion only", () => {
+    const drift = readUtility(readStylesheet(), COPY_DRIFT_CLASS)
+
+    expect(drift).toContain("@supports (animation-timeline: view())")
+    expect(drift).toContain("prefers-reduced-motion: no-preference")
+    expect(drift).toContain("min-width: 48rem")
+    expect(drift).toContain("& > *")
+    expect(drift).toMatch(/animation-timeline:\s*--screen;/)
+    expect(drift).toMatch(/animation-range:\s*cover;/)
+    expect(drift).not.toMatch(/animation:/)
+  })
+
+  it("contains the column's layout in every mode, so the drift never reaches a fit box", () => {
+    const drift = readUtility(readStylesheet(), COPY_DRIFT_CLASS)
+    const containment = drift.search(/contain:\s*layout;/)
+
+    expect(containment).toBeGreaterThan(-1)
+    expect(containment).toBeLessThan(drift.indexOf("@supports"))
+  })
+
+  it("moves the copy by transform and holds it still between entry and exit", () => {
+    const keyframes = readBlock(readStylesheet(), "@keyframes copy-drift")
+
+    expect(keyframes).toMatch(
+      /entry 0%\s*\{\s*transform:\s*translateY\(var\(--copy-drift\)\);/
+    )
+    expect(keyframes).toMatch(/entry 100%,\s*exit 0%\s*\{\s*transform:\s*none;/)
+    expect(keyframes).toMatch(
+      /exit 100%\s*\{\s*transform:\s*translateY\(calc\(-1 \* var\(--copy-drift\)\)\);/
+    )
+    expect(keyframes).not.toMatch(/(^|\s)translate:/m)
+  })
+})
+
+describe("the signal ease", () => {
+  it("gives every CSS transition the one signal ease token, the same curve as Motion's", () => {
+    const theme = readBlock(readStylesheet(), "@theme inline")
+    const transitions = [
+      MOBILE_MENU_WIPE_CLASS,
+      CONTACT_ACKNOWLEDGEMENT_CLASS,
+      FAQ_DISCLOSURE_CLASS,
+      FAQ_PLUS_TURN_CLASS,
+    ]
+
+    expect(theme).toContain(
+      `--ease-signal: cubic-bezier(${SIGNAL_EASE.join(", ")});`
+    )
+
+    for (const classes of transitions) {
+      expect(classes).toContain("ease-signal")
+      expect(classes).not.toContain("ease-[")
+    }
+  })
+})
+
+describe("the scroll progress", () => {
+  it("scales the hairline on the root scroll with longhands, where supported", () => {
+    const css = readStylesheet()
+    const progress = readUtility(css, "scroll-progress")
+    const keyframes = readBlock(css, "@keyframes scroll-progress")
+
+    expect(progress).toContain("@supports (animation-timeline: scroll())")
+    expect(progress).toMatch(/animation-name:\s*scroll-progress;/)
+    expect(progress).toMatch(/animation-duration:\s*auto;/)
+    expect(progress).toMatch(/animation-timeline:\s*scroll\(root\);/)
+    expect(progress).not.toMatch(/animation:/)
+    expect(keyframes).toMatch(/from\s*\{\s*scale:\s*0 1;/)
+    expect(keyframes).toMatch(/to\s*\{\s*scale:\s*1 1;/)
+  })
+})
+
+describe("without scripting", () => {
+  it("shows every Motion element at rest", () => {
+    const reset = readBlock(readStylesheet(), "@media (scripting: none)")
+
+    expect(reset).toContain("[data-reveal]")
+    expect(reset).toContain("opacity: 1 !important;")
+    expect(reset).toContain("clip-path: none !important;")
+    expect(reset).toContain("transform: none !important;")
+  })
+})
+
+describe("the native cursor", () => {
+  it("hides only while the custom cursor is on, never in forced colours", () => {
+    const css = readStylesheet()
+    const cursor = readBlock(css, "@media (forced-colors: none)")
+
+    expect(cursor).toMatch(
+      /html\[data-cursor="on"\],\s*html\[data-cursor="on"\] \*\s*\{\s*cursor:\s*none;/
+    )
+    expect(cursor).toMatch(
+      /html\[data-cursor="on"\] :is\(input, textarea, select\)\s*\{\s*cursor:\s*auto;/
+    )
+    expect(css.match(/cursor:\s*none/g)).toHaveLength(1)
   })
 })

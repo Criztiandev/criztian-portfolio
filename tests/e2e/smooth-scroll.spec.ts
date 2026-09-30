@@ -222,6 +222,9 @@ test.describe("smooth scroll on a fine pointer", () => {
     await page.getByRole("button", { name: "Open menu" }).click()
 
     const panel = page.locator("#portfolio-mobile-nav")
+
+    await expect(panel).toHaveCSS("clip-path", "inset(0px)")
+
     const box = await panel.boundingBox()
 
     if (box === null) {

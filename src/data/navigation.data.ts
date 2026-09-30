@@ -2,6 +2,14 @@ import type { PortfolioNavigationItem } from "@/types/portfolio.type"
 
 export const PORTFOLIO_BRAND_LABEL = "Criztian"
 
+export const SCROLL_SPY_TOLERANCE_PX = 1
+
+export const NAV_DOT_CLASS =
+  "pointer-events-none absolute top-full left-1/2 mt-0.5 -ml-0.75 size-1.5 rounded-full bg-foreground forced-colors:bg-[CanvasText]"
+
+export const SCROLL_PROGRESS_HAIRLINE_CLASS =
+  "pointer-events-none absolute inset-x-0 -bottom-px z-10 hidden h-px origin-left bg-foreground/40 supports-[animation-timeline:scroll()]:block scroll-progress"
+
 const HOME_ITEM: PortfolioNavigationItem = {
   id: "home",
   label: "Home",

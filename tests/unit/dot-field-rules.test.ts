@@ -9,6 +9,7 @@ import {
   DOT_SHAPE_TUNING,
   FRAME_EDGE,
   GATHER_SHAPE,
+  GROWN_FRAME_TOLERANCE_PX,
   HIDDEN_RANK,
   MAX_CANVAS_PIXELS,
   SHAPE_POINTS,
@@ -48,6 +49,10 @@ import {
   resolvePixelRatio,
   resolvePlacement,
   resolvePointTotal,
+  resolvePushRadius,
+  resolveRevealRange,
+  resolveSceneRange,
+  resolveSceneReveal,
   resolveSceneState,
   resolveStaticKeyframe,
   resolveThreadReveal,
@@ -218,6 +223,51 @@ describe("resolveFontSize", () => {
         probeSize: 100,
       })
     ).toBe(100)
+  })
+})
+
+describe("resolvePushRadius", () => {
+  it("is 300px at the reference ink height", () => {
+    expect(
+      resolvePushRadius(DOT_FIELD_TUNING.referenceInkHeight, DOT_FIELD_TUNING)
+    ).toBe(300)
+  })
+
+  it("scales with the ink height", () => {
+    expect(
+      resolvePushRadius(
+        DOT_FIELD_TUNING.referenceInkHeight / 2,
+        DOT_FIELD_TUNING
+      )
+    ).toBe(150)
+  })
+
+  it("is the radius the physics pushes within", () => {
+    const radius = resolvePushRadius(
+      DOT_FIELD_TUNING.referenceInkHeight,
+      DOT_FIELD_TUNING
+    )
+
+    function pushFrom(distance: number): number {
+      const offsets = new Float32Array(2)
+
+      stepDotPhysics(
+        {
+          homes: new Float32Array([distance, 0, 1]),
+          offsets,
+          velocities: new Float32Array(2),
+          inkHeight: DOT_FIELD_TUNING.referenceInkHeight,
+          pointer: { x: 0, y: 0, isActive: true },
+          deltaSeconds: 1 / 60,
+        },
+        DOT_FIELD_TUNING
+      )
+
+      return offsets[0] ?? 0
+    }
+
+    expect(pushFrom(radius - 1)).toBeGreaterThan(0)
+    expect(pushFrom(radius + 1)).toBe(0)
   })
 })
 
@@ -851,6 +901,35 @@ describe("buildSceneKeyframes", () => {
     expect(keyframe?.slot).toBeNull()
   })
 
+  it("marks a pinned frame that grew past the viewport, and only that one", () => {
+    const [grown, fitting, dust] = buildSceneKeyframes(
+      [
+        buildScene({ frameHeight: 1040 }),
+        buildScene({
+          id: "about",
+          shapes: ["frame"],
+          containerTop: 3000,
+          containerBottom: 4500,
+          frameHeight: 828 + GROWN_FRAME_TOLERANCE_PX,
+        }),
+        buildScene({
+          id: "dust",
+          shapes: ["dust"],
+          containerTop: 5000,
+          containerBottom: 7000,
+          frameHeight: 0,
+          slot: null,
+        }),
+      ],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+
+    expect(grown?.isGrown).toBe(true)
+    expect(fitting?.isGrown).toBeUndefined()
+    expect(dust?.isGrown).toBeUndefined()
+  })
+
   it("never ends a scene before it starts", () => {
     const [keyframe] = buildSceneKeyframes(
       [buildScene({ containerBottom: 1100 })],
@@ -1265,6 +1344,155 @@ describe("resolveThreadReveal", () => {
     expect(early).toBeGreaterThan(0)
     expect(late).toBeGreaterThan(early)
     expect(resolveThreadReveal(2.3, 2, span)).toBeCloseTo(early, 9)
+  })
+})
+
+describe("resolveSceneRange", () => {
+  it("spans every step of a multi-step scene", () => {
+    expect(resolveSceneRange(SERVICE_TIMELINE, "services")).toEqual({
+      firstIndex: 1,
+      lastIndex: 3,
+    })
+  })
+
+  it("is one index for a single-frame scene", () => {
+    expect(resolveSceneRange(SERVICE_TIMELINE, "cube")).toEqual({
+      firstIndex: 0,
+      lastIndex: 0,
+    })
+    expect(resolveSceneRange(SERVICE_TIMELINE, "process")).toEqual({
+      firstIndex: 4,
+      lastIndex: 4,
+    })
+  })
+
+  it("is null for a scene with no keyframe", () => {
+    expect(resolveSceneRange(SERVICE_TIMELINE, "about")).toBeNull()
+  })
+})
+
+describe("resolveRevealRange", () => {
+  const readingTimeline: DotSceneKeyframe[] = [
+    ...SERVICE_TIMELINE,
+    {
+      id: "dust",
+      scene: "dust",
+      shape: "dust",
+      start: 2600,
+      end: 2600,
+      slot: null,
+    },
+    {
+      id: "contact",
+      scene: "contact",
+      shape: "gather",
+      start: 3400,
+      end: 3500,
+      slot: SLOT,
+    },
+  ]
+
+  it("keeps a scene with a slot to its own keyframes", () => {
+    expect(resolveRevealRange(readingTimeline, "services")).toEqual({
+      firstIndex: 1,
+      lastIndex: 3,
+    })
+    expect(resolveRevealRange(readingTimeline, "contact")).toEqual({
+      firstIndex: 6,
+      lastIndex: 6,
+    })
+  })
+
+  it("holds a scene without a slot lit through the transit that follows it", () => {
+    expect(resolveRevealRange(readingTimeline, "dust")).toEqual({
+      firstIndex: 5,
+      lastIndex: 6,
+    })
+  })
+
+  it("holds a grown frame lit through the transit that follows it", () => {
+    const grownTimeline: DotSceneKeyframe[] = []
+
+    for (const keyframe of readingTimeline) {
+      if (keyframe.scene === "cube") {
+        grownTimeline.push({ ...keyframe, isGrown: true })
+        continue
+      }
+
+      grownTimeline.push(keyframe)
+    }
+
+    expect(resolveRevealRange(grownTimeline, "cube")).toEqual({
+      firstIndex: 0,
+      lastIndex: 1,
+    })
+    expect(resolveRevealRange(readingTimeline, "cube")).toEqual({
+      firstIndex: 0,
+      lastIndex: 0,
+    })
+  })
+
+  it("keeps a grown last scene to its own keyframe", () => {
+    const lastKeyframe = readingTimeline[readingTimeline.length - 1]
+    const grownTimeline = readingTimeline.slice(0, -1)
+
+    if (lastKeyframe !== undefined) {
+      grownTimeline.push({ ...lastKeyframe, isGrown: true })
+    }
+
+    expect(resolveRevealRange(grownTimeline, "contact")).toEqual({
+      firstIndex: 6,
+      lastIndex: 6,
+    })
+  })
+
+  it("keeps a last scene without a slot to its own keyframe", () => {
+    expect(resolveRevealRange(readingTimeline.slice(0, 6), "dust")).toEqual({
+      firstIndex: 5,
+      lastIndex: 5,
+    })
+  })
+
+  it("is null for a scene with no keyframe", () => {
+    expect(resolveRevealRange(readingTimeline, "about")).toBeNull()
+  })
+})
+
+describe("resolveSceneReveal", () => {
+  const span = DOT_FIELD_MORPH_TUNING.sceneRevealSpan
+  const services = { firstIndex: 1, lastIndex: 3 }
+
+  it("keeps a scene lit across all of its steps", () => {
+    for (const progress of [1, 1.25, 1.5, 2, 2.75, 3]) {
+      expect(resolveSceneReveal(progress, services, span)).toBe(1)
+    }
+  })
+
+  it("goes dark half a hop outside either end", () => {
+    expect(resolveSceneReveal(1 - span, services, span)).toBe(0)
+    expect(resolveSceneReveal(3 + span, services, span)).toBe(0)
+    expect(resolveSceneReveal(0, services, span)).toBe(0)
+    expect(resolveSceneReveal(4, services, span)).toBe(0)
+  })
+
+  it("sweeps in as the dots arrive and out as they leave, mirrored", () => {
+    const arriving = resolveSceneReveal(1 - span / 2, services, span)
+    const leaving = resolveSceneReveal(3 + span / 2, services, span)
+
+    expect(arriving).toBeGreaterThan(0)
+    expect(arriving).toBeLessThan(1)
+    expect(leaving).toBeCloseTo(arriving, 9)
+    expect(resolveSceneReveal(0.9, services, span)).toBeGreaterThan(arriving)
+  })
+
+  it("matches a thread caption for a one-keyframe range", () => {
+    const single = { firstIndex: 2, lastIndex: 2 }
+
+    for (const progress of [1.4, 1.6, 1.9, 2, 2.2, 2.6]) {
+      expect(resolveSceneReveal(progress, single, span)).toBe(
+        resolveThreadReveal(progress, 2, span)
+      )
+    }
   })
 })
 

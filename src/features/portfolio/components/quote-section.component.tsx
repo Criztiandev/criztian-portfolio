@@ -1,22 +1,18 @@
-"use client"
-
-import { motion, useReducedMotion } from "motion/react"
-
 import {
-  LIFT_VARIANTS,
-  QUOTE_AUTHOR_TRANSITION,
-  QUOTE_REVEAL_TRANSITION,
-  QUOTE_REVEAL_VARIANTS,
-  QUOTE_VIEWPORT,
-} from "@/data/hero.data"
-import {
+  COPY_DRIFT_CLASS,
   CUE_CLASS,
   PIN_SPACER_CLASS,
+  SCREEN_TIMELINE_CLASS,
   SECTION_FRAME_CLASS,
   STATEMENT_CLASS,
   STATEMENT_SIZE_CLASSES,
+  SWEPT_LINE_CLASS,
 } from "@/data/page-sections.data"
-import { resolveMotionTransition } from "@/features/portfolio/motion.rules"
+import {
+  buildCopyDriftStyle,
+  buildLineStyle,
+  buildSceneCaptionStyle,
+} from "@/features/portfolio/step-motion.rules"
 import { cn } from "@/lib/utils"
 import type { SiteContent } from "@/types/site-content.type"
 
@@ -25,14 +21,22 @@ export function QuoteSection({
 }: Readonly<{
   quote: SiteContent["quote"]
 }>) {
-  const shouldReduceMotion = useReducedMotion() === true
+  const sceneStyle = {
+    ...buildSceneCaptionStyle(1),
+    ...buildCopyDriftStyle(),
+  }
 
   return (
     <section
       id="quote"
       data-dot-scene="cube"
       data-dot-shapes="cube"
-      className={cn(SECTION_FRAME_CLASS, "text-foreground")}
+      style={sceneStyle as React.CSSProperties}
+      className={cn(
+        SECTION_FRAME_CLASS,
+        SCREEN_TIMELINE_CLASS,
+        "text-foreground"
+      )}
     >
       <div
         className={cn(
@@ -54,42 +58,35 @@ export function QuoteSection({
           )}
         />
 
-        <motion.figure
-          initial="hidden"
-          whileInView="visible"
-          viewport={QUOTE_VIEWPORT}
-          className="@container split:col-start-1 split:row-start-1"
+        <figure
+          className={cn(
+            "@container split:col-start-1 split:row-start-1",
+            COPY_DRIFT_CLASS
+          )}
         >
           <blockquote>
-            <motion.p
-              variants={QUOTE_REVEAL_VARIANTS}
-              transition={resolveMotionTransition(
-                QUOTE_REVEAL_TRANSITION,
-                shouldReduceMotion
-              )}
+            <p
+              style={buildLineStyle(0) as React.CSSProperties}
               className={cn(
                 STATEMENT_CLASS,
                 STATEMENT_SIZE_CLASSES.belief,
-                "max-w-[11ch]"
+                "max-w-[11ch]",
+                SWEPT_LINE_CLASS
               )}
             >
               {quote.text}
-            </motion.p>
+            </p>
           </blockquote>
 
-          <motion.figcaption
+          <figcaption
             hidden={quote.author === ""}
-            variants={LIFT_VARIANTS}
-            transition={resolveMotionTransition(
-              QUOTE_AUTHOR_TRANSITION,
-              shouldReduceMotion
-            )}
-            className={cn(CUE_CLASS, "mt-6")}
+            style={buildLineStyle(1) as React.CSSProperties}
+            className={cn(CUE_CLASS, "mt-6", SWEPT_LINE_CLASS)}
           >
             <span aria-hidden="true">— </span>
             {quote.author}
-          </motion.figcaption>
-        </motion.figure>
+          </figcaption>
+        </figure>
       </div>
 
       <div className={cn(PIN_SPACER_CLASS, "h-[60svh]")} />

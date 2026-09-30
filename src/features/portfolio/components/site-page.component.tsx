@@ -1,3 +1,4 @@
+import { FAQ_SECTION } from "@/data/page-sections.data"
 import { PUBLIC_TOKEN_OVERRIDES } from "@/data/portfolio.data"
 import { AboutSection } from "@/features/portfolio/components/about-section.component"
 import { ContactSection } from "@/features/portfolio/components/contact-section.component"
@@ -10,6 +11,7 @@ import { SectionNavigation } from "@/features/portfolio/components/section-navig
 import { ServicesSection } from "@/features/portfolio/components/services-section.component"
 import { SiteFooter } from "@/features/portfolio/components/site-footer.component"
 import { TestimonialsSection } from "@/features/portfolio/components/testimonials-section.component"
+import { buildSceneCaptionStyle } from "@/features/portfolio/step-motion.rules"
 import { buildThemeStyle } from "@/features/site-content/site-content.rules"
 import { cn } from "@/lib/utils"
 import { PortfolioStoreProvider } from "@/providers/portfolio-store.provider"
@@ -23,6 +25,7 @@ export function SitePage({
     ...buildThemeStyle(content.theme),
     ...PUBLIC_TOKEN_OVERRIDES,
   }
+  const dustStyle = buildSceneCaptionStyle(FAQ_SECTION.items.length + 1)
 
   return (
     <PortfolioStoreProvider>
@@ -55,6 +58,7 @@ export function SitePage({
           <div
             data-dot-scene="dust"
             data-dot-shapes="dust"
+            style={dustStyle as React.CSSProperties}
             className="scroll-mt-18"
           >
             <FaqSection />

@@ -70,6 +70,8 @@ export const THREAD_REVEAL_DECIMALS = 3
 
 export const THREAD_TURN_PROPERTY = "--thread-turn"
 
+export const SCENE_REVEAL_PROPERTY = "--scene-reveal"
+
 export const SCENE_STEP_ID_SEPARATOR = "-"
 
 export const JUMP_CANCEL_EVENTS = [
@@ -86,6 +88,8 @@ export const PIXEL_RATIO_STEPS = 4
 export const FALLBACK_MAX_DIMENSION = 4096
 
 export const MORPH_LANDING_TOLERANCE_PX = 1
+
+export const GROWN_FRAME_TOLERANCE_PX = 1
 
 export const OFFSCREEN_CLIP_POSITION = 2
 
@@ -744,6 +748,7 @@ export const DOT_FIELD_MORPH_TUNING: DotFieldMorphTuning = {
   threadDrawSeconds: 1.6,
   threadHurrySeconds: 0.15,
   threadCaptionSpan: 0.5,
+  sceneRevealSpan: 0.5,
   redrawEdge: 0.02,
 }
 
@@ -947,32 +952,4 @@ export const LIFT_VARIANTS: Variants = {
     opacity: 1,
     y: 0,
   },
-}
-
-export const QUOTE_REVEAL_VARIANTS: Variants = {
-  hidden: {
-    clipPath: "inset(0% 100% 0% 0%)",
-    x: -24,
-  },
-  visible: {
-    clipPath: "inset(0% 0% 0% 0%)",
-    x: 0,
-  },
-}
-
-export const QUOTE_REVEAL_TRANSITION: Transition = {
-  duration: 0.9,
-  ease: SIGNAL_EASE,
-}
-
-export const QUOTE_AUTHOR_TRANSITION: Transition = {
-  delay: 0.6,
-  duration: 0.6,
-  ease: "easeOut",
-}
-
-export const QUOTE_VIEWPORT = {
-  once: true,
-  amount: 0,
-  margin: "0px 0px -20% 0px",
 }

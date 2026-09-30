@@ -36,6 +36,14 @@
   }
 }
 
+@custom-variant swept {
+  @media screen and (prefers-reduced-motion: no-preference) {
+    &:where([data-status="running"] *):not([data-fit], [data-fit] *) {
+      @slot;
+    }
+  }
+}
+
 @theme inline {
   --font-heading: var(--font-display);
   --font-sans: var(--font-sans);
@@ -79,6 +87,7 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --ease-signal: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 :root {
@@ -182,18 +191,26 @@
 @utility caption-line {
   --line-reveal: clamp(
     0,
-    var(--caption-reveal, 0) * (1 + 2 * var(--caption-stagger)) - var(--line) *
+    var(--caption-reveal, 0) *
+      (1 + var(--caption-last, 2) * var(--caption-stagger)) - var(--line) *
       var(--caption-stagger),
     1
   );
-  clip-path: inset(-20% calc(100% - var(--line-reveal) * 104%) -20% 0);
+  clip-path: inset(-100% calc(100% - var(--line-reveal) * 104%) -100% 0);
   translate: calc((1 - var(--line-reveal)) * -24px) 0;
+
+  &:focus-visible,
+  &:has(:focus-visible) {
+    clip-path: none;
+    translate: none;
+  }
 }
 
 @utility plate-sweep {
   --line-reveal: clamp(
     0,
-    var(--caption-reveal, 0) * (1 + 2 * var(--caption-stagger)) - var(--line) *
+    var(--caption-reveal, 0) *
+      (1 + var(--caption-last, 2) * var(--caption-stagger)) - var(--line) *
       var(--caption-stagger),
     1
   );
@@ -239,6 +256,84 @@
     calc(1.5 - 0.5 * var(--orbit-assemble));
 }
 
+@property --stat-count {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@utility stat-count {
+  --stat-count: calc(var(--stat-value) * var(--line-reveal, 1));
+  counter-reset: stat-count var(--stat-count);
+
+  &::before {
+    content: counter(stat-count);
+  }
+
+  &::after {
+    content: attr(data-suffix);
+    position: absolute;
+    inset-inline-end: 0;
+  }
+}
+
+@utility screen-timeline {
+  view-timeline-name: --screen;
+  view-timeline-inset: 4.5rem 0;
+}
+
+@utility copy-drift {
+  contain: layout;
+
+  @supports (animation-timeline: view()) {
+    @media screen and (prefers-reduced-motion: no-preference) and (min-width: 48rem) {
+      & > * {
+        animation-name: copy-drift;
+        animation-duration: auto;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: --screen;
+        animation-range: cover;
+      }
+    }
+  }
+}
+
+@keyframes copy-drift {
+  entry 0% {
+    transform: translateY(var(--copy-drift));
+  }
+
+  entry 100%,
+  exit 0% {
+    transform: none;
+  }
+
+  exit 100% {
+    transform: translateY(calc(-1 * var(--copy-drift)));
+  }
+}
+
+@utility scroll-progress {
+  @supports (animation-timeline: scroll()) {
+    animation-name: scroll-progress;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root);
+  }
+}
+
+@keyframes scroll-progress {
+  from {
+    scale: 0 1;
+  }
+
+  to {
+    scale: 1 1;
+  }
+}
+
 @keyframes orbit-spin {
   from {
     stroke-dashoffset: 0px;
@@ -247,6 +342,15 @@
   to {
     stroke-dashoffset: calc(-1 * var(--orbit-spin));
   }
+}
+
+[data-dot-scene] {
+  --scene-lit: var(--scene-reveal, 1);
+  --caption-reveal: var(--scene-lit);
+}
+
+[data-dot-scene]:has(:focus-visible) {
+  --scene-lit: 1;
 }
 
 [data-caption="project-1"] {
@@ -314,4 +418,23 @@
 
 [data-position="delivery"] {
   --caption-reveal: var(--reveal-delivery);
+}
+
+@media (forced-colors: none) {
+  html[data-cursor="on"],
+  html[data-cursor="on"] * {
+    cursor: none;
+  }
+
+  html[data-cursor="on"] :is(input, textarea, select) {
+    cursor: auto;
+  }
+}
+
+@media (scripting: none) {
+  [data-reveal] {
+    opacity: 1 !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
 }

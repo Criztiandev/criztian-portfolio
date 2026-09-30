@@ -35,6 +35,11 @@ export type AboutStat = {
   label: string
 }
 
+export type StatCount = {
+  target: number
+  suffix: string
+}
+
 export type PlaceholderPlate = {
   src: string
   label: string

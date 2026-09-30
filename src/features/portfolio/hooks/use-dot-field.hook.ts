@@ -17,6 +17,7 @@ import {
   MAX_FRAME_DELTA_SECONDS,
   MORPH_LANDING_TOLERANCE_PX,
   RESIZE_DEBOUNCE_MS,
+  SCENE_REVEAL_PROPERTY,
   SETTLED_INTRO_SECONDS,
   THREAD_REVEAL_DECIMALS,
   THREAD_REVEAL_PROPERTY_PREFIX,
@@ -45,6 +46,9 @@ import {
   resolveCanvasPixelRatio,
   resolveIntroFrame,
   resolvePlacement,
+  resolvePushRadius,
+  resolveRevealRange,
+  resolveSceneReveal,
   resolveSceneState,
   resolveThreadReveal,
   resolveThreadState,
@@ -194,20 +198,8 @@ function readLayout(
   }
 }
 
-function readThreadContainers(stage: HTMLElement): HTMLElement[] {
-  const containers: HTMLElement[] = []
-
-  for (const container of stage.querySelectorAll<HTMLElement>(
-    DOT_SCENE_SELECTOR
-  )) {
-    const motion = DOT_SCENE_MOTION[container.dataset.dotScene ?? ""]
-
-    if (motion?.isThread === true) {
-      containers.push(container)
-    }
-  }
-
-  return containers
+function readSceneContainers(stage: HTMLElement): HTMLElement[] {
+  return Array.from(stage.querySelectorAll<HTMLElement>(DOT_SCENE_SELECTOR))
 }
 
 function hasLayoutSizeChanged(
@@ -313,6 +305,7 @@ export function useDotField(request: UseDotFieldRequest): void {
 
       function markUnsupported(): void {
         stage.dataset.status = "unsupported"
+        delete stage.dataset.pushRadius
         unsupportedCallbackRef.current()
       }
 
@@ -353,7 +346,8 @@ export function useDotField(request: UseDotFieldRequest): void {
       let progressTarget = 0
       let previousScrollTarget = Number.NaN
       let threadState: string | null = null
-      const threadContainers = readThreadContainers(stage)
+      let pushRadiusState: string | null = null
+      const sceneContainers = readSceneContainers(stage)
       let staticIndex = -1
       let spinSeconds = 0
       let isFieldAtRest = true
@@ -612,7 +606,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         stage.dataset.thread = nextState
       }
 
-      function writeThreadProperty(
+      function writeSceneProperty(
         container: HTMLElement,
         property: string,
         value: number
@@ -626,48 +620,113 @@ export function useDotField(request: UseDotFieldRequest): void {
         container.style.setProperty(property, formatted)
       }
 
-      function publishThreadMotion(): void {
-        for (const container of threadContainers) {
-          const sceneId = container.dataset.dotScene ?? ""
+      function resolveContainerReveal(sceneId: string): number {
+        const range = resolveRevealRange(keyframes, sceneId)
 
-          for (let index = 0; index < keyframes.length; index += 1) {
-            const keyframe = keyframes[index]
+        if (range === null) {
+          return 1
+        }
 
-            if (keyframe?.isThread !== true || keyframe.scene !== sceneId) {
-              continue
-            }
+        return resolveSceneReveal(
+          progress,
+          range,
+          DOT_FIELD_MORPH_TUNING.sceneRevealSpan
+        )
+      }
 
-            writeThreadProperty(
-              container,
-              THREAD_REVEAL_PROPERTY_PREFIX + keyframe.id,
-              resolveThreadReveal(
-                progress,
-                index,
-                DOT_FIELD_MORPH_TUNING.threadCaptionSpan
-              )
-            )
+      function publishThreadReveals(
+        container: HTMLElement,
+        sceneId: string
+      ): void {
+        for (let index = 0; index < keyframes.length; index += 1) {
+          const keyframe = keyframes[index]
+
+          if (keyframe?.isThread !== true || keyframe.scene !== sceneId) {
+            continue
           }
 
-          if (DOT_SCENE_MOTION[sceneId]?.hasTurn !== true) {
+          writeSceneProperty(
+            container,
+            THREAD_REVEAL_PROPERTY_PREFIX + keyframe.id,
+            resolveThreadReveal(
+              progress,
+              index,
+              DOT_FIELD_MORPH_TUNING.threadCaptionSpan
+            )
+          )
+        }
+      }
+
+      function publishSceneMotion(): void {
+        for (const container of sceneContainers) {
+          const sceneId = container.dataset.dotScene ?? ""
+          const motion = DOT_SCENE_MOTION[sceneId]
+
+          writeSceneProperty(
+            container,
+            SCENE_REVEAL_PROPERTY,
+            resolveContainerReveal(sceneId)
+          )
+
+          if (motion?.isThread !== true) {
+            continue
+          }
+
+          publishThreadReveals(container, sceneId)
+
+          if (motion.hasTurn !== true) {
             continue
           }
 
           const turn = resolveThreadTurn(keyframes, sceneId, progress)
 
           if (turn !== null) {
-            writeThreadProperty(container, THREAD_TURN_PROPERTY, turn)
+            writeSceneProperty(container, THREAD_TURN_PROPERTY, turn)
           }
         }
       }
 
+      function publishPushRadius(frame: DotFieldFrame | null): void {
+        let nextState: string | null = null
+
+        if (frame !== null && canPush()) {
+          const radius = resolvePushRadius(
+            frame.from.inkHeight,
+            DOT_FIELD_TUNING
+          )
+
+          nextState = String(Math.round(radius / pixelRatio))
+        }
+
+        if (nextState === pushRadiusState) {
+          return
+        }
+
+        pushRadiusState = nextState
+
+        if (nextState === null) {
+          delete stage.dataset.pushRadius
+          return
+        }
+
+        stage.dataset.pushRadius = nextState
+      }
+
       function drawSingleFrame(): void {
-        drawDotField(runtime, buildFrame())
+        const frame = buildFrame()
+
+        drawDotField(runtime, frame)
         publishSceneState()
         publishThreadState()
-        publishThreadMotion()
+        publishSceneMotion()
+        publishPushRadius(frame)
       }
 
       function canPush(): boolean {
+        if (runtime.context.isContextLost()) {
+          return false
+        }
+
         if (!hasSettledRef.current || prefersReducedMotion()) {
           return false
         }
@@ -788,7 +847,8 @@ export function useDotField(request: UseDotFieldRequest): void {
         drawDotField(runtime, frame)
         publishSceneState()
         publishThreadState()
-        publishThreadMotion()
+        publishSceneMotion()
+        publishPushRadius(frame)
 
         const isLoopDone = shouldLoopSleep({
           isFieldAtRest,
@@ -1064,6 +1124,7 @@ export function useDotField(request: UseDotFieldRequest): void {
 
       for (const slot of slots) {
         resizeObserver?.observe(slot)
+        slot.addEventListener("pointerover", onPointerMove)
         slot.addEventListener("pointermove", onPointerMove)
         slot.addEventListener("pointerdown", onPointerMove)
         slot.addEventListener("pointerleave", onPointerLeave)
@@ -1094,6 +1155,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         resizeObserver?.disconnect()
 
         for (const slot of slots) {
+          slot.removeEventListener("pointerover", onPointerMove)
           slot.removeEventListener("pointermove", onPointerMove)
           slot.removeEventListener("pointerdown", onPointerMove)
           slot.removeEventListener("pointerleave", onPointerLeave)

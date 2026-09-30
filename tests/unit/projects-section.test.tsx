@@ -2,7 +2,11 @@ import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import { DOT_FIELD_MORPH_TUNING } from "@/data/hero.data"
-import { SCENE_FLOW_SHAPES } from "@/data/page-sections.data"
+import {
+  SCENE_FLOW_SHAPES,
+  SCENE_LIT_CAPTION_CLASS,
+  SWEPT_LABEL_CLASS,
+} from "@/data/page-sections.data"
 import {
   PROJECT_IMAGE_PLACEHOLDER_LABEL,
   PROJECTS_LABEL,
@@ -81,6 +85,34 @@ describe("ProjectsSection", () => {
 
     for (const label of container.querySelectorAll("article > p:first-child")) {
       expect(label).toHaveAttribute("aria-hidden", "true")
+    }
+  })
+
+  it("sweeps every label's Work with the scene, never with its card", () => {
+    const itemSets = [DEFAULT_PROJECT_ITEMS, [buildProject({ title: "Shop" })]]
+
+    for (const items of itemSets) {
+      const { container, unmount } = renderProjects(items)
+      const words = container.querySelectorAll<HTMLElement>(
+        "article > :first-child > :first-child"
+      )
+
+      expect(words).toHaveLength(items.length)
+
+      for (const [index, word] of words.entries()) {
+        expect(word.textContent).toBe(PROJECTS_LABEL)
+        expect(word).toHaveClass(SWEPT_LABEL_CLASS, SCENE_LIT_CAPTION_CLASS)
+        expect(word).not.toHaveAttribute("aria-hidden")
+        expect(word.style.getPropertyValue("--line")).toBe("0")
+
+        if (index > 0) {
+          expect(word).toHaveClass("inline-block", "staged:invisible")
+        } else {
+          expect(word).not.toHaveClass("staged:invisible")
+        }
+      }
+
+      unmount()
     }
   })
 
@@ -217,14 +249,14 @@ describe("ProjectsSection", () => {
     expect(captions).toEqual(steps)
   })
 
-  it("shows a lone project's card in full, with no step to key it to", () => {
+  it("sweeps a lone project's card with its scene, with no step to key it to", () => {
     const section = findScene(
       renderProjects([buildProject({ title: "Shop" })]).container
     )
     const card = section.querySelector<HTMLElement>("[data-deck] > li")
 
     expect(card).not.toHaveAttribute("data-caption")
-    expect(card?.style.getPropertyValue("--caption-reveal")).toBe("1")
+    expect(card?.style.getPropertyValue("--caption-reveal")).toBe("")
   })
 
   it("draws no frame round an empty plate when no project is visible", () => {

@@ -189,6 +189,7 @@ export function Hero({
                   WORDMARK_TRANSITION,
                   shouldReduceMotion
                 )}
+                data-reveal=""
                 className="absolute inset-0 flex items-center justify-center px-4"
               >
                 <div className="relative max-w-full">
@@ -220,6 +221,7 @@ export function Hero({
                       SWEEP_TRANSITION,
                       shouldReduceMotion
                     )}
+                    data-reveal=""
                     style={{ fontFamily: displayFontFamily }}
                     className={cn(WORDMARK_TEXT_CLASS, "absolute inset-0")}
                   >
@@ -245,6 +247,7 @@ export function Hero({
                   TAGLINE_TRANSITION,
                   shouldReduceMotion
                 )}
+                data-reveal=""
                 className={cn(
                   "relative max-w-[21rem] px-5 md:max-w-[34rem] md:px-6",
                   "text-center uppercase",
@@ -267,6 +270,7 @@ export function Hero({
                   SCROLL_CUE_TRANSITION,
                   shouldReduceMotion
                 )}
+                data-reveal=""
                 className={cn(
                   "flex items-center justify-center gap-2",
                   "text-[0.6875rem] tracking-[0.22em] text-muted-foreground uppercase"

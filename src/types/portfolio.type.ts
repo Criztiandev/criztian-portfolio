@@ -27,10 +27,43 @@ export type PortfolioUiState = {
 export type PortfolioUiActions = {
   closeMobileNav: () => void
   toggleMobileNav: () => void
-  selectSection: (section: PortfolioSection) => void
+  setActiveSection: (section: PortfolioSection) => void
 }
 
 export type PortfolioUiStore = Store<PortfolioUiState, PortfolioUiActions>
+
+export type SectionTop = {
+  id: PortfolioSection
+  top: number
+}
+
+export type CursorState = "hidden" | "field" | "action" | "push" | "idle"
+
+export type CursorStateRequest = {
+  element: Element | null
+  pointerType: string
+  isPointerInside: boolean
+  pushRadius: number | null
+}
+
+export type CursorSpringTuning = {
+  stiffness: number
+  damping: number
+  mass: number
+  restDelta: number
+  restSpeed: number
+}
+
+export type CursorTuning = {
+  dotSize: number
+  ringSize: number
+  actionSize: number
+  ringOpacity: number
+  spring: CursorSpringTuning
+  stretchSpring: CursorSpringTuning
+  stretchVelocity: number
+  stretchScale: number
+}
 
 export type ProjectImage = {
   src: string

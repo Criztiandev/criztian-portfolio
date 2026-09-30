@@ -39,6 +39,9 @@ export const CONTACT_SELECT_CLASS =
 export const CONTACT_SUBMIT_CLASS =
   "h-12 w-full scroll-mt-18 bg-foreground text-sm font-medium tracking-[0.025em] text-background uppercase hover:bg-foreground/80"
 
+export const CONTACT_ACKNOWLEDGEMENT_CLASS =
+  "self-center text-sm text-muted-foreground [grid-area:1/1] [clip-path:inset(-1rem)] [translate:0_0] transition-[clip-path,translate] duration-900 ease-signal starting:[clip-path:inset(-1rem_100%_-1rem_-1rem)] starting:[translate:-24px_0] motion-reduce:transition-none"
+
 export const EMPTY_CONTACT_FORM: Omit<ContactInput, "renderedAt"> = {
   name: "",
   email: "",
