@@ -2,13 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import { CURSOR_TUNING } from "@/data/motion.data"
 import {
-  parsePushRadius,
   resolveCursorState,
   resolveRingDiameter,
 } from "@/features/portfolio/cursor.rules"
 import type { CursorState } from "@/types/portfolio.type"
-
-const PUSH_RADIUS = 150
 
 function buildTree(markup: string): HTMLElement {
   const host = document.createElement("div")
@@ -28,15 +25,11 @@ function findElement(host: HTMLElement, selector: string): Element {
   return element
 }
 
-function resolveUnderMouse(
-  element: Element | null,
-  pushRadius: number | null
-): CursorState {
+function resolveUnderMouse(element: Element | null): CursorState {
   return resolveCursorState({
     element,
     pointerType: "mouse",
     isPointerInside: true,
-    pushRadius,
   })
 }
 
@@ -54,7 +47,6 @@ describe("resolveCursorState", () => {
           element: link,
           pointerType,
           isPointerInside: true,
-          pushRadius: PUSH_RADIUS,
         })
       ).toBe("hidden")
     }
@@ -64,10 +56,9 @@ describe("resolveCursorState", () => {
         element: field,
         pointerType: "mouse",
         isPointerInside: false,
-        pushRadius: PUSH_RADIUS,
       })
     ).toBe("hidden")
-    expect(resolveUnderMouse(null, PUSH_RADIUS)).toBe("hidden")
+    expect(resolveUnderMouse(null)).toBe("hidden")
   })
 
   it("gives action on a link with an href, a button, a summary and a span inside a summary", () => {
@@ -76,9 +67,7 @@ describe("resolveCursorState", () => {
     )
 
     for (const selector of ["a", "button", "summary", "summary span"]) {
-      expect(resolveUnderMouse(findElement(host, selector), null)).toBe(
-        "action"
-      )
+      expect(resolveUnderMouse(findElement(host, selector))).toBe("action")
     }
   })
 
@@ -88,7 +77,7 @@ describe("resolveCursorState", () => {
     )
 
     for (const selector of ["a", "button", "p"]) {
-      expect(resolveUnderMouse(findElement(host, selector), null)).toBe("idle")
+      expect(resolveUnderMouse(findElement(host, selector))).toBe("idle")
     }
   })
 
@@ -104,58 +93,33 @@ describe("resolveCursorState", () => {
       "option",
       "#nested",
     ]) {
-      expect(resolveUnderMouse(findElement(host, selector), PUSH_RADIUS)).toBe(
-        "field"
-      )
+      expect(resolveUnderMouse(findElement(host, selector))).toBe("field")
     }
   })
 
-  it("pushes inside a slot only while the stage publishes a radius", () => {
+  it("stays idle over the dots, so the ring keeps its size", () => {
     const host = buildTree('<div data-dot-slot=""><span>Name</span></div>')
-    const inside = findElement(host, "span")
 
-    expect(resolveUnderMouse(inside, PUSH_RADIUS)).toBe("push")
-    expect(resolveUnderMouse(inside, null)).toBe("idle")
+    expect(resolveUnderMouse(findElement(host, "span"))).toBe("idle")
   })
 
-  it("prefers a link over the push crater when both hold", () => {
+  it("gives action to a link inside a dot slot", () => {
     const host = buildTree(
       '<div data-dot-slot=""><a href="#project">Project</a></div>'
     )
 
-    expect(resolveUnderMouse(findElement(host, "a"), PUSH_RADIUS)).toBe(
-      "action"
-    )
+    expect(resolveUnderMouse(findElement(host, "a"))).toBe("action")
   })
 })
 
 describe("resolveRingDiameter", () => {
   it("keeps the 36px ring while idle, hidden or over a field", () => {
     for (const state of ["idle", "hidden", "field"] as const) {
-      expect(resolveRingDiameter(state, PUSH_RADIUS, CURSOR_TUNING)).toBe(36)
+      expect(resolveRingDiameter(state, CURSOR_TUNING)).toBe(36)
     }
   })
 
   it("grows to the 56px disc over an action", () => {
-    expect(resolveRingDiameter("action", PUSH_RADIUS, CURSOR_TUNING)).toBe(56)
-  })
-
-  it("outlines the crater at twice the push radius", () => {
-    expect(resolveRingDiameter("push", PUSH_RADIUS, CURSOR_TUNING)).toBe(
-      PUSH_RADIUS * 2
-    )
-    expect(resolveRingDiameter("push", null, CURSOR_TUNING)).toBe(36)
-  })
-})
-
-describe("parsePushRadius", () => {
-  it("reads the stage's whole-pixel radius", () => {
-    expect(parsePushRadius("150")).toBe(150)
-  })
-
-  it("gives null for a missing, empty, zero or malformed radius", () => {
-    for (const value of [undefined, "", "0", "-4", "wide"]) {
-      expect(parsePushRadius(value)).toBeNull()
-    }
+    expect(resolveRingDiameter("action", CURSOR_TUNING)).toBe(56)
   })
 })

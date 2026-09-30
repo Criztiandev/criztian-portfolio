@@ -6,22 +6,36 @@ import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
+  HEADER_GROUP_VARIANTS,
+  HEADER_VARIANTS,
   INDICATOR_TRANSITION,
   MOBILE_MENU_WIPE_CLASS,
   NAV_DOT_LAYOUT_ID,
 } from "@/data/motion.data"
 import {
+  BRAND_MARK,
+  CLOSE_MENU_LABEL,
+  HEADER_ACTIONS_CLASS,
+  HEADER_ICON_BUTTON_CLASS,
+  MOBILE_PANEL_ID,
+  MOBILE_PANEL_LABEL,
   NAV_DOT_CLASS,
+  OPEN_MENU_LABEL,
+  PANEL_CURRENT_LINK_CLASS,
   PORTFOLIO_ACTION_NAVIGATION,
   PORTFOLIO_BRAND_LABEL,
   PORTFOLIO_HOME_NAVIGATION,
   PORTFOLIO_NAVIGATION,
   PORTFOLIO_PRIMARY_NAVIGATION,
+  PRIMARY_NAVIGATION_LABEL,
   SCROLL_PROGRESS_HAIRLINE_CLASS,
   SCROLL_SPY_TOLERANCE_PX,
+  SECONDARY_NAVIGATION_LABEL,
+  SOLID_AFTER_SCROLL_PX,
 } from "@/data/navigation.data"
 import { FOCUS_RING_CLASS } from "@/data/page-sections.data"
 import { DEFAULT_PORTFOLIO_SECTION } from "@/data/portfolio.data"
+import { MotionToggle } from "@/features/portfolio/components/motion-toggle.component"
 import { parseCssPixels } from "@/features/portfolio/dot-field.rules"
 import {
   useActiveSection,
@@ -34,37 +48,6 @@ import type {
   PortfolioNavigationItem,
   SectionTop,
 } from "@/types/portfolio.type"
-
-const MOBILE_PANEL_ID = "portfolio-mobile-nav"
-
-const SOLID_AFTER_SCROLL_PX = 120
-
-const HEADER_VARIANTS = {
-  hidden: {
-    opacity: 0,
-    y: -24,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      delayChildren: 0.2,
-      staggerChildren: 0.06,
-    },
-  },
-}
-
-const GROUP_VARIANTS = {
-  hidden: {
-    opacity: 0,
-    y: -8,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-  },
-}
 
 function readSectionTops(): SectionTop[] {
   const tops: SectionTop[] = []
@@ -149,6 +132,7 @@ export function SectionNavigation() {
           "text-foreground/75 hover:text-foreground",
           FOCUS_RING_CLASS,
           isPrimary && "relative",
+          !isPrimary && PANEL_CURRENT_LINK_CLASS,
           isActive && "text-foreground"
         )}
       >
@@ -193,7 +177,7 @@ export function SectionNavigation() {
           aria-hidden="true"
           className="text-[0.625rem] leading-none text-muted-foreground"
         >
-          ©
+          {BRAND_MARK}
         </span>
       </a>
     )
@@ -239,7 +223,7 @@ export function SectionNavigation() {
         )}
       >
         <motion.div
-          variants={GROUP_VARIANTS}
+          variants={HEADER_GROUP_VARIANTS}
           data-reveal=""
           className="justify-self-start"
         >
@@ -247,36 +231,40 @@ export function SectionNavigation() {
         </motion.div>
 
         <motion.nav
-          aria-label="Primary"
-          variants={GROUP_VARIANTS}
+          aria-label={PRIMARY_NAVIGATION_LABEL}
+          variants={HEADER_GROUP_VARIANTS}
           data-reveal=""
           className="hidden items-center gap-4 lg:flex"
         >
           {PORTFOLIO_PRIMARY_NAVIGATION.map(renderPrimaryLink)}
         </motion.nav>
 
-        <motion.nav
-          aria-label="Secondary"
-          variants={GROUP_VARIANTS}
-          data-reveal=""
-          className="hidden items-center justify-self-end lg:flex"
-        >
-          {renderActionLink()}
-        </motion.nav>
+        <div className={HEADER_ACTIONS_CLASS}>
+          <MotionToggle />
 
-        <Button
-          ref={menuButtonRef}
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          aria-expanded={isOpen}
-          aria-controls={MOBILE_PANEL_ID}
-          aria-label={isOpen ? "Close menu" : "Open menu"}
-          onClick={actions.toggleMobileNav}
-        >
-          {isOpen ? <X /> : <Menu />}
-        </Button>
+          <motion.nav
+            aria-label={SECONDARY_NAVIGATION_LABEL}
+            variants={HEADER_GROUP_VARIANTS}
+            data-reveal=""
+            className="hidden items-center lg:flex"
+          >
+            {renderActionLink()}
+          </motion.nav>
+
+          <Button
+            ref={menuButtonRef}
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn(HEADER_ICON_BUTTON_CLASS, "lg:hidden")}
+            aria-expanded={isOpen}
+            aria-controls={MOBILE_PANEL_ID}
+            aria-label={isOpen ? CLOSE_MENU_LABEL : OPEN_MENU_LABEL}
+            onClick={actions.toggleMobileNav}
+          >
+            {isOpen ? <X /> : <Menu />}
+          </Button>
+        </div>
 
         <span aria-hidden="true" className={SCROLL_PROGRESS_HAIRLINE_CLASS} />
       </div>
@@ -284,7 +272,7 @@ export function SectionNavigation() {
       <nav
         ref={mobilePanelRef}
         id={MOBILE_PANEL_ID}
-        aria-label="Sections"
+        aria-label={MOBILE_PANEL_LABEL}
         hidden={!isOpen}
         data-lenis-prevent=""
         className={cn(

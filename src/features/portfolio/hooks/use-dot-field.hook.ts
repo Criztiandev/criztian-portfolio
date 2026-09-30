@@ -27,7 +27,7 @@ import {
   hasFontLoadingApi,
   hasResizeObserver,
   prefersReducedMotion,
-  readReducedMotionQuery,
+  subscribeMotionPreference,
 } from "@/features/portfolio/browser-capability.rules"
 import {
   applyArrivalImpulse,
@@ -46,7 +46,6 @@ import {
   resolveCanvasPixelRatio,
   resolveIntroFrame,
   resolvePlacement,
-  resolvePushRadius,
   resolveRevealRange,
   resolveSceneReveal,
   resolveSceneState,
@@ -305,7 +304,6 @@ export function useDotField(request: UseDotFieldRequest): void {
 
       function markUnsupported(): void {
         stage.dataset.status = "unsupported"
-        delete stage.dataset.pushRadius
         unsupportedCallbackRef.current()
       }
 
@@ -330,7 +328,6 @@ export function useDotField(request: UseDotFieldRequest): void {
       applyClearColor(runtime, backgroundColorRef.current)
 
       const pointer = pointerRef.current
-      const reducedMotionQuery = readReducedMotionQuery()
       const slots = Array.from(
         stage.querySelectorAll<HTMLElement>(DOT_SLOT_SELECTOR)
       )
@@ -346,7 +343,6 @@ export function useDotField(request: UseDotFieldRequest): void {
       let progressTarget = 0
       let previousScrollTarget = Number.NaN
       let threadState: string | null = null
-      let pushRadiusState: string | null = null
       const sceneContainers = readSceneContainers(stage)
       let staticIndex = -1
       let spinSeconds = 0
@@ -686,32 +682,6 @@ export function useDotField(request: UseDotFieldRequest): void {
         }
       }
 
-      function publishPushRadius(frame: DotFieldFrame | null): void {
-        let nextState: string | null = null
-
-        if (frame !== null && canPush()) {
-          const radius = resolvePushRadius(
-            frame.from.inkHeight,
-            DOT_FIELD_TUNING
-          )
-
-          nextState = String(Math.round(radius / pixelRatio))
-        }
-
-        if (nextState === pushRadiusState) {
-          return
-        }
-
-        pushRadiusState = nextState
-
-        if (nextState === null) {
-          delete stage.dataset.pushRadius
-          return
-        }
-
-        stage.dataset.pushRadius = nextState
-      }
-
       function drawSingleFrame(): void {
         const frame = buildFrame()
 
@@ -719,7 +689,6 @@ export function useDotField(request: UseDotFieldRequest): void {
         publishSceneState()
         publishThreadState()
         publishSceneMotion()
-        publishPushRadius(frame)
       }
 
       function canPush(): boolean {
@@ -848,7 +817,6 @@ export function useDotField(request: UseDotFieldRequest): void {
         publishSceneState()
         publishThreadState()
         publishSceneMotion()
-        publishPushRadius(frame)
 
         const isLoopDone = shouldLoopSleep({
           isFieldAtRest,
@@ -1007,7 +975,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         pointer.y = (event.clientY - layerRect.top) * pixelRatio
         pointer.isActive = true
 
-        if (reducedMotionQuery?.matches === true || !canPush()) {
+        if (prefersReducedMotion() || !canPush()) {
           return
         }
 
@@ -1141,7 +1109,9 @@ export function useDotField(request: UseDotFieldRequest): void {
       window.addEventListener("blur", onPointerLeave)
       document.addEventListener("visibilitychange", onVisibilityChanged)
       canvas.addEventListener("webglcontextlost", onContextLost)
-      reducedMotionQuery?.addEventListener("change", onMotionPreferenceChanged)
+      const releaseMotionPreference = subscribeMotionPreference(
+        onMotionPreferenceChanged
+      )
 
       redrawRef.current = drawSingleFrame
 
@@ -1172,10 +1142,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         window.removeEventListener("blur", onPointerLeave)
         document.removeEventListener("visibilitychange", onVisibilityChanged)
         canvas.removeEventListener("webglcontextlost", onContextLost)
-        reducedMotionQuery?.removeEventListener(
-          "change",
-          onMotionPreferenceChanged
-        )
+        releaseMotionPreference()
 
         destroyRuntime(runtime)
 

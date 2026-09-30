@@ -953,3 +953,60 @@ export const LIFT_VARIANTS: Variants = {
     y: 0,
   },
 }
+
+export const HERO_WORDMARK_TEXT_CLASS =
+  "block text-center font-bold uppercase text-[min(25vw,40svh)] md:text-[clamp(3rem,18vw,16rem)]"
+
+export const HERO_WORDMARK_VARIANTS: Variants = {
+  hidden: {
+    opacity: 0,
+    scale: HERO_INTRO_TIMING.smallScale,
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+  },
+}
+
+export const HERO_WORDMARK_TRANSITION: Transition = {
+  opacity: {
+    duration: HERO_INTRO_TIMING.sweepDelaySeconds,
+    ease: "easeOut",
+  },
+  scale: {
+    delay: HERO_INTRO_TIMING.growDelaySeconds,
+    duration: HERO_INTRO_TIMING.growDurationSeconds,
+    ease: SIGNAL_EASE,
+  },
+}
+
+export const HERO_SWEEP_VARIANTS: Variants = {
+  hidden: {
+    clipPath: "inset(0% 100% 0% 0%)",
+  },
+  visible: {
+    clipPath: "inset(0% 0% 0% 0%)",
+  },
+}
+
+export const HERO_SWEEP_TRANSITION: Transition = {
+  delay: HERO_INTRO_TIMING.sweepDelaySeconds,
+  duration: HERO_INTRO_TIMING.sweepDurationSeconds,
+  ease: SIGNAL_EASE,
+}
+
+export const HERO_TAGLINE_TRANSITION: Transition = {
+  delay: HERO_INTRO_TIMING.taglineDelayAfterSettleSeconds,
+  duration: HERO_INTRO_TIMING.taglineDurationSeconds,
+  ease: "easeOut",
+}
+
+export const HERO_SCROLL_CUE_TRANSITION: Transition = {
+  delay: HERO_INTRO_TIMING.scrollCueDelayAfterSettleSeconds,
+  duration: HERO_INTRO_TIMING.scrollCueDurationSeconds,
+  ease: "easeOut",
+}
+
+export const HERO_TEXT_SETTLE_MS =
+  (HERO_INTRO_TIMING.growDelaySeconds + HERO_INTRO_TIMING.growDurationSeconds) *
+  1000

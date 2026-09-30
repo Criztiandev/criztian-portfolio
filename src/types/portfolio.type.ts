@@ -37,13 +37,12 @@ export type SectionTop = {
   top: number
 }
 
-export type CursorState = "hidden" | "field" | "action" | "push" | "idle"
+export type CursorState = "hidden" | "field" | "action" | "idle"
 
 export type CursorStateRequest = {
   element: Element | null
   pointerType: string
   isPointerInside: boolean
-  pushRadius: number | null
 }
 
 export type CursorSpringTuning = {

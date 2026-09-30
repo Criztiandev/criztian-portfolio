@@ -12,6 +12,7 @@ import { ServicesSection } from "@/features/portfolio/components/services-sectio
 import { SiteFooter } from "@/features/portfolio/components/site-footer.component"
 import { TestimonialsSection } from "@/features/portfolio/components/testimonials-section.component"
 import { buildSceneCaptionStyle } from "@/features/portfolio/step-motion.rules"
+import { renderRichTextHtml } from "@/features/site-content/services/rich-text-renderer.service"
 import { buildThemeStyle } from "@/features/site-content/site-content.rules"
 import { cn } from "@/lib/utils"
 import { PortfolioStoreProvider } from "@/providers/portfolio-store.provider"
@@ -41,7 +42,11 @@ export function SitePage({
         <SectionNavigation />
 
         <main>
-          <Hero content={content} displayFontFamily={displayFontFamily} />
+          <Hero
+            content={content}
+            displayFontFamily={displayFontFamily}
+            taglineHtml={renderRichTextHtml(content.hero.tagline)}
+          />
 
           <QuoteSection quote={content.quote} />
 

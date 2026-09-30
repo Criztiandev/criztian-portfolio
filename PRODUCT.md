@@ -84,7 +84,9 @@ The owner's own summary: "I specialize in crafting custom web solutions, includi
 - Contact form: name, email, a required "Service needed" select (Branding, Web design, Development, Something else) and "What can I help you with?". The service is stored with the message and shown in the notification.
 - Contact form anti-spam: a honeypot, a two-second minimum time-to-submit, and a limit of five submissions per hour per hashed IP. These are deliberate; do not weaken them.
 - Contact notifications are written as local HTML previews. No email is actually sent yet.
-- Motion (Phase 10): every section's text sweeps in with the dots and out as they leave, and About's stats count up with it. On desktop the copy of the quote, About, Testimonials, FAQ and Contact drifts as each screen arrives and leaves, and a custom cursor (a dot and a trailing ring) adapts to links, fields and the dots. A scroll-spy dot marks the current section in the header nav, over a hairline that fills with the page's scroll. A sent message keeps its box and takes focus.
+- Motion (Phase 10): every section's text sweeps in with the dots and out as they leave, and About's stats count up with it. On desktop the copy of the quote, About, Testimonials, FAQ and Contact drifts as each screen arrives and leaves, and a custom cursor (a dot and a trailing ring) adapts to links and fields, and stays small over the dots (owner, Phase 11). A scroll-spy dot marks the current section in the header nav, over a hairline that fills with the page's scroll. A sent message keeps its box and takes focus.
+- Section titles (owner, Phase 11): each section's label is bold Antonio, and as a section scrolls in its name arrives as a big title that shrinks into the label as the section pins, so a visitor always knows which section they are in.
+- Pause motion (owner, Phase 11): a square toggle in the header stops every moving thing on the page (the cube's spin and the Services sway included) and gives the reduced-motion page. The browser remembers it.
 
 **Owner side:**
 
@@ -146,7 +148,8 @@ The target is **WCAG 2.2 AA** for the public site.
 Already in place:
 
 - real anchor navigation that works from the keyboard
-- `prefers-reduced-motion` respected globally (`MotionConfig reducedMotion="user"`), with a separate check for the dot field, and every sweep, drift, count and slide off under it
+- `prefers-reduced-motion` respected globally, with a separate check for the dot field, and every sweep, drift, arrival title, count and slide off under it
+- a "Pause motion" toggle in the header that gives the same still page to anyone (WCAG 2.2.2)
 - an accessible text `<h1>` behind the WebGL canvas
 - `aria-hidden` only on decorative leaves (the canvas, the slots, the orbit ring and numerals, the nav dot, the hairline) and on visual duplicates of text that stays exposed
 - every piece of copy readable without JavaScript and without WebGL2

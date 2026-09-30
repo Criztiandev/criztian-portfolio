@@ -29,7 +29,11 @@
 @custom-variant staged {
   @supports (animation-timeline: view()) {
     @media screen and (prefers-reduced-motion: no-preference) and (height > 30rem) {
-      &:where([data-status="running"] *):not([data-fit], [data-fit] *) {
+      &:where([data-status="running"] *):not(
+          [data-fit],
+          [data-fit] *,
+          [data-motion="paused"] *
+        ) {
         @slot;
       }
     }
@@ -38,9 +42,31 @@
 
 @custom-variant swept {
   @media screen and (prefers-reduced-motion: no-preference) {
-    &:where([data-status="running"] *):not([data-fit], [data-fit] *) {
+    &:where([data-status="running"] *):not(
+        [data-fit],
+        [data-fit] *,
+        [data-motion="paused"] *
+      ) {
       @slot;
     }
+  }
+}
+
+@custom-variant motion-safe {
+  @media (prefers-reduced-motion: no-preference) {
+    &:not([data-motion="paused"] *) {
+      @slot;
+    }
+  }
+}
+
+@custom-variant motion-reduce {
+  @media (prefers-reduced-motion: reduce) {
+    @slot;
+  }
+
+  &:where([data-motion="paused"] *) {
+    @slot;
   }
 }
 
@@ -186,6 +212,10 @@
       scroll-behavior: auto;
     }
   }
+
+  html[data-motion="paused"] {
+    scroll-behavior: auto;
+  }
 }
 
 @utility caption-line {
@@ -220,16 +250,22 @@
 @utility orbit-step {
   --orbit-assemble: clamp(
     0,
-    1 + var(--thread-turn, 0) - max(0, var(--orbit-index) - 1),
+    min(
+      1 + var(--thread-turn, 0) - max(0, var(--orbit-index) - 1),
+      var(--scene-lit, 1)
+    ),
     1
   );
   --orbit-lit: clamp(
     0,
-    1 -
-      max(
-        var(--thread-turn, 0) - var(--orbit-index),
-        var(--orbit-index) - var(--thread-turn, 0)
-      ),
+    min(
+      1 -
+        max(
+          var(--thread-turn, 0) - var(--orbit-index),
+          var(--orbit-index) - var(--thread-turn, 0)
+        ),
+      var(--scene-lit, 1)
+    ),
     1
   );
   rotate: calc(
@@ -243,7 +279,7 @@
   animation-duration: auto;
   animation-timing-function: linear;
   animation-fill-mode: both;
-  animation-timeline: --step-scene;
+  animation-timeline: --screen;
   animation-range: exit-crossing 0 exit-crossing
     calc((var(--steps) - 1) * var(--pitch));
 }
@@ -254,6 +290,81 @@
   rotate: calc((1 - var(--orbit-assemble)) * var(--orbit-tilt));
   scale: calc(0.5 + 0.5 * var(--orbit-assemble))
     calc(1.5 - 0.5 * var(--orbit-assemble));
+}
+
+@property --title-grow {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --title-hold {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@utility section-title {
+  @supports (animation-timeline: view()) {
+    animation-name: section-title;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+    animation-timeline: --screen;
+    animation-range: cover;
+  }
+}
+
+@keyframes section-title {
+  entry 0% {
+    --title-grow: 1;
+    --title-hold: 0;
+  }
+
+  entry 38% {
+    --title-hold: 0;
+  }
+
+  entry 44% {
+    --title-hold: 1;
+  }
+
+  entry 68% {
+    --title-grow: 1;
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  entry 90% {
+    --title-grow: 0;
+  }
+
+  exit 0% {
+    --title-hold: 1;
+  }
+
+  exit 1% {
+    --title-hold: 0;
+  }
+}
+
+@utility section-title-word {
+  --caption-reveal: max(var(--scene-lit, 1), var(--title-hold));
+  --title-size: min(8rem, 17cqi, 14svh);
+  --title-halo: color-mix(
+    in oklab,
+    var(--background) calc(var(--title-grow) * 100%),
+    transparent
+  );
+  transform-origin: 0 100%;
+  scale: calc(1 + var(--title-grow) * (tan(atan2(var(--title-size), 1em)) - 1));
+  text-shadow:
+    0 0 0.15em var(--title-halo),
+    0 0 0.4em var(--title-halo),
+    0 0 0.8em var(--title-halo);
+}
+
+@utility section-title-count {
+  opacity: clamp(0, 1 - var(--title-grow) * 80, 1);
 }
 
 @property --stat-count {
@@ -287,7 +398,7 @@
 
   @supports (animation-timeline: view()) {
     @media screen and (prefers-reduced-motion: no-preference) and (min-width: 48rem) {
-      & > * {
+      &:not([data-motion="paused"] *) > * {
         animation-name: copy-drift;
         animation-duration: auto;
         animation-timing-function: linear;
@@ -345,7 +456,8 @@
 }
 
 [data-dot-scene] {
-  --scene-lit: var(--scene-reveal, 1);
+  --title-gate: clamp(0, 1 - var(--title-grow) * 3, 1);
+  --scene-lit: min(var(--scene-reveal, 1), var(--title-gate));
   --caption-reveal: var(--scene-lit);
 }
 
@@ -354,27 +466,27 @@
 }
 
 [data-caption="project-1"] {
-  --caption-reveal: var(--reveal-project-1);
+  --caption-reveal: min(var(--reveal-project-1), var(--title-gate, 1));
 }
 
 [data-caption="project-2"] {
-  --caption-reveal: var(--reveal-project-2);
+  --caption-reveal: min(var(--reveal-project-2), var(--title-gate, 1));
 }
 
 [data-caption="project-3"] {
-  --caption-reveal: var(--reveal-project-3);
+  --caption-reveal: min(var(--reveal-project-3), var(--title-gate, 1));
 }
 
 [data-caption="project-4"] {
-  --caption-reveal: var(--reveal-project-4);
+  --caption-reveal: min(var(--reveal-project-4), var(--title-gate, 1));
 }
 
 [data-caption="project-5"] {
-  --caption-reveal: var(--reveal-project-5);
+  --caption-reveal: min(var(--reveal-project-5), var(--title-gate, 1));
 }
 
 [data-caption="project-6"] {
-  --caption-reveal: var(--reveal-project-6);
+  --caption-reveal: min(var(--reveal-project-6), var(--title-gate, 1));
 }
 
 [data-deck]:has(:focus-visible) [data-caption] {
@@ -387,37 +499,37 @@
 
 [data-caption="branding"],
 [data-position="branding"] {
-  --caption-reveal: var(--reveal-branding);
+  --caption-reveal: min(var(--reveal-branding), var(--title-gate, 1));
 }
 
 [data-caption="web-design"],
 [data-position="web-design"] {
-  --caption-reveal: var(--reveal-web-design);
+  --caption-reveal: min(var(--reveal-web-design), var(--title-gate, 1));
 }
 
 [data-caption="development"],
 [data-position="development"] {
-  --caption-reveal: var(--reveal-development);
+  --caption-reveal: min(var(--reveal-development), var(--title-gate, 1));
 }
 
 [data-position="listening"] {
-  --caption-reveal: var(--reveal-listening);
+  --caption-reveal: min(var(--reveal-listening), var(--title-gate, 1));
 }
 
 [data-position="planning"] {
-  --caption-reveal: var(--reveal-planning);
+  --caption-reveal: min(var(--reveal-planning), var(--title-gate, 1));
 }
 
 [data-position="visualising"] {
-  --caption-reveal: var(--reveal-visualising);
+  --caption-reveal: min(var(--reveal-visualising), var(--title-gate, 1));
 }
 
 [data-position="building"] {
-  --caption-reveal: var(--reveal-building);
+  --caption-reveal: min(var(--reveal-building), var(--title-gate, 1));
 }
 
 [data-position="delivery"] {
-  --caption-reveal: var(--reveal-delivery);
+  --caption-reveal: min(var(--reveal-delivery), var(--title-gate, 1));
 }
 
 @media (forced-colors: none) {

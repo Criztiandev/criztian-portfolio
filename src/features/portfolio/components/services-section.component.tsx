@@ -4,8 +4,11 @@ import {
   SCREEN_INSET_CLASS,
   SCREEN_LABEL_BOX_CLASS,
   SCREEN_LABEL_CLASS,
+  SCREEN_TIMELINE_CLASS,
   SECTION_FRAME_CLASS,
   SECTION_LABEL_CLASS,
+  SECTION_TITLE_CLASS,
+  SECTION_TITLE_COUNT_CLASS,
   SERVICES_SCENE,
   STATEMENT_CLASS,
   STATEMENT_SIZE_CLASSES,
@@ -126,6 +129,8 @@ export function ServicesSection() {
       className={cn(
         SECTION_FRAME_CLASS,
         SCREEN_INSET_CLASS,
+        SCREEN_TIMELINE_CLASS,
+        SECTION_TITLE_CLASS,
         "grid text-foreground split:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] split:gap-x-10 unpinned:block",
         "[--pitch:calc((100svh_-_4.5rem)_*_1.2)]",
         "[--caption-stacked:25.5rem] short:[--caption-stacked:18.25rem] [@media(38rem<height<=44rem)]:[--caption-stacked:21.75rem]",
@@ -156,7 +161,13 @@ export function ServicesSection() {
           >
             {heading}
           </span>
-          <span aria-hidden="true" className="hidden staged:inline-grid">
+          <span
+            aria-hidden="true"
+            className={cn(
+              "hidden staged:inline-grid",
+              SECTION_TITLE_COUNT_CLASS
+            )}
+          >
             {shapeIds.map(renderPosition)}
           </span>
         </h2>

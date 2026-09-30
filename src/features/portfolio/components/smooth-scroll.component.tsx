@@ -10,7 +10,7 @@ import {
 import {
   prefersFinePointer,
   prefersReducedMotion,
-  readReducedMotionQuery,
+  subscribeMotionPreference,
 } from "@/features/portfolio/browser-capability.rules"
 
 export function SmoothScroll() {
@@ -118,25 +118,23 @@ export function SmoothScroll() {
       startLenis()
     }
 
-    const reducedMotionQuery = readReducedMotionQuery()
-
     if (!prefersReducedMotion()) {
       startLenis()
     }
 
     window.addEventListener("keydown", yieldToKeyboard)
     window.addEventListener("scrollend", dropStaleScrollEnd, { capture: true })
-    reducedMotionQuery?.addEventListener("change", onMotionPreferenceChanged)
+
+    const releaseMotionPreference = subscribeMotionPreference(
+      onMotionPreferenceChanged
+    )
 
     return function cleanup() {
       window.removeEventListener("keydown", yieldToKeyboard)
       window.removeEventListener("scrollend", dropStaleScrollEnd, {
         capture: true,
       })
-      reducedMotionQuery?.removeEventListener(
-        "change",
-        onMotionPreferenceChanged
-      )
+      releaseMotionPreference()
       stopLenis()
     }
   }, [])

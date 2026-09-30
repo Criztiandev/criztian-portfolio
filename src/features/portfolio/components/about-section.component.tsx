@@ -19,6 +19,7 @@ import {
   SCREEN_TIMELINE_CLASS,
   SECTION_FRAME_CLASS,
   SECTION_LABEL_CLASS,
+  SECTION_TITLE_CLASS,
   SHORT_SCREEN_COPY_GAP_CLASS,
   STAT_OVERLAY_CLASS,
   STAT_VALUE_CLASS,
@@ -77,6 +78,7 @@ export function AboutSection() {
       className={cn(
         SECTION_FRAME_CLASS,
         SCREEN_TIMELINE_CLASS,
+        SECTION_TITLE_CLASS,
         "text-foreground"
       )}
     >

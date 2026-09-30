@@ -286,6 +286,23 @@ async function watchCaptionSync(
     }
 
     const observedStage: HTMLElement = stage
+    const probe = document.createElement("span")
+
+    probe.hidden = true
+    document.body.append(probe)
+
+    function readReveal(caption: HTMLElement): number {
+      probe.style.setProperty(
+        "scale",
+        getComputedStyle(caption).getPropertyValue("--caption-reveal")
+      )
+
+      const reveal = Number(getComputedStyle(probe).scale)
+
+      probe.style.removeProperty("scale")
+
+      return reveal
+    }
 
     function isHitAt(element: HTMLElement, fraction: number): boolean {
       const rect = element.getBoundingClientRect()
@@ -308,9 +325,7 @@ async function watchCaptionSync(
         const shape = caption.dataset.caption ?? ""
         let isFull = true
 
-        reveals[shape] = Number(
-          getComputedStyle(caption).getPropertyValue("--caption-reveal")
-        )
+        reveals[shape] = readReveal(caption)
 
         for (
           let partIndex = 0;
@@ -1226,13 +1241,22 @@ function buildRevealRow(count: number, shownIndex: number): number[] {
 
 async function readCardReveals(page: Page, sceneId: string) {
   return page.evaluate(function readReveals(id) {
+    const probe = document.createElement("span")
     const reveals: number[] = []
 
+    probe.hidden = true
+    document.body.append(probe)
+
     for (const caption of document.querySelectorAll(`#${id} [data-caption]`)) {
-      reveals.push(
-        Number(getComputedStyle(caption).getPropertyValue("--caption-reveal"))
+      probe.style.setProperty(
+        "scale",
+        getComputedStyle(caption).getPropertyValue("--caption-reveal")
       )
+      reveals.push(Number(getComputedStyle(probe).scale))
+      probe.style.removeProperty("scale")
     }
+
+    probe.remove()
 
     return reveals
   }, sceneId)

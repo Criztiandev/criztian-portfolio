@@ -4,7 +4,10 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   CONTACT_ACKNOWLEDGEMENT,
+  CONTACT_ERROR_IDS,
   CONTACT_REJECTED_MESSAGE,
+  CONTACT_SEND_LABEL,
+  CONTACT_SENDING_LABEL,
   MIN_SECONDS_BEFORE_SUBMIT,
 } from "@/data/contact.data"
 import { ContactForm } from "@/features/contact/components/contact.form"
@@ -33,7 +36,13 @@ const MINIMUM_WAIT_MS = MIN_SECONDS_BEFORE_SUBMIT * 1000
 
 const MESSAGE = "A new identity for a small bakery."
 
+let heldSend: Promise<void> | null = null
+
 async function sendThroughServerChecks(values: ContactValues) {
+  if (heldSend !== null) {
+    await heldSend
+  }
+
   if (isTooFast(values.renderedAt, Date.now())) {
     throw new Error(CONTACT_REJECTED_MESSAGE)
   }
@@ -106,7 +115,7 @@ describe("ContactForm", () => {
     expect(acknowledgement).toHaveClass("scroll-mt-18")
     expect(acknowledgement).toHaveFocus()
     expect(acknowledgement).not.toHaveAttribute("role")
-    expect(screen.queryByRole("status")).toBeNull()
+    expect(screen.getByRole("status")).toBeEmptyDOMElement()
     expect(readForm(container)).toBe(form)
     expect(form).toHaveClass("invisible")
     expect(form.nextElementSibling).toBe(acknowledgement)
@@ -116,6 +125,76 @@ describe("ContactForm", () => {
     expect(screen.getByLabelText("What can I help you with?")).toHaveValue(
       MESSAGE
     )
+  })
+
+  it("keeps the send button focused and announces sending while the message is on its way", async () => {
+    let release: () => void = function releaseNothing() {}
+
+    heldSend = new Promise(function holdUntilReleased(resolve) {
+      release = resolve
+    })
+    vi.setSystemTime(RENDERED_AT)
+    renderForm()
+    fillForm()
+
+    const send = screen.getByRole("button", { name: CONTACT_SEND_LABEL })
+
+    send.focus()
+    vi.setSystemTime(RENDERED_AT + MINIMUM_WAIT_MS)
+    fireEvent.click(send)
+
+    const sending = await screen.findByRole("button", {
+      name: CONTACT_SENDING_LABEL,
+    })
+
+    expect(sending).toBe(send)
+    expect(sending).toHaveFocus()
+    expect(sending).toHaveAttribute("aria-disabled", "true")
+    expect(screen.getByRole("status")).toHaveTextContent(CONTACT_SENDING_LABEL)
+
+    release()
+    heldSend = null
+
+    await screen.findByText(CONTACT_ACKNOWLEDGEMENT)
+    expect(screen.getByRole("status")).toBeEmptyDOMElement()
+  })
+
+  it("ties each field's error to its field, and claims no error before one is shown", async () => {
+    renderForm()
+
+    const fields = [
+      { label: "Name", errorId: CONTACT_ERROR_IDS.name },
+      { label: "Email", errorId: CONTACT_ERROR_IDS.email },
+      { label: "Service needed", errorId: CONTACT_ERROR_IDS.service },
+      {
+        label: "What can I help you with?",
+        errorId: CONTACT_ERROR_IDS.message,
+      },
+    ]
+
+    for (const field of fields) {
+      const control = screen.getByLabelText(field.label)
+
+      expect(control, field.label).toHaveAttribute("aria-invalid", "false")
+      expect(control, field.label).not.toHaveAttribute("aria-describedby")
+    }
+
+    fireEvent.click(screen.getByRole("button", { name: CONTACT_SEND_LABEL }))
+
+    for (const field of fields) {
+      const control = await screen.findByLabelText(field.label)
+
+      await vi.waitFor(function expectInvalid() {
+        expect(control, field.label).toHaveAttribute("aria-invalid", "true")
+      })
+      expect(control, field.label).toHaveAttribute(
+        "aria-describedby",
+        field.errorId
+      )
+      expect(control, field.label).toHaveAccessibleDescription(
+        document.getElementById(field.errorId)?.textContent ?? "missing"
+      )
+    }
   })
 
   it("leaves focus where the reader moved it when the form renders again", async () => {

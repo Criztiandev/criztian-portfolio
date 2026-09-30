@@ -2,11 +2,7 @@ import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import { DOT_FIELD_MORPH_TUNING } from "@/data/hero.data"
-import {
-  SCENE_FLOW_SHAPES,
-  SCENE_LIT_CAPTION_CLASS,
-  SWEPT_LABEL_CLASS,
-} from "@/data/page-sections.data"
+import { SCENE_FLOW_SHAPES, SWEPT_LABEL_CLASS } from "@/data/page-sections.data"
 import {
   PROJECT_IMAGE_PLACEHOLDER_LABEL,
   PROJECTS_LABEL,
@@ -101,7 +97,7 @@ describe("ProjectsSection", () => {
 
       for (const [index, word] of words.entries()) {
         expect(word.textContent).toBe(PROJECTS_LABEL)
-        expect(word).toHaveClass(SWEPT_LABEL_CLASS, SCENE_LIT_CAPTION_CLASS)
+        expect(word).toHaveClass(...SWEPT_LABEL_CLASS.split(" "))
         expect(word).not.toHaveAttribute("aria-hidden")
         expect(word.style.getPropertyValue("--line")).toBe("0")
 

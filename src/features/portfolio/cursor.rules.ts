@@ -1,4 +1,3 @@
-import { DOT_SLOT_SELECTOR } from "@/data/hero.data"
 import {
   CURSOR_ACTION_SELECTOR,
   CURSOR_FIELD_SELECTOR,
@@ -13,7 +12,6 @@ export function resolveCursorState({
   element,
   pointerType,
   isPointerInside,
-  pushRadius,
 }: CursorStateRequest): CursorState {
   if (pointerType !== "mouse" || !isPointerInside || element === null) {
     return "hidden"
@@ -27,39 +25,16 @@ export function resolveCursorState({
     return "action"
   }
 
-  if (pushRadius !== null && element.closest(DOT_SLOT_SELECTOR) !== null) {
-    return "push"
-  }
-
   return "idle"
 }
 
 export function resolveRingDiameter(
   state: CursorState,
-  pushRadius: number | null,
   tuning: CursorTuning
 ): number {
   if (state === "action") {
     return tuning.actionSize
   }
 
-  if (state === "push" && pushRadius !== null) {
-    return pushRadius * 2
-  }
-
   return tuning.ringSize
-}
-
-export function parsePushRadius(value: string | undefined): number | null {
-  if (value === undefined) {
-    return null
-  }
-
-  const radius = Number(value)
-
-  if (!Number.isFinite(radius) || radius <= 0) {
-    return null
-  }
-
-  return radius
 }

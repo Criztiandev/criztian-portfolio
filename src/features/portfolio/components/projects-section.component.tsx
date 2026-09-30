@@ -11,15 +11,17 @@ import {
   PROJECT_SCREEN_COLUMNS_CLASS,
   PROJECT_SCREEN_WINDOW_CLASS,
   PROJECT_TITLE_LINK_CLASS,
-  SCENE_LIT_CAPTION_CLASS,
   SCREEN_CLASS,
   SCREEN_COPY_CLASS,
   SCREEN_HEIGHT_CLASS,
   SCREEN_LABEL_BOX_CLASS,
   SCREEN_LABEL_CLASS,
   SCREEN_OBJECT_CLASS,
+  SCREEN_TIMELINE_CLASS,
   SECTION_FRAME_CLASS,
   SECTION_LABEL_CLASS,
+  SECTION_TITLE_CLASS,
+  SECTION_TITLE_COUNT_CLASS,
   SHORT_SCREEN_COPY_GAP_CLASS,
   STATEMENT_CLASS,
   STATEMENT_SIZE_CLASSES,
@@ -70,7 +72,10 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
       <span
         aria-hidden="true"
         style={buildLineStyle(0) as React.CSSProperties}
-        className="inline-block whitespace-pre staged:pointer-events-auto staged:caption-line"
+        className={cn(
+          "inline-block whitespace-pre staged:pointer-events-auto staged:caption-line",
+          SECTION_TITLE_COUNT_CLASS
+        )}
       >
         {formatSectionPosition(index, projectCount)}
       </span>
@@ -89,11 +94,7 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
         <p aria-hidden="true" className={labelClass}>
           <span
             style={buildLineStyle(0) as React.CSSProperties}
-            className={cn(
-              SWEPT_LABEL_CLASS,
-              SCENE_LIT_CAPTION_CLASS,
-              "staged:invisible"
-            )}
+            className={cn(SWEPT_LABEL_CLASS, "staged:invisible")}
           >
             {PROJECTS_LABEL}
           </span>
@@ -106,7 +107,7 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
       <h2 id={PROJECTS_HEADING_ID} className={labelClass}>
         <span
           style={buildLineStyle(0) as React.CSSProperties}
-          className={cn(SWEPT_LABEL_CLASS, SCENE_LIT_CAPTION_CLASS)}
+          className={SWEPT_LABEL_CLASS}
         >
           {PROJECTS_LABEL}
         </span>
@@ -273,6 +274,8 @@ export function ProjectsSection({ projects }: Readonly<ProjectsSectionProps>) {
       style={sceneStyle as React.CSSProperties}
       className={cn(
         SECTION_FRAME_CLASS,
+        SCREEN_TIMELINE_CLASS,
+        SECTION_TITLE_CLASS,
         "grid text-foreground",
         "h-[calc(var(--steps)_*_(100svh_-_4.5rem))] unpinned:h-auto [@media(scripting:none)]:h-auto"
       )}

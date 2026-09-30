@@ -82,7 +82,7 @@ describe("the service captions", () => {
 
     for (const shape of SERVICES_SCENE.shapes.split(" ")) {
       const selector = new RegExp(
-        `\\[data-caption="${shape}"\\],\\s*\\[data-position="${shape}"\\]\\s*\\{\\s*--caption-reveal:\\s*var\\(--reveal-${shape}\\);`
+        `\\[data-caption="${shape}"\\],\\s*\\[data-position="${shape}"\\]\\s*\\{\\s*--caption-reveal:\\s*min\\(var\\(--reveal-${shape}\\), var\\(--title-gate, 1\\)\\);`
       )
 
       expect(css).toMatch(selector)
@@ -112,7 +112,7 @@ describe("the projects deck", () => {
     for (let index = 0; index < PROJECTS_MAX; index += 1) {
       const step = formatSceneStepId(PROJECTS_SCENE_ID, index)
       const selector = new RegExp(
-        `\\[data-caption="${step}"\\]\\s*\\{\\s*--caption-reveal:\\s*var\\(${THREAD_REVEAL_PROPERTY_PREFIX}${step}\\);`
+        `\\[data-caption="${step}"\\]\\s*\\{\\s*--caption-reveal:\\s*min\\(var\\(${THREAD_REVEAL_PROPERTY_PREFIX}${step}\\), var\\(--title-gate, 1\\)\\);`
       )
 
       expect(css).toMatch(selector)
@@ -154,7 +154,7 @@ describe("the orbit", () => {
 
     for (const shape of PROCESS_SCENE.shapes.split(" ")) {
       const selector = new RegExp(
-        `\\[data-position="${shape}"\\]\\s*\\{\\s*--caption-reveal:\\s*var\\(--reveal-${shape}\\);`
+        `\\[data-position="${shape}"\\]\\s*\\{\\s*--caption-reveal:\\s*min\\(var\\(--reveal-${shape}\\), var\\(--title-gate, 1\\)\\);`
       )
 
       expect(css).toMatch(selector)
@@ -180,11 +180,21 @@ describe("the orbit", () => {
 
   it("drives only the ring's drift by the scroll timeline", () => {
     const css = readStylesheet()
-    const timelines = css.match(/animation-timeline:\s*--step-scene/g) ?? []
 
-    expect(timelines).toHaveLength(1)
-    expect(readUtility(css, "orbit-spin")).toContain("--step-scene")
+    expect(readUtility(css, "orbit-spin")).toMatch(
+      /animation-timeline:\s*--screen;/
+    )
+    expect(readUtility(css, "orbit-step")).not.toMatch(/animation/)
+    expect(readUtility(css, "orbit-digit")).not.toMatch(/animation/)
+    expect(css).not.toContain("--step-scene")
     expect(css).not.toMatch(/@utility orbit-(turn|reveal)\b/)
+  })
+
+  it("lets the wheel's copy and numerals leave with its dots", () => {
+    const step = readUtility(readStylesheet(), "orbit-step")
+
+    expect(step).toMatch(/--orbit-assemble:[^;]*var\(--scene-lit, 1\)/)
+    expect(step).toMatch(/--orbit-lit:[^;]*var\(--scene-lit, 1\)/)
   })
 
   it("drifts the ring's dots by the orbit's spin ratio", () => {
@@ -238,20 +248,93 @@ describe("the scene sweep", () => {
     expect(swept).toContain(
       "@media screen and (prefers-reduced-motion: no-preference)"
     )
-    expect(swept).toContain(
-      '&:where([data-status="running"] *):not([data-fit], [data-fit] *)'
+    expect(swept.replace(/\s+/g, " ")).toContain(
+      '&:where([data-status="running"] *):not( [data-fit], [data-fit] *, [data-motion="paused"] * )'
     )
     expect(swept).not.toMatch(/animation-timeline|height/)
+  })
+
+  it("stops every sweep, board, drift and transition while the page's motion is paused", () => {
+    const css = readStylesheet()
+    const paused = '[data-motion="paused"] *'
+
+    expect(readBlock(css, "@custom-variant staged")).toContain(paused)
+    expect(readBlock(css, "@custom-variant swept")).toContain(paused)
+    expect(readBlock(css, "@custom-variant motion-safe")).toContain(
+      `&:not(${paused})`
+    )
+    expect(readBlock(css, "@custom-variant motion-reduce")).toContain(
+      `&:where(${paused})`
+    )
+    expect(readUtility(css, COPY_DRIFT_CLASS)).toContain(`&:not(${paused})`)
+    expect(css).toMatch(
+      /html\[data-motion="paused"\] \{\s*scroll-behavior: auto;/
+    )
+  })
+
+  it("shows each section's title big once the old section has cleared, and docks it before the dots land", () => {
+    const css = readStylesheet()
+    const title = readUtility(css, "section-title")
+    const keyframes = readBlock(css, "@keyframes section-title")
+    const word = readUtility(css, "section-title-word")
+
+    expect(title).toContain("@supports (animation-timeline: view())")
+    expect(title).toMatch(/animation-timeline:\s*--screen;/)
+    expect(title).toMatch(/animation-range:\s*cover;/)
+    expect(title).toMatch(/animation-fill-mode:\s*forwards;/)
+    expect(title).not.toMatch(/animation:/)
+    expect(keyframes).toMatch(
+      /entry 0% \{\s*--title-grow: 1;\s*--title-hold: 0;/
+    )
+    expect(keyframes).toMatch(/entry 38% \{\s*--title-hold: 0;/)
+    expect(keyframes).toMatch(/entry 44% \{\s*--title-hold: 1;/)
+    expect(keyframes).toMatch(/entry 68% \{\s*--title-grow: 1;/)
+    expect(keyframes).toMatch(/entry 90% \{\s*--title-grow: 0;/)
+    expect(keyframes).toMatch(/exit 0% \{\s*--title-hold: 1;/)
+    expect(keyframes).toMatch(/exit 1% \{\s*--title-hold: 0;/)
+    expect(word).toMatch(/scale:[^;]*tan\(atan2\(var\(--title-size\), 1em\)\)/)
+    expect(word).toContain(
+      "--caption-reveal: max(var(--scene-lit, 1), var(--title-hold));"
+    )
+    expect(word).not.toMatch(/font-size|width|height|margin/)
+  })
+
+  it("clears the flying dots from round the big title with a halo that fades as it docks", () => {
+    const word = readUtility(readStylesheet(), "section-title-word")
+
+    expect(word).toMatch(
+      /--title-halo: color-mix\(\s*in oklab,\s*var\(--background\) calc\(var\(--title-grow\) \* 100%\),\s*transparent\s*\)/
+    )
+    expect(word).toMatch(/text-shadow:[^;]*var\(--title-halo\)/)
   })
 
   it("lights every scene from its dots' own reveal, and fully while it holds focus", () => {
     const css = readStylesheet()
     const scene = readBlock(css, "[data-dot-scene]")
 
-    expect(scene).toContain(`--scene-lit: var(${SCENE_REVEAL_PROPERTY}, 1);`)
+    expect(scene).toContain(
+      `--scene-lit: min(var(${SCENE_REVEAL_PROPERTY}, 1), var(--title-gate));`
+    )
     expect(scene).toContain("--caption-reveal: var(--scene-lit);")
     expect(readBlock(css, "[data-dot-scene]:has(:focus-visible)")).toMatch(
       /--scene-lit:\s*1;/
+    )
+  })
+
+  it("holds a section's copy back until its big title has nearly docked", () => {
+    const css = readStylesheet()
+    const scene = readBlock(css, "[data-dot-scene]")
+    const stepReveals =
+      css.match(/--caption-reveal: min\(var\(--reveal-/g) ?? []
+    const ungatedReveals = css.match(/--caption-reveal: var\(--reveal-/g) ?? []
+
+    expect(scene).toContain(
+      "--title-gate: clamp(0, 1 - var(--title-grow) * 3, 1);"
+    )
+    expect(stepReveals).toHaveLength(PROJECTS_MAX + 3 + 5)
+    expect(ungatedReveals).toHaveLength(0)
+    expect(css).toMatch(
+      /\[data-caption="branding"\],\s*\[data-position="branding"\] \{\s*--caption-reveal: min\(var\(--reveal-branding\), var\(--title-gate, 1\)\);/
     )
   })
 
@@ -308,7 +391,7 @@ describe("the parallax", () => {
     expect(drift).toContain("@supports (animation-timeline: view())")
     expect(drift).toContain("prefers-reduced-motion: no-preference")
     expect(drift).toContain("min-width: 48rem")
-    expect(drift).toContain("& > *")
+    expect(drift).toContain('&:not([data-motion="paused"] *) > *')
     expect(drift).toMatch(/animation-timeline:\s*--screen;/)
     expect(drift).toMatch(/animation-range:\s*cover;/)
     expect(drift).not.toMatch(/animation:/)

@@ -37,8 +37,6 @@ const RAISED_DRIFT_PX = 2000
 
 const LAYOUT_CONTAINMENT_VALUES = ["layout", "content", "strict"]
 
-const PUSH_RADIUS_PATTERN = /^\d+$/
-
 const PIN_SHARES = [0.25, 0.5, 0.75]
 
 const DRIFT_SCREENS = [
@@ -942,7 +940,7 @@ test.describe("the page without WebGL2 at 1440x900", () => {
     expect(problems).toEqual([])
   })
 
-  test("shows every swept line, stat and footer link whole and drops the push radius once the context is lost", async ({
+  test("shows every swept line, stat and footer link whole once the context is lost", async ({
     page,
   }) => {
     const problems = collectPageProblems(page)
@@ -952,10 +950,6 @@ test.describe("the page without WebGL2 at 1440x900", () => {
     await expect(stage).toHaveAttribute("data-scene", ABOUT_SECTION.sceneId, {
       timeout: SCENE_TIMEOUT_MS,
     })
-    await expect(stage, "push radius while running").toHaveAttribute(
-      "data-push-radius",
-      PUSH_RADIUS_PATTERN
-    )
     expect(
       await readUnsweptProblems(page, UNSWEPT_WITHOUT_WEBGL),
       "lines swept out while running"
@@ -973,11 +967,6 @@ test.describe("the page without WebGL2 at 1440x900", () => {
       timeout: SCENE_TIMEOUT_MS,
     })
     await expectFallbackShown(page)
-    await waitForTwoFrames(page)
-    expect(
-      await stage.getAttribute("data-push-radius"),
-      "push radius once the context is lost"
-    ).toBeNull()
 
     expect(problems).toEqual([])
   })

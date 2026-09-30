@@ -12,6 +12,8 @@ import {
   OWNER_EMAIL_HREF,
   PROCESS_SCENE,
   SCREEN_TIMELINE_CLASS,
+  SECTION_TITLE_CLASS,
+  SECTION_TITLE_COUNT_CLASS,
   SERVICES_SCENE,
   STAT_OVERLAY_CLASS,
   STAT_VALUE_CLASS,
@@ -82,6 +84,19 @@ const DRIFTING_SECTION_IDS = [
   "faq",
   "contact",
 ]
+
+const SCREEN_TIMELINE_SECTION_IDS = [
+  "quote",
+  "project",
+  "services",
+  "process",
+  "about",
+  "testimonials",
+  "faq",
+  "contact",
+]
+
+const UNTITLED_LABEL_IDS = ["faq"]
 
 const SCENE_SWEEP_IDS = [
   "cube",
@@ -635,7 +650,7 @@ describe("SitePage", () => {
     }
 
     expect(driftIds).toEqual(DRIFTING_SECTION_IDS)
-    expect(timelineIds).toEqual(DRIFTING_SECTION_IDS)
+    expect(timelineIds).toEqual(SCREEN_TIMELINE_SECTION_IDS)
   })
 
   it("counts each About stat on a hidden overlay over its real value", () => {
@@ -733,6 +748,38 @@ describe("SitePage", () => {
       expect(word, label.id).toHaveClass(SWEPT_LABEL_CLASS)
       expect(word, label.id).not.toHaveAttribute("aria-hidden")
       expect(word?.style.getPropertyValue("--line"), label.id).toBe("0")
+    }
+  })
+
+  it("shows each label's title big as its section arrives, but FAQ's, which is its statement", () => {
+    const { container } = renderPage()
+
+    for (const label of SECTION_LABELS) {
+      const section = container.querySelector(`#${label.id}`)
+      const heading = section?.querySelector("h2")
+
+      expect(section, label.id).toHaveClass(SCREEN_TIMELINE_CLASS)
+      expect(heading, label.id).not.toHaveClass(SECTION_TITLE_CLASS)
+
+      if (UNTITLED_LABEL_IDS.includes(label.id)) {
+        expect(section, label.id).not.toHaveClass(SECTION_TITLE_CLASS)
+        continue
+      }
+
+      expect(section, label.id).toHaveClass(SECTION_TITLE_CLASS)
+    }
+  })
+
+  it("keeps each label's position count out of the big title until it docks", () => {
+    const { container } = renderPage()
+    const counts = container.querySelectorAll(
+      "#project h2 [aria-hidden='true'], #services h2 [aria-hidden='true'], #process h2 [aria-hidden='true']"
+    )
+
+    expect(counts).toHaveLength(3)
+
+    for (const count of counts) {
+      expect(count).toHaveClass(SECTION_TITLE_COUNT_CLASS)
     }
   })
 })

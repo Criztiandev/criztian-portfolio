@@ -10,15 +10,13 @@ import {
 } from "motion/react"
 import { useEffect, useState } from "react"
 
-import { DOT_STAGE_SELECTOR } from "@/data/hero.data"
 import { CURSOR_TUNING, INDICATOR_TRANSITION } from "@/data/motion.data"
 import {
   prefersReducedMotion,
-  readReducedMotionQuery,
+  subscribeMotionPreference,
   supportsCustomCursor,
 } from "@/features/portfolio/browser-capability.rules"
 import {
-  parsePushRadius,
   resolveCursorState,
   resolveRingDiameter,
 } from "@/features/portfolio/cursor.rules"
@@ -27,7 +25,6 @@ import type { CursorState } from "@/types/portfolio.type"
 
 export function AdaptiveCursor() {
   const [cursorState, setCursorState] = useState<CursorState>("hidden")
-  const [pushRadius, setPushRadius] = useState<number | null>(null)
   const [isReducedMotion, setIsReducedMotion] = useState(false)
   const pointerX = useMotionValue(0)
   const pointerY = useMotionValue(0)
@@ -49,15 +46,12 @@ export function AdaptiveCursor() {
       }
 
       const root = document.documentElement
-      const stage = document.querySelector<HTMLElement>(DOT_STAGE_SELECTOR)
-      const reducedMotionQuery = readReducedMotionQuery()
       let isReducedMotionPreferred = prefersReducedMotion()
       let pointerType = "mouse"
       let isPointerInside = false
       let lastX = 0
       let lastY = 0
       let publishedState: CursorState = "hidden"
-      let publishedRadius: number | null = null
 
       function resolveFromPoint(): void {
         let element: Element | null = null
@@ -66,18 +60,11 @@ export function AdaptiveCursor() {
           element = document.elementFromPoint(lastX, lastY)
         }
 
-        const radius = parsePushRadius(stage?.dataset.pushRadius)
         const nextState = resolveCursorState({
           element,
           pointerType,
           isPointerInside,
-          pushRadius: radius,
         })
-
-        if (radius !== publishedRadius) {
-          publishedRadius = radius
-          setPushRadius(radius)
-        }
 
         if (nextState !== publishedState) {
           publishedState = nextState
@@ -123,32 +110,24 @@ export function AdaptiveCursor() {
         setIsReducedMotion(isReducedMotionPreferred)
       }
 
-      const landingObserver = new MutationObserver(resolveFromPoint)
       const stopScrollHitTest = scrollY.on("change", resolveFromPoint)
-
-      if (stage !== null) {
-        landingObserver.observe(stage, {
-          attributeFilter: ["data-push-radius"],
-        })
-      }
 
       window.addEventListener("pointermove", onPointer, { passive: true })
       window.addEventListener("pointerover", onPointer, { passive: true })
       window.addEventListener("pointerdown", onPointer, { passive: true })
       root.addEventListener("pointerleave", onPointerLeave)
-      reducedMotionQuery?.addEventListener("change", onMotionPreferenceChanged)
+
+      const releaseMotionPreference = subscribeMotionPreference(
+        onMotionPreferenceChanged
+      )
 
       return function cleanup() {
         window.removeEventListener("pointermove", onPointer)
         window.removeEventListener("pointerover", onPointer)
         window.removeEventListener("pointerdown", onPointer)
         root.removeEventListener("pointerleave", onPointerLeave)
-        reducedMotionQuery?.removeEventListener(
-          "change",
-          onMotionPreferenceChanged
-        )
+        releaseMotionPreference()
         stopScrollHitTest()
-        landingObserver.disconnect()
         delete root.dataset.cursor
       }
     },
@@ -158,11 +137,7 @@ export function AdaptiveCursor() {
   const isShown = cursorState !== "hidden" && cursorState !== "field"
   const isAction = cursorState === "action"
   const isStretching = cursorState === "idle" && !isReducedMotion
-  const ringDiameter = resolveRingDiameter(
-    cursorState,
-    pushRadius,
-    CURSOR_TUNING
-  )
+  const ringDiameter = resolveRingDiameter(cursorState, CURSOR_TUNING)
   const transition = resolveMotionTransition(
     INDICATOR_TRANSITION,
     isReducedMotion

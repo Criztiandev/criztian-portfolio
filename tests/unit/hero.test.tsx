@@ -4,9 +4,12 @@ import { describe, expect, it, vi } from "vitest"
 import { HERO_SCROLL_LABEL } from "@/data/hero.data"
 import { DEFAULT_HERO_TAGLINE_TEXT } from "@/data/site-content.data"
 import { Hero } from "@/features/portfolio/components/hero.component"
+import { renderRichTextHtml } from "@/features/site-content/services/rich-text-renderer.service"
 import { createDefaultSiteContent } from "@/features/site-content/site-content.rules"
 
 const DISPLAY_FONT_FAMILY = `"Antonio", "Antonio Fallback"`
+
+const TAGLINE_HTML = renderRichTextHtml(createDefaultSiteContent().hero.tagline)
 
 function renderHero() {
   return render(
@@ -14,6 +17,7 @@ function renderHero() {
       <Hero
         content={createDefaultSiteContent()}
         displayFontFamily={DISPLAY_FONT_FAMILY}
+        taglineHtml={TAGLINE_HTML}
       />
     </div>
   )
@@ -91,6 +95,7 @@ describe("Hero", () => {
       <Hero
         content={createDefaultSiteContent()}
         displayFontFamily={DISPLAY_FONT_FAMILY}
+        taglineHtml={TAGLINE_HTML}
       />
     )
 

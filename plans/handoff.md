@@ -2,9 +2,9 @@
 
 > **For:** the next Claude Code session picking up this build.
 >
-> **Current phase:** **Phase 11, polish and proof (not started).** Phase 10 is done (see its done note); the owner's sign-off on its two screen recordings is still open. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference), except How I work's centred wheel (owner, Phase 8); the renders are in `plans/mockups/`. To start, paste the prompt under "Start here".
+> **Current phase:** **New elements (to scope with the owner).** Phase 11 is done (see its done note). The owner handles deployment; the checklist is under "Deployment (the owner's)". The owner's device checks and the recordings' sign-off are still open. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference), except How I work's centred wheel (owner, Phase 8); the renders are in `plans/mockups/`. To start, paste the prompt under "Start here".
 >
-> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, Phase 5 is `ca4d45c`, Phase 6 is `bb808b1`, Phase 7 is `32efb4b`, Phase 8 is `e8cbbe5`, and Phase 9 is `684db97`. Phase 10 is one commit on top of `684db97`, made on the owner's OK. Nothing is pushed.
+> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, Phase 5 is `ca4d45c`, Phase 6 is `bb808b1`, Phase 7 is `32efb4b`, Phase 8 is `e8cbbe5`, Phase 9 is `684db97`, Phase 10 is `78f4973` and Phase 11 is one commit on top of it, made on the owner's OK. Nothing is pushed, and `portfolio/phase-3` is not merged to `main` yet.
 >
 > **How this file works:** each phase is one conversation. It lists its scope, the owner inputs it needs and its acceptance. It ends with the prompt that starts the next conversation. When a phase ends, write its done note under it, move "Current phase" forward, and give the owner the next prompt.
 >
@@ -15,9 +15,10 @@
 Paste this into a new conversation to start the current phase:
 
 ```text
-Continue the portfolio redesign: Phase 11, polish and proof.
-Read CLAUDE.md, then plans/handoff.md ("What is built today" carried-over items, Phase 10's done note and "Phase 11"), PRODUCT.md and DESIGN.md.
-Ask me Phase 11's open questions first. Work through it as scoped, then write its done note, move "Current phase" to "Deployment (to plan)", and tell me what deployment needs.
+Continue the portfolio: I'm adding new elements.
+Read CLAUDE.md, then plans/handoff.md (Phase 11's done note, "New elements", "The DOM contract" and "Landmines still live"), PRODUCT.md and DESIGN.md.
+Ask me what the new elements are, where they go and what they say before building anything; never invent their content.
+Then scope them as the next phase in plans/handoff.md and build it.
 Ask me before committing.
 ```
 
@@ -221,28 +222,29 @@ The mockups use these, and the owner approved them all. Use them in place of the
 - **Phase 7** (`32efb4b`): Services on the B statement split, the glide lock removed (trigger, play, no lock) and the reduced-motion curtain bug fixed (see its done note).
 - **Phase 8** (`e8cbbe5`): How I work as a centred wheel (owner), no plates, the ring drawn in dots, the shape at full size above the numeral, and the turn triggered and played by the dots' own progress (see its done note).
 - **Phase 9** (`684db97`): the projects deck, one step per visible project on a sticky board, `project-k` step ids, the frame unwound and redrawn in place (`isRedrawSegment`, `uRedraw`), the keyboard rule, and the Phase 5 list as the fallback (see its done note).
-- **Phase 10** (one commit on top of `684db97`): every section's text swept by the dots, the About count-up, the desktop copy drift, the scroll-spy with the nav dot, the scroll-progress hairline, the menu wipe, the contact success moment, the FAQ disclosure, the no-JS fix and the adaptive cursor (old Part 4) (see its done note).
-- **Last evidence (2026-09-30, Phase 10):**
-  - 499 unit tests pass and `pnpm check` is clean.
-  - e2e was green on a production build at :3100, with Supabase up (245 specs).
-  - The hero pixel diff held: 0 pixels against Phase 9, and the known 20/24-pixel residue against `0a3c97a`, inside the name's box. The method is in the history and the landmines.
+- **Phase 10** (`78f4973`): every section's text swept by the dots, the About count-up, the desktop copy drift, the scroll-spy with the nav dot, the scroll-progress hairline, the menu wipe, the contact success moment, the FAQ disclosure, the no-JS fix and the adaptive cursor (old Part 4) (see its done note).
+- **Phase 11** (the commit on top of `78f4973`): the big arriving section titles, the pause-motion toggle, the small cursor over the dots, How I work's exit, the uncached published read, the accessibility and performance passes, and the docs (see its done note).
+- **Last evidence (2026-10-01, Phase 11):**
+  - 515 unit tests pass and `pnpm check` is clean.
+  - e2e is green on a production build at :3100, with Supabase up (275 specs).
+  - The hero pixel diff held: 0 pixels against Phase 10. The method is in the history and the landmines.
 
 **Carried-over open items,** each assigned to a phase:
 
 | Item                                                                                                                       | Phase     |
 | -------------------------------------------------------------------------------------------------------------------------- | --------- |
 | Services curtain bug: under reduced motion, earlier captions ride up over the slot (`not-last:mb-*` → `not-first:mt-*`)    | done (7)  |
-| Copy crossings: transit dots cross copy columns at full brightness                                                         | 11        |
+| Copy crossings: transit dots cross copy columns at full brightness                                                         | done (11) |
 | `resolveViewportHeight` with grown frames shifts dust boundaries: fixed in Phase 5, it reads the shortest pinned frame     | done (5)  |
-| Transit captures of every scene, both directions, and the owner's "wow and professional" sign-off                          | 11        |
-| The 16ms frame trace on the owner's phone (ask for an Android with USB debugging)                                          | 11        |
-| Safari 26 on an iPhone (scroll-driven animations, Lenis at 60fps)                                                          | 11        |
-| The real-phone fling test (Phase 1)                                                                                        | 11        |
-| The smooth-scroll feel sign-off (`SMOOTH_SCROLL_LERP`)                                                                     | 11        |
-| The published-content read is cached for a year (tag it and `revalidateTag` on publish, or make it uncached)               | 11        |
+| Transit captures of every scene, both directions, and the owner's "wow and professional" sign-off                          | owner     |
+| The 16ms frame trace on the owner's phone (ask for an Android with USB debugging)                                          | owner     |
+| Safari 26 on an iPhone (scroll-driven animations, Lenis at 60fps)                                                          | owner     |
+| The real-phone fling test (Phase 1)                                                                                        | owner     |
+| The smooth-scroll feel sign-off (`SMOOTH_SCROLL_LERP`)                                                                     | done (11) |
+| The published-content read is cached for a year (tag it and `revalidateTag` on publish, or make it uncached)               | done (11) |
 | The Projects heading in the live record still has old text: retired with the intro (owner, Phase 5)                        | done (5)  |
 | Existing reveals hide content without JavaScript (`data-reveal` plus `@media (scripting: none)`)                           | done (10) |
-| A cold load at 1440×900 shifts the hero once (CLS 0.008): the tagline wraps to two lines in `Geist Fallback`, one in Geist | 11        |
+| A cold load at 1440×900 shifts the hero once (CLS 0.008): the tagline wraps to two lines in `Geist Fallback`, one in Geist | done (11) |
 
 ## The architecture this needs
 
@@ -401,7 +403,7 @@ Every section that takes part in the timeline follows these rules. The engine tr
     - **The container height is explicit:** `F + (n − 1)·pitch`, where pitch is `F − step-top + 0.75rem` in portrait and `F` in split. The deck's pitch is `F` at every width, so its container is `n·F` (`--steps`), or `auto` when `unpinned` or without JavaScript. Staging on or off therefore never moves a pin, an anchor landing or the slot rect, and the engine needs no re-measure.
     - **Animated decoration is ink, not copy.** The gate re-checks while staged too (on resize and font load), so nothing animated inside a fit box may add to its `scrollHeight`. The orbit numeral carries `contain: layout`, which turns its digits' assemble transforms into ink overflow. Without it, 67 wide sizes between 900 and 975px tall flowed How I work to the reading list (Phase 7 fix). Phase 8's geometry no longer overflows there without it, so `step-motion.spec.ts` asserts the containment directly. The copy drift's column carries `contain: layout` for the same reason, since Contact's frame is a fit box (Phase 10 review).
     - **Measured before staging.** The hook's first measure (`readLayout`, at the top of the GL effect) and the gate's first check run while the stage is `idle`; setting `data-status="running"` (in the geometry effect) switches `staged` on later and triggers neither. So the slot rect, the container height and every step box must be identical in both modes. `step-motion.spec.ts` flips the stage attribute and compares them, including the deck's cards, and puts every staged plate on the slot.
-    - **Copy motion.** All three step scenes are drawn by the dots' own progress, never on a timer or the scroll timeline. Since Phase 10 every other scene's text is drawn the same way, from `--scene-reveal` (CLAUDE.md, "Every section's text sweeps with the dots"). The hook writes `--reveal-<keyframe id>` (the shape, or `project-k` in the deck) on each thread scene's container (`resolveThreadReveal`), and literal selectors in globals.css map it to `--caption-reveal` for Services' captions, the deck's cards (`[data-caption="project-k"]`, up to `PROJECTS_MAX`; the count, the caption lines and `plate-sweep` read it) and both labels' position counts. While a deck link has `:focus-visible`, every card's reveal is 0 but the focused card's, which is 1 (owner, Phase 9). For the orbit it also writes `--thread-turn` (`resolveThreadTurn`), and the `orbit-step` utility derives each step's rotation, `--orbit-assemble` and `--orbit-lit` from it (Phase 8). The container's `--step-scene` view timeline (`view-timeline-inset: 4.5rem 0`) now drives only the ring's drift. Nothing in the stylesheet keys on `data-scene`.
+    - **Copy motion.** All three step scenes are drawn by the dots' own progress, never on a timer or the scroll timeline. Since Phase 10 every other scene's text is drawn the same way, from `--scene-reveal` (CLAUDE.md, "Every section's text sweeps with the dots"). The hook writes `--reveal-<keyframe id>` (the shape, or `project-k` in the deck) on each thread scene's container (`resolveThreadReveal`), and literal selectors in globals.css map it to `--caption-reveal` for Services' captions, the deck's cards (`[data-caption="project-k"]`, up to `PROJECTS_MAX`; the count, the caption lines and `plate-sweep` read it) and both labels' position counts. While a deck link has `:focus-visible`, every card's reveal is 0 but the focused card's, which is 1 (owner, Phase 9). For the orbit it also writes `--thread-turn` (`resolveThreadTurn`), and the `orbit-step` utility derives each step's rotation, `--orbit-assemble` and `--orbit-lit` from it (Phase 8). The container's `--screen` view timeline (`view-timeline-inset: 4.5rem 0`; it was `--step-scene` until Phase 11) drives the ring's drift, and the label's arrival title (Phase 11); nothing else in a step scene runs on it. Nothing in the stylesheet keys on `data-scene`.
     - **Services' board** is the caption box itself: `--caption` tall, sticky at `--caption-top`, with the frame's bottom inset (`--screen-bottom`) as its padding so it ends exactly with the container. In the split it covers only the left column under the label, so the slot on the right is never under it.
     - **Rule 8 in staged mode:** the board is transparent. Nothing scrolls under the band during the pin, so the opaque ground isn't needed, and the portrait exit transits are visible. The opaque sticky steps remain in the fallback layout. The deck's phone windows (`PROJECT_PLATE_WINDOW_CLASS`) hide while staged, and its forced-colours ground turns transparent.
     - **Rules 12–13:** the Services board, each orbit step and each project card (`article[data-fit-box]`) are fixed-height `[data-fit-box]`es, so an overflow flows the scene through the gate. The orbit board itself is not a fit box: its rotated neighbours would count toward its `scrollHeight`. It is `overflow: clip`, so they never widen the page.
@@ -1305,7 +1307,114 @@ Ask me before committing.
 - `pnpm check`, the unit tests and e2e are green.
 - The owner signs off the whole page on desktop and phone.
 
-**Next:** deployment isn't planned yet (hosting, a live email adapter, reading contact messages in the dashboard). Plan it with the owner in its own conversation.
+**Done note (2026-10-01).**
+
+- **Owner answers** (asked first, and during the phase; recorded under "Open owner decisions"):
+  - Phase 10 was committed on its own first (`78f4973`).
+  - **The cursor over the dots** ("a giant circle … I want it consistent size, small"): the ring stays the 36px idle ring over every dot object. Links, buttons and FAQ questions keep the 56px disc. The owner checked it on the dev server: right.
+  - **Section titles** ("hard to identify … a big title first, then small as you scroll"): bold Antonio labels that arrive as a big title and dock into the label. It took three rounds:
+    1. The title showed for the whole arrival. The owner: it overlapped the old section and the flying dots.
+    2. It waited for the old section's text to wipe out, with a black halo against the dots. Approved, then: "it should take time for the title to emphasise it".
+    3. It holds about four times longer, and the section's copy waits for it. Approved ("Yes, this is it").
+  - **Pause motion:** yes, a square toggle in the header, remembered by the browser. The owner checked it: right.
+  - **Smooth scroll:** keep `SMOOTH_SCROLL_LERP` 0.1 (signed off).
+  - **Devices:** an Android phone and an iPhone, used at the end of the phase. Playwright's WebKit was to stand in for Safari meanwhile, but it can't run on this machine (see the landmines).
+- **Shipped:**
+  - **Section titles:**
+    - `SECTION_LABEL_CLASS` is bold Antonio (18px, 20px from 768px, in the same 16px line box).
+    - `swept:section-title` on each titled scene container animates `--title-grow` and `--title-hold` on its `--screen` timeline.
+    - `section-title-word` scales the word from its bottom-left corner up to `min(8rem, 17cqi, 14svh)` and carries the black `--title-halo`.
+    - `section-title-count` hides the position count until the word docks.
+    - `--title-gate` holds back `--scene-lit` and all 14 literal step reveals.
+    - Every labelled scene container now carries `screen-timeline`, including Projects, Services and How I work. Process's own `--step-scene` timeline is gone, and `orbit-spin` runs on `--screen`.
+  - **Pause motion (WCAG 2.2.2):**
+    - `setMotionPaused`, `isMotionPaused` and `subscribeMotionPreference` in `browser-capability.rules.ts`. `prefersReducedMotion()` includes the pause.
+    - `useIsMotionPaused` and `usePrefersReducedMotion` (`use-motion-preference.hook.ts`), and the `MotionToggle` in the header's right-hand wrapper.
+    - A `beforeInteractive` restore script in the root layout, and `MotionConfig` set to "always" while paused.
+    - CSS: `staged`, `swept`, `copy-drift` and smooth `scroll-behavior` exclude the pause, and `motion-safe`/`motion-reduce` are redefined.
+    - Every listener that read the media query now subscribes to both: the dot hook, the cursor, SmoothScroll and SceneFitGate.
+  - **Cursor:** the `push` state, `data-push-radius` and the cursor's landing observer are gone.
+  - **Copy crossings:** How I work's `--orbit-assemble` and `--orbit-lit` are capped by `--scene-lit`, so the wheel's copy wipes out with its dots instead of staying lit through the exit.
+  - **Published-content cache:** the admin client fetches with `cache: "no-store"` and `/` exports `dynamic = "force-static"`. Tags weren't used: tag state lives in memory, so a fresh build would replay the stale document anyway.
+  - **CLS:** the hero tagline's box is `md:max-w-[35rem]`, so it is one line in both Geist and `Geist Fallback`.
+  - **Turbopack warning:** `/* turbopackIgnore: true */` on the preview directory's `process.cwd()`. The tRPC route's trace fell from 287 files to 107, with no project files.
+  - **Accessibility audit** (four lenses: keyboard, semantics, reflow and visual, each with an adversarial skeptic). It raised 10 findings; the skeptics confirmed 7, and all 7 are fixed:
+    - **A failed or pending submit dropped focus to `<body>`.** The button is `focusableWhenDisabled`. "Sending…" is announced through an always-mounted `role="status"`, and the submit error is tied to the button with `aria-describedby`.
+    - **How I work's label was painted over by its first step** whenever the scene flows (text spacing, zoom). The step list is `unpinned:static`.
+    - **The position count slid in over the shrinking word.** Its opacity factor went from 20 to 80.
+    - **In a light forced-colours palette, the black canvas stayed the page ground,** so the header buttons and their focus outlines vanished at the top. Under forced colours the canvas layer is invisible and the text `<h1>` shows instead. The toggle and the menu button carry `focus-visible:outline-hidden`, so forced colours draw an outline.
+    - **The mobile menu marked the current section by brightness alone.** The current panel link is underlined.
+    - **Forced colours:** Send's focus showed only as a border colour change, and the select's chevron went white on white. Both are fixed.
+    - The two refuted semantics findings were fixed anyway: each field has `aria-invalid` (false until an error shows) and `aria-describedby` to its error. The refuted reflow finding (Testimonials' big title at text spacing) needed no change: `17cqi` stays.
+  - **Conventions:** the header's inline constants moved to `navigation.data.ts` and `motion.data.ts`, and the hero's to `hero.data.ts` (`HERO_*`). This closes Phase 10's open data-folder item.
+  - **Docs:** CLAUDE.md, DESIGN.md (tokens, hierarchy, the One-Statement exceptions, the four-way One-Motion Rule, the pause, the halo, the cursor and the header), PRODUCT.md, the README, the regenerated `.impeccable/design.json`, and this handoff.
+  - **Performance:** the client `Hero` rendered the tagline through Tiptap, which shipped Tiptap, ProseMirror and the whole site-content schema to every visitor. `SitePage` now renders it and passes `taglineHtml` down (CLAUDE.md, Site content). Script on `/` fell from 500 KB to 378 KB gzipped.
+- **Evidence:**
+  - `pnpm check` is clean and 515 unit tests pass (499 at Phase 10).
+  - **e2e:** 275 specs on a production build at :3100 (Turbopack, Supabase up, `draft = published` before and after).
+    - The full run passed 273. The two failures were section-motion's own model, which predated the copy gate: its sweep model now folds `--title-gate` into each line's expected reveal, and the About count probe moved from 0.8 to 0.9 of the transit, because the stats now wait for the title. The spec then passed 21 of 21.
+    - After the tagline moved to `SitePage`: the hero and fallback specs passed 35 of 35 and the editor spec 5 of 5.
+    - **New:**
+      - `section-title.spec.ts` (20: ten tests at 1440×900 and 390×844). The word is docked at every anchor and hidden while the outgoing text wipes out. It is big, whole and in the viewport through the hold, and never over its frame's slot, plate or statement. The copy waits for it, it docks by 92% of the entry and grows again on the way back. FAQ never grows, nor does anything under reduced motion or the pause, and nothing shifts layout.
+      - `motion-pause.spec.ts` (11): the toggle's size and place at both widths, Enter and Space, the remembered pause through a reload, the cube's loop stopping and restarting, the Services captions unstaged, Lenis stopped, About's copy still, the tab order, and the toggle hidden under reduced motion, without JavaScript and outlined in forced colours.
+    - **Changed:** the cursor spec (the push tests became idle-ring checks), motion-fallbacks (no push radius), section-motion (the title hold and the gate) and step-motion (the reveal read through the gate).
+    - **Mutation checks:** every new test was shown to fail against a deliberate break of the page and to pass without it. The last four title tests were re-checked on the final build with an injected rule each: the word always shown, no gate, the dock moved to 99% of the entry, and no growth. Each made its test fail.
+  - **Hero pixel diff:** 0 pixels against Phase 10 (`78f4973`, a worktree on :3201) at DPR 1 and 2, at rest and with reduced motion, before and after the tagline move.
+  - **Accessibility:** 7 confirmed findings, all fixed (see Shipped). The audit covered the keyboard (tab order, focus visibility, the menu and the deck), the accessibility tree, axe at nine formed stops (running and paused), 200% and 400% zoom, text spacing, and forced colours in both palettes.
+  - **Performance** (full Chromium on this PC against the production build with the cache disabled; `.local/phase11/perf.mjs`):
+    - **Cold load:** CLS 0 at 1440×900 and 390×844, counted from navigation (it was 0.008 at 1440×900). LCP is 0.98s and 0.81s locally.
+    - **Weight:**
+      - 504 KB on first load: 378 KB script gzipped, 56 KB fonts, 18 KB CSS and 25 KB HTML. It was 626 KB.
+      - The plates load lazily: 8.5 KB at 1440×900 and 51 KB at 390×844 (DPR 3) after a full scroll.
+      - Each plate gets the next variant up from the pixels it needs (750w for 700px, 640w for 480px, 1200w for 1026px), so `sizes` is right. The three placeholder sources are 79–92 KB WebP.
+    - **Idle RAF:** 0 per second at rest in every scene except two, both moving by design: the cube (it spins) and Services (it sways) run at 60 per second. The pause stops both.
+    - **Frame budget** (a wheel scroll from top to bottom):
+      - At 1× CPU, p99 is 16.8ms with no frame over 20ms, at both sizes.
+      - At 4× CPU throttling at 390×844, p95 is 33ms, 19% of frames take over 20ms and 1% over 34ms.
+      - Style recalculation costs 7.8ms a frame against 1.2ms of script. That is the lead for the Android trace: the registered custom properties that the scroll timelines animate.
+  - **Copy crossings:** captures before and after the fix, in both directions, are in `.local/phase11/transits/`.
+  - **Recordings** for the owner's sign-off, in full Chromium, git-ignored: `.local/phase11/recordings/phase11-1440x900.webm` (a wheel scroll) and `phase11-390x844.webm` (touch swipes).
+- **Open:**
+  - **Owner, on devices** (the "owner" rows of the carried-over table):
+    - The Android frame trace and fling test: USB debugging on, `adb reverse tcp:3100 tcp:3100` and `adb forward tcp:9222 localabstract:chrome_devtools_remote`, then `node .local/phase11/android-trace.mjs`.
+    - The iPhone (Safari 26) checklist, `.local/phase11/iphone-checklist.md`, at the PC's LAN address on port 3100. Windows Firewall may need to allow Node on private networks.
+    - Sign off the Phase 10 and Phase 11 recordings: the "wow and professional" sign-off.
+    - The scroll tests for Services, How I work and the deck (open since Phases 7 to 9).
+  - **Copy crossings accepted:**
+    - On a phone, the incoming dots can meet the outgoing copy's last lines at the very end of a transit. Both frames are moving then, so this is architectural.
+    - The sparse dust between FAQ and Contact crosses the FAQ rows.
+  - **Script weight:** 378 KB gzipped is react-dom, Next's runtime, Motion, Lenis and the contact form's stack (tRPC, TanStack Query, React Hook Form and Zod). `zod/mini` or a form without the tRPC client would cut more, but the measured budget doesn't need it.
+  - **The cursive logo** hasn't arrived (Phase 10).
+  - **Still as Phase 10 left them:** the stale reveal under reduced motion, the nav dot's second-frame landing, the cursor's springs stepping, and a no-JavaScript submit that delivers nothing. The push-ring shrink is gone with the push state.
+
+### Deployment (the owner's)
+
+The owner handles deployment (owner, 2026-10-01). This is the checklist, for the owner and for any session the owner asks to help.
+
+**Goal.** The page and the owner's dashboard run on a public host, with real email and readable contact messages, and nothing that runs locally today is weakened.
+
+**What it needs** (checked against the code on 2026-10-01):
+
+- **Hosting** for Next.js 16 (a Node server or a platform that runs one). `/` is prerendered and refreshed by `revalidatePath("/")` on publish, so the host must support on-demand revalidation.
+- **A hosted Supabase project:**
+  - the four migrations in `supabase/migrations/`
+  - auth's `site_url` and redirect URLs (today `localhost:3000`, plus `/auth/confirm` and `/reset-password`)
+  - signup disabled, and the owner's account created by hand
+  - new `sb_` keys (legacy `eyJ…` keys are rejected)
+  - SMTP for auth mail (password reset)
+  - backups
+- **Environment:** `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `OWNER_EMAIL` and `EMAIL_MODE`. `EMAIL_MODE` only accepts `preview` today.
+- **A live email adapter:** `EmailAdapter` has only the preview, which writes HTML to `.local/email-previews/` and sends nothing. A deployed disk may be read-only or wiped, so a live adapter must exist before launch (the Resend adapter waits for this).
+- **Reading contact messages:** they are stored in `contact_messages`, but the dashboard has no view of them yet.
+- **The client address:** `readClientAddress` trusts the first `x-forwarded-for` entry for the rate limit. The host must overwrite that header, or the rate limit must read the host's trusted header instead.
+- **A domain, DNS and HTTPS.**
+- **Merging `portfolio/phase-3` into `main`** once the owner signs off.
+- **The owner's material** before launch (the placeholders are marked in PRODUCT.md "Evidence on Hand"): the logo, the photo, the belief line and story, client quotes with permission, and real projects.
+- **Before launch:** re-check the image-variant hang (landmines) on the host, and run the e2e suite against a preview deployment.
+
+### New elements (to scope)
+
+The owner is adding more elements to the page (owner, 2026-10-01). Nothing is scoped yet. The next conversation asks what they are, where they go and what they say, then writes the phase here with its scope, owner inputs and acceptance, like the phases above. Every new section follows the DOM contract and the fit rules; the prompt is under "Start here".
 
 ### Anytime: the owner's material
 
@@ -1325,9 +1434,9 @@ These are the ones CLAUDE.md doesn't already cover:
 - **e2e without touching the dev server:**
   1. Build with `pnpm build`. It can run beside `pnpm dev`, because Next 16 writes dev output to `.next/dev`.
   2. Serve it with `pnpm exec next start -p 3100`.
-  3. Point a throwaway Playwright config at it: an absolute `testDir` of `tests/e2e`, a `baseURL` of `http://localhost:3100`, and no `webServer`.
+  3. Point a throwaway Playwright config at it: an absolute `testDir` of `tests/e2e`, a `baseURL` of `http://localhost:3100`, and no `webServer` (`.local/playwright.3100.config.ts` is one).
 
-  Delete `.next/cache/fetch-cache` before the build, or it replays a stale published document.
+  Since Phase 11 the published read is uncached, so a build no longer replays a stale document and `.next/cache/fetch-cache` needs no deleting. Don't rebuild `.next` while `next start` serves it: stop the server first.
 
 - **Diff visual regressions; don't eyeball them.** Capture the canvas with `getImageData` in a throwaway Playwright script, before and after. That is how two sub-pixel regressions were caught that screenshots hid.
 - **The hero pixel diff** is against `0a3c97a`. Mask the 72px header band and the scroll cue's row. The name's dots may differ by at most 18 pixels at DPR 1 (up to 2/255) and 14 at DPR 2 (up to 1/255), all inside the name's box. Anything more is drift. The full method is in the history.
@@ -1345,7 +1454,7 @@ These are the ones CLAUDE.md doesn't already cover:
 - **The local Supabase may have no users.** `auth.users` was empty on 2026-09-20. Logged-in specs create their own throwaway user; never ask for the owner's password.
 - **Never `pnpm db:reset`** on the owner's data. It re-seeds `site_content` as `draft = '{}'` and wipes `auth.users`. Apply new migrations with `pnpm exec supabase migration up --local`.
 - **A production server can hang on image variants.** After one full e2e run, the Phase 6 server at :3100 timed out on two uncached `_next/image` variants (the About and client placeholders at `w=384`), while other uncached variants and Phase 5's server answered at once. Every later request for those two keys hung until the server was restarted; after a restart they load at every width. It was not isolated further. If a plate shows black in a capture, request its `_next/image` URL with curl before suspecting the page. Check this again before deploying.
-- **Turbopack flags one build warning:** `path.join(process.cwd(), …)` in `email-preview.adapter.ts`. It is harmless locally; fix it before deploying.
+- **Playwright's WebKit cannot run on this machine.** Windows' Smart App Control ("An Application Control policy has blocked this file") refuses its unsigned `ssl-60.dll` and `zlib1.dll`, so `webkit.launch()` fails its host check, and with the check skipped the browser exits at once. Safari proof comes from the owner's iPhone (`.local/phase11/iphone-checklist.md`). Don't disable Smart App Control to get round it: that is the owner's system setting, and it can't simply be switched back on.
 - **Capture in full Chromium, not the headless shell.** Playwright's default `chromium-headless-shell` (SwiftShader) paints alpha-0 holes wherever an opaque sticky step overlaps the fixed canvas inside the isolated stage, so they look like white blocks. Use `channel: "chromium"` for screenshots and pixel checks. The e2e specs pass on either.
 - **Measure fit at real heights, not only nominal sizes.** Phase 2 passed at 360×640 and 740×360, then failed on an iPhone SE's real svh (about 548) and a landscape phone with its URL bar (740×304). Every layout change to a pinned scene is re-measured at all of these:
   - 375×548, 360×560 and 390×664
@@ -1357,6 +1466,7 @@ These are the ones CLAUDE.md doesn't already cover:
 
 - **The mockup canvas is private.** Only the owner can share it (Share menu). Read its comments with the artifact comments tool; never publish site code to it.
 - **A finished conversation's background workflow keeps running** (Phase 10). The first Phase 10 conversation ended its turn while its e2e agents still worked, and they went on editing specs and running against :3100 for about 45 minutes. That collided with the next session, which the first conversation then took for a rogue agent. Before resuming, check `ListAgents` and the previous session's `subagents/workflows/*/journal.jsonl` for agents still running.
+- **A background server outlives its task.** When a background `next start` hits the task time limit, only the shell wrapper stops: `node` keeps listening on the port. Find it with `Get-NetTCPConnection -LocalPort 3100 -State Listen`, check its command line, and stop that PID before rebuilding `.next`.
 - **Keep parallel Playwright agents to about four.** Eight at once crashed Chromium (`Target crashed`, exit 0xC0000142) from machine load, not from the tests.
 - **Tailwind 4's `!` utilities are `!important` inside `@layer utilities`,** so a test can't override them with an injected unlayered `!important` rule: a layered important declaration beats an unlayered one. Break them by removing the class instead.
 - **With JavaScript off in Playwright,** `page.addStyleTag` hangs and `requestAnimationFrame` from `page.evaluate` never fires. Inject a `<style>` through `evaluate`, and poll.
@@ -1373,9 +1483,11 @@ These are the ones CLAUDE.md doesn't already cover:
 - **To confirm later:** the black-and-white photo, when it arrives, and the drifting ring dots, when the owner scrolls How I work.
 - **Contact on small phones (Phase 6, for the owner to see):** the gather shows wherever the whole form fits one pinned frame (desktop, tablets, a 390×844 phone). Below that the section flows as plain black and the gather gives way, so a pin never hides the submit button.
 - **Phase 10 (for the owner):** sign off the two screen recordings in `.local/phase10/recordings/` (1440×900 and 390×844); save the cursive logo as `public/brand/logo.svg` so a session can wire it (see Phase 10's done note).
-- **Phase 11:** the pause-motion toggle (WCAG 2.2.2).
+- **Phase 11 (for the owner):** the Android trace and fling test, the iPhone checklist, and the sign-off of the Phase 10 and Phase 11 recordings (see Phase 11's done note, Open).
 - **Material:** the belief line, the story and photo, client quotes, real projects.
 - **Decided, recorded:**
+  - Phase 11 wrap-up (owner, 2026-10-01): commit Phase 11 as it stands, with the device checks still open; the owner handles deployment; more elements come next
+  - Phase 11 (owner, 2026-09-30): Phase 10 committed on its own first (`78f4973`); the cursor ring stays the small idle ring over the dots; section titles in bold Antonio that arrive big and dock into the label, the old section's text wiping out first, a black halo against the dots, a long hold, and the section's copy waiting for the title; a pause-motion toggle in the header, remembered by the browser; `SMOOTH_SCROLL_LERP` stays 0.1; devices checked by the owner at the end
   - Phase 10 (owner, 2026-09-30): Phase 9 committed on its own first (`684db97`); section text sweeps with the dots (in as they land, out as they leave, replayed every visit, body per paragraph, the stats counting with it); a hard edge for every text sweep; a 1px Wire Grey scroll-progress hairline; a 6px Lamp White nav dot shared with the cursor dot; parallax on every single-frame screen, desktop only (the owner first said no, then "I think we add parallax"); the adaptive cursor as old Part 4 designs it; the cursive logo, from the owner's own SVG
   - Phase 9 (owner, 2026-09-29): Phase 8 committed on its own first; between two projects the frame unwinds with the old project and redraws round the new plate, in place, and never flies; tabbing onto a hidden project's link brings that project onto the board, so every card stays in the tab order and the screen-reader order
   - Phase 8 (owner, 2026-09-29): Phase 7 committed on its own first; How I work is a centred wheel ("so the rotation is genuine"), with the shape centred above the numeral and the neighbouring steps dim at both edges

@@ -4,6 +4,38 @@ export const PORTFOLIO_BRAND_LABEL = "Criztian"
 
 export const SCROLL_SPY_TOLERANCE_PX = 1
 
+export const SOLID_AFTER_SCROLL_PX = 120
+
+export const MOBILE_PANEL_ID = "portfolio-mobile-nav"
+
+export const PRIMARY_NAVIGATION_LABEL = "Primary"
+
+export const SECONDARY_NAVIGATION_LABEL = "Secondary"
+
+export const MOBILE_PANEL_LABEL = "Sections"
+
+export const OPEN_MENU_LABEL = "Open menu"
+
+export const CLOSE_MENU_LABEL = "Close menu"
+
+export const BRAND_MARK = "©"
+
+export const PAUSE_MOTION_LABEL = "Pause motion"
+
+export const PLAY_MOTION_LABEL = "Play motion"
+
+export const HEADER_ACTIONS_CLASS =
+  "flex items-center gap-2 justify-self-end lg:gap-3"
+
+export const HEADER_ICON_BUTTON_CLASS =
+  "size-8 focus-visible:outline-hidden lg:size-10"
+
+export const PANEL_CURRENT_LINK_CLASS =
+  "decoration-1 underline-offset-[6px] aria-[current=true]:underline"
+
+export const MOTION_TOGGLE_CLASS =
+  "[@media(prefers-reduced-motion:reduce)]:hidden [@media(scripting:none)]:hidden"
+
 export const NAV_DOT_CLASS =
   "pointer-events-none absolute top-full left-1/2 mt-0.5 -ml-0.75 size-1.5 rounded-full bg-foreground forced-colors:bg-[CanvasText]"
 

@@ -1,10 +1,8 @@
-import { act, fireEvent, render, waitFor } from "@testing-library/react"
+import { fireEvent, render, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { CUSTOM_CURSOR_QUERY } from "@/data/motion.data"
 import { AdaptiveCursor } from "@/features/portfolio/components/adaptive-cursor.component"
-
-const PUSH_RADIUS = "150"
 
 let pointTarget: Element | null = null
 
@@ -176,23 +174,11 @@ describe("AdaptiveCursor", () => {
     expect(readCursorState()).toBe("hidden")
   })
 
-  it("rings the crater when a shape lands under a still pointer and lets go when it leaves", async () => {
+  it("stays the idle ring over the dots", () => {
     stubMediaQueries({ [CUSTOM_CURSOR_QUERY]: true })
     renderPage()
-
-    const stage = findElement("[data-status]")
-
     moveMouseOver(findElement("[data-dot-slot]"))
-    expect(readCursorState()).toBe("idle")
 
-    await act(async function landShape() {
-      stage.dataset.pushRadius = PUSH_RADIUS
-    })
-    expect(readCursorState()).toBe("push")
-
-    await act(async function flyAway() {
-      delete stage.dataset.pushRadius
-    })
     expect(readCursorState()).toBe("idle")
   })
 
@@ -233,12 +219,11 @@ describe("AdaptiveCursor", () => {
     })
   })
 
-  it("stops listening, observing the stage and marking the document on unmount", async () => {
+  it("stops listening and marking the document on unmount", () => {
     stubMediaQueries({ [CUSTOM_CURSOR_QUERY]: true })
 
     const windowUnlisten = vi.spyOn(window, "removeEventListener")
     const { unmount } = renderPage()
-    const stage = findElement("[data-status]")
 
     moveMouseOver(findElement("p"))
     unmount()
@@ -251,9 +236,6 @@ describe("AdaptiveCursor", () => {
     ])
 
     moveMouseOver(document.body)
-    await act(async function landAfterUnmount() {
-      stage.dataset.pushRadius = PUSH_RADIUS
-    })
 
     expect(readDocumentMark()).toBeUndefined()
     expect(document.elementFromPoint).toHaveBeenCalledOnce()

@@ -77,7 +77,11 @@ export const SHORT_SCREEN_COPY_GAP_CLASS =
   "mt-10 split:mt-0 [@media(max-height:44rem)]:mt-6 [@media(max-height:44rem)]:split:mt-0"
 
 export const SECTION_LABEL_CLASS =
-  "scroll-mt-18 text-[0.6875rem] leading-4 font-normal tracking-[0.22em] text-muted-foreground uppercase md:text-xs"
+  "@container scroll-mt-18 font-display text-lg/4 font-bold tracking-[0.04em] text-muted-foreground uppercase md:text-xl/4"
+
+export const SECTION_TITLE_CLASS = "swept:section-title"
+
+export const SECTION_TITLE_COUNT_CLASS = "section-title-count"
 
 export const STATEMENT_CLASS =
   "font-display font-bold text-balance wrap-break-word text-foreground uppercase"
@@ -150,9 +154,8 @@ export const FOCUS_RING_CLASS =
 
 export const SWEPT_LINE_CLASS = "swept:caption-line"
 
-export const SWEPT_LABEL_CLASS = "inline-block swept:caption-line"
-
-export const SCENE_LIT_CAPTION_CLASS = "[--caption-reveal:var(--scene-lit)]"
+export const SWEPT_LABEL_CLASS =
+  "inline-block text-foreground swept:caption-line section-title-word"
 
 export const SCREEN_TIMELINE_CLASS = "screen-timeline"
 

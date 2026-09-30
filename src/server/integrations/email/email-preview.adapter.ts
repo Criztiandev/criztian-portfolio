@@ -21,7 +21,10 @@ function buildPreviewFilename(): string {
 
 export function createEmailPreviewAdapter(): EmailAdapter {
   async function send(message: EmailMessage): Promise<EmailDeliveryResult> {
-    const directory = path.join(process.cwd(), EMAIL_PREVIEW_DIRECTORY)
+    const directory = path.join(
+      /* turbopackIgnore: true */ process.cwd(),
+      EMAIL_PREVIEW_DIRECTORY
+    )
     await mkdir(directory, { recursive: true })
 
     const filename = buildPreviewFilename()

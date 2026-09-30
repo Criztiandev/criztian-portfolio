@@ -14,8 +14,6 @@ const RING_SELECTOR = `${CURSOR_SELECTOR} > :first-child`
 
 const DOT_SELECTOR = `${CURSOR_SELECTOR} > :last-child`
 
-const PUSH_RADIUS_PATTERN = /^\d+$/
-
 const RESOLVED_STATE_PATTERN = /^(idle|action|field)$/
 
 const STAGE_TIMEOUT_MS = 15000
@@ -24,7 +22,7 @@ const SCENE_TIMEOUT_MS = 10000
 
 const STATE_TIMEOUT_MS = 2000
 
-const PUSH_RING_SETTLE_MS = 500
+const RING_SETTLE_MS = 500
 
 const RING_TOLERANCE_PX = 1
 
@@ -43,8 +41,6 @@ const FIRST_QUESTION_SELECTOR = "#faq details:first-of-type > summary"
 const LINK_SCROLL_PX = 120
 
 const LEAVE_SCROLL_PX = 300
-
-const TRANSIT_PAST_PIN_PX = 60
 
 const WHEEL_DELTA = 400
 
@@ -134,12 +130,6 @@ async function openRunningPage(page: Page, path: string, scene: string) {
   })
 
   return stage
-}
-
-async function waitForPushRadius(stage: Locator) {
-  await expect(stage).toHaveAttribute("data-push-radius", PUSH_RADIUS_PATTERN, {
-    timeout: SCENE_TIMEOUT_MS,
-  })
 }
 
 async function expectStrictCounts(page: Page) {
@@ -346,31 +336,6 @@ async function scrollByInstantly(page: Page, distance: number) {
   )
 }
 
-async function scrollPastPin(page: Page, selector: string, past: number) {
-  await page.evaluate(
-    function scrollBeyondPin(input) {
-      const container = document.querySelector<HTMLElement>(input.selector)
-      const frame = container?.firstElementChild
-
-      if (container === null || frame === null || frame === undefined) {
-        throw new Error("missing scene " + input.selector)
-      }
-
-      const stickyTop = parseFloat(getComputedStyle(container).scrollMarginTop)
-      const box = container.getBoundingClientRect()
-      const pinEnd =
-        box.top +
-        window.scrollY -
-        stickyTop +
-        box.height -
-        frame.getBoundingClientRect().height
-
-      window.scrollTo({ top: pinEnd + input.past, behavior: "instant" })
-    },
-    { selector, past }
-  )
-}
-
 async function scrollAboveDust(page: Page, distance: number) {
   await page.evaluate(
     function scrollAboveLanding(input) {
@@ -534,9 +499,7 @@ test.describe("the adaptive cursor", () => {
     const problems = collectPageProblems(page)
     const root = page.locator("html")
     const cursor = page.locator(CURSOR_SELECTOR)
-    const stage = await openRunningPage(page, "/", "name")
-
-    await waitForPushRadius(stage)
+    await openRunningPage(page, "/", "name")
 
     await expect(root).not.toHaveAttribute("data-cursor")
     await expect(cursor).toHaveCount(1)
@@ -599,20 +562,27 @@ test.describe("the adaptive cursor", () => {
   })
 
   for (const landing of DRAWING_LANDINGS) {
-    test(`outlines the ${landing.scene} crater under the pointer once it has formed`, async ({
+    test(`keeps the small idle ring over the ${landing.scene} once it has formed`, async ({
       page,
     }) => {
       const problems = collectPageProblems(page)
-      const stage = await openRunningPage(page, landing.path, landing.scene)
 
-      await waitForPushRadius(stage)
+      await openRunningPage(page, landing.path, landing.scene)
 
       const point = await moveToCentre(
         page,
         page.locator(`${landing.section} ${DOT_SLOT_SELECTOR}`)
       )
 
-      await expectCursorState(page, "push", landing.scene)
+      await expectCursorState(page, "idle", landing.scene)
+      await page.waitForTimeout(RING_SETTLE_MS)
+
+      const cursor = await readCursor(page)
+
+      expect(
+        Math.abs(cursor.ring.width - CURSOR_TUNING.ringSize),
+        `ring ${cursor.ring.width}px over the ${landing.scene}`
+      ).toBeLessThanOrEqual(RING_TOLERANCE_PX)
       expect(await isSlotUnder(page, point)).toBe(true)
       expect(problems).toEqual([])
     })
@@ -621,9 +591,8 @@ test.describe("the adaptive cursor", () => {
   for (const landing of FRAME_LANDINGS) {
     test(`never pushes over the ${landing.scene} frame`, async ({ page }) => {
       const problems = collectPageProblems(page)
-      const stage = await openRunningPage(page, landing.path, landing.scene)
 
-      await waitForPushRadius(stage)
+      await openRunningPage(page, landing.path, landing.scene)
 
       const point = await moveToCentre(
         page,
@@ -643,54 +612,27 @@ test.describe("the adaptive cursor", () => {
     })
   }
 
-  test("grows the ring to the push radius over the cube and lets go under reduced motion", async ({
+  test("keeps the small ring over the cube, with and without reduced motion", async ({
     page,
   }) => {
     const problems = collectPageProblems(page)
-    const stage = await openRunningPage(page, "/#quote", "cube")
 
-    await waitForPushRadius(stage)
+    await openRunningPage(page, "/#quote", "cube")
     await moveToCentre(page, page.locator(`#quote ${DOT_SLOT_SELECTOR}`))
-    await expectCursorState(page, "push", "over the cube")
-    await page.waitForTimeout(PUSH_RING_SETTLE_MS)
 
-    const pushRadius = Number(await stage.getAttribute("data-push-radius"))
-    const cursor = await readCursor(page)
+    for (const reducedMotion of ["no-preference", "reduce"] as const) {
+      await page.emulateMedia({ reducedMotion })
+      await expectCursorState(page, "idle", reducedMotion)
+      await page.waitForTimeout(RING_SETTLE_MS)
 
-    expect(
-      Math.abs(cursor.ring.width - pushRadius * 2),
-      `ring ${cursor.ring.width}px for a ${pushRadius}px push`
-    ).toBeLessThanOrEqual(RING_TOLERANCE_PX)
+      const cursor = await readCursor(page)
 
-    await page.emulateMedia({ reducedMotion: "reduce" })
+      expect(
+        Math.abs(cursor.ring.width - CURSOR_TUNING.ringSize),
+        `ring ${cursor.ring.width}px over the cube (${reducedMotion})`
+      ).toBeLessThanOrEqual(RING_TOLERANCE_PX)
+    }
 
-    await expect(stage).not.toHaveAttribute("data-push-radius")
-    await expectCursorState(page, "idle", "after reduced motion")
-    expect(problems).toEqual([])
-  })
-
-  test("lets go of the push ring while the dots fly out of the cube", async ({
-    page,
-  }) => {
-    const problems = collectPageProblems(page)
-    const stage = await openRunningPage(page, "/#quote", "cube")
-
-    await waitForPushRadius(stage)
-
-    const point = await moveToCentre(
-      page,
-      page.locator(`#quote ${DOT_SLOT_SELECTOR}`)
-    )
-
-    await expectCursorState(page, "push", "over the cube")
-    await scrollPastPin(page, "#quote", TRANSIT_PAST_PIN_PX)
-
-    await expect(stage).toHaveAttribute("data-scene", "moving", {
-      timeout: SCENE_TIMEOUT_MS,
-    })
-    await expect(stage).not.toHaveAttribute("data-push-radius")
-    await expectCursorState(page, "idle", "mid-transit")
-    expect(await isSlotUnder(page, point)).toBe(true)
     expect(problems).toEqual([])
   })
 

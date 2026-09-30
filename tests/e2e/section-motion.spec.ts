@@ -91,13 +91,17 @@ const CAPTION_SLIDE_PX = 24
 
 const DEFAULT_CAPTION_LAST = 2
 
+const TITLE_WORD_CLASS = "section-title-word"
+
+const TITLE_GATE_RATE = 3
+
 const HIDDEN_RIGHT_INSET_PERCENT = 100
 
 const TRANSIT_SHARES = [0.1, 0.25, 0.5, 0.75, 0.9]
 
 const REVEAL_REPLAY_TOLERANCE = 0.002
 
-const STAT_ARRIVAL_SHARE = 0.8
+const STAT_ARRIVAL_SHARE = 0.9
 
 const STAT_COUNTER_PATTERN = /^stat-count (-?\d+)$/
 
@@ -755,13 +759,32 @@ async function readSweepMismatches(page: Page, sceneIds: string[]) {
           }
 
           const lineIndex = Number(line.style.getPropertyValue("--line"))
+          const style = getComputedStyle(line)
+          const grow = Number(style.getPropertyValue("--title-grow"))
+          const gate = Math.min(
+            1,
+            Math.max(0, 1 - (Number.isNaN(grow) ? 0 : grow) * input.gateRate)
+          )
+          let captionReveal = Math.min(reveal, gate)
+
+          if (line.classList.contains(input.titleWordClass)) {
+            const hold = Number(style.getPropertyValue("--title-hold"))
+
+            captionReveal = Math.max(
+              captionReveal,
+              Number.isNaN(hold) ? 0 : hold
+            )
+          }
+
           const lineReveal = Math.min(
             1,
-            Math.max(0, reveal * (1 + last * stagger) - lineIndex * stagger)
+            Math.max(
+              0,
+              captionReveal * (1 + last * stagger) - lineIndex * stagger
+            )
           )
           const expectedRight = 100 - lineReveal * input.clipSpan
           const expectedShift = (lineReveal - 1) * input.slide
-          const style = getComputedStyle(line)
           const match = /^inset\(\S+ (\S+)/.exec(style.clipPath)
           const right = match === null ? Number.NaN : parseFloat(match[1] ?? "")
           const shift =
@@ -788,6 +811,8 @@ async function readSweepMismatches(page: Page, sceneIds: string[]) {
       slide: CAPTION_SLIDE_PX,
       tolerance: SWEEP_TOLERANCE,
       defaultLast: DEFAULT_CAPTION_LAST,
+      titleWordClass: TITLE_WORD_CLASS,
+      gateRate: TITLE_GATE_RATE,
     }
   )
 }

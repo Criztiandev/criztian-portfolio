@@ -17,8 +17,11 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
   CONTACT_ACKNOWLEDGEMENT_CLASS,
+  CONTACT_ERROR_IDS,
   CONTACT_FIELD_CLASS,
   CONTACT_SELECT_CLASS,
+  CONTACT_SEND_LABEL,
+  CONTACT_SENDING_LABEL,
   CONTACT_SERVICE_LABELS,
   CONTACT_SERVICE_PROMPT,
   CONTACT_SERVICES,
@@ -35,13 +38,13 @@ import type {
   ContactValues,
 } from "@/types/contact.type"
 
-function ContactFieldError({ message }: ContactFieldErrorProps) {
+function ContactFieldError({ id, message }: ContactFieldErrorProps) {
   if (message === undefined) {
     return null
   }
 
   return (
-    <FieldError className="flex items-start gap-1.5">
+    <FieldError id={id} className="flex items-start gap-1.5">
       <TriangleAlert aria-hidden="true" className="mt-0.75 size-3.5 shrink-0" />
       <span>{message}</span>
     </FieldError>
@@ -71,6 +74,10 @@ export function ContactForm() {
   const { errors } = form.formState
 
   function onSubmit(values: ContactValues) {
+    if (submit.isPending) {
+      return
+    }
+
     submit.mutate(values)
   }
 
@@ -91,10 +98,16 @@ export function ContactForm() {
                 className={CONTACT_FIELD_CLASS}
                 required
                 autoComplete="name"
-                aria-invalid={errors.name ? true : undefined}
+                aria-invalid={errors.name !== undefined}
+                aria-describedby={
+                  errors.name ? CONTACT_ERROR_IDS.name : undefined
+                }
                 {...form.register("name")}
               />
-              <ContactFieldError message={errors.name?.message} />
+              <ContactFieldError
+                id={CONTACT_ERROR_IDS.name}
+                message={errors.name?.message}
+              />
             </Field>
 
             <Field>
@@ -105,10 +118,16 @@ export function ContactForm() {
                 required
                 type="email"
                 autoComplete="email"
-                aria-invalid={errors.email ? true : undefined}
+                aria-invalid={errors.email !== undefined}
+                aria-describedby={
+                  errors.email ? CONTACT_ERROR_IDS.email : undefined
+                }
                 {...form.register("email")}
               />
-              <ContactFieldError message={errors.email?.message} />
+              <ContactFieldError
+                id={CONTACT_ERROR_IDS.email}
+                message={errors.email?.message}
+              />
             </Field>
           </div>
 
@@ -119,7 +138,10 @@ export function ContactForm() {
                 id="contact-service"
                 required
                 defaultValue=""
-                aria-invalid={errors.service ? true : undefined}
+                aria-invalid={errors.service !== undefined}
+                aria-describedby={
+                  errors.service ? CONTACT_ERROR_IDS.service : undefined
+                }
                 className={CONTACT_SELECT_CLASS}
                 {...form.register("service")}
               >
@@ -136,10 +158,13 @@ export function ContactForm() {
               </select>
               <ChevronDown
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-y-0 right-3 my-auto size-3 text-foreground/75 split:right-4"
+                className="pointer-events-none absolute inset-y-0 right-3 my-auto size-3 text-foreground/75 forced-colors:text-[CanvasText] split:right-4"
               />
             </div>
-            <ContactFieldError message={errors.service?.message} />
+            <ContactFieldError
+              id={CONTACT_ERROR_IDS.service}
+              message={errors.service?.message}
+            />
           </Field>
 
           <Field>
@@ -151,10 +176,16 @@ export function ContactForm() {
               data-lenis-prevent=""
               className={cn(CONTACT_FIELD_CLASS, "h-auto min-h-28 py-2.5")}
               required
-              aria-invalid={errors.message ? true : undefined}
+              aria-invalid={errors.message !== undefined}
+              aria-describedby={
+                errors.message ? CONTACT_ERROR_IDS.message : undefined
+              }
               {...form.register("message")}
             />
-            <ContactFieldError message={errors.message?.message} />
+            <ContactFieldError
+              id={CONTACT_ERROR_IDS.message}
+              message={errors.message?.message}
+            />
           </Field>
 
           <div aria-hidden="true" className="sr-only">
@@ -174,16 +205,25 @@ export function ContactForm() {
           />
 
           <ContactFieldError
+            id={CONTACT_ERROR_IDS.submit}
             message={submit.isError ? submit.error.message : undefined}
           />
 
           <Button
             type="submit"
             disabled={submit.isPending}
+            focusableWhenDisabled
+            aria-describedby={
+              submit.isError ? CONTACT_ERROR_IDS.submit : undefined
+            }
             className={CONTACT_SUBMIT_CLASS}
           >
-            {submit.isPending ? "Sending…" : "Send message"}
+            {submit.isPending ? CONTACT_SENDING_LABEL : CONTACT_SEND_LABEL}
           </Button>
+
+          <p role="status" className="sr-only">
+            {submit.isPending ? CONTACT_SENDING_LABEL : ""}
+          </p>
         </FieldGroup>
       </form>
 

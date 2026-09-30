@@ -15,6 +15,7 @@ import {
   SCREEN_TIMELINE_CLASS,
   SECTION_FRAME_CLASS,
   SECTION_LABEL_CLASS,
+  SECTION_TITLE_CLASS,
   STATEMENT_CLASS,
   STATEMENT_SIZE_CLASSES,
   SWEPT_LABEL_CLASS,
@@ -46,6 +47,7 @@ export function ContactSection() {
       className={cn(
         SECTION_FRAME_CLASS,
         SCREEN_TIMELINE_CLASS,
+        SECTION_TITLE_CLASS,
         "text-foreground"
       )}
     >

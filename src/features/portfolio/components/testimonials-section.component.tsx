@@ -16,6 +16,7 @@ import {
   SCREEN_TIMELINE_CLASS,
   SECTION_FRAME_CLASS,
   SECTION_LABEL_CLASS,
+  SECTION_TITLE_CLASS,
   SHORT_SCREEN_COPY_GAP_CLASS,
   STATEMENT_CLASS,
   STATEMENT_SIZE_CLASSES,
@@ -60,6 +61,7 @@ export function TestimonialsSection() {
       className={cn(
         SECTION_FRAME_CLASS,
         SCREEN_TIMELINE_CLASS,
+        SECTION_TITLE_CLASS,
         "text-foreground"
       )}
     >

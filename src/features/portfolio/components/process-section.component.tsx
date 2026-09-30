@@ -6,7 +6,10 @@ import {
   PROCESS_SCENE,
   SCREEN_INSET_CLASS,
   SCREEN_LABEL_BOX_CLASS,
+  SCREEN_TIMELINE_CLASS,
   SECTION_LABEL_CLASS,
+  SECTION_TITLE_CLASS,
+  SECTION_TITLE_COUNT_CLASS,
   STEP_NUMBER_DIGITS,
   SWEPT_LABEL_CLASS,
   TITLE_CLASS,
@@ -135,7 +138,8 @@ export function ProcessSection() {
       className={cn(
         SCREEN_INSET_CLASS,
         "grid w-full scroll-mt-18",
-        "[view-timeline-inset:4.5rem_0] [view-timeline-name:--step-scene]",
+        SCREEN_TIMELINE_CLASS,
+        SECTION_TITLE_CLASS,
         "[--orbit-numeral:clamp(4.5rem,17.8svh,9.375rem)] split:[--orbit-numeral:clamp(6rem,45svh_-_9.5rem,20rem)]",
         "[--orbit-copy:10.625rem] split:[--orbit-copy:9.5rem] short:[--orbit-copy:6.5rem]",
         "[--orbit-step:calc(0.98_*_var(--orbit-numeral)_+_var(--orbit-copy))]",
@@ -187,7 +191,13 @@ export function ProcessSection() {
             >
               {heading}
             </span>
-            <span aria-hidden="true" className="hidden staged:inline-grid">
+            <span
+              aria-hidden="true"
+              className={cn(
+                "hidden staged:inline-grid",
+                SECTION_TITLE_COUNT_CLASS
+              )}
+            >
               {shapeIds.map(renderPosition)}
             </span>
           </h2>
@@ -211,7 +221,7 @@ export function ProcessSection() {
         )}
       >
         <div className="mx-auto grid h-full w-full max-w-[105rem] px-6 md:px-10 unpinned:block">
-          <ol className="relative pt-[var(--orbit-step-top)] unpinned:pt-0 staged:pt-0">
+          <ol className="relative pt-[var(--orbit-step-top)] unpinned:static unpinned:pt-0 staged:pt-0">
             {steps.map(renderStep)}
           </ol>
         </div>

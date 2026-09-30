@@ -14,7 +14,7 @@ import {
 import {
   hasFontLoadingApi,
   hasResizeObserver,
-  readReducedMotionQuery,
+  subscribeMotionPreference,
 } from "@/features/portfolio/browser-capability.rules"
 import type { SceneFitGateProps } from "@/types/page-sections.type"
 
@@ -168,9 +168,7 @@ export function SceneFitGate({ shapes }: Readonly<SceneFitGateProps>) {
         }
       }
 
-      const motionQuery = readReducedMotionQuery()
-
-      motionQuery?.addEventListener("change", scheduleCheck)
+      const releaseMotionPreference = subscribeMotionPreference(scheduleCheck)
 
       if (hasFontLoadingApi()) {
         void document.fonts.ready.then(scheduleCheck)
@@ -182,7 +180,7 @@ export function SceneFitGate({ shapes }: Readonly<SceneFitGateProps>) {
         isCancelled = true
         window.cancelAnimationFrame(frameId)
         observer?.disconnect()
-        motionQuery?.removeEventListener("change", scheduleCheck)
+        releaseMotionPreference()
         delete container.dataset.fit
 
         if (!slot.hasAttribute(SCENE_SLOT_ATTRIBUTE)) {
