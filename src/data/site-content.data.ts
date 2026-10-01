@@ -1,7 +1,11 @@
 import type {
+  ConnectTextField,
+  ContactTextField,
   EditorPreviewWidthOption,
   EditorSaveState,
   EditorUiState,
+  FaqItem,
+  FaqItemField,
   HeroTextField,
   ProjectItem,
   ProjectItemField,
@@ -148,6 +152,141 @@ export const PROJECT_ITEM_FIELDS: ProjectItemField[] = [
   },
 ]
 
+export const FAQ_MAX = 12
+
+export const FAQ_QUESTION_MAX_LENGTH = 120
+
+export const FAQ_ANSWER_MAX_LENGTH = 400
+
+export const DEFAULT_FAQ_ITEMS: FaqItem[] = [
+  {
+    question: "What is included in your branding services?",
+    answer:
+      "My branding services include logo design, visual identity development, color palette selection, typography guidance and brand messaging to create a cohesive and impactful identity for your business.",
+  },
+  {
+    question: "How long does it take to complete a branding project?",
+    answer:
+      "The timeline varies depending on the scope, but a typical branding project takes 4–6 weeks from initial consultation to final delivery.",
+  },
+  {
+    question: "Do you offer mobile-friendly designs?",
+    answer:
+      "Yes. All my web designs are fully responsive and optimized for desktops, tablets and mobile devices to ensure a seamless user experience.",
+  },
+  {
+    question: "Can you redesign an existing website?",
+    answer:
+      "Absolutely. I can revamp your current website to improve its functionality, aesthetics and performance while retaining key elements of your brand.",
+  },
+  {
+    question: "Do you provide custom development solutions?",
+    answer:
+      "Yes. I specialize in creating custom web solutions tailored to your specific business needs, including e-commerce platforms, CMS integrations and more.",
+  },
+  {
+    question: "Will I be able to update the website on my own?",
+    answer:
+      "Yes. I build websites on user-friendly platforms like Webflow or WordPress, so you can manage and update your site without technical expertise.",
+  },
+  {
+    question: "How do you approach digital marketing campaigns?",
+    answer:
+      "I start with a deep understanding of your audience and goals, then craft data-driven strategies that include SEO, social media marketing and email campaigns.",
+  },
+  {
+    question: "What are the payment methods and plans for a project?",
+    answer:
+      "I accept multiple payment methods, mostly PayPal, and can set up flexible payment plans based on the project's scale.",
+  },
+  {
+    question: "Do you offer discounts for long-term collaboration?",
+    answer:
+      "Yes. I offer preferential pricing for clients in long-term collaborations. Contact me for details.",
+  },
+]
+
+export const NEW_FAQ_ITEM: FaqItem = {
+  question: "New question",
+  answer: "",
+}
+
+export const FAQ_QUESTION_HINT =
+  "Leave it blank to hide this question on the page."
+
+export const FAQ_ITEM_FIELDS: FaqItemField[] = [
+  {
+    key: "question",
+    label: "Question",
+    maxLength: FAQ_QUESTION_MAX_LENGTH,
+    multiline: false,
+    hint: FAQ_QUESTION_HINT,
+  },
+  {
+    key: "answer",
+    label: "Answer",
+    maxLength: FAQ_ANSWER_MAX_LENGTH,
+    multiline: true,
+    hint: null,
+  },
+]
+
+export const CONNECT_STATEMENT_MAX_LENGTH = 60
+
+export const CONNECT_EMAIL_PROMPT_MAX_LENGTH = 40
+
+export const CONNECT_EMAIL_MAX_LENGTH = 120
+
+export const DEFAULT_CONNECT_STATEMENT = "Let's connect."
+
+export const DEFAULT_CONNECT_EMAIL_PROMPT = "Or email me:"
+
+export const DEFAULT_CONNECT_EMAIL = "criztiandev@gmail.com"
+
+export const CONTACT_LABEL_MAX_LENGTH = 16
+
+export const CONTACT_STATEMENT_MAX_LENGTH = 60
+
+export const DEFAULT_CONTACT_LABEL = "Get in touch"
+
+export const DEFAULT_CONTACT_STATEMENT = "Let's start your project today."
+
+export const CONNECT_TEXT_FIELDS: ConnectTextField[] = [
+  {
+    key: "statement",
+    label: "Statement",
+    maxLength: CONNECT_STATEMENT_MAX_LENGTH,
+    inputType: "text",
+  },
+  {
+    key: "emailPrompt",
+    label: "Email line",
+    maxLength: CONNECT_EMAIL_PROMPT_MAX_LENGTH,
+    inputType: "text",
+  },
+  {
+    key: "email",
+    label: "Email address",
+    maxLength: CONNECT_EMAIL_MAX_LENGTH,
+    inputType: "email",
+  },
+]
+
+export const CONTACT_TEXT_FIELDS: ContactTextField[] = [
+  {
+    key: "label",
+    label: "Label",
+    maxLength: CONTACT_LABEL_MAX_LENGTH,
+    inputType: "text",
+  },
+  {
+    key: "statement",
+    label: "Statement",
+    maxLength: CONTACT_STATEMENT_MAX_LENGTH,
+    inputType: "text",
+  },
+]
+
 export const RICH_TEXT_NODE_TYPES = [
   "doc",
   "paragraph",
@@ -210,6 +349,21 @@ export const SITE_CONTENT_ENTRIES: SiteContentEntry[] = [
     id: "projects",
     label: "Projects",
     sectionId: "project",
+  },
+  {
+    id: "faq",
+    label: "FAQ",
+    sectionId: "faq",
+  },
+  {
+    id: "connect",
+    label: "Let's connect",
+    sectionId: "connect",
+  },
+  {
+    id: "contact",
+    label: "Get in touch",
+    sectionId: "contact",
   },
   {
     id: "theme",

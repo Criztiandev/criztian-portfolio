@@ -1,118 +1,181 @@
-import { Plus } from "lucide-react"
-
 import {
   BODY_CLASS,
   COPY_DRIFT_CLASS,
   FAQ_DISCLOSURE_CLASS,
+  FAQ_PLUS_PATH,
   FAQ_PLUS_TURN_CLASS,
   FAQ_SECTION,
+  FAQ_SLOT_HEIGHT_CLASS,
   FOCUS_RING_CLASS,
+  FAQ_HOLD_CLASS,
   SCREEN_CLASS,
-  SCREEN_COPY_CLASS,
-  SCREEN_HEIGHT_CLASS,
   SCREEN_LABEL_CLASS,
-  SCREEN_OBJECT_CLASS,
   SCREEN_TIMELINE_CLASS,
   SECTION_FRAME_CLASS,
   SECTION_LABEL_CLASS,
-  STATEMENT_CLASS,
-  STATEMENT_SIZE_CLASSES,
+  SECTION_TITLE_CLASS,
   SWEPT_LABEL_CLASS,
   SWEPT_LINE_CLASS,
 } from "@/data/page-sections.data"
 import {
+  formatFaqNumber,
+  selectVisibleFaqItems,
+} from "@/features/portfolio/faq.rules"
+import {
   buildCopyDriftStyle,
   buildLineStyle,
+  buildSceneCaptionStyle,
 } from "@/features/portfolio/step-motion.rules"
 import { cn } from "@/lib/utils"
+import type { FaqSectionProps } from "@/types/page-sections.type"
+import type { FaqItem } from "@/types/site-content.type"
 
-export function FaqSection() {
+export function FaqSection({ faq }: Readonly<FaqSectionProps>) {
+  const { id, headingId, heading, sceneId, shapes } = FAQ_SECTION
+  const visibleItems = selectVisibleFaqItems(faq.items)
+  const sceneStyle = {
+    ...buildSceneCaptionStyle(visibleItems.length),
+    ...buildCopyDriftStyle(),
+  }
+
+  function renderItem(item: FaqItem, itemIndex: number) {
+    return (
+      <li
+        key={itemIndex}
+        style={buildLineStyle(itemIndex + 1) as React.CSSProperties}
+        className={cn("border-t border-rule last:border-b", SWEPT_LINE_CLASS)}
+      >
+        <details className={cn("group/faq", FAQ_DISCLOSURE_CLASS)}>
+          <summary
+            className={cn(
+              "flex min-h-12 cursor-pointer list-none items-center gap-3.5 py-3 text-left",
+              "md:min-h-14 md:gap-5 md:py-3.5 [&::-webkit-details-marker]:hidden",
+              FOCUS_RING_CLASS
+            )}
+          >
+            <span
+              aria-hidden="true"
+              className={cn(
+                "w-6.5 shrink-0 font-display text-base/none font-bold tracking-[0.04em]",
+                "text-muted-foreground tabular-nums md:w-9 md:text-xl/none"
+              )}
+            >
+              {formatFaqNumber(itemIndex)}
+            </span>
+
+            <span
+              className={cn(
+                "flex-1 font-display text-xl/[1.05] font-bold tracking-[0.02em]",
+                "text-foreground/75 uppercase group-open/faq:text-foreground",
+                "md:text-[1.625rem]/[1.05]"
+              )}
+            >
+              {item.question}
+            </span>
+
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 14 14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              className={cn(
+                "size-3.5 shrink-0 text-foreground/75 forced-colors:text-[CanvasText]",
+                "group-open/faq:rotate-45",
+                FAQ_PLUS_TURN_CLASS
+              )}
+            >
+              <path d={FAQ_PLUS_PATH} />
+            </svg>
+          </summary>
+
+          <p
+            hidden={item.answer === ""}
+            className={cn(
+              BODY_CLASS,
+              "max-w-[calc(40ch_+_2.5rem)] pb-4 pl-10",
+              "md:max-w-[calc(40ch_+_3.5rem)] md:pb-5 md:pl-14"
+            )}
+          >
+            {item.answer}
+          </p>
+        </details>
+      </li>
+    )
+  }
+
   return (
     <section
-      id={FAQ_SECTION.id}
-      aria-labelledby={FAQ_SECTION.headingId}
-      style={buildCopyDriftStyle() as React.CSSProperties}
+      id={id}
+      data-dot-scene={sceneId}
+      data-dot-shapes={shapes}
+      aria-labelledby={headingId}
+      style={sceneStyle as React.CSSProperties}
       className={cn(
         SECTION_FRAME_CLASS,
-        SCREEN_CLASS,
-        SCREEN_HEIGHT_CLASS,
         SCREEN_TIMELINE_CLASS,
-        "text-foreground"
+        SECTION_TITLE_CLASS,
+        "grid text-foreground"
       )}
     >
-      <h2
-        id={FAQ_SECTION.headingId}
-        className={cn(SECTION_LABEL_CLASS, SCREEN_LABEL_CLASS)}
-      >
-        <span
-          style={buildLineStyle(0) as React.CSSProperties}
-          className={SWEPT_LABEL_CLASS}
-        >
-          {FAQ_SECTION.heading}
-        </span>
-      </h2>
-
       <div
-        className={cn(SCREEN_COPY_CLASS, "mt-2 split:mt-0", COPY_DRIFT_CLASS)}
+        className={cn(
+          SCREEN_CLASS,
+          "sticky top-18 h-[calc(100svh_-_4.5rem)] self-start [grid-area:1/1]",
+          "group-data-[status=unsupported]/stage:hidden"
+        )}
       >
-        <p
+        <div
+          data-dot-slot=""
           aria-hidden="true"
-          style={buildLineStyle(1) as React.CSSProperties}
           className={cn(
-            STATEMENT_CLASS,
-            STATEMENT_SIZE_CLASSES.faq,
-            SWEPT_LINE_CLASS
+            "mt-8 w-full shrink-0 touch-pan-y touch-pinch-zoom",
+            FAQ_SLOT_HEIGHT_CLASS,
+            "split:col-start-2 split:row-span-2 split:row-start-1 split:mt-0 split:aspect-square split:h-auto",
+            "split:w-[min(30rem,100%,calc(100svh_-_4.5rem_-_min(3.5rem,6svh)_-_min(4rem,7svh)))]",
+            "split:self-center split:justify-self-center"
           )}
-        >
-          {FAQ_SECTION.heading}
-        </p>
+        />
       </div>
 
       <div
         className={cn(
-          SCREEN_OBJECT_CLASS,
-          "mt-4 w-full split:mt-0 split:justify-self-stretch"
+          SCREEN_CLASS,
+          "pointer-events-none relative [grid-area:1/1]",
+          FAQ_HOLD_CLASS
         )}
       >
-        {FAQ_SECTION.items.map(function renderItem(item, itemIndex) {
-          return (
-            <details
-              key={item.question}
-              style={buildLineStyle(itemIndex + 2) as React.CSSProperties}
-              className={cn(
-                "group/faq border-t border-rule last:border-b",
-                FAQ_DISCLOSURE_CLASS,
-                SWEPT_LINE_CLASS
-              )}
-            >
-              <summary
-                className={cn(
-                  "flex min-h-11 cursor-pointer list-none items-center justify-between gap-3",
-                  "py-1 text-left [&::-webkit-details-marker]:hidden",
-                  "md:min-h-14 md:gap-6",
-                  FOCUS_RING_CLASS
-                )}
-              >
-                <span className="text-[0.9375rem] leading-5 font-medium text-foreground md:text-[1.0625rem] md:leading-[1.375rem]">
-                  {item.question}
-                </span>
+        <h2
+          id={headingId}
+          className={cn(SECTION_LABEL_CLASS, SCREEN_LABEL_CLASS)}
+        >
+          <span
+            style={buildLineStyle(0) as React.CSSProperties}
+            className={SWEPT_LABEL_CLASS}
+          >
+            {heading}
+          </span>
+        </h2>
 
-                <Plus
-                  aria-hidden="true"
-                  className={cn(
-                    "size-3.5 shrink-0 text-foreground/75",
-                    "group-open/faq:rotate-45",
-                    FAQ_PLUS_TURN_CLASS
-                  )}
-                />
-              </summary>
+        <div
+          className={cn(
+            "mt-4 mb-6 shrink-0 split:hidden",
+            FAQ_SLOT_HEIGHT_CLASS,
+            "group-data-[status=unsupported]/stage:h-0 [@media(scripting:none)]:h-0"
+          )}
+        />
 
-              <p className={cn(BODY_CLASS, "pr-6.5 pb-3.5 md:pr-0 md:pb-5")}>
-                {item.answer}
-              </p>
-            </details>
-          )
-        })}
+        <div
+          className={cn(
+            COPY_DRIFT_CLASS,
+            "pointer-events-auto bg-background",
+            "split:col-start-1 split:row-start-2 split:mt-6 split:self-start split:bg-transparent"
+          )}
+        >
+          {visibleItems.length > 0 ? (
+            <ol>{visibleItems.map(renderItem)}</ol>
+          ) : null}
+        </div>
       </div>
     </section>
   )

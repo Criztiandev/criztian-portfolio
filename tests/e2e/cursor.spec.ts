@@ -3,6 +3,7 @@ import type { Locator, Page } from "@playwright/test"
 
 import { DOT_SLOT_SELECTOR, DOT_STAGE_SELECTOR } from "@/data/hero.data"
 import { CURSOR_TUNING } from "@/data/motion.data"
+import { FAQ_SECTION } from "@/data/page-sections.data"
 import { PROJECTS_SCENE_ID } from "@/data/portfolio.data"
 import { formatSceneStepId } from "@/features/portfolio/dot-field.rules"
 
@@ -32,11 +33,17 @@ const OPEN_POINT = { x: 720, y: 450 }
 
 const FAR_POINT = { x: 1100, y: 760 }
 
+const FAQ_OPEN_POINT = { x: 1100, y: 150 }
+
 const EDGE_POINT = { x: 720, y: 2 }
 
 const OUTSIDE_POINT = { x: 720, y: -20 }
 
-const FIRST_QUESTION_SELECTOR = "#faq details:first-of-type > summary"
+const FAQ_LANDING = { path: `/#${FAQ_SECTION.id}`, scene: FAQ_SECTION.sceneId }
+
+const FIRST_QUESTION_SELECTOR = `#${FAQ_SECTION.id} li:first-child summary`
+
+const FIRST_CHIP_SELECTOR = "#contact [role='radiogroup'] label:first-of-type"
 
 const LINK_SCROLL_PX = 120
 
@@ -65,9 +72,15 @@ const ACTION_TARGETS = [
   },
   {
     name: "a question",
-    path: "/#faq",
-    scene: "dust",
+    path: FAQ_LANDING.path,
+    scene: FAQ_LANDING.scene,
     selector: FIRST_QUESTION_SELECTOR,
+  },
+  {
+    name: "a service chip",
+    path: "/#contact",
+    scene: "contact",
+    selector: FIRST_CHIP_SELECTOR,
   },
   {
     name: "the submit button",
@@ -77,12 +90,7 @@ const ACTION_TARGETS = [
   },
 ]
 
-const CONTACT_FIELDS = [
-  "#contact-name",
-  "#contact-email",
-  "#contact-service",
-  "#contact-message",
-]
+const CONTACT_FIELDS = ["#contact-name", "#contact-email", "#contact-message"]
 
 const DRAWING_LANDINGS = [
   { path: "/", scene: "name", section: "#home" },
@@ -336,15 +344,13 @@ async function scrollByInstantly(page: Page, distance: number) {
   )
 }
 
-async function scrollAboveDust(page: Page, distance: number) {
+async function scrollAboveFaq(page: Page, distance: number) {
   await page.evaluate(
     function scrollAboveLanding(input) {
-      const container = document.querySelector<HTMLElement>(
-        "[data-dot-scene='dust']"
-      )
+      const container = document.getElementById(input.sectionId)
 
       if (container === null) {
-        throw new Error("missing the dust scene")
+        throw new Error("missing the FAQ scene")
       }
 
       const landing =
@@ -354,7 +360,7 @@ async function scrollAboveDust(page: Page, distance: number) {
 
       window.scrollTo({ top: landing - input.distance, behavior: "instant" })
     },
-    { distance }
+    { distance, sectionId: FAQ_SECTION.id }
   )
 }
 
@@ -641,7 +647,7 @@ test.describe("the adaptive cursor", () => {
   }) => {
     const problems = collectPageProblems(page)
 
-    await openRunningPage(page, "/#faq", "dust")
+    await openRunningPage(page, FAQ_LANDING.path, FAQ_LANDING.scene)
 
     const question = await page.locator(FIRST_QUESTION_SELECTOR).boundingBox()
 
@@ -669,7 +675,7 @@ test.describe("the adaptive cursor", () => {
   }) => {
     const problems = collectPageProblems(page)
 
-    await openRunningPage(page, "/#faq", "dust")
+    await openRunningPage(page, FAQ_LANDING.path, FAQ_LANDING.scene)
     await page.mouse.move(OPEN_POINT.x, OPEN_POINT.y)
     await page.mouse.move(EDGE_POINT.x, EDGE_POINT.y)
     await expectCursorState(page, "idle", "at the top edge")
@@ -690,8 +696,8 @@ test.describe("the adaptive cursor", () => {
     const problems = collectPageProblems(page)
     const root = page.locator("html")
 
-    await openRunningPage(page, "/#faq", "dust")
-    await page.mouse.move(OPEN_POINT.x, OPEN_POINT.y)
+    await openRunningPage(page, FAQ_LANDING.path, FAQ_LANDING.scene)
+    await page.mouse.move(FAQ_OPEN_POINT.x, FAQ_OPEN_POINT.y)
     await expectCursorState(page, "idle", "after the mouse move")
     await expect(root).toHaveAttribute("data-cursor", "on")
 
@@ -712,7 +718,7 @@ test.describe("the adaptive cursor", () => {
     expect(problems).toEqual([])
   })
 
-  test("requests no animation frame at rest in dust after moving the mouse and scrolling", async ({
+  test("requests no animation frame at rest in the FAQ after moving the mouse and scrolling", async ({
     page,
   }) => {
     const problems = collectPageProblems(page)
@@ -723,12 +729,12 @@ test.describe("the adaptive cursor", () => {
 
     await page.mouse.move(OPEN_POINT.x, OPEN_POINT.y)
     await expect(page.locator("html")).toHaveAttribute("data-cursor", "on")
-    await scrollAboveDust(page, WHEEL_DELTA)
+    await scrollAboveFaq(page, WHEEL_DELTA)
 
     const callsBeforeWheel = await readFrameCalls(page)
 
     await page.mouse.wheel(0, WHEEL_DELTA)
-    await expect(stage).toHaveAttribute("data-scene", "dust", {
+    await expect(stage).toHaveAttribute("data-scene", FAQ_LANDING.scene, {
       timeout: SCENE_TIMEOUT_MS,
     })
     await page.mouse.move(FAR_POINT.x, FAR_POINT.y)
@@ -739,10 +745,10 @@ test.describe("the adaptive cursor", () => {
         function countRestingFrames() {
           return countFramesOver(page, REST_WINDOW_MS)
         },
-        { message: "frames at rest in dust", timeout: REST_TIMEOUT_MS }
+        { message: "frames at rest in the FAQ", timeout: REST_TIMEOUT_MS }
       )
       .toBe(0)
-    await expect(stage).toHaveAttribute("data-scene", "dust")
+    await expect(stage).toHaveAttribute("data-scene", FAQ_LANDING.scene)
     expect(problems).toEqual([])
   })
 
@@ -752,7 +758,7 @@ test.describe("the adaptive cursor", () => {
     const problems = collectPageProblems(page)
     const body = page.locator("body")
 
-    await openRunningPage(page, "/#faq", "dust")
+    await openRunningPage(page, FAQ_LANDING.path, FAQ_LANDING.scene)
     await page.mouse.move(OPEN_POINT.x, OPEN_POINT.y)
     await expect(page.locator("html")).toHaveAttribute("data-cursor", "on")
     await expect(body).toHaveCSS("cursor", "none")
@@ -773,8 +779,8 @@ test.describe("the adaptive cursor under reduced motion", () => {
   }) => {
     const problems = collectPageProblems(page)
 
-    await openRunningPage(page, "/#faq", "dust")
-    await page.mouse.move(OPEN_POINT.x, OPEN_POINT.y)
+    await openRunningPage(page, FAQ_LANDING.path, FAQ_LANDING.scene)
+    await page.mouse.move(FAQ_OPEN_POINT.x, FAQ_OPEN_POINT.y)
     await expectCursorState(page, "idle", "after the first move")
     await watchRingAfterMoves(page)
 

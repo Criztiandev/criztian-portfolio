@@ -26,6 +26,8 @@ const COUNT_SELECTOR = `.${SECTION_TITLE_COUNT_CLASS}`
 
 const SLOT_SELECTOR = `[${SCENE_SLOT_ATTRIBUTE}]`
 
+const LINE_SELECTOR = '[class*="swept:caption-line"]'
+
 const STATEMENT_SELECTOR = ".font-display"
 
 const TITLE_VIEWPORTS = [
@@ -39,6 +41,7 @@ const TITLED_SECTIONS = [
   { id: PROCESS_SCENE.id, hasCount: true },
   { id: ABOUT_SECTION.id, hasCount: false },
   { id: TESTIMONIALS_SECTION.id, hasCount: false },
+  { id: FAQ_SECTION.id, hasCount: false },
   { id: CONTACT_SECTION.id, hasCount: false },
 ]
 
@@ -62,19 +65,27 @@ const HIDDEN_RIGHT_INSET_PERCENT = 100
 
 const BEFORE_ENTRY_SHARE = -0.1
 
-const HIDDEN_SHARES = [0.2, 0.32]
+const HIDDEN_SHARES = [0.03, 0.08]
 
-const ARRIVAL_SHARES = [0.46, 0.56, 0.66]
+const ARRIVAL_SHARES = [0.42, 0.52, 0.62]
 
-const RETURN_SHARE = 0.56
+const RETURN_SHARE = 0.52
 
-const COVER_SHARES = [0.44, 0.55, 0.66, 0.8]
+const COVER_SHARES = [0.42, 0.52, 0.62, 0.8]
 
-const COPY_HELD_SHARES = [0.55, 0.76]
+const COPY_HELD_SHARES = [0.52, 0.76]
 
-const DOCKED_SHARES = [0.92, 0.94, 0.96, 0.98, 1]
+const DOCKED_SHARES = [0.97, 0.98, 0.99, 1]
 
 const SCROLL_STEPS = 10
+
+const HOLD_STEPS = 40
+
+const HOLD_LOW = 0.05
+
+const HOLD_HIGH = 0.95
+
+const HOLD_RISE_MIN_SHARE = 0.2
 
 const RUNNING_TIMEOUT_MS = 15000
 
@@ -107,6 +118,7 @@ type Statement = {
 }
 
 type TitleReading = {
+  hold: number
   scale: string
   fontFamily: string
   fontWeight: string
@@ -425,10 +437,12 @@ async function readTitle(page: Page, id: string): Promise<TitleReading> {
           continue
         }
 
-        frame.push(readBox("statement", candidate))
+        const copy = candidate.closest(input.lineSelector) ?? candidate
+
+        frame.push(readBox("statement", copy))
         statement = {
-          clipPath: getComputedStyle(candidate).clipPath,
-          inks: readInks(candidate),
+          clipPath: getComputedStyle(copy).clipPath,
+          inks: readInks(copy),
         }
         break
       }
@@ -438,6 +452,7 @@ async function readTitle(page: Page, id: string): Promise<TitleReading> {
       }
 
       return {
+        hold: Number(style.getPropertyValue("--title-hold")),
         scale: style.scale,
         fontFamily: style.fontFamily,
         fontWeight: style.fontWeight,
@@ -458,19 +473,24 @@ async function readTitle(page: Page, id: string): Promise<TitleReading> {
       countSelector: COUNT_SELECTOR,
       slotSelector: SLOT_SELECTOR,
       statementSelector: STATEMENT_SELECTOR,
+      lineSelector: LINE_SELECTOR,
     }
   )
 }
 
-async function walkEntry(page: Page, id: string): Promise<EntrySample[]> {
+async function walkEntry(
+  page: Page,
+  id: string,
+  steps: number
+): Promise<EntrySample[]> {
   const range = await readEntryRange(page, id)
   const samples: EntrySample[] = []
 
   await scrollToPosition(page, resolveEntryTop(range, BEFORE_ENTRY_SHARE))
   await waitForDotsRest(page)
 
-  for (let step = 0; step <= SCROLL_STEPS; step += 1) {
-    const share = step / SCROLL_STEPS
+  for (let step = 0; step <= steps; step += 1) {
+    const share = step / steps
 
     await scrollToPosition(page, resolveEntryTop(range, share))
     await waitForTwoFrames(page)
@@ -756,6 +776,39 @@ function findGrownSamples(id: string, samples: EntrySample[]): string[] {
   }
 
   return problems
+}
+
+function findHoldRiseProblems(id: string, samples: EntrySample[]): string[] {
+  const holds: string[] = []
+  let lastLowShare: number | null = null
+  let firstHighShare: number | null = null
+
+  for (const sample of samples) {
+    holds.push(`${sample.share}: ${sample.reading.hold}`)
+
+    if (firstHighShare !== null) {
+      continue
+    }
+
+    if (sample.reading.hold > HOLD_HIGH) {
+      firstHighShare = sample.share
+    } else if (sample.reading.hold < HOLD_LOW) {
+      lastLowShare = sample.share
+    }
+  }
+
+  if (lastLowShare === null || firstHighShare === null) {
+    return [`${id} never sweeps its word in: ${holds.join(", ")}`]
+  }
+
+  if (firstHighShare - lastLowShare < HOLD_RISE_MIN_SHARE) {
+    return [
+      `${id} sweeps its word in from ${lastLowShare} to ${firstHighShare} ` +
+        "of its entry",
+    ]
+  }
+
+  return []
 }
 
 function findStillProblems(id: string, samples: EntrySample[]): string[] {
@@ -1057,7 +1110,7 @@ for (const viewport of TITLE_VIEWPORTS) {
       expect(problems).toEqual([])
     })
 
-    test("docks every label from 92% of its entry to the pin and grows it again on the way back", async ({
+    test("docks every label from 97% of its entry to the pin and grows it again on the way back", async ({
       page,
     }) => {
       test.setTimeout(TITLE_TEST_TIMEOUT_MS)
@@ -1103,17 +1156,26 @@ for (const viewport of TITLE_VIEWPORTS) {
       expect(problems).toEqual([])
     })
 
-    test("never grows the FAQ label through its entry", async ({ page }) => {
+    test("sweeps the big word in with the scroll, never at once", async ({
+      page,
+    }) => {
       test.setTimeout(TITLE_TEST_TIMEOUT_MS)
 
       const problems = collectPageProblems(page)
+      const failures: string[] = []
 
       await openRunningPage(page)
 
-      const samples = await walkEntry(page, FAQ_SECTION.id)
+      for (const section of TITLED_SECTIONS) {
+        for (const failure of findHoldRiseProblems(
+          section.id,
+          await walkEntry(page, section.id, HOLD_STEPS)
+        )) {
+          failures.push(failure)
+        }
+      }
 
-      expect(samples.length).toBe(SCROLL_STEPS + 1)
-      expect(findGrownSamples(FAQ_SECTION.id, samples)).toEqual([])
+      expect(failures).toEqual([])
       expect(problems).toEqual([])
     })
 
@@ -1129,7 +1191,7 @@ for (const viewport of TITLE_VIEWPORTS) {
       for (const id of STILL_SECTION_IDS) {
         for (const failure of findStillProblems(
           id,
-          await walkEntry(page, id)
+          await walkEntry(page, id, SCROLL_STEPS)
         )) {
           failures.push(failure)
         }
@@ -1151,7 +1213,7 @@ for (const viewport of TITLE_VIEWPORTS) {
       for (const id of STILL_SECTION_IDS) {
         for (const failure of findStillProblems(
           id,
-          await walkEntry(page, id)
+          await walkEntry(page, id, SCROLL_STEPS)
         )) {
           failures.push(failure)
         }

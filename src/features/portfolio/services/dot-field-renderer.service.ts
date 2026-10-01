@@ -235,6 +235,9 @@ export function createDotFieldRuntime(
     listening: createBuffer(context),
     delivery: createBuffer(context),
     gather: createBuffer(context),
+    handshake: createBuffer(context),
+    conversation: createBuffer(context),
+    sign: createBuffer(context),
   }
 
   context.bindVertexArray(vertexArray)
@@ -293,6 +296,9 @@ export function createDotFieldRuntime(
       listening: new Float32Array(0),
       delivery: new Float32Array(0),
       gather: new Float32Array(0),
+      handshake: new Float32Array(0),
+      conversation: new Float32Array(0),
+      sign: new Float32Array(0),
     },
     boundFrom: blankBuffer,
     boundTo: blankBuffer,
@@ -371,15 +377,24 @@ export function resizeDotField(runtime: DotFieldRuntime): void {
   context.uniform2f(uniforms.resolution, widthPx, heightPx)
 }
 
+function uploadShapeBuffer(
+  runtime: DotFieldRuntime,
+  shape: DotGeneratedShapeId,
+  total: number
+): void {
+  const { context } = runtime
+  const padded = padShapePoints(runtime.shapeLibrary[shape], total)
+
+  runtime.shapePoints[shape] = padded
+  context.bindBuffer(context.ARRAY_BUFFER, runtime.shapeBuffers[shape])
+  context.bufferData(context.ARRAY_BUFFER, padded, context.STATIC_DRAW)
+}
+
 function uploadShapeBuffers(runtime: DotFieldRuntime, total: number): void {
   const { context } = runtime
 
   for (const shape of GENERATED_SHAPE_IDS) {
-    const padded = padShapePoints(runtime.shapeLibrary[shape], total)
-
-    runtime.shapePoints[shape] = padded
-    context.bindBuffer(context.ARRAY_BUFFER, runtime.shapeBuffers[shape])
-    context.bufferData(context.ARRAY_BUFFER, padded, context.STATIC_DRAW)
+    uploadShapeBuffer(runtime, shape, total)
   }
 
   context.bindBuffer(context.ARRAY_BUFFER, runtime.blankBuffer)
@@ -422,6 +437,15 @@ export function uploadPoints(
   )
 
   runtime.pointCount = total
+}
+
+export function uploadShapePoints(
+  runtime: DotFieldRuntime,
+  shape: DotGeneratedShapeId,
+  points: Float32Array
+): void {
+  runtime.shapeLibrary[shape] = points
+  uploadShapeBuffer(runtime, shape, runtime.pointCount)
 }
 
 export function uploadOffsets(runtime: DotFieldRuntime): void {

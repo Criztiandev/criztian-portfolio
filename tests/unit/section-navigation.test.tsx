@@ -14,6 +14,7 @@ import {
   PORTFOLIO_BRAND_LABEL,
   PORTFOLIO_NAVIGATION,
   PORTFOLIO_PRIMARY_NAVIGATION,
+  SCROLL_SPY_SECTION_IDS,
 } from "@/data/navigation.data"
 import { ContactForm } from "@/features/contact/components/contact.form"
 import { SectionNavigation } from "@/features/portfolio/components/section-navigation.component"
@@ -43,11 +44,11 @@ function renderPage() {
     <PortfolioStoreProvider>
       <SectionNavigation />
       <main>
-        {PORTFOLIO_NAVIGATION.map(function renderSection(item) {
+        {SCROLL_SPY_SECTION_IDS.map(function renderSection(sectionId) {
           return (
             <section
-              key={item.id}
-              id={item.id}
+              key={sectionId}
+              id={sectionId}
               style={{ scrollMarginTop: `${LANDING_TOP_PX}px` }}
             />
           )
@@ -128,23 +129,23 @@ function readDottedHrefs(scope: HTMLElement): (string | null)[] {
 }
 
 function findSectionIndex(id: PortfolioSection): number {
-  for (const [index, item] of PORTFOLIO_NAVIGATION.entries()) {
-    if (item.id === id) {
+  for (const [index, sectionId] of SCROLL_SPY_SECTION_IDS.entries()) {
+    if (sectionId === id) {
       return index
     }
   }
 
-  throw new Error(`section ${id} is not in the navigation`)
+  throw new Error(`section ${id} is not watched by the scroll-spy`)
 }
 
 function stubSectionTops(landedId: PortfolioSection): void {
   const landedIndex = findSectionIndex(landedId)
 
-  for (const [index, item] of PORTFOLIO_NAVIGATION.entries()) {
-    const section = document.getElementById(item.id)
+  for (const [index, sectionId] of SCROLL_SPY_SECTION_IDS.entries()) {
+    const section = document.getElementById(sectionId)
 
     if (section === null) {
-      throw new Error(`section ${item.id} not found`)
+      throw new Error(`section ${sectionId} not found`)
     }
 
     const top = LANDING_TOP_PX + (index - landedIndex) * SECTION_HEIGHT_PX
@@ -461,6 +462,54 @@ describe("SectionNavigation scroll-spy", () => {
     })
     expect(readDottedHrefs(primary)).toEqual([])
     expect(readDottedHrefs(getMobilePanel(container))).toEqual([])
+  })
+
+  it("hides the nav dot on Let's connect, between FAQ and Contact", async () => {
+    const { container } = renderPage()
+    const primary = screen.getByRole("navigation", { name: "Primary" })
+
+    scrollOnto("faq")
+
+    await waitFor(function expectFaqDot() {
+      expect(readDottedHrefs(primary)).toEqual(["#faq"])
+    })
+
+    scrollOnto("connect")
+
+    await waitFor(function expectNothingCurrent() {
+      expect(readCurrentHrefs(container)).toEqual([])
+    })
+    expect(readDottedHrefs(primary)).toEqual([])
+    expect(readDottedHrefs(getMobilePanel(container))).toEqual([])
+
+    scrollOnto("contact")
+
+    await waitFor(function expectContactCurrent() {
+      expect(readCurrentHrefs(container)).toEqual(["#contact"])
+    })
+  })
+
+  it("watches every section in page order, Let's connect included", () => {
+    const navigationIds: string[] = []
+    const watchedIds: string[] = []
+
+    for (const item of PORTFOLIO_NAVIGATION) {
+      navigationIds.push(item.id)
+    }
+
+    for (const sectionId of SCROLL_SPY_SECTION_IDS) {
+      if (sectionId !== "connect") {
+        watchedIds.push(sectionId)
+      }
+    }
+
+    expect(SCROLL_SPY_SECTION_IDS.indexOf("connect")).toBe(
+      SCROLL_SPY_SECTION_IDS.indexOf("faq") + 1
+    )
+    expect(SCROLL_SPY_SECTION_IDS.indexOf("contact")).toBe(
+      SCROLL_SPY_SECTION_IDS.indexOf("connect") + 1
+    )
+    expect(watchedIds).toEqual(navigationIds)
   })
 
   it("keeps an open menu open while the page scrolls", async () => {

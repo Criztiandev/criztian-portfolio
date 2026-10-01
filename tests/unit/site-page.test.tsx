@@ -1,15 +1,17 @@
 import { render, screen, within } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
+import { FOOTER_SIGN_TEXT } from "@/data/hero.data"
 import { PORTFOLIO_PRIMARY_NAVIGATION } from "@/data/navigation.data"
 import {
   ABOUT_SECTION,
-  CONTACT_SECTION,
+  CONNECT_SCENE_SHAPES,
   COPY_DRIFT_CLASS,
   FAQ_DISCLOSURE_CLASS,
   FAQ_PLUS_TURN_CLASS,
+  FAQ_SCENE_SHAPES,
   FAQ_SECTION,
-  OWNER_EMAIL_HREF,
+  FOOTER_SCENE_SHAPES,
   PROCESS_SCENE,
   SCREEN_TIMELINE_CLASS,
   SECTION_TITLE_CLASS,
@@ -21,11 +23,22 @@ import {
   SWEPT_LINE_CLASS,
   TESTIMONIALS_SECTION,
 } from "@/data/page-sections.data"
-import { FOOTER_LINK_CLASS, PROJECTS_LABEL } from "@/data/portfolio.data"
-import { DEFAULT_HERO_NAME } from "@/data/site-content.data"
+import {
+  FOOTER_LINK_CLASS,
+  FOOTER_YEAR,
+  PROJECTS_LABEL,
+} from "@/data/portfolio.data"
+import {
+  DEFAULT_CONNECT_EMAIL,
+  DEFAULT_CONTACT_LABEL,
+  DEFAULT_CONTACT_STATEMENT,
+  DEFAULT_FAQ_ITEMS,
+  DEFAULT_HERO_NAME,
+} from "@/data/site-content.data"
 import { SitePage } from "@/features/portfolio/components/site-page.component"
 import { buildCopyDriftStyle } from "@/features/portfolio/step-motion.rules"
 import { createDefaultSiteContent } from "@/features/site-content/site-content.rules"
+import type { SiteContent } from "@/types/site-content.type"
 
 vi.mock(
   "@/features/contact/components/contact.form",
@@ -40,7 +53,7 @@ vi.mock(
 
 const DISPLAY_FONT_FAMILY = `"Antonio", "Antonio Fallback"`
 
-const UNLABELLED_SECTION_IDS = ["home", "quote"]
+const UNLABELLED_SECTION_IDS = ["home", "quote", "connect"]
 
 const LINKED_PROJECT_URL = "https://example.com/project"
 
@@ -54,7 +67,8 @@ const SCENE_ORDER = [
   "process",
   "about",
   "testimonials",
-  "dust",
+  "faq",
+  "connect",
   "contact",
   "footer",
 ]
@@ -68,10 +82,11 @@ const SECTION_ORDER = [
   "about",
   "testimonials",
   "faq",
+  "connect",
   "contact",
 ]
 
-const RETIRED_SECTION_IDS = ["connect", "blog"]
+const RETIRED_SECTION_IDS = ["blog"]
 
 const PLACEHOLDER_PLATE_SECTION_IDS = ["project", "about", "testimonials"]
 
@@ -82,6 +97,7 @@ const DRIFTING_SECTION_IDS = [
   "about",
   "testimonials",
   "faq",
+  "connect",
   "contact",
 ]
 
@@ -93,23 +109,31 @@ const SCREEN_TIMELINE_SECTION_IDS = [
   "about",
   "testimonials",
   "faq",
+  "connect",
   "contact",
 ]
-
-const UNTITLED_LABEL_IDS = ["faq"]
 
 const SCENE_SWEEP_IDS = [
   "cube",
   "about",
   "testimonials",
-  "dust",
+  "faq",
+  "connect",
   "contact",
   "footer",
 ]
 
+const ENDING_SCENE_SHAPES = [
+  { id: "faq", shapes: FAQ_SCENE_SHAPES },
+  { id: "connect", shapes: CONNECT_SCENE_SHAPES },
+  { id: "footer", shapes: FOOTER_SCENE_SHAPES },
+]
+
 const DEFAULT_LAST_LINE = 2
 
-const FAQ_FIRST_ROW_LINE = 2
+const FAQ_FIRST_ROW_LINE = 1
+
+const FAQ_ROW_NUMBERS = ["01", "02", "03", "04", "05", "06", "07", "08", "09"]
 
 const SECTION_LABELS = [
   { id: "project", heading: PROJECTS_LABEL },
@@ -118,8 +142,25 @@ const SECTION_LABELS = [
   { id: "about", heading: ABOUT_SECTION.heading },
   { id: "testimonials", heading: TESTIMONIALS_SECTION.heading },
   { id: "faq", heading: FAQ_SECTION.heading },
-  { id: "contact", heading: CONTACT_SECTION.heading },
+  { id: "contact", heading: DEFAULT_CONTACT_LABEL },
 ]
+
+const EDITED_FAQ_ITEMS = [
+  { question: "First question?", answer: "First answer." },
+  { question: "  ", answer: "An answer whose question is blank." },
+  { question: "Third question?", answer: "" },
+]
+
+const EDITED_CONNECT = {
+  statement: "Say hello.",
+  emailPrompt: "Write to me:",
+  email: "hello@example.test",
+}
+
+const EDITED_CONTACT = {
+  label: "Start here",
+  statement: "Tell me what you need.",
+}
 
 function renderPage() {
   return render(
@@ -128,6 +169,29 @@ function renderPage() {
       displayFontFamily={DISPLAY_FONT_FAMILY}
     />
   )
+}
+
+function renderEditedPage() {
+  const content: SiteContent = {
+    ...createDefaultSiteContent(),
+    faq: { items: EDITED_FAQ_ITEMS },
+    connect: EDITED_CONNECT,
+    contact: EDITED_CONTACT,
+  }
+
+  return render(
+    <SitePage content={content} displayFontFamily={DISPLAY_FONT_FAMILY} />
+  )
+}
+
+function readTexts(elements: Iterable<Element>): string[] {
+  const texts: string[] = []
+
+  for (const element of elements) {
+    texts.push(element.textContent ?? "")
+  }
+
+  return texts
 }
 
 function readScenes(container: HTMLElement): HTMLElement[] {
@@ -188,20 +252,25 @@ describe("SitePage", () => {
     expect(order).toEqual(SCENE_ORDER)
   })
 
-  it("gives every pinned scene one empty slot inside its first child", () => {
+  it("gives every scene one empty slot inside its first child", () => {
     const { container } = renderPage()
 
     for (const scene of readScenes(container)) {
       const slots = scene.querySelectorAll("[data-dot-slot]")
 
-      if (scene.dataset.dotScene === "dust") {
-        expect(slots).toHaveLength(0)
-        continue
-      }
-
-      expect(slots).toHaveLength(1)
+      expect(slots, scene.dataset.dotScene).toHaveLength(1)
       expect(slots[0]).toBeEmptyDOMElement()
       expect(scene.firstElementChild?.contains(slots[0] ?? null)).toBe(true)
+    }
+  })
+
+  it("draws the conversation, the handshake and the sign at the page's end", () => {
+    const { container } = renderPage()
+
+    for (const scene of ENDING_SCENE_SHAPES) {
+      const element = container.querySelector(`[data-dot-scene="${scene.id}"]`)
+
+      expect(element, scene.id).toHaveAttribute("data-dot-shapes", scene.shapes)
     }
   })
 
@@ -262,7 +331,7 @@ describe("SitePage", () => {
     }
   })
 
-  it("labels every section except the hero and the quote with its own h2", () => {
+  it("labels every section but the hero, the quote and Let's connect with its own h2", () => {
     const { container } = renderPage()
     let labelledCount = 0
 
@@ -280,7 +349,7 @@ describe("SitePage", () => {
     expect(labelledCount).toBe(7)
   })
 
-  it("orders the sections as the locked design does, with Connect and Blog gone", () => {
+  it("orders the sections as the locked design does, with Blog gone", () => {
     const { container } = renderPage()
     const order: string[] = []
 
@@ -327,11 +396,11 @@ describe("SitePage", () => {
   it("answers every question in a native disclosure", () => {
     const { container } = renderPage()
 
-    expect(container.querySelectorAll("#faq details")).toHaveLength(
-      FAQ_SECTION.items.length
+    expect(container.querySelectorAll("#faq ol > li > details")).toHaveLength(
+      DEFAULT_FAQ_ITEMS.length
     )
     expect(container.querySelectorAll("#faq details > summary")).toHaveLength(
-      FAQ_SECTION.items.length
+      DEFAULT_FAQ_ITEMS.length
     )
   })
 
@@ -358,13 +427,17 @@ describe("SitePage", () => {
     )
   })
 
-  it("merges the email line into contact and lists the stats as a dl", () => {
+  it("moves the email line to Let's connect and lists the stats as a dl", () => {
     const { container } = renderPage()
     const stats = container.querySelectorAll("#about dl > div")
+    const emailHref = `mailto:${DEFAULT_CONNECT_EMAIL}`
 
     expect(
-      container.querySelector(`#contact a[href="${OWNER_EMAIL_HREF}"]`)
+      container.querySelector(`#connect a[href="${emailHref}"]`)
     ).not.toBeNull()
+    expect(
+      container.querySelector(`#contact a[href="${emailHref}"]`)
+    ).toBeNull()
     expect(stats).toHaveLength(ABOUT_SECTION.stats.length)
 
     for (const stat of stats) {
@@ -564,10 +637,39 @@ describe("SitePage", () => {
     }
 
     expect(footer.querySelector("h1, h2")).toBeNull()
-    expect(within(footer).getByText(DEFAULT_HERO_NAME).tagName).toBe("P")
+    expect(within(footer).getByText(FOOTER_SIGN_TEXT).tagName).toBe("P")
     expect(
       screen.getByRole("navigation", { name: "Footer" })
     ).toBeInTheDocument()
+  })
+
+  it("reads the footer's sign out and shows it wherever the dots cannot, forced colours included", () => {
+    const { container } = renderPage()
+    const footer = findFooter(container)
+    const sign = within(footer).getByText(FOOTER_SIGN_TEXT)
+    const slot = footer.querySelector("[data-dot-slot]")
+
+    expect(sign.closest("[aria-hidden]")).toBeNull()
+    expect(sign).toHaveClass(
+      "sr-only",
+      "uppercase",
+      "[grid-area:1/1]",
+      "forced-colors:not-sr-only",
+      "forced-colors:self-center",
+      "group-data-[status=unsupported]/stage:not-sr-only",
+      "[@media(scripting:none)]:not-sr-only"
+    )
+    expect(sign.parentElement).toHaveClass("grid")
+    expect(sign.parentElement).toBe(slot?.parentElement)
+    expect(slot).toHaveClass(
+      "[grid-area:1/1]",
+      "group-data-[status=unsupported]/stage:hidden",
+      "[@media(scripting:none)]:hidden"
+    )
+    expect(slot?.className).not.toContain("forced-colors")
+    expect(
+      within(footer).getByText(`© ${FOOTER_YEAR} ${DEFAULT_HERO_NAME}`).tagName
+    ).toBe("P")
   })
 
   it("numbers every swept line inside a scene that staggers it", () => {
@@ -628,7 +730,7 @@ describe("SitePage", () => {
     expect(sweptScenes).toEqual(SCENE_SWEEP_IDS)
   })
 
-  it("drifts only the five single-frame copy columns, each on its own screen", () => {
+  it("drifts only the six single-frame copy columns, each on its own screen", () => {
     const { container } = renderPage()
     const driftIds: string[] = []
     const timelineIds: string[] = []
@@ -640,6 +742,12 @@ describe("SitePage", () => {
       driftIds.push(section?.id ?? "")
       expect(section).toHaveClass(SCREEN_TIMELINE_CLASS)
       expect(section?.style.getPropertyValue("--copy-drift")).toBe(drift)
+
+      if (section?.id === FAQ_SECTION.id) {
+        expect(column.firstElementChild?.tagName).toBe("OL")
+        continue
+      }
+
       expect(column.querySelector("p[class*='cqi']")).not.toBeNull()
     }
 
@@ -680,28 +788,138 @@ describe("SitePage", () => {
     }
   })
 
-  it("opens every answer in an eased disclosure on a row that sweeps in", () => {
+  it("opens every answer in an eased disclosure on a numbered row that sweeps in", () => {
     const { container } = renderPage()
-    const rows = container.querySelectorAll<HTMLElement>("#faq details")
+    const rows = container.querySelectorAll<HTMLElement>("#faq ol > li")
+    const numbers: string[] = []
+    const questions: string[] = []
+    const expectedQuestions: string[] = []
 
-    expect(rows).toHaveLength(FAQ_SECTION.items.length)
+    expect(rows).toHaveLength(DEFAULT_FAQ_ITEMS.length)
     expect(rows[0]?.parentElement).not.toHaveClass("border-b")
 
     for (const [index, row] of rows.entries()) {
-      expect(row).toHaveClass(
-        "group/faq",
-        "last:border-b",
-        FAQ_DISCLOSURE_CLASS,
-        SWEPT_LINE_CLASS
-      )
+      const disclosure = row.firstElementChild
+      const summary = disclosure?.firstElementChild
+      const number = summary?.firstElementChild
+      const plus = row.querySelector("summary > svg")
+
+      expect(row).toHaveClass("border-t", "last:border-b", SWEPT_LINE_CLASS)
       expect(row.style.getPropertyValue("--line")).toBe(
         String(FAQ_FIRST_ROW_LINE + index)
       )
-      expect(row.firstElementChild?.tagName).toBe("SUMMARY")
-      expect(row.querySelector("summary > svg")).toHaveClass(
-        FAQ_PLUS_TURN_CLASS
+      expect(disclosure?.tagName).toBe("DETAILS")
+      expect(disclosure).toHaveClass("group/faq", FAQ_DISCLOSURE_CLASS)
+      expect(summary?.tagName).toBe("SUMMARY")
+      expect(number).toHaveAttribute("aria-hidden", "true")
+      expect(plus).toHaveClass(
+        FAQ_PLUS_TURN_CLASS,
+        "forced-colors:text-[CanvasText]"
       )
+      expect(plus).toHaveAttribute("viewBox", "0 0 14 14")
+      expect(plus).toHaveAttribute("stroke-width", "1.5")
+      expect(plus).not.toHaveAttribute("stroke-linecap")
+      expect(plus?.innerHTML).toBe('<path d="M7 1v12M1 7h12"></path>')
+      numbers.push(number?.textContent ?? "")
+      questions.push(summary?.children[1]?.textContent ?? "")
     }
+
+    for (const item of DEFAULT_FAQ_ITEMS) {
+      expectedQuestions.push(item.question)
+    }
+
+    expect(numbers).toEqual(FAQ_ROW_NUMBERS)
+    expect(questions).toEqual(expectedQuestions)
+  })
+
+  it("hides a blank question and numbers only the rows that show", () => {
+    const { container } = renderEditedPage()
+    const rows = container.querySelectorAll("#faq ol > li")
+    const numbers: string[] = []
+
+    for (const row of rows) {
+      numbers.push(row.querySelector("summary > span")?.textContent ?? "")
+    }
+
+    expect(rows).toHaveLength(2)
+    expect(numbers).toEqual(["01", "02"])
+    expect(readTexts(container.querySelectorAll("#faq summary"))).toEqual([
+      "01First question?",
+      "02Third question?",
+    ])
+    expect(screen.queryByText("An answer whose question is blank.")).toBeNull()
+    expect(rows[0]?.querySelector("details > p")).not.toHaveAttribute("hidden")
+    expect(rows[1]?.querySelector("details > p")).toHaveAttribute("hidden")
+    expect(
+      container
+        .querySelector<HTMLElement>("#faq")
+        ?.style.getPropertyValue("--caption-last")
+    ).toBe("2")
+  })
+
+  it("keeps an open answer open while the editor rewrites its row", () => {
+    const content = createDefaultSiteContent()
+    const { container, rerender } = render(
+      <SitePage content={content} displayFontFamily={DISPLAY_FONT_FAMILY} />
+    )
+    const disclosure =
+      container.querySelector<HTMLDetailsElement>("#faq details")
+    const items = [...content.faq.items]
+
+    if (disclosure === null) {
+      throw new Error("the first FAQ row is missing")
+    }
+
+    disclosure.open = true
+    items[0] = { question: "An edited question?", answer: "An edited answer." }
+
+    rerender(
+      <SitePage
+        content={{ ...content, faq: { items } }}
+        displayFontFamily={DISPLAY_FONT_FAMILY}
+      />
+    )
+
+    expect(container.querySelector("#faq summary")).toHaveTextContent(
+      "An edited question?"
+    )
+    expect(container.querySelector("#faq details")).toBe(disclosure)
+    expect(disclosure).toHaveAttribute("open")
+  })
+
+  it("holds the FAQ drawing for a frame and a quarter of a screen, with no black band after the list, and drops the hold without WebGL", () => {
+    const { container } = renderPage()
+    const faq = container.querySelector("#faq")
+    const copyLayer = faq?.children[1]
+
+    expect(faq?.firstElementChild).toHaveClass(
+      "group-data-[status=unsupported]/stage:hidden"
+    )
+    expect(copyLayer?.children[1]).toHaveClass(
+      "group-data-[status=unsupported]/stage:h-0",
+      "[@media(scripting:none)]:h-0"
+    )
+    expect(copyLayer).toHaveClass(
+      "min-h-[calc(125svh_-_4.5rem)]",
+      "group-data-[status=unsupported]/stage:min-h-0"
+    )
+    expect(copyLayer?.lastElementChild?.querySelector("ol")).not.toBeNull()
+  })
+
+  it("keeps the FAQ label when no question shows", () => {
+    const content = createDefaultSiteContent()
+
+    content.faq = { items: [{ question: "", answer: "Unseen." }] }
+
+    const { container } = render(
+      <SitePage content={content} displayFontFamily={DISPLAY_FONT_FAMILY} />
+    )
+
+    expect(container.querySelector("#faq h2")).toHaveTextContent(
+      FAQ_SECTION.heading
+    )
+    expect(container.querySelectorAll("#faq li")).toHaveLength(0)
+    expect(container.querySelectorAll("#faq [data-dot-slot]")).toHaveLength(1)
   })
 
   it("sweeps the footer bar in line by line, with no drift", () => {
@@ -751,7 +969,7 @@ describe("SitePage", () => {
     }
   })
 
-  it("shows each label's title big as its section arrives, but FAQ's, which is its statement", () => {
+  it("shows each label's title big as its section arrives, FAQ's included", () => {
     const { container } = renderPage()
 
     for (const label of SECTION_LABELS) {
@@ -759,15 +977,41 @@ describe("SitePage", () => {
       const heading = section?.querySelector("h2")
 
       expect(section, label.id).toHaveClass(SCREEN_TIMELINE_CLASS)
-      expect(heading, label.id).not.toHaveClass(SECTION_TITLE_CLASS)
-
-      if (UNTITLED_LABEL_IDS.includes(label.id)) {
-        expect(section, label.id).not.toHaveClass(SECTION_TITLE_CLASS)
-        continue
-      }
-
       expect(section, label.id).toHaveClass(SECTION_TITLE_CLASS)
+      expect(heading, label.id).not.toHaveClass(SECTION_TITLE_CLASS)
     }
+
+    expect(container.querySelector("#faq p[aria-hidden='true']")).toBeNull()
+  })
+
+  it("renders FAQ, Let's connect and Contact from the saved content", () => {
+    const { container } = renderEditedPage()
+    const contactHeading = container.querySelector("#contact h2")
+    const connectLink = container.querySelector("#connect a")
+    const footerEmail = container.querySelector(
+      `footer a[href="mailto:${EDITED_CONNECT.email}"]`
+    )
+
+    expect(container.querySelector("#faq summary")).toHaveTextContent(
+      "First question?"
+    )
+    expect(
+      container.querySelector("#connect p[class*='cqi']")
+    ).toHaveTextContent(EDITED_CONNECT.statement)
+    expect(connectLink?.parentElement?.textContent).toBe(
+      `${EDITED_CONNECT.emailPrompt} ${EDITED_CONNECT.email}`
+    )
+    expect(connectLink).toHaveAttribute(
+      "href",
+      `mailto:${EDITED_CONNECT.email}`
+    )
+    expect(contactHeading).toHaveAccessibleName(EDITED_CONTACT.label)
+    expect(
+      container.querySelector("#contact p[class*='cqi']")
+    ).toHaveTextContent(EDITED_CONTACT.statement)
+    expect(footerEmail).toHaveTextContent(EDITED_CONNECT.email)
+    expect(screen.queryByText(DEFAULT_CONTACT_STATEMENT)).toBeNull()
+    expect(screen.queryByText(DEFAULT_CONTACT_LABEL)).toBeNull()
   })
 
   it("keeps each label's position count out of the big title until it docks", () => {

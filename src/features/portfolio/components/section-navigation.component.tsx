@@ -29,6 +29,7 @@ import {
   PORTFOLIO_PRIMARY_NAVIGATION,
   PRIMARY_NAVIGATION_LABEL,
   SCROLL_PROGRESS_HAIRLINE_CLASS,
+  SCROLL_SPY_SECTION_IDS,
   SCROLL_SPY_TOLERANCE_PX,
   SECONDARY_NAVIGATION_LABEL,
   SOLID_AFTER_SCROLL_PX,
@@ -52,8 +53,8 @@ import type {
 function readSectionTops(): SectionTop[] {
   const tops: SectionTop[] = []
 
-  for (const item of PORTFOLIO_NAVIGATION) {
-    const section = document.getElementById(item.id)
+  for (const sectionId of SCROLL_SPY_SECTION_IDS) {
+    const section = document.getElementById(sectionId)
 
     if (section === null) {
       continue
@@ -62,7 +63,7 @@ function readSectionTops(): SectionTop[] {
     const landing = parseCssPixels(getComputedStyle(section).scrollMarginTop)
 
     tops.push({
-      id: item.id,
+      id: sectionId,
       top: section.getBoundingClientRect().top - landing,
     })
   }

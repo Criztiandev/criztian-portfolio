@@ -15,9 +15,13 @@ import {
   SCATTER_SHAPE_IDS,
   SHAPE_POINTS,
   SHAPE_STRIDE,
+  TEXT_SHAPE_IDS,
 } from "@/data/hero.data"
 import {
+  CONNECT_SCENE_SHAPES,
   CONTACT_SCENE_SHAPES,
+  FAQ_SCENE_SHAPES,
+  FOOTER_SCENE_SHAPES,
   FRAME_SCENE_SHAPES,
   PROCESS_SCENE_SHAPES,
   SERVICES_SCENE_SHAPES,
@@ -31,7 +35,51 @@ import {
   generateScatterRingPoints,
   parseSceneShapes,
 } from "@/features/portfolio/dot-field.rules"
-import type { LineArtShapeId } from "@/types/hero.type"
+import type {
+  DotGeneratedShapeId,
+  LineArtShape,
+  LineArtShapeId,
+} from "@/types/hero.type"
+
+const DRAWING_SHAPE_IDS: DotGeneratedShapeId[] = [
+  "cube",
+  "dust",
+  ...LINE_ART_SHAPE_IDS,
+  ...SCATTER_SHAPE_IDS,
+]
+
+const HANDSHAKE_PARTS = 6
+
+const FRONT_HAND_GRIP_RUN = 9
+
+const FRONT_HAND_CUFF_POINT = [9 / 16.5, 7.5 / 16.5]
+
+const HANDSHAKE_CLASP_POINT = [2 / 16.5, -2.5 / 16.5]
+
+const ANSWER_DOT_CENTRES = [
+  [10 / 112, -22 / 112],
+  [35 / 112, -22 / 112],
+  [60 / 112, -22 / 112],
+]
+
+const ANSWER_DOT_RADIUS = 4 / 112
+
+const ANSWER_DOT_SHARE = 0.05
+
+const ANSWER_DOT_CORE_SHARE = 0.03
+
+const QUESTION_LINES = [
+  [
+    [-80 / 112, 51 / 112],
+    [8 / 112, 51 / 112],
+  ],
+  [
+    [-80 / 112, 31 / 112],
+    [-16 / 112, 31 / 112],
+  ],
+]
+
+const QUESTION_LINE_SHARE = 0.12
 
 const PEN_STEP_ALLOWANCE = 2
 
@@ -84,6 +132,69 @@ function wrapAngle(angle: number): number {
   return Math.atan2(Math.sin(angle), Math.cos(angle))
 }
 
+function resolvePenBound(definition: LineArtShape, count: number): number {
+  let totalLength = 0
+
+  for (const segment of buildLineArtSegments(definition.layers)) {
+    totalLength += segment.length
+  }
+
+  return (
+    JITTER_SPAN * Math.sqrt(3) * definition.jitter +
+    (PEN_STEP_ALLOWANCE * totalLength) / count
+  )
+}
+
+function collectDepthRuns(points: Float32Array): number[][] {
+  const runs: number[][] = []
+
+  for (let index = 0; index < points.length / SHAPE_STRIDE; index += 1) {
+    const depthSign = Math.sign(points[index * SHAPE_STRIDE + 2])
+    const current = runs[runs.length - 1]
+
+    if (current !== undefined && current[2] === depthSign) {
+      current[1] = index
+      continue
+    }
+
+    runs.push([index, index, depthSign])
+  }
+
+  return runs
+}
+
+function measurePlanarDistance(
+  points: Float32Array,
+  index: number,
+  target: number[]
+): number {
+  const offset = index * SHAPE_STRIDE
+
+  return Math.hypot(
+    points[offset] - (target[0] ?? 0),
+    points[offset + 1] - (target[1] ?? 0)
+  )
+}
+
+function measureLineDistance(
+  points: Float32Array,
+  index: number,
+  line: number[][]
+): number {
+  const offset = index * SHAPE_STRIDE
+  const start = line[0] ?? [0, 0]
+  const end = line[1] ?? [0, 0]
+  const nearestX = Math.min(
+    Math.max(points[offset], start[0] ?? 0),
+    end[0] ?? 0
+  )
+
+  return Math.hypot(
+    points[offset] - nearestX,
+    points[offset + 1] - (start[1] ?? 0)
+  )
+}
+
 describe("line-art shape generators", () => {
   for (const shape of LINE_ART_SHAPE_IDS) {
     const definition = LINE_ART_SHAPES[shape]
@@ -104,15 +215,7 @@ describe("line-art shape generators", () => {
 
     it(`emits ${shape} in pen order along its strokes`, () => {
       const points = generateLineArtPoints(definition, count)
-      let totalLength = 0
-
-      for (const segment of buildLineArtSegments(definition.layers)) {
-        totalLength += segment.length
-      }
-
-      const bound =
-        JITTER_SPAN * Math.sqrt(3) * definition.jitter +
-        (PEN_STEP_ALLOWANCE * totalLength) / count
+      const bound = resolvePenBound(definition, count)
       let penLifts = 0
 
       for (let index = 1; index < count; index += 1) {
@@ -148,6 +251,123 @@ describe("line-art shape generators", () => {
     }
 
     expect(strays).toEqual([])
+  })
+
+  it("draws both hands of the handshake at once, part by part, from the sleeves in", () => {
+    const points = generateLineArtPoints(
+      LINE_ART_SHAPES.handshake,
+      DOT_SHAPE_TUNING.handshake.pointCount
+    )
+    const runs = collectDepthRuns(points)
+    const depths: number[] = []
+
+    for (const run of runs) {
+      depths.push(run[2] ?? 0)
+    }
+
+    expect(runs).toHaveLength(HANDSHAKE_PARTS * 2)
+
+    for (let runIndex = 0; runIndex < depths.length; runIndex += 1) {
+      expect(depths[runIndex], String(runIndex)).toBe(
+        runIndex % 2 === 0 ? -1 : 1
+      )
+    }
+
+    expect(points[(runs[0]?.[0] ?? 0) * SHAPE_STRIDE]).toBeCloseTo(-1, 1)
+    expect(points[(runs[1]?.[0] ?? 0) * SHAPE_STRIDE]).toBeCloseTo(1, 1)
+  })
+
+  it("draws the front hand's grip from its cuff to the clasp", () => {
+    const count = DOT_SHAPE_TUNING.handshake.pointCount
+    const points = generateLineArtPoints(LINE_ART_SHAPES.handshake, count)
+    const grip = collectDepthRuns(points)[FRONT_HAND_GRIP_RUN] ?? []
+    const bound = resolvePenBound(LINE_ART_SHAPES.handshake, count)
+
+    expect(
+      measurePlanarDistance(points, grip[0] ?? 0, FRONT_HAND_CUFF_POINT)
+    ).toBeLessThan(bound)
+    expect(
+      measurePlanarDistance(points, grip[1] ?? 0, HANDSHAKE_CLASP_POINT)
+    ).toBeLessThan(bound)
+  })
+
+  it("draws the question and its lines, then the answer and its three dots", () => {
+    const count = DOT_SHAPE_TUNING.conversation.pointCount
+    const points = generateLineArtPoints(LINE_ART_SHAPES.conversation, count)
+    const runs = collectDepthRuns(points)
+    const bound = resolvePenBound(LINE_ART_SHAPES.conversation, count)
+    const strays: number[] = []
+
+    expect(runs).toHaveLength(2)
+    expect(runs[0]?.[2]).toBe(-1)
+    expect(runs[1]?.[2]).toBe(1)
+
+    const questionEnd = runs[0]?.[1] ?? 0
+
+    for (
+      let index = questionEnd - Math.floor(count * QUESTION_LINE_SHARE) + 1;
+      index <= questionEnd;
+      index += 1
+    ) {
+      let nearest = Number.POSITIVE_INFINITY
+
+      for (const line of QUESTION_LINES) {
+        nearest = Math.min(nearest, measureLineDistance(points, index, line))
+      }
+
+      if (nearest > bound) {
+        strays.push(index)
+      }
+    }
+
+    for (
+      let index = Math.floor(count * (1 - ANSWER_DOT_SHARE));
+      index < count;
+      index += 1
+    ) {
+      let nearest = Number.POSITIVE_INFINITY
+
+      for (const centre of ANSWER_DOT_CENTRES) {
+        nearest = Math.min(
+          nearest,
+          Math.abs(
+            measurePlanarDistance(points, index, centre) - ANSWER_DOT_RADIUS
+          )
+        )
+      }
+
+      if (nearest > bound) {
+        strays.push(index)
+      }
+    }
+
+    expect(strays).toEqual([])
+  })
+
+  it("fills each answer dot from its centre, not just its ring", () => {
+    const count = DOT_SHAPE_TUNING.conversation.pointCount
+    const points = generateLineArtPoints(LINE_ART_SHAPES.conversation, count)
+
+    for (const centre of ANSWER_DOT_CENTRES) {
+      let around = 0
+      let core = 0
+
+      for (let index = 0; index < count; index += 1) {
+        const distance = measurePlanarDistance(points, index, centre)
+
+        if (distance <= ANSWER_DOT_RADIUS * 2) {
+          around += 1
+        }
+
+        if (distance <= ANSWER_DOT_RADIUS / 2) {
+          core += 1
+        }
+      }
+
+      expect(core / around, String(centre)).toBeGreaterThanOrEqual(
+        ANSWER_DOT_CORE_SHARE
+      )
+    }
   })
 })
 
@@ -256,12 +476,7 @@ describe("scattered shape generators", () => {
 describe("the shape library", () => {
   it("registers every generated shape in the id lists and the tuning", () => {
     const generated = [...GENERATED_SHAPE_IDS].sort()
-    const drawings = [
-      "cube",
-      "dust",
-      ...LINE_ART_SHAPE_IDS,
-      ...SCATTER_SHAPE_IDS,
-    ].sort()
+    const drawingsAndTexts = [...DRAWING_SHAPE_IDS, ...TEXT_SHAPE_IDS].sort()
     const drawable: string[] = []
 
     for (const shape of DOT_SHAPE_IDS) {
@@ -272,19 +487,29 @@ describe("the shape library", () => {
 
     expect(Object.keys(DOT_SHAPE_TUNING).sort()).toEqual(generated)
     expect(drawable.sort()).toEqual(generated)
-    expect(drawings).toEqual(generated)
+    expect(drawingsAndTexts).toEqual(generated)
   })
 
-  it("builds every shape deterministically at its point count", () => {
+  it("builds every drawing deterministically at its point count", () => {
     const library = buildShapeLibrary()
     const again = buildShapeLibrary()
 
-    for (const shape of GENERATED_SHAPE_IDS) {
+    for (const shape of DRAWING_SHAPE_IDS) {
       const count = DOT_SHAPE_TUNING[shape].pointCount
 
       expect(count, shape).toBeLessThanOrEqual(SHAPE_POINTS)
       expect(library[shape].length, shape).toBe(count * SHAPE_STRIDE)
       expect(countMismatches(library[shape], again[shape]), shape).toBe(0)
+    }
+  })
+
+  it("leaves every text shape empty until the page samples it", () => {
+    const library = buildShapeLibrary()
+
+    for (const shape of TEXT_SHAPE_IDS) {
+      expect(DOT_SHAPE_TUNING[shape].fit, shape).toBe("text")
+      expect(DOT_SHAPE_TUNING[shape].pointCount, shape).toBe(SHAPE_POINTS)
+      expect(library[shape], shape).toHaveLength(0)
     }
   })
 
@@ -330,5 +555,8 @@ describe("the shape library", () => {
     ])
     expect(parseSceneShapes(FRAME_SCENE_SHAPES)).toEqual(["frame"])
     expect(parseSceneShapes(CONTACT_SCENE_SHAPES)).toEqual(["gather"])
+    expect(parseSceneShapes(FAQ_SCENE_SHAPES)).toEqual(["conversation"])
+    expect(parseSceneShapes(CONNECT_SCENE_SHAPES)).toEqual(["handshake"])
+    expect(parseSceneShapes(FOOTER_SCENE_SHAPES)).toEqual(["sign"])
   })
 })

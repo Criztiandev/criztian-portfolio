@@ -28,6 +28,7 @@ import {
   SCENE_STEP_ID_SEPARATOR,
   SHAPE_POINTS,
   SHAPE_STRIDE,
+  TEXT_SHAPE_SHRINK,
 } from "@/data/hero.data"
 import type {
   CubeEdge,
@@ -42,6 +43,7 @@ import type {
   DotFieldPlacementRequest,
   DotFieldPointCloud,
   DotFieldRect,
+  DotFieldSample,
   DotFieldSizeRequest,
   DotFieldTriggerTuning,
   DotFieldTuning,
@@ -756,11 +758,88 @@ export function buildShapeLibrary(): DotShapeLibrary {
       GATHER_SHAPE,
       DOT_SHAPE_TUNING.gather.pointCount
     ),
+    handshake: generateLineArtPoints(
+      LINE_ART_SHAPES.handshake,
+      DOT_SHAPE_TUNING.handshake.pointCount
+    ),
+    conversation: generateLineArtPoints(
+      LINE_ART_SHAPES.conversation,
+      DOT_SHAPE_TUNING.conversation.pointCount
+    ),
+    sign: new Float32Array(0),
   }
 }
 
 export function resolvePointTotal(nameCount: number): number {
   return Math.max(nameCount, SHAPE_POINTS)
+}
+
+export function resolveTextShapeShrink(count: number): number {
+  if (count <= SHAPE_POINTS) {
+    return 1
+  }
+
+  return Math.sqrt(SHAPE_POINTS / count) * TEXT_SHAPE_SHRINK
+}
+
+export function buildTextShapePoints(
+  sample: DotFieldSample,
+  seed: number
+): Float32Array {
+  const { positions, count } = sample
+
+  if (count <= 0) {
+    return new Float32Array(0)
+  }
+
+  const order: number[] = []
+
+  for (let index = 0; index < count; index += 1) {
+    order.push(index)
+  }
+
+  order.sort(function compareColumnThenRow(first, second) {
+    const firstIndex = first * POINT_STRIDE
+    const secondIndex = second * POINT_STRIDE
+    const columnGap = positions[firstIndex] - positions[secondIndex]
+
+    if (columnGap !== 0) {
+      return columnGap
+    }
+
+    return positions[firstIndex + 1] - positions[secondIndex + 1]
+  })
+
+  const vertexCount = Math.max(count, SHAPE_POINTS)
+  const points = new Float32Array(vertexCount * SHAPE_STRIDE)
+  const nextRandom = createRandomSource(seed)
+  const centerX = (sample.left + sample.right) / 2
+  const centerY = sample.top + sample.inkHeight / 2
+  let dotIndex = 0
+
+  for (const sourceIndex of order) {
+    const positionIndex = sourceIndex * POINT_STRIDE
+    const firstVertex = Math.floor((dotIndex * vertexCount) / count)
+    const endVertex = Math.floor(((dotIndex + 1) * vertexCount) / count)
+    const rank = nextRandom()
+
+    for (
+      let vertexIndex = firstVertex;
+      vertexIndex < endVertex;
+      vertexIndex += 1
+    ) {
+      const pointIndex = vertexIndex * SHAPE_STRIDE
+
+      points[pointIndex] = positions[positionIndex] - centerX
+      points[pointIndex + 1] = centerY - positions[positionIndex + 1]
+      points[pointIndex + 2] = 0
+      points[pointIndex + 3] = vertexIndex === firstVertex ? rank : HIDDEN_RANK
+    }
+
+    dotIndex += 1
+  }
+
+  return points
 }
 
 export function padNamePoints(
@@ -796,6 +875,10 @@ export function padShapePoints(
   const count = points.length / SHAPE_STRIDE
 
   if (count <= 0) {
+    for (let index = 0; index < total; index += 1) {
+      padded[index * SHAPE_STRIDE + 3] = HIDDEN_RANK
+    }
+
     return padded
   }
 
@@ -1066,7 +1149,9 @@ export function resolveRevealRange(
   const lastKeyframe = keyframes[range.lastIndex]
   const hasNextKeyframe = range.lastIndex + 1 < keyframes.length
   const isReadAfterPin =
-    lastKeyframe?.slot === null || lastKeyframe?.isGrown === true
+    lastKeyframe?.slot === null ||
+    lastKeyframe?.isGrown === true ||
+    lastKeyframe?.isReadAfterPin === true
 
   if (!isReadAfterPin || !hasNextKeyframe) {
     return range
@@ -1218,6 +1303,7 @@ export function buildSceneKeyframes(
     const start = scene.containerTop - scene.stickyTop
     const motion = DOT_SCENE_MOTION[scene.id]
     const isThread = motion?.isThread === true
+    const isReadAfterPin = motion?.isReadAfterPin === true
     const isGrown =
       scene.slot !== null &&
       scene.frameHeight + scene.stickyTop >
@@ -1243,6 +1329,10 @@ export function buildSceneKeyframes(
 
       if (isGrown) {
         keyframe.isGrown = true
+      }
+
+      if (isReadAfterPin) {
+        keyframe.isReadAfterPin = true
       }
 
       keyframes.push(keyframe)
@@ -1283,6 +1373,10 @@ export function buildSceneKeyframes(
 
       if (isGrown) {
         keyframe.isGrown = true
+      }
+
+      if (isReadAfterPin) {
+        keyframe.isReadAfterPin = true
       }
 
       keyframes.push(keyframe)
@@ -1445,6 +1539,7 @@ export function resolvePlacement(
     keyframe,
     viewport,
     nameSample,
+    textSample,
     introScale,
     spinSeconds,
     yawOffset,
@@ -1489,6 +1584,30 @@ export function resolvePlacement(
   }
 
   const tuning = DOT_SHAPE_TUNING[keyframe.shape]
+
+  if (tuning.fit === "text") {
+    const fit = Math.min(
+      1,
+      (slot.width * pixelRatio) / Math.max(textSample.width, 1),
+      (slot.height * pixelRatio) / Math.max(textSample.height, 1)
+    )
+
+    return {
+      isName: false,
+      shape: keyframe.shape,
+      center: { x: Math.round(slotCenterX), y: Math.round(slotCenterY) },
+      halfSize: { x: fit, y: fit },
+      rotation: IDENTITY_ROTATION,
+      cameraDistance: 0,
+      visible: 1,
+      farLight: tuning.farLight,
+      depthRadius: tuning.depthRadius,
+      dotSize: tuning.dotSize * fit,
+      opacity: tuning.opacity,
+      inkHeight: textSample.height * fit,
+    }
+  }
+
   const shortSide = Math.min(slot.width, slot.height)
 
   let halfSize = {

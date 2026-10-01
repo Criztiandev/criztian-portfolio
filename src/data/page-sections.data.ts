@@ -3,21 +3,26 @@ import type {
   ContactSectionContent,
   FaqSectionContent,
   PlaceholderSectionContent,
+  SceneSectionContent,
   ServicesSceneContent,
   StatementSize,
   StepSceneContent,
   TestimonialsSectionContent,
 } from "@/types/page-sections.type"
 
-export const OWNER_EMAIL_ADDRESS = "criztiandev@gmail.com"
-
-export const OWNER_EMAIL_HREF = `mailto:${OWNER_EMAIL_ADDRESS}`
+export const MAILTO_PREFIX = "mailto:"
 
 export const SERVICES_SCENE_SHAPES = "branding web-design development"
 
 export const FRAME_SCENE_SHAPES = "frame"
 
 export const CONTACT_SCENE_SHAPES = "gather"
+
+export const FAQ_SCENE_SHAPES = "conversation"
+
+export const CONNECT_SCENE_SHAPES = "handshake"
+
+export const FOOTER_SCENE_SHAPES = "sign"
 
 export const PROCESS_SCENE_SHAPES =
   "listening planning visualising building delivery"
@@ -73,6 +78,9 @@ export const PINNED_FRAME_CLASS = "sticky top-18 min-h-[calc(100svh_-_4.5rem)]"
 export const PIN_SPACER_CLASS =
   "h-[50svh] group-data-[status=unsupported]/stage:hidden"
 
+export const FAQ_HOLD_CLASS =
+  "min-h-[calc(125svh_-_4.5rem)] group-data-[status=unsupported]/stage:min-h-0"
+
 export const SHORT_SCREEN_COPY_GAP_CLASS =
   "mt-10 split:mt-0 [@media(max-height:44rem)]:mt-6 [@media(max-height:44rem)]:split:mt-0"
 
@@ -99,7 +107,6 @@ export const STATEMENT_SIZE_CLASSES: Record<StatementSize, string> = {
     "text-[length:min(4.25rem,calc(17cqi_+_0.25rem))]/[0.95] split:text-[length:min(7.5rem,calc(15.5cqi_+_0.5rem),14svh)]/[0.95]",
   contact:
     "text-[length:min(3.25rem,calc(14cqi_+_0.5rem))]/[0.95] split:text-[length:min(8rem,calc(16.5cqi_+_0.5rem),15svh)]/[0.95]",
-  faq: "text-[length:min(6.875rem,calc(30cqi_+_0.5rem))]/[0.95] split:text-[length:min(15rem,calc(32cqi_+_0.5rem),28svh)]/[0.95]",
 }
 
 export const BODY_CLASS =
@@ -174,6 +181,10 @@ export const FAQ_DISCLOSURE_CLASS =
 
 export const FAQ_PLUS_TURN_CLASS =
   "motion-safe:transition-[rotate] motion-safe:duration-350 motion-safe:ease-signal"
+
+export const FAQ_PLUS_PATH = "M7 1v12M1 7h12"
+
+export const FAQ_SLOT_HEIGHT_CLASS = "h-[min(15rem,30svh)]"
 
 export const ORBIT_CIRCLE_CLASS =
   "fill-none stroke-current [stroke-dasharray:0_10px] [stroke-linecap:round] [stroke-width:3px] [cx:50%] [cy:calc(var(--orbit-radius)_+_6px)] [r:var(--orbit-radius)] staged:orbit-spin"
@@ -311,53 +322,14 @@ export const FAQ_SECTION: FaqSectionContent = {
   id: "faq",
   headingId: "faq-heading",
   heading: "FAQ",
-  items: [
-    {
-      question: "What is included in your branding services?",
-      answer:
-        "My branding services include logo design, visual identity development, color palette selection, typography guidance and brand messaging to create a cohesive and impactful identity for your business.",
-    },
-    {
-      question: "How long does it take to complete a branding project?",
-      answer:
-        "The timeline varies depending on the scope, but a typical branding project takes 4–6 weeks from initial consultation to final delivery.",
-    },
-    {
-      question: "Do you offer mobile-friendly designs?",
-      answer:
-        "Yes. All my web designs are fully responsive and optimized for desktops, tablets and mobile devices to ensure a seamless user experience.",
-    },
-    {
-      question: "Can you redesign an existing website?",
-      answer:
-        "Absolutely. I can revamp your current website to improve its functionality, aesthetics and performance while retaining key elements of your brand.",
-    },
-    {
-      question: "Do you provide custom development solutions?",
-      answer:
-        "Yes. I specialize in creating custom web solutions tailored to your specific business needs, including e-commerce platforms, CMS integrations and more.",
-    },
-    {
-      question: "Will I be able to update the website on my own?",
-      answer:
-        "Yes. I build websites on user-friendly platforms like Webflow or WordPress, so you can manage and update your site without technical expertise.",
-    },
-    {
-      question: "How do you approach digital marketing campaigns?",
-      answer:
-        "I start with a deep understanding of your audience and goals, then craft data-driven strategies that include SEO, social media marketing and email campaigns.",
-    },
-    {
-      question: "What are the payment methods and plans for a project?",
-      answer:
-        "I accept multiple payment methods, mostly PayPal, and can set up flexible payment plans based on the project's scale.",
-    },
-    {
-      question: "Do you offer discounts for long-term collaboration?",
-      answer:
-        "Yes. I offer preferential pricing for clients in long-term collaborations. Contact me for details.",
-    },
-  ],
+  sceneId: "faq",
+  shapes: FAQ_SCENE_SHAPES,
+}
+
+export const CONNECT_SECTION: SceneSectionContent = {
+  id: "connect",
+  sceneId: "connect",
+  shapes: CONNECT_SCENE_SHAPES,
 }
 
 export const BLOG_PLACEHOLDER = "Post to come"
@@ -372,9 +344,6 @@ export const BLOG_SECTION: PlaceholderSectionContent = {
 export const CONTACT_SECTION: ContactSectionContent = {
   id: "contact",
   headingId: "contact-heading",
-  heading: "Get in touch",
   sceneId: "contact",
   shapes: CONTACT_SCENE_SHAPES,
-  statement: "Let's start your project today.",
-  emailPrompt: "Or email me:",
 }

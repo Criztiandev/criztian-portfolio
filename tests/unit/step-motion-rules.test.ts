@@ -286,10 +286,10 @@ describe("the scene sweep", () => {
     expect(keyframes).toMatch(
       /entry 0% \{\s*--title-grow: 1;\s*--title-hold: 0;/
     )
-    expect(keyframes).toMatch(/entry 38% \{\s*--title-hold: 0;/)
-    expect(keyframes).toMatch(/entry 44% \{\s*--title-hold: 1;/)
-    expect(keyframes).toMatch(/entry 68% \{\s*--title-grow: 1;/)
-    expect(keyframes).toMatch(/entry 90% \{\s*--title-grow: 0;/)
+    expect(keyframes).toMatch(/entry 10% \{\s*--title-hold: 0;/)
+    expect(keyframes).toMatch(/entry 40% \{\s*--title-hold: 1;/)
+    expect(keyframes).toMatch(/entry 64% \{\s*--title-grow: 1;/)
+    expect(keyframes).toMatch(/entry 97% \{\s*--title-grow: 0;/)
     expect(keyframes).toMatch(/exit 0% \{\s*--title-hold: 1;/)
     expect(keyframes).toMatch(/exit 1% \{\s*--title-hold: 0;/)
     expect(word).toMatch(/scale:[^;]*tan\(atan2\(var\(--title-size\), 1em\)\)/)
@@ -464,6 +464,28 @@ describe("without scripting", () => {
     expect(reset).toContain("opacity: 1 !important;")
     expect(reset).toContain("clip-path: none !important;")
     expect(reset).toContain("transform: none !important;")
+  })
+})
+
+describe("the breather", () => {
+  it("spaces every scene after the hero, less after FAQ's own spacer, and drops the space where the dots cannot run", () => {
+    const css = readStylesheet()
+    const breather = readBlock(
+      css,
+      '[data-dot-scene]:not([data-dot-scene="name"])'
+    )
+    const reset = readBlock(css, "@media (scripting: none)")
+
+    expect(breather).toContain("margin-top: var(--scene-breather, 75svh);")
+    expect(readBlock(css, '[data-dot-scene="connect"]')).toContain(
+      "--scene-breather: 25svh;"
+    )
+    expect(breather).toMatch(
+      /\[data-status="unsupported"\] &\s*\{\s*margin-top: 0;/
+    )
+    expect(reset).toMatch(
+      /\[data-dot-scene\]:not\(\[data-dot-scene="name"\]\)\s*\{\s*margin-top: 0;/
+    )
   })
 })
 

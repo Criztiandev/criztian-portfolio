@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-30T00:00:00Z",
+  "generatedAt": "2026-10-01T00:00:00Z",
   "title": "Design System: Criztian",
   "extensions": {
     "colorMeta": {
@@ -117,7 +117,7 @@
       },
       "statement": {
         "displayName": "Statement",
-        "purpose": "Antonio 700 uppercase, line-height 0.95, Lamp White. The one big line per screen, sized from its column as min(cap, k·cqi + rem, h·svh): 176px default, 127px for Development, 136px belief, 120px client, 128px contact, 240px FAQ at 1440."
+        "purpose": "Antonio 700 uppercase, line-height 0.95, Lamp White. The one big line per screen, sized from its column as min(cap, k·cqi + rem, h·svh): 176px default (a project title, I am Criztian., Let's connect.), 127px for Development, 136px belief, 120px client, 128px contact at 1440. FAQ has none since Phase 12: its numbered questions carry the screen."
       },
       "numeral": {
         "displayName": "Numeral",
@@ -154,6 +154,14 @@
       "cue": {
         "displayName": "Cue",
         "purpose": "Geist 400 uppercase, 11px, 0.22em tracking, Dim Grey. The scroll cue, plate chips, captions, the email line and the footer bar."
+      },
+      "question": {
+        "displayName": "Question",
+        "purpose": "Antonio 700 uppercase, 26px on desktop and 20px on a phone, line-height 1.05, 0.02em tracking, Lit Grey (Lamp White while open), after a Dim Grey Antonio number. The FAQ questions only (Phase 12)."
+      },
+      "field-label": {
+        "displayName": "Field label",
+        "purpose": "Geist 500 uppercase, 12px on a 16px line that grows only when the label wraps, 0.08em tracking, Lamp White, 10px after an aria-hidden Dim Grey Antonio 700 number at 14px. The contact form's four labels and the service chips' text (Phase 12)."
       }
     },
     "shadows": [],
@@ -225,7 +233,10 @@
       }
     ],
     "breakpoints": [
-      { "name": "md", "value": "768px" },
+      {
+        "name": "md",
+        "value": "768px"
+      },
       {
         "name": "split",
         "value": "min-width: 48rem, or max-height: 30rem from 34rem wide"
@@ -234,7 +245,10 @@
         "name": "short",
         "value": "short screens; tightens frame insets, step type and copy budget"
       },
-      { "name": "lg", "value": "1024px (header nav, Contact action)" }
+      {
+        "name": "lg",
+        "value": "1024px (header nav, Contact action)"
+      }
     ]
   },
   "components": [
@@ -245,6 +259,14 @@
       "description": "The name as a matrix of lit points on black; a static approximation of the WebGL field. A real h1 always carries the name.",
       "html": "<div class=\"ds-wordmark-stage\"><h1 class=\"ds-wordmark\">Criztian</h1></div>",
       "css": ".ds-wordmark-stage { background: #000000; padding: 32px 24px; display: flex; justify-content: center; } .ds-wordmark { margin: 0; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1; font-size: 96px; color: transparent; background: radial-gradient(circle, #ffffff 48%, transparent 53%) 0 0 / 3px 3px; -webkit-background-clip: text; background-clip: text; }"
+    },
+    {
+      "name": "Footer Sign",
+      "kind": "custom",
+      "refersTo": "display",
+      "description": "The footer's dots spell LET'S BUILD in the name's own lettering (Antonio sampled onto the 3px grid with 4px dots), at the name's width, above the Cue-type footer bar. The words are real text in an sr-only paragraph that shows when WebGL2 or scripting is missing, and under forced colours, where the canvas is hidden (Phase 12).",
+      "html": "<div class=\"ds-sign\"><p class=\"ds-sign-text\">Let's build</p></div>",
+      "css": ".ds-sign { background: #000000; padding: 40px; display: flex; justify-content: center; } .ds-sign-text { margin: 0; font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 160px; line-height: 1; letter-spacing: 0.05em; text-transform: uppercase; color: #ffffff; }"
     },
     {
       "name": "Statement Split Screen",
@@ -322,25 +344,41 @@
       "name": "FAQ Disclosure",
       "kind": "custom",
       "refersTo": "body",
-      "description": "Native details rows between Rule Grey hairlines: the question in Geist 500 Lamp White with a Lit Grey plus that turns 45°, the answer in Body.",
-      "html": "<div class=\"ds-faq\"><details class=\"ds-faq-row\"><summary>How long does a project take?</summary><p>[Answer]</p></details><details class=\"ds-faq-row\"><summary>What do you need from me?</summary><p>[Answer]</p></details></div>",
-      "css": ".ds-faq { background: #000000; padding: 24px; max-width: 560px; } .ds-faq-row { border-bottom: 1px solid #1f1f1f; } .ds-faq-row summary { min-height: 56px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; list-style: none; font-family: Geist, system-ui, sans-serif; font-weight: 500; font-size: 17px; color: #ffffff; } .ds-faq-row summary::after { content: '+'; color: #bfbfbf; font-size: 20px; transition: rotate 0.35s cubic-bezier(0.65, 0, 0.35, 1); } .ds-faq-row[open] summary::after { rotate: 45deg; } .ds-faq-row summary:focus-visible { outline: 3px solid rgba(255, 255, 255, 0.5); } .ds-faq-row p { margin: 0 0 16px; font-family: Geist, system-ui, sans-serif; font-size: 18px; line-height: 1.5; color: #bfbfbf; max-width: 40ch; }"
+      "description": "Numbered native details rows between Rule Grey hairlines: a Dim Grey Antonio number, the question in Question type (Lit Grey, Lamp White when open) and a Lit Grey plus that turns 45°; the answer in Body, indented under the question. Opens downward: the question and every row above it keep their place.",
+      "html": "<ol class=\"ds-faq\"><li><details class=\"ds-faq-row\"><summary><span class=\"ds-faq-number\" aria-hidden=\"true\">01</span><span class=\"ds-faq-question\">What is included in your branding services?</span></summary></details></li><li><details class=\"ds-faq-row\" open><summary><span class=\"ds-faq-number\" aria-hidden=\"true\">02</span><span class=\"ds-faq-question\">Do you offer mobile-friendly designs?</span></summary><p>Yes. All my web designs are fully responsive and optimized for desktops, tablets and mobile devices to ensure a seamless user experience.</p></details></li></ol>",
+      "css": ".ds-faq { background: #000000; padding: 24px; max-width: 720px; margin: 0; list-style: none; } .ds-faq li { border-top: 1px solid #1f1f1f; } .ds-faq li:last-child { border-bottom: 1px solid #1f1f1f; } .ds-faq-row summary { min-height: 56px; display: flex; align-items: center; gap: 20px; padding: 14px 0; cursor: pointer; list-style: none; } .ds-faq-row summary::-webkit-details-marker { display: none; } .ds-faq-row summary::after { content: '+'; margin-left: auto; color: #bfbfbf; font-size: 18px; transition: rotate 0.35s cubic-bezier(0.65, 0, 0.35, 1); } .ds-faq-row[open] summary::after { rotate: 45deg; } .ds-faq-row summary:focus-visible { outline: 3px solid rgba(255, 255, 255, 0.5); } .ds-faq-number { flex: none; width: 36px; font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 20px; line-height: 1; letter-spacing: 0.04em; color: #999999; font-variant-numeric: tabular-nums; } .ds-faq-question { flex: 1; font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 26px; line-height: 1.05; letter-spacing: 0.02em; text-transform: uppercase; color: #bfbfbf; } .ds-faq-row[open] .ds-faq-question { color: #ffffff; } .ds-faq-row p { margin: 0; padding: 0 0 20px 56px; font-family: Geist, system-ui, sans-serif; font-size: 18px; line-height: 1.5; color: #bfbfbf; max-width: 40ch; }"
+    },
+    {
+      "name": "Let's Connect",
+      "kind": "custom",
+      "refersTo": "statement",
+      "description": "The screen between FAQ and Contact (Phase 12): no label, the statement Let's connect. at the default size, and the email line in Cue type 32px under it with the address as a Lamp White link with a 1px underline; the dots draw two hands shaking on the right (5:4).",
+      "html": "<div class=\"ds-connect\"><p class=\"ds-connect-statement\">Let's connect.</p><p class=\"ds-connect-line\">Or email me: <a href=\"mailto:criztiandev@gmail.com\">criztiandev@gmail.com</a></p></div>",
+      "css": ".ds-connect { background: #000000; padding: 40px; } .ds-connect-statement { margin: 0; font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 120px; line-height: 0.95; text-transform: uppercase; color: #ffffff; } .ds-connect-line { margin: 32px 0 0; font-family: Geist, system-ui, sans-serif; font-size: 11px; line-height: 16px; letter-spacing: 0.22em; text-transform: uppercase; color: #999999; } .ds-connect-line a { color: #ffffff; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; } .ds-connect-line a:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
     },
     {
       "name": "Contact Form",
       "kind": "form",
       "refersTo": "input",
-      "description": "The form on a black box that the dots gather round: square Wire Grey fields with Lamp White labels above, and the full-width submit.",
-      "html": "<form class=\"ds-form\" method=\"post\"><div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-name\">Name</label><input class=\"ds-input\" id=\"ds-name\" placeholder=\"Your name\" /></div><div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-message\">What can I help you with?</label><textarea class=\"ds-input ds-textarea\" id=\"ds-message\"></textarea></div><button class=\"ds-btn-primary\" type=\"button\">Send message</button></form>",
-      "css": ".ds-form { background: #000000; padding: 32px; display: flex; flex-direction: column; gap: 20px; max-width: 520px; } .ds-field { display: flex; flex-direction: column; gap: 8px; } .ds-field-label { font-family: Geist, system-ui, sans-serif; font-size: 14px; font-weight: 500; color: #ffffff; } .ds-input { font-family: Geist, system-ui, sans-serif; font-size: 15px; height: 44px; padding: 0 12px; background: transparent; color: #ffffff; border: 1px solid #666666; border-radius: 0; outline: none; } .ds-textarea { height: 112px; padding: 12px; resize: vertical; } .ds-input::placeholder { color: #999999; } .ds-input:focus-visible { border-color: #ffffff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); } .ds-input[aria-invalid='true'] { border-color: rgba(255, 255, 255, 0.5); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4); } .ds-btn-primary { height: 48px; width: 100%; background: #ffffff; color: #000000; border: 0; border-radius: 0; font-family: Geist, system-ui, sans-serif; font-weight: 500; font-size: 14px; letter-spacing: 0.025em; text-transform: uppercase; cursor: pointer; } .ds-btn-primary:hover { background: rgba(255, 255, 255, 0.8); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
+      "description": "The form on a black box (560×472 with 32px padding at 1440; 342×452 with none on a phone) that the dots gather round: numbered signage rows 01 to 04 with underline fields, the service as a radio group of square chips, and the full-width submit with an up-right arrow.",
+      "html": "<form class=\"ds-form\" method=\"post\"><div class=\"ds-row-pair\"><div><div class=\"ds-label-line\"><span class=\"ds-field-number\" aria-hidden=\"true\">01</span><label class=\"ds-field-label\" for=\"ds-name\">Name</label></div><input class=\"ds-input\" id=\"ds-name\" /></div><div><div class=\"ds-label-line\"><span class=\"ds-field-number\" aria-hidden=\"true\">02</span><label class=\"ds-field-label\" for=\"ds-email\">Email</label></div><input class=\"ds-input\" id=\"ds-email\" type=\"email\" /></div></div><fieldset class=\"ds-fieldset\" role=\"radiogroup\"><legend class=\"ds-label-line\"><span class=\"ds-field-number\" aria-hidden=\"true\">03</span><span class=\"ds-field-label\">Service needed</span></legend><div class=\"ds-chips\"><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-service\" value=\"branding\" />Branding</label><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-service\" value=\"web_design\" checked />Web design</label><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-service\" value=\"development\" />Development</label><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-service\" value=\"something_else\" />Something else</label></div></fieldset><div class=\"ds-message\"><div class=\"ds-label-line\"><span class=\"ds-field-number\" aria-hidden=\"true\">04</span><label class=\"ds-field-label\" for=\"ds-message\">What can I help you with?</label></div><textarea class=\"ds-input ds-textarea\" id=\"ds-message\"></textarea></div><button class=\"ds-btn-primary\" type=\"button\">Send message ↗</button></form>",
+      "css": ".ds-form { background: #000000; padding: 32px; display: flex; flex-direction: column; width: 560px; box-sizing: border-box; } .ds-row-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; } .ds-fieldset { margin: 28px 0 0; padding: 0; border: 0; min-width: 0; } .ds-message { margin-top: 28px; } .ds-textarea { height: 112px; padding: 10px 0; resize: none; line-height: 1.5; } .ds-label-line { display: flex; align-items: baseline; gap: 10px; min-height: 16px; } .ds-field-number { font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 14px; line-height: 16px; letter-spacing: 0.04em; color: #999999; } .ds-field-label { font-family: Geist, system-ui, sans-serif; font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: #ffffff; margin-bottom: -3px; } .ds-input { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; font-family: Geist, system-ui, sans-serif; font-size: 15px; height: 44px; padding: 0; background: transparent; color: #ffffff; border: 0; border-bottom: 1px solid #666666; border-radius: 0; outline: none; } .ds-input:focus-visible { border-bottom-color: #ffffff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); } .ds-input[aria-invalid='true'] { border-bottom-color: rgba(255, 255, 255, 0.5); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4); } .ds-chips { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px; } .ds-chip { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 40px; box-sizing: border-box; padding: 0 10px; border: 1px solid #666666; font-family: Geist, system-ui, sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #bfbfbf; cursor: pointer; } .ds-chip input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; } .ds-chip:has(input:checked) { border-color: #ffffff; color: #ffffff; } .ds-chip:has(input:checked)::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #ffffff; } .ds-chip:has(input:focus-visible) { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); } .ds-btn-primary { margin-top: 32px; height: 48px; width: 100%; background: #ffffff; color: #000000; border: 0; border-radius: 0; font-family: Geist, system-ui, sans-serif; font-weight: 500; font-size: 14px; letter-spacing: 0.025em; text-transform: uppercase; cursor: pointer; } .ds-btn-primary:hover { background: rgba(255, 255, 255, 0.8); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
+    },
+    {
+      "name": "Service Chips",
+      "kind": "custom",
+      "refersTo": "input",
+      "description": "A native radio group of square chips under a numbered legend: 40px tall, 10px side padding (12px on a phone), 6px gaps, a Wire Grey border and Lit Grey Field label text; the chosen chip turns Lamp White with a 6px dot before its text. Tab reaches the group once; the arrow keys move and choose.",
+      "html": "<fieldset class=\"ds-fieldset ds-chip-stage\" role=\"radiogroup\"><legend class=\"ds-label-line\"><span class=\"ds-field-number\" aria-hidden=\"true\">03</span><span class=\"ds-field-label\">Service needed</span></legend><div class=\"ds-chips\"><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-chip-demo\" value=\"branding\" />Branding</label><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-chip-demo\" value=\"web_design\" checked />Web design</label><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-chip-demo\" value=\"development\" />Development</label><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-chip-demo\" value=\"something_else\" />Something else</label></div></fieldset>",
+      "css": ".ds-chip-stage { background: #000000; padding: 24px; margin: 0; border: 0; min-width: 0; } .ds-label-line { display: flex; align-items: baseline; gap: 10px; min-height: 16px; } .ds-field-number { font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 14px; line-height: 16px; letter-spacing: 0.04em; color: #999999; } .ds-field-label { font-family: Geist, system-ui, sans-serif; font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: #ffffff; margin-bottom: -3px; } .ds-input { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; font-family: Geist, system-ui, sans-serif; font-size: 15px; height: 44px; padding: 0; background: transparent; color: #ffffff; border: 0; border-bottom: 1px solid #666666; border-radius: 0; outline: none; } .ds-input:focus-visible { border-bottom-color: #ffffff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); } .ds-input[aria-invalid='true'] { border-bottom-color: rgba(255, 255, 255, 0.5); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4); } .ds-chips { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px; } .ds-chip { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 40px; box-sizing: border-box; padding: 0 10px; border: 1px solid #666666; font-family: Geist, system-ui, sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #bfbfbf; cursor: pointer; } .ds-chip input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; } .ds-chip:has(input:checked) { border-color: #ffffff; color: #ffffff; } .ds-chip:has(input:checked)::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #ffffff; } .ds-chip:has(input:focus-visible) { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
     },
     {
       "name": "Text Input",
       "kind": "input",
       "refersTo": "input",
-      "description": "Square 44px field, transparent on black, Wire Grey hairline, Lamp White text, Dim Grey placeholder; focus turns the border Lamp White with the 3px half-strength ring.",
-      "html": "<div class=\"ds-field-stage\"><label class=\"ds-field-label\" for=\"ds-email\">Email</label><input class=\"ds-input\" id=\"ds-email\" placeholder=\"you@example.com\" /></div>",
-      "css": ".ds-field-stage { background: #000000; padding: 24px; display: flex; flex-direction: column; gap: 8px; max-width: 360px; } .ds-field-label { font-family: Geist, system-ui, sans-serif; font-size: 14px; font-weight: 500; color: #ffffff; } .ds-input { font-family: Geist, system-ui, sans-serif; font-size: 15px; height: 44px; padding: 0 12px; background: transparent; color: #ffffff; border: 1px solid #666666; border-radius: 0; outline: none; } .ds-input::placeholder { color: #999999; } .ds-input:focus-visible { border-color: #ffffff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
+      "description": "An underline field (Phase 12): transparent on black, no top or side border and no side padding, a 1px Wire Grey bottom rule, Lamp White text, on a numbered 16px label line; focus turns the rule Lamp White with the 3px half-strength ring.",
+      "html": "<div class=\"ds-field-stage\"><div class=\"ds-label-line\"><span class=\"ds-field-number\" aria-hidden=\"true\">02</span><label class=\"ds-field-label\" for=\"ds-email-stage\">Email</label></div><input class=\"ds-input\" id=\"ds-email-stage\" type=\"email\" /></div>",
+      "css": ".ds-field-stage { background: #000000; padding: 24px; max-width: 360px; } .ds-label-line { display: flex; align-items: baseline; gap: 10px; min-height: 16px; } .ds-field-number { font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 14px; line-height: 16px; letter-spacing: 0.04em; color: #999999; } .ds-field-label { font-family: Geist, system-ui, sans-serif; font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: #ffffff; margin-bottom: -3px; } .ds-input { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; font-family: Geist, system-ui, sans-serif; font-size: 15px; height: 44px; padding: 0; background: transparent; color: #ffffff; border: 0; border-bottom: 1px solid #666666; border-radius: 0; outline: none; } .ds-input:focus-visible { border-bottom-color: #ffffff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); } .ds-input[aria-invalid='true'] { border-bottom-color: rgba(255, 255, 255, 0.5); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4); }"
     },
     {
       "name": "Navigation",
@@ -393,10 +431,10 @@
   ],
   "narrative": {
     "northStar": "The Lit Signal Board",
-    "overview": "The site is a dark room with a display board. The name Criztian is not typeset. It is built from thousands of points of light that sit on black, scatter from a cursor or a finger, and spring back with a bounce.\n\nThe one idea: the dots build one product. As the visitor scrolls, the name's dots become the idea (a turning cube) and frame the finished work. Then they build one product stage by stage: the mark, the mark in a page layout, and the layout opening into code; then the same page listened for, planned, wireframed, built and launched. They frame the real people behind the work, gather round the contact form, and come home to the name in the footer. A client should leave remembering one sentence: \"I build whole products.\"\n\nThe page rule: every screen shows one dot object and one big, bold statement. Everything else is quiet signage. FAQ is the one screen without a dot object, so the dots are out of the way while people read.\n\nThe world is black throughout and strictly monochrome. Hierarchy is set by how brightly something is lit (full white, three-quarter, dimmed, ghost), never by hue. Every corner is square, because signage and hardware are square. The feeling is calm, precise and premium.\n\nThis file describes the public site. The owner surfaces (/login, /dashboard, the editor) are tools that use the stock shadcn neutral system with light and dark modes. Only the Square Signal Rule reaches them, because it is set at the token level.",
+    "overview": "The site is a dark room with a display board. The name Criztian is not typeset. It is built from thousands of points of light that sit on black, scatter from a cursor or a finger, and spring back with a bounce.\n\nThe one idea: the dots build one product. As the visitor scrolls, the name's dots become the idea (a turning cube) and frame the finished work. Then they build one product stage by stage: the mark, the mark in a page layout, and the layout opening into code; then the same page listened for, planned, wireframed, built and launched. They frame the real people behind the work, draw the conversation beside the questions, shake hands, gather round the contact form, and end on an invitation in the name's own lettering: LET'S BUILD. A client should leave remembering one sentence: \"I build whole products.\"\n\nThe page rule: every screen shows one dot object and one big, bold statement. Everything else is quiet signage. On FAQ the numbered questions carry the screen in place of a statement.\n\nThe world is black throughout and strictly monochrome. Hierarchy is set by how brightly something is lit (full white, three-quarter, dimmed, ghost), never by hue. Every corner is square, because signage and hardware are square. The feeling is calm, precise and premium.\n\nThis file describes the public site. The owner surfaces (/login, /dashboard, the editor) are tools that use the stock shadcn neutral system with light and dark modes. Only the Square Signal Rule reaches them, because it is set at the token level.",
     "keyCharacteristics": [
       "Black ground from hero to footer, with no texture. The public page ignores the OS colour scheme.",
-      "One dot object (none on FAQ) and one statement per screen.",
+      "One dot object and one statement per screen (FAQ's numbered questions stand in for its statement).",
       "One display voice (Antonio, uppercase) and one working voice (Geist).",
       "Brightness is the only emphasis tool. No accent hue.",
       "Zero radius. Dots are the only curves; the How I work ring is drawn in dots, and the cursor's ring is the one hairline circle.",
@@ -420,7 +458,7 @@
       },
       {
         "name": "The One-Statement Rule",
-        "body": "Big type is emphasis only: the name, the belief line, one statement per section and the How I work numerals. A screen never has two statements, and a pinned section's name is never big type: it is the section label. Two exceptions: FAQ, whose statement repeats its label as an aria-hidden visual duplicate; and the arrival title, which is big only while its section scrolls in and is docked by the time the dots land.",
+        "body": "Big type is emphasis only: the name, the belief line, one statement per section and the How I work numerals. A screen never has two statements, and a pinned section's name is never big type: it is the section label. The one exception is the arrival title, which is big only while its section scrolls in and is docked by the time the dots land.",
         "section": "typography"
       },
       {
@@ -469,6 +507,11 @@
         "section": "motion"
       },
       {
+        "name": "The Breather",
+        "body": "Every section after the hero starts three-quarters of a screen of black below the one before (owner, Phase 12). The old section's copy sweeps out as it rises, the dots fly across the black, and only then does the next section's title sweep in, so a transition reads as its own moment and even a fast scroll never stacks two sections' text. The old section's bottom edge is still on screen as the next one's top comes up, so the screen is never empty. FAQ's drawing holds only a quarter of a screen after its questions and Let's connect adds only a quarter of a screen, so the conversation never sits alone on black. It is space, not a pin; it goes where the dots can't run (no WebGL2, no JavaScript) and stays under reduced motion and the pause, so a motion setting never changes the page's length.",
+        "section": "motion"
+      },
+      {
         "name": "The Moving-Line Rule",
         "body": "A drawn line that travels (the ring's dots, the numerals' outlines, a drawing hairline) is never Lamp White; it is Lit Grey or Wire Grey. Lamp White is for settled, lit states. The dot field is exempt.",
         "section": "motion"
@@ -490,7 +533,7 @@
       }
     ],
     "dos": [
-      "Do give every screen one dot object (none on FAQ) and one statement, and keep everything else quiet signage.",
+      "Do give every screen one dot object and one statement (FAQ's numbered questions stand in for its statement), and keep everything else quiet signage.",
       "Do open every section from Projects to Contact with the section label <h2>: bold Antonio, the name in Lamp White, the count in Dim Grey.",
       "Do keep every public section on plain Unlit Black (#000000) and express hierarchy through brightness steps: Lamp White, Lit Grey, Dim Grey.",
       "Do set the name, statements, titles, section labels and numerals in Antonio 700 uppercase and everything else in Geist.",

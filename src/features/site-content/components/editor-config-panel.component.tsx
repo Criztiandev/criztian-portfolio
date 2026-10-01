@@ -18,6 +18,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
+  CONNECT_TEXT_FIELDS,
+  CONTACT_TEXT_FIELDS,
   DRAFT_SAVE_DEBOUNCE_MS,
   HERO_NAME_MAX_LENGTH,
   HERO_TEXT_FIELDS,
@@ -35,6 +37,7 @@ import {
   THEME_COLOR_FIELDS,
 } from "@/data/site-content.data"
 import { ColorField } from "@/features/site-content/components/color-field.component"
+import { EditorFaqFields } from "@/features/site-content/components/editor-faq-fields.component"
 import { RichTextField } from "@/features/site-content/components/rich-text-field.component"
 import {
   useEditorUiActions,
@@ -364,6 +367,58 @@ export function EditorConfigPanel({
             >
               Add project
             </Button>
+          </FieldGroup>
+        </div>
+
+        <div hidden={selectedEntry !== "faq"}>
+          <EditorFaqFields control={form.control} register={form.register} />
+        </div>
+
+        <div hidden={selectedEntry !== "connect"}>
+          <FieldGroup>
+            {CONNECT_TEXT_FIELDS.map(function renderConnectField(textField) {
+              const fieldId = `connect-${textField.key}`
+              const fieldError = errors.connect?.[textField.key]
+
+              return (
+                <Field key={textField.key}>
+                  <FieldLabel htmlFor={fieldId}>{textField.label}</FieldLabel>
+                  <Input
+                    id={fieldId}
+                    type={textField.inputType}
+                    autoComplete="off"
+                    maxLength={textField.maxLength}
+                    aria-invalid={fieldError ? true : undefined}
+                    {...form.register(`connect.${textField.key}`)}
+                  />
+                  <FieldError errors={[fieldError]} />
+                </Field>
+              )
+            })}
+          </FieldGroup>
+        </div>
+
+        <div hidden={selectedEntry !== "contact"}>
+          <FieldGroup>
+            {CONTACT_TEXT_FIELDS.map(function renderContactField(textField) {
+              const fieldId = `contact-${textField.key}`
+              const fieldError = errors.contact?.[textField.key]
+
+              return (
+                <Field key={textField.key}>
+                  <FieldLabel htmlFor={fieldId}>{textField.label}</FieldLabel>
+                  <Input
+                    id={fieldId}
+                    type={textField.inputType}
+                    autoComplete="off"
+                    maxLength={textField.maxLength}
+                    aria-invalid={fieldError ? true : undefined}
+                    {...form.register(`contact.${textField.key}`)}
+                  />
+                  <FieldError errors={[fieldError]} />
+                </Field>
+              )
+            })}
           </FieldGroup>
         </div>
 

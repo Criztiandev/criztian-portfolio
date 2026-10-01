@@ -207,6 +207,10 @@
     scroll-behavior: auto;
   }
 
+  html:has(#contact :focus) {
+    scroll-behavior: auto;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
@@ -321,20 +325,20 @@
     --title-hold: 0;
   }
 
-  entry 38% {
+  entry 10% {
     --title-hold: 0;
   }
 
-  entry 44% {
+  entry 40% {
     --title-hold: 1;
   }
 
-  entry 68% {
+  entry 64% {
     --title-grow: 1;
     animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
   }
 
-  entry 90% {
+  entry 97% {
     --title-grow: 0;
   }
 
@@ -465,6 +469,18 @@
   --scene-lit: 1;
 }
 
+[data-dot-scene]:not([data-dot-scene="name"]) {
+  margin-top: var(--scene-breather, 75svh);
+
+  [data-status="unsupported"] & {
+    margin-top: 0;
+  }
+}
+
+[data-dot-scene="connect"] {
+  --scene-breather: 25svh;
+}
+
 [data-caption="project-1"] {
   --caption-reveal: min(var(--reveal-project-1), var(--title-gate, 1));
 }
@@ -548,5 +564,9 @@
     opacity: 1 !important;
     clip-path: none !important;
     transform: none !important;
+  }
+
+  [data-dot-scene]:not([data-dot-scene="name"]) {
+    margin-top: 0;
   }
 }

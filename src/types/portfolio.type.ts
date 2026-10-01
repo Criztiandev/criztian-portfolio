@@ -11,6 +11,7 @@ export type PortfolioSection =
   | "testimonials"
   | "faq"
   | "blog"
+  | "connect"
   | "contact"
 
 export type PortfolioNavigationItem = {

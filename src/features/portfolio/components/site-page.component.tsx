@@ -1,6 +1,6 @@
-import { FAQ_SECTION } from "@/data/page-sections.data"
 import { PUBLIC_TOKEN_OVERRIDES } from "@/data/portfolio.data"
 import { AboutSection } from "@/features/portfolio/components/about-section.component"
+import { ConnectSection } from "@/features/portfolio/components/connect-section.component"
 import { ContactSection } from "@/features/portfolio/components/contact-section.component"
 import { FaqSection } from "@/features/portfolio/components/faq-section.component"
 import { Hero } from "@/features/portfolio/components/hero.component"
@@ -11,7 +11,6 @@ import { SectionNavigation } from "@/features/portfolio/components/section-navig
 import { ServicesSection } from "@/features/portfolio/components/services-section.component"
 import { SiteFooter } from "@/features/portfolio/components/site-footer.component"
 import { TestimonialsSection } from "@/features/portfolio/components/testimonials-section.component"
-import { buildSceneCaptionStyle } from "@/features/portfolio/step-motion.rules"
 import { renderRichTextHtml } from "@/features/site-content/services/rich-text-renderer.service"
 import { buildThemeStyle } from "@/features/site-content/site-content.rules"
 import { cn } from "@/lib/utils"
@@ -26,7 +25,6 @@ export function SitePage({
     ...buildThemeStyle(content.theme),
     ...PUBLIC_TOKEN_OVERRIDES,
   }
-  const dustStyle = buildSceneCaptionStyle(FAQ_SECTION.items.length + 1)
 
   return (
     <PortfolioStoreProvider>
@@ -60,19 +58,14 @@ export function SitePage({
 
           <TestimonialsSection />
 
-          <div
-            data-dot-scene="dust"
-            data-dot-shapes="dust"
-            style={dustStyle as React.CSSProperties}
-            className="scroll-mt-18"
-          >
-            <FaqSection />
-          </div>
+          <FaqSection faq={content.faq} />
 
-          <ContactSection />
+          <ConnectSection connect={content.connect} />
+
+          <ContactSection contact={content.contact} />
         </main>
 
-        <SiteFooter name={content.hero.name} />
+        <SiteFooter name={content.hero.name} email={content.connect.email} />
       </div>
     </PortfolioStoreProvider>
   )

@@ -81,6 +81,18 @@ describe("resolveCursorState", () => {
     }
   })
 
+  it("gives action on a chip that wraps a radio and on its dot, but stays idle on a field's label", () => {
+    const host = buildTree(
+      '<label id="chip"><input type="radio" name="service" value="branding" /><span id="dot"></span>Branding</label><label id="plain" for="name">Name</label><input id="name" />'
+    )
+
+    for (const selector of ["#chip", "#dot"]) {
+      expect(resolveUnderMouse(findElement(host, selector))).toBe("action")
+    }
+
+    expect(resolveUnderMouse(findElement(host, "#plain"))).toBe("idle")
+  })
+
   it("gives field on an input, a textarea and a select, even inside a link", () => {
     const host = buildTree(
       '<input id="name" /><textarea></textarea><select><option>One</option></select><a href="#contact"><input id="nested" /></a>'

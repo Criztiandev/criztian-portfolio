@@ -8,15 +8,19 @@ export type LineArtShapeId =
   | "visualising"
   | "building"
   | "frame"
+  | "handshake"
+  | "conversation"
 
 export type ScatterShapeId = "listening" | "delivery" | "gather"
 
+export type TextShapeId = "sign"
+
 export type DotGeneratedShapeId =
-  "cube" | "dust" | LineArtShapeId | ScatterShapeId
+  "cube" | "dust" | LineArtShapeId | ScatterShapeId | TextShapeId
 
 export type DotShapeId = "name" | DotGeneratedShapeId
 
-export type DotShapeFit = "contain" | "fill"
+export type DotShapeFit = "contain" | "fill" | "text"
 
 export type DotShapeLibrary = Record<DotGeneratedShapeId, Float32Array>
 
@@ -140,6 +144,7 @@ export type DotSceneMotion = {
   share: number
   isThread: boolean
   hasTurn: boolean
+  isReadAfterPin: boolean
 }
 
 export type DotSceneRange = {
@@ -203,6 +208,7 @@ export type DotSceneKeyframe = {
   slot: DotFieldRect | null
   isThread?: boolean
   isGrown?: boolean
+  isReadAfterPin?: boolean
 }
 
 export type DotTriggeredTargetRequest = {
@@ -249,10 +255,16 @@ export type DotFieldNameSample = {
   inkHeight: number
 }
 
+export type DotFieldTextSample = {
+  width: number
+  height: number
+}
+
 export type DotFieldPlacementRequest = {
   keyframe: DotSceneKeyframe
   viewport: DotFieldViewport
   nameSample: DotFieldNameSample
+  textSample: DotFieldTextSample
   introScale: number
   spinSeconds: number
   yawOffset: number
@@ -349,6 +361,7 @@ export type DotFieldSample = {
   count: number
   left: number
   right: number
+  top: number
   inkHeight: number
 }
 

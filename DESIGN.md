@@ -1,6 +1,6 @@
 ---
 name: Criztian
-description: A black signal board where the name's dots build one product, then come home.
+description: A black signal board where the name's dots build one product, then invite you to build.
 colors:
   unlit-black: "#000000"
   lamp-white: "#ffffff"
@@ -53,6 +53,18 @@ typography:
     fontSize: "0.8125rem"
     fontWeight: 400
     lineHeight: 1.231
+    letterSpacing: "0.08em"
+  question:
+    fontFamily: 'Antonio, "Antonio Fallback", sans-serif'
+    fontSize: "1.625rem"
+    fontWeight: 700
+    lineHeight: 1.05
+    letterSpacing: "0.02em"
+  field-label:
+    fontFamily: 'Geist, "Geist Fallback", sans-serif'
+    fontSize: "0.75rem"
+    fontWeight: 500
+    lineHeight: 1.333
     letterSpacing: "0.08em"
   section-label:
     fontFamily: 'Antonio, "Antonio Fallback", sans-serif'
@@ -136,16 +148,27 @@ components:
     typography: "{typography.cue}"
     padding: "4px 8px"
   input:
-    backgroundColor: "{colors.unlit-black}"
+    backgroundColor: "transparent"
     textColor: "{colors.lamp-white}"
     rounded: "{rounded.none}"
     height: "44px"
-    padding: "0 12px"
+    padding: "0"
+  chip:
+    textColor: "{colors.lit-grey}"
+    typography: "{typography.field-label}"
+    rounded: "{rounded.none}"
+    height: "40px"
+    padding: "0 10px"
+  chip-selected:
+    textColor: "{colors.lamp-white}"
+  faq-question:
+    textColor: "{colors.lit-grey}"
+    typography: "{typography.question}"
 ---
 
 # Design System: Criztian
 
-> **Status:** this is the locked design, mockup B ("Statement"), with `B-desktop-1` as the reference (owner, 2026-09-29). Phase 5 built the page order, the copy and the B surface: the statement split for the quote, Work, About, Testimonials, FAQ and Contact, the section label, Body, Title, Cue, Rule Grey, the form and the footer. Phase 6 drew every dot object in one material: the frames round the Work, About and client plates, the gather round the form, and the one product that Services and How I work build. Phase 7 moved My services onto the statement split and removed the glide lock. Phase 8 rebuilt How I work around a centred wheel: no plates, the shape above the numeral at full size, the neighbours dim at both edges, and the turn triggered by the dots. Phase 9 built the projects deck: one pinned board, one project at a time, with the dots redrawing the frame round each plate. Phase 10 put every section in the one motion style: each section's label, statement and copy sweep in with the dots and out as they leave, the copy drifts on desktop as a screen arrives and leaves, and the header gains a scroll-spy dot, a scroll-progress hairline and the adaptive cursor. Phase 11 (owner) made the section label bold Antonio and lets it arrive as a big title that docks into the label as its section pins, added the square "Pause motion" toggle to the header, and kept the cursor's ring small over the dots. The renders are in `plans/mockups/`. Exact markup is in the artboards on the mockup canvas (linked from the handoff). When unsure how something should look, match B1.
+> **Status:** this is the locked design, mockup B ("Statement"), with `B-desktop-1` as the reference (owner, 2026-09-29). Phase 5 built the page order, the copy and the B surface: the statement split for the quote, Work, About, Testimonials, FAQ and Contact, the section label, Body, Title, Cue, Rule Grey, the form and the footer. Phase 6 drew every dot object in one material: the frames round the Work, About and client plates, the gather round the form, and the one product that Services and How I work build. Phase 7 moved My services onto the statement split and removed the glide lock. Phase 8 rebuilt How I work around a centred wheel: no plates, the shape above the numeral at full size, the neighbours dim at both edges, and the turn triggered by the dots. Phase 9 built the projects deck: one pinned board, one project at a time, with the dots redrawing the frame round each plate. Phase 10 put every section in the one motion style: each section's label, statement and copy sweep in with the dots and out as they leave, the copy drifts on desktop as a screen arrives and leaves, and the header gains a scroll-spy dot, a scroll-progress hairline and the adaptive cursor. Phase 11 (owner) made the section label bold Antonio and lets it arrive as a big title that docks into the label as its section pins, added the square "Pause motion" toggle to the header, and kept the cursor's ring small over the dots. Phase 12 (owner, direction B "The conversation" on the Phase 12 canvas) rebuilt the ending: FAQ's numbered questions beside a drawing of two speech bubbles, a new Let's connect screen where two hands shake, the restyled form with the dots gathering round it, and LET'S BUILD in the footer's dots. The renders are in `plans/mockups/`. Exact markup is in the artboards on the mockup canvas (linked from the handoff). When unsure how something should look, match B1.
 
 ## Overview
 
@@ -153,9 +176,9 @@ components:
 
 The site is a dark room with a display board. The name **Criztian** is not typeset. It is built from thousands of points of light that sit on black, scatter from a cursor or a finger, and spring back with a bounce.
 
-**The one idea: the dots build one product.** As the visitor scrolls, the name's dots become the idea (a turning cube) and frame the finished work. Then they build one product stage by stage: the mark, the mark in a page layout, and the layout opening into code; then the same page listened for, planned, wireframed, built and launched. They frame the real people behind the work, gather round the contact form, and come home to the name in the footer. A client should leave remembering one sentence: "I build whole products."
+**The one idea: the dots build one product.** As the visitor scrolls, the name's dots become the idea (a turning cube) and frame the finished work. Then they build one product stage by stage: the mark, the mark in a page layout, and the layout opening into code; then the same page listened for, planned, wireframed, built and launched. They frame the real people behind the work, draw the conversation beside the questions, shake hands, gather round the contact form, and end on an invitation in the name's own lettering: LET'S BUILD. A client should leave remembering one sentence: "I build whole products."
 
-**The page rule.** Every screen shows one dot object and one big, bold statement. Everything else is quiet signage. FAQ is the one screen without a dot object, so the dots are out of the way while people read.
+**The page rule.** Every screen shows one dot object and one big, bold statement. Everything else is quiet signage. On FAQ the numbered questions carry the screen in place of a statement.
 
 The world is **black throughout** and **strictly monochrome**. Hierarchy is set by how brightly something is lit (full white, three-quarter, dimmed, ghost), never by hue. Every corner is square, because signage and hardware are square. The feeling is calm, precise and premium.
 
@@ -164,7 +187,7 @@ This file describes the public site. The owner surfaces (`/login`, `/dashboard`,
 **Key Characteristics:**
 
 - Black ground from hero to footer, with no texture. The public page ignores the OS colour scheme.
-- One dot object (none on FAQ) and one statement per screen.
+- One dot object and one statement per screen (FAQ's numbered questions stand in for its statement).
 - One display voice (Antonio, uppercase) and one working voice (Geist).
 - Brightness is the only emphasis tool. No accent hue.
 - Zero radius. Dots are the only curves; the How I work ring is drawn in dots, and the cursor's ring is the one hairline circle.
@@ -190,7 +213,7 @@ The palette is a set of brightness levels on black. Every colour is white at som
 - **Lit Grey** (`lit-grey`, white at ~75%): readable secondary copy, such as body paragraphs, the hero tagline, nav links at rest, the Services items and the active numeral's outline.
 - **Dim Grey** (`dim-grey`, white at 60%): tertiary text such as section labels, the scroll cue, plate chips, captions and helper text. At 7.4:1 on black it is still comfortable to read.
 - **Ghost Grey** (`ghost-grey`, white at 45%): decorative marks only; B uses none (the brand's © is Dim Grey). It measures 4.4:1 on black, which is below AA for body text.
-- **Wire Grey** (`wire-grey`, white at 40%): outlines on interactive elements (form fields), the project tag, the How I work ring's dots and the neighbouring numerals.
+- **Wire Grey** (`wire-grey`, white at 40%): outlines on interactive elements (the form's underlines and service chips), the project tag, the How I work ring's dots and the neighbouring numerals.
 - **Rule Grey** (`rule-grey`, white at 12%): hairline dividers only. It draws the solid header's bottom rule, the Services item rules, the FAQ rows, the About stats rule and the footer bar's rule. At about 1.3:1 it is too faint to mark a control (WCAG 1.4.11), so it never outlines anything interactive. It is its own token, `--rule` (the foreground at 12%, `border-rule`), set on the public stage; `--border` and `--input` stay Wire Grey for field outlines and the project tag.
 
 ### Named Rules
@@ -217,17 +240,16 @@ The palette is a set of brightness levels on black. Every colour is white at som
 ### Hierarchy
 
 - **Display** (Antonio 700, uppercase, `min(25vw, 40svh)` on mobile and `clamp(3rem, 18vw, 16rem)` from 768px, line-height 1, tracking 0.05em in the dot sampler): the name, and nothing else. It is the source shape the dot field samples.
-- **Statement** (Antonio 700, uppercase, line-height 0.95, Lamp White, left-aligned and balanced): the one big line on each screen. It carries the section's meaning, so it is always real text (a heading, a quote or a line of copy), never dots or an image. Size follows length: a long line steps down so it sits on three or four lines, and a single word that cannot wrap steps down until it fits its column ("Development" fits the 720px column only at about 144px or less, and the 342px phone column at about 68px or less). Only "FAQ" steps up. The mockup sizes are caps at the reference widths, not fixed points:
+- **Statement** (Antonio 700, uppercase, line-height 0.95, Lamp White, left-aligned and balanced): the one big line on each screen. It carries the section's meaning, so it is always real text (a heading, a quote or a line of copy), never dots or an image. Size follows length: a long line steps down so it sits on three or four lines, and a single word that cannot wrap steps down until it fits its column ("Development" fits the 720px column only at about 144px or less, and the 342px phone column at about 68px or less). The mockup sizes are caps at the reference widths, not fixed points:
 
-  | Statement                                                | Desktop (1440) | Phone (390) |
-  | -------------------------------------------------------- | -------------- | ----------- |
-  | Default: a project title, "I am Criztian."               | 176px          | 72px        |
-  | A service name ("Web design" wraps to two lines at 1440) | 176px          | 72px        |
-  | "Development", one long word                             | 127px          | 64px        |
-  | The belief line, at most 11ch                            | 136px          | 52px        |
-  | A client's words                                         | 120px          | 68px        |
-  | "Let's start your project today.", on three lines        | 128px          | 52px        |
-  | "FAQ"                                                    | 240px          | 110px       |
+  | Statement                                                    | Desktop (1440) | Phone (390) |
+  | ------------------------------------------------------------ | -------------- | ----------- |
+  | Default: a project title, "I am Criztian.", "Let's connect." | 176px          | 72px        |
+  | A service name ("Web design" wraps to two lines at 1440)     | 176px          | 72px        |
+  | "Development", one long word                                 | 127px          | 64px        |
+  | The belief line, at most 11ch                                | 136px          | 52px        |
+  | A client's words                                             | 120px          | 68px        |
+  | "Let's start your project today.", on three lines            | 128px          | 52px        |
 
   A statement never overflows its column or its frame. From 48rem the left column is about half the viewport, so in the split a statement is sized from its column (container units), not from the viewport, and it keeps a rem term so it grows under page zoom (WCAG 1.4.4). The scale (`STATEMENT_SIZE_CLASSES`, set in Phase 5) is `min(cap, k·cqi + rem, h·svh)` with line-height 0.95:
 
@@ -239,7 +261,6 @@ The palette is a set of brightness levels on black. Every colour is white at som
   | Belief    | 14cqi + 0.5rem, 52   | 18cqi + 0.5rem, 136, 16svh   |
   | Client    | 17cqi + 0.25rem, 68  | 15.5cqi + 0.5rem, 120, 14svh |
   | Contact   | 14cqi + 0.5rem, 52   | 16.5cqi + 0.5rem, 128, 15svh |
-  | FAQ       | 30cqi + 0.5rem, 110  | 32cqi + 0.5rem, 240, 28svh   |
 
   The svh term keeps a statement inside short frames (landscape phones, 1280×720). Each factor was checked so the widest word fits its column at the fit sizes and at 768×1024 and 1024×768 ("CRIZTIAN." is the tightest at 768 wide). A word that still cannot fit, such as an owner's long project title, breaks rather than overflows. The service names were measured in Phase 7: BRANDING is 3.71em wide and DEVELOPMENT 4.98em, so the default factor would overflow BRANDING in split columns under about 825px wide where the cap doesn't bind (1024 and 768 wide). Each service therefore names its size in `SERVICES_SCENE`: Branding and Web design take the Service size, and Development the Long word size, about 127px in the 720px column (it could fit 144px there, but the linear scale must also fit a 249px landscape column).
 
@@ -249,15 +270,17 @@ The palette is a set of brightness levels on black. Every colour is white at som
 - **Lede** (Geist 400, uppercase, 14px/1.625 with 0.14em tracking from 768px; 13px/1.7 with 0.05em tracking on mobile): the hero tagline only. Maximum width is 34rem.
 - **Label** (Geist 400, uppercase, 14px, 0.025em tracking): nav links and the Contact action. The project tag uses it at 12px. The submit button takes the Label voice in Geist 500 (owner, Phase 5).
 - **Item** (Geist 400, uppercase, 13px/16px, 0.08em tracking, Lit Grey, after a Dim Grey tabular number): numbered lists, such as the six items under each service. Each row has a Rule Grey hairline under it and is 40px tall on the split (12px padding). On a phone it is 36px, tightening to 28px on phones up to 44rem tall and 24px on short ones, so the dot object keeps its room. The list is an `<ol>`, so the visible number is an `aria-hidden` duplicate.
-- **Section label** (Antonio 700, uppercase, 18px on a phone and 20px from 768px, 0.04em tracking, in a 16px line box; the name in Lamp White and the position in Dim Grey): the one `<h2>` style. It names the section and, where the section has steps or several items, the position: "My services · 02 / 03". Every section from Projects to Contact opens with it, at the top left of its frame; the hero, the quote and the footer have none. It was Geist 12px Dim Grey until Phase 11, when the owner found it too quiet to tell which section they were in.
-- **Arrival title** (the section label's name at `min(8rem, 17cqi, 14svh)`, about 122px at 1440×900 and 58px on a 390 phone): as a section scrolls in, once the previous section's text has swept out, its label sweeps in as a big title, holds, and shrinks into the label; the section's own copy waits for it and sweeps in as it docks and the dots land (owner, Phase 11). It is the same word at a larger scale, never a second element, so it grows from the label's bottom-left corner into the gap above the frame and never covers the frame's plate, drawing or statement. The size keeps "Testimonials", the widest label, on one line in its column. FAQ has none: its big statement already says "FAQ".
+- **Question** (Antonio 700, uppercase, 26px on desktop and 20px on a phone, line-height 1.05, 0.02em tracking; Lit Grey, Lamp White while its answer is open, after a Dim Grey Antonio number at 20px or 16px): the FAQ questions only (Phase 12). They are big enough to carry the screen, one clear step below a title. The number is an `aria-hidden` duplicate, because the list is an `<ol>`.
+- **Field label** (Geist 500, uppercase, 12px on a 16px line that grows only when the label wraps, 0.08em tracking, Lamp White, 10px after a Dim Grey Antonio 700 number at 14px): the contact form's four labels and the chips' text (the chips in Lit Grey). The numbers 01 to 04 are `aria-hidden` and sit outside the `<label>`s.
+- **Section label** (Antonio 700, uppercase, 18px on a phone and 20px from 768px, 0.04em tracking, in a 16px line box; the name in Lamp White and the position in Dim Grey): the one `<h2>` style. It names the section and, where the section has steps or several items, the position: "My services · 02 / 03". Every section from Projects to Contact opens with it, at the top left of its frame; the hero, the quote, Let's connect and the footer have none. It was Geist 12px Dim Grey until Phase 11, when the owner found it too quiet to tell which section they were in.
+- **Arrival title** (the section label's name at `min(8rem, 17cqi, 14svh)`, about 122px at 1440×900 and 58px on a 390 phone): as a section scrolls in, once the previous section's text has swept out, its label sweeps in as a big title, holds, and shrinks into the label; the section's own copy waits for it and sweeps in as it docks and the dots land (owner, Phase 11). It is the same word at a larger scale, never a second element, so it grows from the label's bottom-left corner into the gap above the frame and never covers the frame's plate, drawing or statement. The size keeps "Testimonials", the widest label, on one line in its column. Every labelled section has one, FAQ included since Phase 12; the quote and Let's connect have no label, so they have none.
 - **Cue** (Geist 400, uppercase, 11px with 0.22em tracking at every width, Dim Grey): the scroll cue, plate chips, captions (the quote's author, a client's name, a stat's label, a project's stack line), the "Or email me" line and the footer bar.
 
 ### Named Rules
 
-**The One-Statement Rule.** Big type is emphasis only: the name, the belief line, one statement per section and the How I work numerals. A screen never has two statements, and a pinned section's name is never big type: it is the section label. Two exceptions: FAQ, whose statement repeats its label as an `aria-hidden` visual duplicate; and the arrival title, which is big only while its section scrolls in, before the statement sweeps in, and is docked by the time the dots land.
+**The One-Statement Rule.** Big type is emphasis only: the name, the belief line, one statement per section and the How I work numerals. A screen never has two statements, and a pinned section's name is never big type: it is the section label. The one exception is the arrival title, which is big only while its section scrolls in, before the statement sweeps in, and is docked by the time the dots land. FAQ has no statement since Phase 12: its numbered questions carry the screen.
 
-**The Two-Voice Rule.** Antonio is for the name, statements, titles, section labels and numerals. Geist handles everything else. There is no third voice, and there is no mixed-case Antonio.
+**The Two-Voice Rule.** Antonio is for the name, statements, titles, section labels, the FAQ questions and numerals. Geist handles everything else. There is no third voice, and there is no mixed-case Antonio.
 
 **The Tracked Signage Rule.** Uppercase Geist is always tracked out. Uppercase text at default tracking reads as shouting, not signage.
 
@@ -277,15 +300,16 @@ The page is a single vertical scroll of full-screen sections on one black ground
 6. About (`#about`)
 7. Testimonials (`#testimonials`)
 8. FAQ (`#faq`)
-9. Contact (`#contact`), with Let's connect's email line merged in beside the form, so the page ends once
-10. Footer
+9. Let's connect (`#connect`, not in the nav; Phase 12): the handshake and the email line
+10. Contact (`#contact`)
+11. Footer
 
 - **Primary nav:** Work (`#project`), Services, Process, About and FAQ, plus the "Let's talk" action to `#contact`. The artboards call two anchors `#work` and `#belief`; the site keeps `#project` and `#quote`.
 - **Blog** is hidden from the page and the nav until real posts exist. Its code stays.
 
 ### The statement split
 
-Every screen below the hero is the same composition (the quote has no section label):
+Every screen below the hero is the same composition (the quote and Let's connect have no section label, and FAQ's numbered questions stand in for its statement):
 
 - **Desktop:** two columns inside the 40px gutters, 40px apart.
   - **Left** (about x 40–760 at 1440): the section label at the top left, 56px below the header. Then, vertically centred in the rest of the frame, the statement, left-aligned, with the body and details under it.
@@ -293,7 +317,7 @@ Every screen below the hero is the same composition (the quote has no section la
   - **The columns flex with the object:** Projects gives its plate 700px (620 + 700). Every other screen is 720 + 600, except How I work (see the Wheel Rule below).
   - **Width:** at 1440 the split fills the whole width inside the gutters (1360px). The content stops growing at 100rem (1600px; `max-w-[105rem]` with the gutters), so beyond about 1680px wide the split is centred. Below that the columns keep their ratios: 6fr : 5fr for most screens (720 : 600 at 1440) and 31fr : 35fr for Work (620 : 700).
   - **Vertical rhythm:** the label sits `min(3.5rem, 6svh)` below the header and the frame keeps `min(4rem, 7svh)` at its foot, so 1280×720 fits without growing; short screens (the `short` variant) tighten both to 16px.
-- **Phone:** one column, left-aligned, in 24px gutters. The section label sits 28px below the header. Then, vertically centred, the object comes first: a plate at full width (342px at 390, 10:7, at most 28svh tall), or a dot shape as a centred square at its own size (the cube 288px, Services 280px, How I work up to 268px tall). Work is the one screen that is top-aligned on a phone (label, plate, copy), so its pinned slot can sit on the plate. Then come the statement and the details. Where the object is the form (Contact) or there is none (FAQ), the statement comes first. FAQ is not centred: its statement sits 8px under the label, and the list follows 16px below it.
+- **Phone:** one column, left-aligned, in 24px gutters. The section label sits 28px below the header. Then, vertically centred, the object comes first: a plate at full width (342px at 390, 10:7, at most 28svh tall), or a dot shape as a centred square at its own size (the cube 288px, Services 280px, How I work up to 268px tall). Work is the one screen that is top-aligned on a phone (label, plate, copy), so its pinned slot can sit on the plate. Then come the statement and the details. Where the object is the form (Contact), the statement comes first, top-aligned: 16px under the label, with the form 70px below it. FAQ is top-aligned too: the label, the drawing 16px under it, and the list 24px under the drawing.
 - **How I work** is composed like a phone at every width: the label at the top left, then on the centre axis the shape, the numeral on the ring, and the title and copy under it (owner, Phase 8).
 - **Choosing the layout:** pinned scenes use the `split` variant (`min-width: 48rem`, or `max-height: 30rem` from 34rem wide), so a landscape phone gets the two columns while 400% zoom stays single-column. The `short` variant tightens the frame's insets, the step type and the copy budget on short screens, so small phones (375×548) keep the pinned layout. Never choose by `md:` alone. The header nav switches at 1024px.
 
@@ -321,9 +345,9 @@ Every screen below the hero is the same composition (the quote has no section la
     - **Staged (the default where it can run):** the copy never scrolls. It sits on one pinned board and changes when a step triggers.
     - **Staged needs** scroll-driven animations, motion allowed, a viewport taller than 30rem, a running dot field and a scene that fits. Anywhere else the Services and How I work steps dock as opaque black curtains below the label and the slot, so the copy never crosses either; Projects becomes a plain list instead (see Projects).
     - When the copy cannot fit its box (WCAG text spacing, 400% zoom, an extreme size), the scene drops to a plain reading list; the copy is never clipped or covered.
-  - **Single-frame scenes** (Quote, About, Testimonials and the footer): the frame grows with its content (a minimum height, never a fixed one), so zoom or text spacing lengthens the pin instead of clipping the copy. Contact is the exception: its frame is fixed and flows as a reading section where the form cannot fit (see Contact).
-  - **FAQ:** no dot object and no pin. The dots fade to nothing while people read, so the screen is plain black (owner, Phase 6).
-- **Footer:** the name re-forms in its slot, above a Cue-type bar with a Rule Grey top rule: ©, the footer nav (the five primary links), the email and Back to top. It is one row from 1024px, and stacked and centred below, where every item is at least 44px tall.
+  - **Single-frame scenes** (Quote, About, Testimonials, Let's connect and the footer): the frame grows with its content (a minimum height, never a fixed one), so zoom or text spacing lengthens the pin instead of clipping the copy. Contact is the exception: its frame is fixed and flows as a reading section where the form cannot fit (see Contact).
+  - **FAQ** (Phase 12): its pinned frame holds only the drawing, and the questions scroll past it in their own layer, so a reader can open answers freely while the drawing stays put. On a phone the list slides up over the drawing on an opaque ground.
+- **Footer:** the dots spell LET'S BUILD in its slot (Phase 12; the name re-formed there until then), above a Cue-type bar with a Rule Grey top rule: ©, the footer nav (the five primary links), the email and Back to top. It is one row from 1024px, and stacked and centred below, where every item is at least 44px tall and the bar has no gaps and a 12px top padding (213px on a 390 phone), with LET'S BUILD centred on the whole screen above it, as the phone artboard has it. In forced colours, where the canvas is hidden, LET'S BUILD shows as text in its place, as the hero's name does.
 
 ## Elevation & Depth
 
@@ -346,16 +370,18 @@ Every corner is square. Buttons, inputs, plates, tags and focus rings are all sq
 
 **The One-Motion Rule.** Section content moves in one of four ways, and no section gets its own trick:
 
-- **Text: the light sweep, drawn by the dots.** A hard-edged wipe from left to right with a 24px slide, on the signal ease (`cubic-bezier(0.65, 0, 0.35, 1)`: `SIGNAL_EASE` for Motion, the `ease-signal` token in CSS). It never runs on a clock: the dots' own progress draws it (owner, Phase 10). Every section's label, statement and copy sweep in as the section's dots land and wipe out as they leave, one line after another in reading order (a paragraph, a list row, a stats row or a footer link is one line), so text, dots and scroll stay in sync at any speed, and every visit replays it. Step scenes sweep their captions per step (see Thread, Orbit and Projects), and their labels with the scene. Only the name's intro keeps a soft 26px edge, in the shader; all other text has the hard edge (owner, Phase 10). FAQ, the one screen without a dot object, keeps its text lit while it scrolls away, so a reader never loses the row they are reading. So does a screen whose frame grows past the viewport (a landscape phone, 400% zoom or text spacing), because its lower lines only come into view after its pin. Keyboard focus lights a whole section, so a focused link is never clipped.
+- **Text: the light sweep, drawn by the dots.** A hard-edged wipe from left to right with a 24px slide, on the signal ease (`cubic-bezier(0.65, 0, 0.35, 1)`: `SIGNAL_EASE` for Motion, the `ease-signal` token in CSS). It never runs on a clock: the dots' own progress draws it (owner, Phase 10). Every section's label, statement and copy sweep in as the section's dots land and wipe out as they leave, one line after another in reading order (a paragraph, a list row, a stats row or a footer link is one line), so text, dots and scroll stay in sync at any speed, and every visit replays it. Step scenes sweep their captions per step (see Thread, Orbit and Projects), and their labels with the scene. Only the name's intro keeps a soft 26px edge, in the shader; all other text has the hard edge (owner, Phase 10). FAQ keeps its rows lit while they scroll away, until the handshake has formed, so a reader never loses the row they are reading. So does a screen whose frame grows past the viewport (a landscape phone, 400% zoom or text spacing), because its lower lines only come into view after its pin. Keyboard focus lights a whole section, so a focused link is never clipped.
 - **Dots: the pen-order draw.** A shape draws in the order a pen would draw it, and un-draws from its start. Between shapes the dots travel on a staggered sweep and a gentle arc.
-- **Copy drift (desktop).** From 48rem wide, the copy of every single-frame screen (the quote, About, Testimonials, FAQ and Contact) drifts up to 40px against its dot object as the screen arrives and leaves, and holds still while it is pinned (owner, Phase 10). It never runs under reduced motion, on phones, or in the step scenes, whose copy is tied to the dots.
-- **The arrival title.** Once the outgoing section's text has swept out, a little before the middle of the flight, the arriving section's label sweeps in as the big arrival title, alone on the screen. It holds big for about a quarter of the arrival, then shrinks into the label on the signal ease. The section's statement, copy and images wait for it: they sweep in only as it docks, while the dots land. A soft black halo round its letters keeps the flying dots off them. It follows the scroll, like the drift, so scrolling back reverses it, and a nav jump lands with it docked. It wipes out with the dots when the section leaves (owner, Phase 11, in three rounds: not over the old section and the flight, and long enough to register).
+- **Copy drift (desktop).** From 48rem wide, the copy of every single-frame screen (the quote, About, Testimonials, FAQ, Let's connect and Contact) drifts up to 40px against its dot object as the screen arrives and leaves, and holds still while it is pinned (owner, Phase 10). It never runs under reduced motion, on phones, or in the step scenes, whose copy is tied to the dots.
+- **The arrival title.** Once the outgoing section's text has swept out, as the arriving section rises from the foot of the screen across the breather, its label sweeps in as the big arrival title, alone on the screen, at the pace of the scroll: the sweep takes about a third of the arrival (about 250px of scroll at 1440×900), never a sudden pop (owner, Phase 12: "sudden pop out hurts my eye"). It holds big for about a quarter of the arrival, then shrinks into the label on the signal ease over the last third. The section's statement, copy and images wait for it: they sweep in only as it docks, while the dots land. A soft black halo round its letters keeps the flying dots off them. It follows the scroll, like the drift, so scrolling back reverses it, and a nav jump lands with it docked. It wipes out with the dots when the section leaves (owner, Phase 11, in three rounds: not over the old section and the flight, and long enough to register).
 
 Interface motion is separate and stays small: the header drop-in, the scroll-cue lift, hover and active states, the menu wipe-open, the FAQ answers opening, the How I work turn, the stats count-up, the nav dot, the scroll-progress hairline, the cursor and the contact acknowledgement. All motion animates transform, clip-path and opacity only, with two named exceptions: the FAQ answer's height and the cursor ring's width and height.
 
 The Phase 10 decisions on the parked ideas (owner): heading parallax became the copy drift above; the adaptive cursor is built (see Cursor); the cursive logo replaces the brand when the owner's mark arrives.
 
 **The One-Scroll Rule: trigger, play, no lock.** Inside a scene with steps, a step triggers once the scroll passes 12% into a transit, in either direction, and then plays by itself (1.6s for a drawing), so a stopped scroll never leaves a half-drawn shape. The page never holds the scroll: a fast scroll carries on, and the next trigger takes over. This replaces the Services glide lock (removed in Phase 7); How I work's turn (Phase 8) and the projects deck (Phase 9) follow it too. Between scenes, the dots' flight follows the scroll on a short ease, even from one scene with steps into the next (Projects into Services, Services into How I work): both frames are moving then, and a shape that played ahead of the scroll would hang at the next pinned slot over the outgoing copy (Phase 8).
+
+**The Breather.** Every section after the hero starts three-quarters of a screen of black below the one before (owner, Phase 12: "a huge space … so it's dramatic and the transition of the dots is not short", then "smaller a little so when I scroll down I can still see the bottom"). The old section's copy sweeps out as it rises, the dots fly across the black, and only then does the next section's title sweep in, so a transition reads as its own moment and even a fast scroll never stacks two sections' text. The old section's bottom edge is still on screen as the next one's top comes up, so the screen is never empty. FAQ into Let's connect, where the questions end on a black band, was the model. FAQ's drawing holds only a quarter of a screen after its questions, and Let's connect adds only a quarter of a screen of breather, so the conversation never sits alone on black and that pause is no longer than the others (owner: "the transition of FAQ and Let's connect is too long"). It is space, not a pin: nothing holds the scroll. It goes where the dots can't run (no WebGL2, no JavaScript) and stays, plain black, under reduced motion and the pause, so a motion setting never changes the page's length.
 
 **Reduced motion:** no sweep, draw, flight, spin, wobble, drift, arrival title or count. Text appears in place, and each shape is drawn still, in its resting pose, only while its section is pinned. Between scenes the canvas is empty. The nav dot moves without sliding and the cursor's ring sits on the pointer. The scroll-progress hairline stays, because it moves only with the reader's own scroll, like a scrollbar.
 
@@ -401,17 +427,21 @@ Every section is a scene on one scroll timeline (see `plans/handoff.md`). A form
 4. **Brand, design and code:** one product in three stages, the mark, the mark in a page layout, and the layout opening into code (Services).
 5. **Five states of the same page:** a loose ring (listening), a grid (planning), a wireframe (visualising), the built page (building), and the page lifting off on a trail of dots (delivery) (How I work).
 6. **Real people:** the dots frame the owner's photo (About), then a client's photo or logo (Testimonials).
-7. **Out of the way:** FAQ is plain black while people read.
-8. **Gather:** the dots gather round the contact form (Contact).
-9. **Home:** the name re-forms in the footer.
+7. **The conversation:** two speech bubbles, a question with two lines of text and an answer with three dots, beside the questions (FAQ, Phase 12).
+8. **The handshake:** two hands shaking, drawn from both wrists in towards the clasp (Let's connect, Phase 12).
+9. **Gather:** the handshake's dots fly to the frame round the contact form (Contact).
+10. **The invitation:** the footer's dots spell LET'S BUILD in the name's own lettering (Phase 12; until then the name came home there).
 
-**The Draw-and-Frame Rule.** The dots draw ideas and frame real things. Ideas are drawn in dots: the name, the cube, the product being built. Real things are framed by dots: a project image, the owner's photo, a client's photo or logo, the form. A real thing is never made of dots, a dot object is never shrunk into a corner, and no screen has a dotted grid or other background texture.
+**The Draw-and-Frame Rule.** The dots draw ideas and frame real things. Ideas are drawn in dots: the name, the cube, the product being built, the conversation, the handshake and the invitation. Real things are framed by dots: a project image, the owner's photo, a client's photo or logo, the form. A real thing is never made of dots, a dot object is never shrunk into a corner, and no screen has a dotted grid or other background texture.
 
-- **One material:** every shape except the name is the cube's chalk stipple, dots in a jittered band about as wide as the cube's. The particle globe and the starfield are gone. The owner chose, from captures, to let the dust behind FAQ go away (Phase 6): the dust scene still covers FAQ for the timeline, but it draws nothing.
+- **One material:** every shape except the name and the sign is the cube's chalk stipple, dots in a jittered band about as wide as the cube's. The particle globe and the starfield are gone, and since Phase 12 no screen is dust: FAQ draws the conversation. A scene that cannot fit still drops to (invisible) dust.
 - **Drawings:** Services and How I work draw one page: a 1.8 × 1.2 frame with a header rule, the mark (a small circle and square) at its left, three nav dashes, a hero block, an image block and three columns. The mark alone is a circle in front of a square. The page is drawn with the mark, stepped back behind a code panel, as a grid, as outlines, built (text lines, an image cross, column lines) and launched on a narrowing trail of dots. Listening is a loose dim ring of scattered points. Each is seen in a slight 3/4 view, with the far side dimmer.
+- **The ending's drawings** (Phase 12) are still, in the same 3/4 view at half the slot's short side: the conversation (the question bubble behind, the answer bubble in front; the pen draws the question, its lines, the answer and its three dots), and the handshake (Lucide's handshake redrawn with sleeves and double cuffs, the back arm behind and the front hand in front; the pen draws both arms at once from the sleeves in to the clasp). Neither spins or sways, so the loop sleeps on them.
+- **The sign:** LET'S BUILD is sampled from Antonio exactly like the name (the same 3px grid, 4px dots and 0.05em tracking), at the name's width, about 1,124px at 1440, and it arrives left to right. A drawing may use at most 12,000 dots, so beyond about 1,445px wide the sign stops growing (about 1,100px) while the name keeps growing. It scatters under the pointer like the name, and it is fitted, never stretched, into the footer's slot (342px wide on a 390 phone).
 - **Plate frames:** a frame is a thin rectangle of dots just outside its plate: 18px out, or 5% of the plate's short side when that is less (12px round a 342×240 phone plate). The plate's rect sets the proportions: 10:7 for a project, 4:5 for the About photo and 1:1 for a client's plate on desktop. A frame is still: it never scatters under the pointer, so the real thing keeps the attention (owner, Phase 6). It still takes the small arrival bounce. Between two projects it never flies: it unwinds in pen order with the old project and redraws in pen order round the new plate, in place, and a hop back plays it in reverse (Phase 9).
 - **Reduced motion:** see Motion.
 - **No WebGL2:** slots collapse and the scenes stop pinning. The text `<h1>`, the statements and the plates carry all meaning either way.
+- **Forced colours:** the canvas is hidden, so the name and LET'S BUILD show as text.
 - **Dot count:** every shape uses the same dots: 12,000, or the wordmark's count if it is larger. The cube draws its reference 7,200 of them, and the rest wait hidden. A small slot shows only a share of a drawing, so a phone never packs its dots into a blob.
 
 ### Belief Quote
@@ -448,7 +478,7 @@ The three services build one product, drawn by one dotted line.
 - **Triggered, not scrubbed:** the scroll triggers each drawing and it then plays by itself (1.6s, sine-eased pen). Scrolling 12% into a transit commits to the next service; scrolling 12% back commits to the previous one, which un-draws. The scroll is never held (the One-Scroll Rule). A fast scroll never skips a drawing: when the reader has already passed the next service, the pen hurries through it and then draws the one they stopped on at its own pace.
 - **Captions:** drawn by the same pen, never by a timer (owner, Phase 7). The old caption wipes out as its drawing unwinds, over the first half of the hop. The new one sweeps in from the left as its drawing forms, over the second half: the name first, then the paragraph, then the items. So the name lands with the drawing at any scroll speed, a fast scroll wipes it through quickly, and scrolling back reverses both. At the middle of the hop, when the drawing is half one shape and half the other, the text box is briefly clear, so two captions never overlap.
 - **Where it pins:** desktop, tablets and portrait phones from 360px wide, down to 375×548. Landscape phones and 320px-wide phones flow it as a reading list, because the six items can't fit under the statement in their frame. So do 400% zoom, and WCAG text spacing on phones and at laptop sizes (1440×900, 1024×768), where "Web design"'s two lines at line height 1.5 outgrow the board; 1920×1080 still pins.
-- **Entry and exit:** the classic burst flight, in from the last Projects plate and on to How I work, following the scroll. The projects deck (Phase 9) and How I work (Phase 8) are thread scenes too, but a crossing between two scenes stays a scrubbed flight: `isThreadSegment` threads two steps only inside one scene (see the One-Scroll Rule).
+- **Entry and exit:** the classic burst flight, in from the last Projects plate and on to How I work, following the scroll, each across three-quarters of a screen of black (the Breather, Phase 12). The projects deck (Phase 9) and How I work (Phase 8) are thread scenes too, but a crossing between two scenes stays a scrubbed flight: `isThreadSegment` threads two steps only inside one scene (see the One-Scroll Rule).
 
 ### Orbit (How I work)
 
@@ -478,18 +508,30 @@ The five steps ride the top of a huge ring of dim dots, and the dots build the p
 
 ### FAQ
 
-- **Layout:** the section label "FAQ", and the statement "FAQ" (240px on desktop, 110px on a phone). The statement is a visual duplicate of the label, so it is `aria-hidden`. On the right are the owner's nine questions as native disclosures between Rule Grey hairlines. Each question is Geist 500 in Lamp White (17px on desktop, 15px on a phone) on a row at least 56px tall (44px on a phone), with a Lit Grey plus that turns 45° into a close mark when open. The answer is in Body. On a phone the list follows the statement.
-- **Plain black:** no dot object, so the dots are out of the way while people read.
-- **The sweep:** the label, the statement and each question sweep in one after another as the screen arrives, each row's hairline drawing with it. The list then holds while it scrolls away, so a row never wipes out under the reader (Phase 10). On desktop the statement drifts up to 40px against the list as the screen arrives and leaves.
-- **Opening:** an answer opens by easing its height over 0.35s on the signal ease, and the plus turns into a close mark in the same time; closing reverses it. Under reduced motion both snap. The change stays inside 0.5s of the click or key press, so it never counts as a layout shift.
+Rebuilt in Phase 12 (owner: "do something about the questions, because right now it's bland"; direction B, "The conversation").
+
+- **Layout:** the section label "FAQ" (with the arrival title, like every labelled section), then the owner's questions, numbered 01 to 09, as native disclosures between Rule Grey hairlines, in the left column; on the right the dots draw two speech bubbles (480×480 at 1440, centred in its column and vertically in the frame). Each row is at least 56px tall (48px on a phone): a Dim Grey number, the question in Question type, and a Lit Grey plus that turns 45° into a close mark when open (the artboard's 14px mark: one path with 12px arms and a 1.5px square-ended stroke; the system text colour in forced colours). The answer is in Body, indented under the question (56px on desktop, 40px on a phone). On a phone the label comes first, the drawing (342×240) 16px under it, and the list 24px under the drawing.
+- **Owner-editable:** up to twelve questions with their answers, added, edited, reordered and removed in the editor. A blank question hides its row, and the numbers count the rows shown.
+- **Opening:** an answer opens downward: its question and every row above it stay exactly where they are, and only what is below moves. It eases its height over 0.35s on the signal ease, and the plus turns in the same time; closing reverses it. Under reduced motion both snap. The change stays inside 0.5s of the click or key press, so it never counts as a layout shift.
+- **Reading:** the frame holds only the drawing; the list scrolls in its own layer, so the drawing stays put while the questions pass. On a phone the list slides up over the drawing on an opaque ground, as the Projects screens slide past their plates.
+- **The sweep:** the label sweeps in as the arrival title docks, then each row, its hairline drawing with it. The rows then hold while they scroll away, until the handshake has formed, so a row never wipes out under the reader. On desktop the list drifts up to 40px against the drawing as the screen arrives and leaves.
+
+### Let's connect
+
+A screen of its own between FAQ and Contact (owner, Phase 12: "a handshake, like two hands shaking each other, saying let's connect").
+
+- **Layout:** like the quote, it has no section label and is not in the nav (the nav dot hides while it is on screen, as on Testimonials). The statement "Let's connect." at the default size (176px at 1440, 72px on a phone) on the left, with the email line 32px under it (16px on a phone) in Cue type: "Or email me:" and the address as a Lamp White link with a 1px underline. On the right the dots draw two hands shaking (5:4, 600×480 at 1440); on a phone the drawing comes first (342×274), 32px above the statement, and the pair is centred in the frame.
+- **Owner-editable:** the statement, the email line and the address. The footer's email link reads the same address.
+- **The sweep:** the statement and the email line sweep in as the hands draw. On desktop the copy drifts up to 40px against the drawing.
+- **Into Contact:** scrolling on, the handshake's dots fly to the frame round the real form.
 
 ### Contact
 
-- **Layout:** the section label "Get in touch" and the statement "Let's start your project today." Under it, in Cue type, sits "Or email me:" and the address as a Lamp White link with a 1px underline. On the right is the form on a black box (at least 520×440 at 1440, 32px padding), with the dots gathering round it. The box grows with error messages, zoom and text spacing, never a fixed height, and the gather frame follows its measured rect. On a phone the form follows the statement at full width.
+- **Layout:** the section label "Get in touch" and the statement "Let's start your project today." (both owner-editable since Phase 12). On the right is the form on a black box (at most 560px wide and at least 472px tall at 1440, with 32px padding), with the dots gathering round it. The box grows with error messages, zoom and text spacing, never a fixed height, and the gather frame follows its measured rect. On a phone the statement sits 16px under the label and the form follows 70px under it at full width with no padding (342×452 at 390), clear of the gather's scatter. The email line moved to Let's connect in Phase 12.
 - **The gather:** the form box is the slot. Its shape is a dotted perimeter at the frame outset, with points scattered outward from it and thinning with distance; the corners stay sparse. It is still, and the form keeps the pointer.
-- **Where it pins:** the gather needs the whole form in one pinned frame, so Contact's frame has a fixed height and joins the fit gate. Where the form cannot fit (most phones below about 844px tall, landscape phones, 400% zoom, text spacing, or error messages that outgrow the frame), the section flows as a plain black reading section and the gather gives way. When it switches while someone is typing or has just submitted, the focused field stays exactly where it was on screen. On a phone the form sits 80px below the email line, so the gather's scatter clears it.
-- **Form:** name and email side by side on desktop, then "Service needed" and "What can I help you with?". The submit button is full width. `#contact` must keep working.
-- **The sweep:** the label, the statement and the email line sweep in as the dots gather; the form is a real thing, framed by the dots, and never sweeps. On desktop the copy drifts up to 40px against the form as the screen arrives and leaves.
+- **Where it pins:** the gather needs the whole form in one pinned frame, so Contact's frame has a fixed height and joins the fit gate. Where the form cannot fit (most phones below about 844px tall, landscape phones, 400% zoom, text spacing, or error messages that outgrow the frame), the section flows as a plain black reading section and the gather gives way. When it switches while someone is typing or has just submitted, the focused field stays exactly where it was on screen.
+- **Form** (restyled in Phase 12): four numbered rows, 01 Name and 02 Email side by side on desktop (24px apart), then 03 Service needed, 04 What can I help you with?, and a full-width "Send message" with an up-right arrow. Desktop rows are 28px apart, with the submit 32px below the message; on a phone everything stacks 14px apart, with the submit 18px below. The fields are listed under Inputs / Fields. `#contact` must keep working.
+- **The sweep:** the label and the statement sweep in as the dots gather; the form is a real thing, framed by the dots, and never sweeps. On desktop the copy drifts up to 40px against the form as the screen arrives and leaves.
 - **Sent:** the form stays where it is but turns invisible, and the acknowledgement takes its place in the same box, sweeping in from the left over 0.9s on the signal ease, and receives focus (Phase 10). The box keeps its height, so nothing on the page shifts and the gather stays where it is. Under reduced motion it appears at once.
 
 ### Navigation
@@ -497,7 +539,7 @@ The five steps ride the top of a huge ring of dim dots, and the dots build the p
 Uppercase 14px Geist links (Label type) at Lit Grey over the hero, lighting to Lamp White on hover and for the current section (`aria-current`). They sit in the centre zone in a 16px-gapped row with 12px × 8px hit padding. Once the header turns solid, the links stay Lit Grey, as B1 shows. The header drops in 24px on load (0.6s) and its groups stagger in 0.06s apart. Below 1024px, a ghost icon button toggles a stacked panel of every anchor, which wipes open from the top (0.3s on the signal ease; instant under reduced motion), and Escape closes it.
 
 - **Scroll-spy:** the current section is the last one whose top has reached its landing under the header, and it updates as the page scrolls, in the primary nav and the panel alike. A click only closes the panel; the scroll marks the section.
-- **The nav dot:** a 6px Lamp White dot 10px under the current primary link, the size of the cursor's dot. It slides to the next link on the signal ease (0.3s), so on a nav jump it steps under each link the page passes. It hides where the current section has no primary link (the hero, Testimonials, Contact) and appears in place when it returns. In forced colours it takes the system text colour.
+- **The nav dot:** a 6px Lamp White dot 10px under the current primary link, the size of the cursor's dot. It slides to the next link on the signal ease (0.3s), so on a nav jump it steps under each link the page passes. It hides where the current section has no primary link (the hero, Testimonials, Let's connect, Contact) and appears in place when it returns. In forced colours it takes the system text colour.
 - **Scroll-progress hairline:** a 1px Wire Grey line along the header's bottom edge, filling from the left as the page scrolls, driven by the scroll itself (no script). It is the one progress mark on the page: no scene counter or film strip. Browsers without scroll-driven animations don't show it.
 - **Pause motion:** a square ghost icon button (40px from 1024px, 32px below it) in Lamp White, first in the right zone: before "Let's talk" on desktop and before the menu button on phones. It shows a pause glyph named "Pause motion", or a play glyph named "Play motion" once paused. It has the 3px focus ring and a visible outline in forced colours. It is hidden where the system already asks for reduced motion and without JavaScript.
 
@@ -507,7 +549,7 @@ Uppercase 14px Geist links (Label type) at Lit Grey over the hero, lighting to L
 
 On desktops with a mouse the pointer is a pair: a 6px white dot exactly at the pointer, and a 36px ring, a 1px white hairline at 40%, that trails it on a critically damped spring (about 0.1s behind a moving pointer, with no overshoot). Both use `mix-blend-mode: difference`, so they read white on black and black on the Lamp White actions. White here is the one hard-coded colour, because it is the difference operand (owner, Phase 10; designed as old Part 4).
 
-- **States:** over a link, a button or a FAQ question the ring fills into a 56px disc, and the dot stays as a hole in it. Over a field the pair hides and the native caret shows. Everywhere else, the dots included, it is the idle pair: the ring keeps its 36px while the dots scatter under it (owner, Phase 11; the ring used to grow to the push radius, about 600px round the name, which the owner found distracting).
+- **States:** over a link, a button, a FAQ question or a service chip the ring fills into a 56px disc, and the dot stays as a hole in it. Over a field the pair hides and the native caret shows. Everywhere else, the dots included, it is the idle pair: the ring keeps its 36px while the dots scatter under it (owner, Phase 11; the ring used to grow to the push radius, about 600px round the name, which the owner found distracting).
 - **Scroll:** the state re-reads what is under a still pointer as the page scrolls, and the idle ring stretches up to 1.3 times along the scroll while it moves.
 - **Transitions:** state changes take 0.3s on the signal ease, shared with the nav dot. The ring animates its width and height, not its scale, so the hairline stays 1px; it is one of Motion's two named exceptions.
 - **Where it runs:** only on the public page, with a fine pointer and forced colours off. Phones, pens, touch, forced colours, no JavaScript and the dashboard keep the native cursor, and it stays hidden until the first mouse move. Under reduced motion the ring sits on the pointer with no lag and no stretch. It never takes pointer events and carries no text.
@@ -524,11 +566,13 @@ The one call to action in the header: a square Lamp White button with Unlit Blac
 
 ### Inputs / Fields
 
-- **Style:** square, 44px tall with 12px side padding (the message box 112px), transparent on black, Wire Grey hairline, Lamp White text (16px below 768px, 15px from 768px), placeholder in Dim Grey.
-- **Focus:** the border turns Lamp White and the 3px half-strength Lamp White ring appears.
-- **Select:** the native `<select>` ("Service needed") matches the input, with `appearance-none` and a 12px Lit Grey chevron. Its empty prompt shows in Dim Grey, and its option list renders dark through `scheme-dark`.
-- **Error:** monochrome. `aria-invalid` switches the border to half-strength Lamp White and adds a 3px ring at 40%. The message sits below the field after a warning glyph, with `role="alert"`, and its wording carries the meaning.
-- **Labels:** Geist 500 at 14px in Lamp White, sitting above the field.
+Restyled in Phase 12 as signage rows.
+
+- **Style:** underline fields: transparent on black, no top or side border and no side padding, a 1px Wire Grey bottom rule, Lamp White text (16px below 768px, 15px from 768px). Inputs are 44px tall, 8px under their label line (6px on a phone). The message box is fixed at 112px (80px on a phone) and scrolls inside.
+- **Labels:** each sits on a 16px line in Field label type, after its `aria-hidden` number (01 to 04). A label that wraps (200% zoom, a landscape phone, text spacing) grows its line and pushes its field down, never over it.
+- **Service chips:** "Service needed" is a native radio group (a `<fieldset>` with `role="radiogroup"`), its four services as square chips: 40px tall, 10px side padding (12px on a phone), 6px apart, a 1px Wire Grey border and Lit Grey Field label text, lighting to Lamp White on hover. The chosen chip turns Lamp White (border and text) with a 6px Lamp White dot before its text. On a phone they always sit two by two. Tab reaches the group once, and the arrow keys move and choose.
+- **Focus:** the border turns Lamp White and the 3px half-strength Lamp White ring appears; a focused chip takes the ring. In forced colours focus is a 2px outline.
+- **Error:** monochrome. `aria-invalid` switches the bottom rule to half-strength Lamp White and adds a 3px ring at 40%; an invalid chip group's borders turn half-strength (dashed in forced colours, and an invalid field's rule turns 3px). The message sits below the field after a warning glyph, with `role="alert"`, and its wording carries the meaning.
 
 ### Scroll Cue
 
@@ -538,14 +582,14 @@ Cue type in Dim Grey with a 14px down-right arrow. It lifts in (16px, 0.6s) 0.3s
 
 ### Do:
 
-- **Do** give every screen one dot object (none on FAQ) and one statement, and keep everything else quiet signage.
+- **Do** give every screen one dot object and one statement (FAQ's numbered questions stand in for its statement), and keep everything else quiet signage.
 - **Do** open every section from Projects to Contact with the section label `<h2>`.
 - **Do** keep every public section on plain Unlit Black (#000000) and express hierarchy through brightness steps: Lamp White, Lit Grey, Dim Grey.
 - **Do** set the name, statements, titles and numerals in Antonio 700 uppercase and everything else in Geist.
 - **Do** track out uppercase Geist (0.025em for labels, 0.08em for items, 0.14em for the lede, 0.22em for cues). The Antonio section label takes 0.04em.
 - **Do** draw ideas in dots and frame real things with dots.
 - **Do** let the scroll trigger a step and let it play by itself.
-- **Do** keep a real, readable `<h1>` behind the dot field, and mark only decorative leaves `aria-hidden` (or a visual duplicate of text that stays exposed, like the FAQ statement).
+- **Do** keep a real, readable `<h1>` behind the dot field, and real text behind the footer's sign, and mark only decorative leaves `aria-hidden` (or a visual duplicate of text that stays exposed, like a list's visible numbers).
 - **Do** route every motion through the reduced-motion preference. The dot field checks it separately, because it is not a `motion` component.
 - **Do** square corners through the `--radius` token rather than by editing vendored components.
 - **Do** match B1 when unsure how something should look.
@@ -558,7 +602,7 @@ Cue type in Dim Grey with a 14px down-right arrow. It lifts in (16px, 0.6s) 0.3s
 - **Don't** put readable text in Ghost Grey (#737373). It fails AA at body sizes.
 - **Don't** outline anything interactive in Rule Grey. It is for dividers.
 - **Don't** fill a surface with Lamp White unless it is an action (the Contact action, the submit button).
-- **Don't** put two statements on one screen, or set a section's name in big type (FAQ's `aria-hidden` duplicate is the one exception).
+- **Don't** put two statements on one screen, or set a section's name in big type (the arrival title is the one exception, and it docks before the dots land).
 - **Don't** render a real thing (a photo, a project image, a logo) in dots, or shrink a dot object into a corner.
 - **Don't** hold the scroll, or give a section a new content effect outside the light sweep, the pen draw and the desktop copy drift.
 - **Don't** let the public page follow the OS light or dark scheme.

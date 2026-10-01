@@ -1,4 +1,9 @@
 import type { PortfolioSection } from "@/types/portfolio.type"
+import type {
+  SiteContentConnect,
+  SiteContentContact,
+  SiteContentFaq,
+} from "@/types/site-content.type"
 
 export type PageSectionHeading = {
   id: PortfolioSection
@@ -46,7 +51,7 @@ export type PlaceholderPlate = {
 }
 
 export type StatementSize =
-  "default" | "service" | "longWord" | "belief" | "client" | "contact" | "faq"
+  "default" | "service" | "longWord" | "belief" | "client" | "contact"
 
 export type AboutSectionContent = PageSectionHeading & {
   sceneId: string
@@ -70,28 +75,37 @@ export type TestimonialsSectionContent = PageSectionHeading & {
   plate: PlaceholderPlate
 }
 
-export type ContactSectionContent = PageSectionHeading & {
+export type SceneSectionContent = {
+  id: PortfolioSection
   sceneId: string
   shapes: string
-  statement: string
-  emailPrompt: string
+}
+
+export type ContactSectionContent = SceneSectionContent & {
+  headingId: string
 }
 
 export type PlaceholderSectionContent = PageSectionHeading & {
   placeholders: string[]
 }
 
-export type FaqItem = {
-  question: string
-  answer: string
+export type FaqSectionContent = PageSectionHeading & SceneSectionContent
+
+export type FaqSectionProps = {
+  faq: SiteContentFaq
 }
 
-export type FaqSectionContent = PageSectionHeading & {
-  items: FaqItem[]
+export type ConnectSectionProps = {
+  connect: SiteContentConnect
+}
+
+export type ContactSectionProps = {
+  contact: SiteContentContact
 }
 
 export type SiteFooterProps = {
   name: string
+  email: string
 }
 
 export type SceneFitGateProps = {

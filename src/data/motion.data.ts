@@ -93,7 +93,8 @@ export const CURSOR_TUNING: CursorTuning = {
   stretchScale: 1.3,
 }
 
-export const CURSOR_ACTION_SELECTOR = "a[href], button:not(:disabled), summary"
+export const CURSOR_ACTION_SELECTOR =
+  "a[href], button:not(:disabled), summary, label:has(> input[type='radio'])"
 
 export const CURSOR_FIELD_SELECTOR = "input, textarea, select"
 

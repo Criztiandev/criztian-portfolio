@@ -1,13 +1,8 @@
 import {
   CONTACT_SECTION,
   COPY_DRIFT_CLASS,
-  CUE_CLASS,
-  FOCUS_RING_CLASS,
-  OWNER_EMAIL_ADDRESS,
-  OWNER_EMAIL_HREF,
   PIN_SPACER_CLASS,
   PLATE_SLOT_CLASS,
-  SCREEN_CENTRED_GROUP_CLASS,
   SCREEN_CLASS,
   SCREEN_COPY_CLASS,
   SCREEN_LABEL_CLASS,
@@ -29,11 +24,12 @@ import {
   buildSceneCaptionStyle,
 } from "@/features/portfolio/step-motion.rules"
 import { cn } from "@/lib/utils"
+import type { ContactSectionProps } from "@/types/page-sections.type"
 
-export function ContactSection() {
-  const { id, headingId, heading, sceneId, shapes } = CONTACT_SECTION
+export function ContactSection({ contact }: Readonly<ContactSectionProps>) {
+  const { id, headingId, sceneId, shapes } = CONTACT_SECTION
   const sceneStyle = {
-    ...buildSceneCaptionStyle(2),
+    ...buildSceneCaptionStyle(1),
     ...buildCopyDriftStyle(),
   }
 
@@ -67,11 +63,11 @@ export function ContactSection() {
             style={buildLineStyle(0) as React.CSSProperties}
             className={SWEPT_LABEL_CLASS}
           >
-            {heading}
+            {contact.label}
           </span>
         </h2>
 
-        <div className={SCREEN_CENTRED_GROUP_CLASS}>
+        <div className="flex flex-col pt-4 split:contents">
           <div className={cn(SCREEN_COPY_CLASS, COPY_DRIFT_CLASS)}>
             <p
               style={buildLineStyle(1) as React.CSSProperties}
@@ -81,33 +77,15 @@ export function ContactSection() {
                 SWEPT_LINE_CLASS
               )}
             >
-              {CONTACT_SECTION.statement}
-            </p>
-
-            <p
-              style={buildLineStyle(2) as React.CSSProperties}
-              className={cn(CUE_CLASS, "mt-3.5 split:mt-8", SWEPT_LINE_CLASS)}
-            >
-              {CONTACT_SECTION.emailPrompt}{" "}
-              <a
-                href={OWNER_EMAIL_HREF}
-                className={cn(
-                  "-my-3.5 inline-block py-3.5 text-foreground underline",
-                  "decoration-1 underline-offset-3 split:my-0 split:py-0",
-                  "split:underline-offset-4",
-                  FOCUS_RING_CLASS
-                )}
-              >
-                {OWNER_EMAIL_ADDRESS}
-              </a>
+              {contact.statement}
             </p>
           </div>
 
           <div
             className={cn(
               SCREEN_OBJECT_CLASS,
-              "relative mt-20 flex w-full flex-col justify-center bg-background",
-              "split:mt-0 split:min-h-[27.5rem] split:max-w-[32.5rem] split:justify-self-center split:p-8"
+              "relative mt-17.5 flex w-full flex-col justify-center bg-background",
+              "split:mt-0 split:min-h-[29.5rem] split:max-w-[35rem] split:justify-self-center split:p-8"
             )}
           >
             <div

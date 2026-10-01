@@ -4,6 +4,7 @@ import type {
   CubeEdge,
   CubicBezier,
   DotFieldMorphTuning,
+  DotFieldTextSample,
   DotFieldTuning,
   DotFrameOutset,
   DotGeneratedShapeId,
@@ -18,6 +19,7 @@ import type {
   LineArtStroke,
   ScatterRingShape,
   ScatterShapeId,
+  TextShapeId,
 } from "@/types/hero.type"
 
 export const RESIZE_DEBOUNCE_MS = 150
@@ -101,6 +103,8 @@ export const LINE_ART_SHAPE_IDS: LineArtShapeId[] = [
   "visualising",
   "building",
   "frame",
+  "handshake",
+  "conversation",
 ]
 
 export const SCATTER_SHAPE_IDS: ScatterShapeId[] = [
@@ -109,12 +113,28 @@ export const SCATTER_SHAPE_IDS: ScatterShapeId[] = [
   "gather",
 ]
 
+export const TEXT_SHAPE_IDS: TextShapeId[] = ["sign"]
+
+export const FOOTER_SIGN_TEXT = "Let's build"
+
+export const TEXT_SHAPE_SEED = 20261014
+
+export const TEXT_SHAPE_SHRINK = 0.97
+
+export const TEXT_SHAPE_MAX_SAMPLES = 4
+
+export const PLACEHOLDER_TEXT_SAMPLE: DotFieldTextSample = {
+  width: 1,
+  height: 1,
+}
+
 export const DOT_SHAPE_IDS: DotShapeId[] = [
   "name",
   "cube",
   "dust",
   ...LINE_ART_SHAPE_IDS,
   ...SCATTER_SHAPE_IDS,
+  ...TEXT_SHAPE_IDS,
 ]
 
 export const GENERATED_SHAPE_IDS: DotGeneratedShapeId[] = [
@@ -122,6 +142,7 @@ export const GENERATED_SHAPE_IDS: DotGeneratedShapeId[] = [
   "dust",
   ...LINE_ART_SHAPE_IDS,
   ...SCATTER_SHAPE_IDS,
+  ...TEXT_SHAPE_IDS,
 ]
 
 export const LINE_ART_JITTER = 0.015
@@ -539,6 +560,394 @@ const BUILT_PAGE_STROKES: LineArtStroke[] = [
   ...PAGE_CONTENT_STROKES,
 ]
 
+const BACK_ARM_SLEEVE_TOP_STROKE: LineArtStroke = {
+  kind: "polyline",
+  points: [
+    [-1, 0.5152, -0.08],
+    [-0.5455, 0.5152, -0.08],
+  ],
+}
+
+const FRONT_HAND_SLEEVE_TOP_STROKE: LineArtStroke = {
+  kind: "polyline",
+  points: [
+    [1, 0.5152, 0.08],
+    [0.5455, 0.5152, 0.08],
+  ],
+}
+
+const BACK_ARM_SLEEVE_BOTTOM_STROKE: LineArtStroke = {
+  kind: "polyline",
+  points: [
+    [-1, -0.1515, -0.08],
+    [-0.6061, -0.1515, -0.08],
+  ],
+}
+
+const FRONT_HAND_SLEEVE_BOTTOM_STROKE: LineArtStroke = {
+  kind: "polyline",
+  points: [
+    [1, -0.1515, 0.08],
+    [0.6061, -0.1515, 0.08],
+  ],
+}
+
+const BACK_ARM_CUFF_STROKE: LineArtStroke = {
+  kind: "polyline",
+  points: [
+    [-0.5455, 0.5152, -0.08],
+    [-0.6061, -0.1515, -0.08],
+  ],
+}
+
+const FRONT_HAND_CUFF_STROKE: LineArtStroke = {
+  kind: "polyline",
+  points: [
+    [0.5455, 0.5152, 0.08],
+    [0.6061, -0.1515, 0.08],
+    [0.4848, -0.1515, 0.08],
+  ],
+}
+
+const BACK_ARM_CUFF_SEAM_STROKE: LineArtStroke = {
+  kind: "polyline",
+  points: [
+    [-0.6182, 0.5273, -0.08],
+    [-0.6788, -0.1636, -0.08],
+  ],
+}
+
+const FRONT_HAND_CUFF_SEAM_STROKE: LineArtStroke = {
+  kind: "polyline",
+  points: [
+    [0.6182, 0.5273, 0.08],
+    [0.6788, -0.1636, 0.08],
+  ],
+}
+
+const BACK_ARM_PALM_STROKES: LineArtStroke[] = [
+  {
+    kind: "polyline",
+    points: [
+      [-0.6061, -0.1515, -0.08],
+      [-0.2121, -0.5455, -0.08],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [-0.1212, -0.4545, -0.08],
+    radius: 0.1286,
+    startAngle: -2.3562,
+    endAngle: 0.7854,
+  },
+]
+
+const FRONT_HAND_GRIP_STROKES: LineArtStroke[] = [
+  {
+    kind: "polyline",
+    points: [
+      [0.5455, 0.4545, 0.08],
+      [0.44, 0.4333, 0.08],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [0.4166, 0.5523, 0.08],
+    radius: 0.1212,
+    startAngle: -1.3763,
+    endAngle: -2.1138,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.3539, 0.4485, 0.08],
+      [0.3255, 0.4655, 0.08],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [0.1454, 0.1643, 0.08],
+    radius: 0.3509,
+    startAngle: 1.0319,
+    endAngle: 2.3549,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.1024, 0.4127, 0.08],
+      [-0.2727, 0.2424, 0.08],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [-0.1818, 0.1515, 0.08],
+    radius: 0.1286,
+    startAngle: -3.927,
+    endAngle: -0.7854,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.0909, 0.0606, 0.08],
+      [-0.0376, 0.1139, 0.08],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [0.0909, -0.0147, 0.08],
+    radius: 0.1818,
+    startAngle: 2.3556,
+    endAngle: 0.786,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.2194, 0.1139, 0.08],
+      [0.4545, -0.1212, 0.08],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [0.3636, -0.2121, 0.08],
+    radius: 0.1286,
+    startAngle: 0.7854,
+    endAngle: -2.3562,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.2727, -0.303, 0.08],
+      [0.1212, -0.1515, 0.08],
+    ],
+  },
+]
+
+const BACK_ARM_HAND_TOP_STROKE: LineArtStroke = {
+  kind: "polyline",
+  points: [
+    [-0.5455, 0.4545, -0.08],
+    [-0.0606, 0.4545, -0.08],
+  ],
+}
+
+const FRONT_HAND_FINGER_STROKES: LineArtStroke[] = [
+  {
+    kind: "polyline",
+    points: [
+      [-0.0606, -0.3333, 0.08],
+      [0.0606, -0.4545, 0.08],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [0.1515, -0.3636, 0.08],
+    radius: 0.1286,
+    startAngle: -2.3562,
+    endAngle: 0.7854,
+  },
+]
+
+const QUESTION_BUBBLE_STROKES: LineArtStroke[] = [
+  {
+    kind: "polyline",
+    points: [
+      [-0.2679, 0.0089, -0.1],
+      [-0.5, 0.0089, -0.1],
+      [-0.75, -0.1875, -0.1],
+      [-0.6786, 0.0089, -0.1],
+      [-0.75, 0.0089, -0.1],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [-0.75, 0.1518, -0.1],
+    radius: 0.1429,
+    startAngle: -1.5708,
+    endAngle: -3.1416,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.8929, 0.1518, -0.1],
+      [-0.8929, 0.5804, -0.1],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [-0.75, 0.5804, -0.1],
+    radius: 0.1429,
+    startAngle: -3.1416,
+    endAngle: -4.7124,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.75, 0.7232, -0.1],
+      [0.125, 0.7232, -0.1],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [0.125, 0.5804, -0.1],
+    radius: 0.1429,
+    startAngle: 1.5708,
+    endAngle: 0,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.2679, 0.5804, -0.1],
+      [0.2679, 0.1339, -0.1],
+    ],
+  },
+]
+
+const QUESTION_LINE_STROKES: LineArtStroke[] = [
+  {
+    kind: "polyline",
+    points: [
+      [-0.7143, 0.4554, -0.1],
+      [0.0714, 0.4554, -0.1],
+    ],
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.7143, 0.2768, -0.1],
+      [-0.1429, 0.2768, -0.1],
+    ],
+  },
+]
+
+const ANSWER_BUBBLE_STROKES: LineArtStroke[] = [
+  {
+    kind: "polyline",
+    points: [
+      [-0.125, 0.1339, 0.1],
+      [0.75, 0.1339, 0.1],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [0.75, -0.0089, 0.1],
+    radius: 0.1429,
+    startAngle: 1.5708,
+    endAngle: 0,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.8929, -0.0089, 0.1],
+      [0.8929, -0.3839, 0.1],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [0.75, -0.3839, 0.1],
+    radius: 0.1429,
+    startAngle: 0,
+    endAngle: -1.5708,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.75, -0.5268, 0.1],
+      [0.6786, -0.5268, 0.1],
+      [0.75, -0.7232, 0.1],
+      [0.5, -0.5268, 0.1],
+      [-0.125, -0.5268, 0.1],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [-0.125, -0.3839, 0.1],
+    radius: 0.1429,
+    startAngle: -1.5708,
+    endAngle: -3.1416,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [-0.2679, -0.3839, 0.1],
+      [-0.2679, -0.0089, 0.1],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [-0.125, -0.0089, 0.1],
+    radius: 0.1429,
+    startAngle: -3.1416,
+    endAngle: -4.7124,
+  },
+]
+
+const ANSWER_DOT_STROKES: LineArtStroke[] = [
+  {
+    kind: "polyline",
+    points: [
+      [0.0893, -0.1964, 0.1],
+      [0.0536, -0.1964, 0.1],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [0.0893, -0.1964, 0.1],
+    radius: 0.0357,
+    startAngle: -3.1416,
+    endAngle: 3.1416,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.3125, -0.1964, 0.1],
+      [0.2768, -0.1964, 0.1],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [0.3125, -0.1964, 0.1],
+    radius: 0.0357,
+    startAngle: -3.1416,
+    endAngle: 3.1416,
+  },
+  {
+    kind: "polyline",
+    points: [
+      [0.5357, -0.1964, 0.1],
+      [0.5, -0.1964, 0.1],
+    ],
+  },
+  {
+    kind: "arc",
+    center: [0.5357, -0.1964, 0.1],
+    radius: 0.0357,
+    startAngle: -3.1416,
+    endAngle: 3.1416,
+  },
+]
+
+const HANDSHAKE_STROKES: LineArtStroke[] = [
+  BACK_ARM_SLEEVE_TOP_STROKE,
+  FRONT_HAND_SLEEVE_TOP_STROKE,
+  BACK_ARM_SLEEVE_BOTTOM_STROKE,
+  FRONT_HAND_SLEEVE_BOTTOM_STROKE,
+  BACK_ARM_CUFF_STROKE,
+  FRONT_HAND_CUFF_STROKE,
+  BACK_ARM_CUFF_SEAM_STROKE,
+  FRONT_HAND_CUFF_SEAM_STROKE,
+  ...BACK_ARM_PALM_STROKES,
+  ...FRONT_HAND_GRIP_STROKES,
+  BACK_ARM_HAND_TOP_STROKE,
+  ...FRONT_HAND_FINGER_STROKES,
+]
+
+const CONVERSATION_STROKES: LineArtStroke[] = [
+  ...QUESTION_BUBBLE_STROKES,
+  ...QUESTION_LINE_STROKES,
+  ...ANSWER_BUBBLE_STROKES,
+  ...ANSWER_DOT_STROKES,
+]
+
 export const LINE_ART_SHAPES: Record<LineArtShapeId, LineArtShape> = {
   branding: {
     seed: 20261001,
@@ -656,6 +1065,28 @@ export const LINE_ART_SHAPES: Record<LineArtShapeId, LineArtShape> = {
       },
     ],
   },
+  handshake: {
+    seed: 20261012,
+    jitter: LINE_ART_JITTER,
+    layers: [
+      {
+        strokes: HANDSHAKE_STROKES,
+        offset: [0, 0, 0],
+        scale: 1,
+      },
+    ],
+  },
+  conversation: {
+    seed: 20261013,
+    jitter: LINE_ART_JITTER,
+    layers: [
+      {
+        strokes: CONVERSATION_STROKES,
+        offset: [0, 0, 0],
+        scale: 1,
+      },
+    ],
+  },
 }
 
 export const LISTENING_SHAPE: ScatterRingShape = {
@@ -753,9 +1184,20 @@ export const DOT_FIELD_MORPH_TUNING: DotFieldMorphTuning = {
 }
 
 export const DOT_SCENE_MOTION: Record<string, DotSceneMotion> = {
-  project: { share: 0.72, isThread: true, hasTurn: false },
-  services: { share: 0.72, isThread: true, hasTurn: false },
-  process: { share: 0.4, isThread: true, hasTurn: true },
+  project: {
+    share: 0.72,
+    isThread: true,
+    hasTurn: false,
+    isReadAfterPin: false,
+  },
+  services: {
+    share: 0.72,
+    isThread: true,
+    hasTurn: false,
+    isReadAfterPin: false,
+  },
+  process: { share: 0.4, isThread: true, hasTurn: true, isReadAfterPin: false },
+  faq: { share: 0, isThread: false, hasTurn: false, isReadAfterPin: true },
 }
 
 const THREAD_LINE_ART_TUNING: DotShapeTuning = {
@@ -796,6 +1238,34 @@ const PROCESS_LINE_ART_TUNING: DotShapeTuning = {
   inkRatio: 0.65,
 }
 
+const MEETING_LINE_ART_TUNING: DotShapeTuning = {
+  ...PROCESS_LINE_ART_TUNING,
+  sizeRatio: 0.5,
+}
+
+export const DOT_FIELD_TUNING: DotFieldTuning = {
+  dotPitch: 3,
+  dotSize: 4,
+  dotEdgePixels: 1,
+  dotRoundness: 1,
+  alphaThreshold: 128,
+  widthRatio: 0.78,
+  narrowWidthRatio: 0.92,
+  narrowViewportWidth: 768,
+  maxHeightRatio: 0.57,
+  minFontSize: 48,
+  maxFontSize: 900,
+  probeFontSize: 100,
+  fontWeight: 700,
+  maxPointCount: 250000,
+  pointerRadius: 300,
+  pointerPush: 2,
+  springStiffness: 0.05,
+  springDamping: 0.95,
+  referenceInkHeight: 294,
+  sleepThreshold: 0.1,
+}
+
 const PLATE_FRAME_TUNING: DotShapeTuning = {
   fit: "fill",
   sizeRatio: 1 / FRAME_EDGE,
@@ -834,6 +1304,26 @@ export const DOT_SHAPE_TUNING: Record<DotGeneratedShapeId, DotShapeTuning> = {
     sizeRatio: 1 / GATHER_SHAPE.perimeter,
     pointsPerArea: 0.012,
     dotSize: 2,
+  },
+  handshake: MEETING_LINE_ART_TUNING,
+  conversation: MEETING_LINE_ART_TUNING,
+  sign: {
+    fit: "text",
+    sizeRatio: 1,
+    pointsPerArea: 0,
+    pointCount: SHAPE_POINTS,
+    hasPerspective: false,
+    spinSpeed: 0,
+    pitch: 0,
+    roll: 0,
+    wobble: 0,
+    staticYaw: 0,
+    sway: 0,
+    farLight: 1,
+    depthRadius: 1,
+    dotSize: DOT_FIELD_TUNING.dotSize,
+    opacity: 1,
+    inkRatio: 1,
   },
   cube: {
     fit: "contain",
@@ -881,29 +1371,6 @@ export const CONTEXT_OPTIONS: WebGLContextAttributes = {
   premultipliedAlpha: false,
   preserveDrawingBuffer: false,
   powerPreference: "high-performance",
-}
-
-export const DOT_FIELD_TUNING: DotFieldTuning = {
-  dotPitch: 3,
-  dotSize: 4,
-  dotEdgePixels: 1,
-  dotRoundness: 1,
-  alphaThreshold: 128,
-  widthRatio: 0.78,
-  narrowWidthRatio: 0.92,
-  narrowViewportWidth: 768,
-  maxHeightRatio: 0.57,
-  minFontSize: 48,
-  maxFontSize: 900,
-  probeFontSize: 100,
-  fontWeight: 700,
-  maxPointCount: 250000,
-  pointerRadius: 300,
-  pointerPush: 2,
-  springStiffness: 0.05,
-  springDamping: 0.95,
-  referenceInkHeight: 294,
-  sleepThreshold: 0.1,
 }
 
 export const HERO_SCROLL_LABEL = "Scroll to explore"

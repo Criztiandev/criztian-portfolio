@@ -14,9 +14,13 @@ import {
   MAX_CANVAS_PIXELS,
   SHAPE_POINTS,
   SHAPE_STRIDE,
+  TEXT_SHAPE_SHRINK,
 } from "@/data/hero.data"
 import {
+  CONNECT_SCENE_SHAPES,
   CONTACT_SCENE_SHAPES,
+  FAQ_SCENE_SHAPES,
+  FOOTER_SCENE_SHAPES,
   FRAME_SCENE_SHAPES,
   PROCESS_SCENE_SHAPES,
   SERVICES_SCENE_SHAPES,
@@ -26,6 +30,7 @@ import {
   buildCubeRotation,
   buildFontShorthand,
   buildSceneKeyframes,
+  buildTextShapePoints,
   clampFontSize,
   createRandomSource,
   followMorphProgress,
@@ -55,6 +60,7 @@ import {
   resolveSceneReveal,
   resolveSceneState,
   resolveStaticKeyframe,
+  resolveTextShapeShrink,
   resolveThreadReveal,
   resolveThreadState,
   resolveThreadTurn,
@@ -74,6 +80,8 @@ import {
 import type {
   DotFieldPlacement,
   DotFieldPlacementRequest,
+  DotFieldRect,
+  DotFieldSample,
   DotSceneKeyframe,
   DotSceneMeasure,
 } from "@/types/hero.type"
@@ -503,6 +511,11 @@ const NAME_SAMPLE = {
   inkHeight: 800,
 }
 
+const TEXT_SAMPLE = {
+  width: 2268,
+  height: 456,
+}
+
 function buildPlacementRequest(
   keyframe: DotSceneKeyframe,
   overrides: Partial<DotFieldPlacementRequest>
@@ -511,6 +524,7 @@ function buildPlacementRequest(
     keyframe,
     viewport: VIEWPORT,
     nameSample: NAME_SAMPLE,
+    textSample: TEXT_SAMPLE,
     introScale: 1,
     spinSeconds: 0,
     yawOffset: 0,
@@ -626,12 +640,177 @@ describe("padShapePoints", () => {
       HIDDEN_RANK,
     ])
   })
+
+  it("hides every point of a shape that has not been sampled yet", () => {
+    expect(Array.from(padShapePoints(new Float32Array(0), 3))).toEqual([
+      0,
+      0,
+      0,
+      HIDDEN_RANK,
+      0,
+      0,
+      0,
+      HIDDEN_RANK,
+      0,
+      0,
+      0,
+      HIDDEN_RANK,
+    ])
+  })
 })
 
 describe("resolvePointTotal", () => {
   it("never drops below the shape budget", () => {
     expect(resolvePointTotal(100)).toBe(SHAPE_POINTS)
     expect(resolvePointTotal(SHAPE_POINTS + 5)).toBe(SHAPE_POINTS + 5)
+  })
+})
+
+describe("resolveTextShapeShrink", () => {
+  it("keeps a text shape that fits the shape budget at full size", () => {
+    expect(resolveTextShapeShrink(SHAPE_POINTS)).toBe(1)
+    expect(resolveTextShapeShrink(100)).toBe(1)
+  })
+
+  it("scales an oversized text by the root of its excess, with a margin", () => {
+    const exact = Math.sqrt(SHAPE_POINTS / 15553)
+
+    expect(resolveTextShapeShrink(15553)).toBeCloseTo(
+      exact * TEXT_SHAPE_SHRINK,
+      9
+    )
+    expect(resolveTextShapeShrink(15553)).toBeLessThan(exact)
+  })
+
+  it("brings a count that scales with the area under budget in one resample", () => {
+    for (const count of [SHAPE_POINTS + 1, 15553, 48000]) {
+      const scale = resolveTextShapeShrink(count)
+
+      expect(count * scale * scale, String(count)).toBeLessThan(SHAPE_POINTS)
+    }
+  })
+})
+
+describe("buildTextShapePoints", () => {
+  const sample: DotFieldSample = {
+    positions: new Float32Array([
+      20, 10, 1, 23, 10, 1, 26, 10, 0.6, 20, 13, 1, 23, 13, 1, 26, 13, 0.8,
+    ]),
+    count: 6,
+    left: 18,
+    right: 30,
+    top: 8,
+    inkHeight: 8,
+  }
+
+  function collectShownOffsets(points: Float32Array): number[] {
+    const offsets: number[] = []
+
+    for (let offset = 0; offset < points.length; offset += SHAPE_STRIDE) {
+      if (points[offset + 3] !== HIDDEN_RANK) {
+        offsets.push(offset)
+      }
+    }
+
+    return offsets
+  }
+
+  function readCoordinates(points: Float32Array): number[][] {
+    const coordinates: number[][] = []
+
+    for (const offset of collectShownOffsets(points)) {
+      coordinates.push([points[offset], points[offset + 1], points[offset + 2]])
+    }
+
+    return coordinates
+  }
+
+  it("centres the dots on the ink box with y up and z flat", () => {
+    const points = buildTextShapePoints(sample, 7)
+
+    expect(points).toHaveLength(SHAPE_POINTS * SHAPE_STRIDE)
+    expect(readCoordinates(points)).toEqual([
+      [-4, 2, 0],
+      [-4, -1, 0],
+      [-1, 2, 0],
+      [-1, -1, 0],
+      [2, 2, 0],
+      [2, -1, 0],
+    ])
+  })
+
+  it("orders the dots by column, then by row, so they arrive left to right", () => {
+    const points = buildTextShapePoints(sample, 7)
+    const offsets = collectShownOffsets(points)
+
+    expect(offsets).toHaveLength(sample.count)
+
+    for (let index = 1; index < offsets.length; index += 1) {
+      const previous = offsets[index - 1]
+      const current = offsets[index]
+      const isSameColumn = points[current] === points[previous]
+
+      expect(points[current]).toBeGreaterThanOrEqual(points[previous])
+
+      if (isSameColumn) {
+        expect(points[current + 1]).toBeLessThan(points[previous + 1])
+      }
+    }
+  })
+
+  it("gives the dots the seed's ranks in column order, every one below one", () => {
+    const points = buildTextShapePoints(sample, 7)
+    const nextRandom = createRandomSource(7)
+    const ranks: number[] = []
+    const seeded: number[] = []
+
+    for (const offset of collectShownOffsets(points)) {
+      ranks.push(points[offset + 3])
+      seeded.push(Math.fround(nextRandom()))
+      expect(points[offset + 3]).toBeGreaterThanOrEqual(0)
+      expect(points[offset + 3]).toBeLessThan(1)
+    }
+
+    expect(ranks).toHaveLength(sample.count)
+    expect(ranks).toEqual(seeded)
+  })
+
+  it("spreads the dots evenly over every pen key, each gap a hidden copy of the dot before it", () => {
+    const points = buildTextShapePoints(sample, 7)
+    const expected: number[] = []
+    const shown: number[] = []
+    const strays: number[] = []
+    let shownOffset = 0
+
+    for (let dotIndex = 0; dotIndex < sample.count; dotIndex += 1) {
+      expected.push(Math.floor((dotIndex * SHAPE_POINTS) / sample.count))
+    }
+
+    for (let offset = 0; offset < points.length; offset += SHAPE_STRIDE) {
+      if (points[offset + 3] !== HIDDEN_RANK) {
+        shown.push(offset / SHAPE_STRIDE)
+        shownOffset = offset
+        continue
+      }
+
+      for (let axis = 0; axis < 3; axis += 1) {
+        if (points[offset + axis] !== points[shownOffset + axis]) {
+          strays.push(offset / SHAPE_STRIDE)
+        }
+      }
+    }
+
+    expect(shown).toEqual(expected)
+    expect(strays).toEqual([])
+  })
+
+  it("returns no dots for an empty sample", () => {
+    expect(
+      buildTextShapePoints(
+        { ...sample, positions: new Float32Array(0), count: 0 },
+        7
+      )
+    ).toHaveLength(0)
   })
 })
 
@@ -928,6 +1107,39 @@ describe("buildSceneKeyframes", () => {
     expect(grown?.isGrown).toBe(true)
     expect(fitting?.isGrown).toBeUndefined()
     expect(dust?.isGrown).toBeUndefined()
+  })
+
+  it("keeps FAQ lit while it is read, through the transit to the handshake", () => {
+    const keyframes = buildSceneKeyframes(
+      [
+        buildScene({
+          id: "faq",
+          shapes: parseSceneShapes(FAQ_SCENE_SHAPES),
+        }),
+        buildScene({
+          id: "connect",
+          shapes: parseSceneShapes(CONNECT_SCENE_SHAPES),
+          containerTop: 3000,
+          containerBottom: 4500,
+        }),
+      ],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+    const [faq, connect] = keyframes
+
+    expect(DOT_SCENE_MOTION.faq?.isReadAfterPin).toBe(true)
+    expect(faq?.isReadAfterPin).toBe(true)
+    expect(faq?.isGrown).toBeUndefined()
+    expect(connect?.isReadAfterPin).toBeUndefined()
+    expect(resolveRevealRange(keyframes, "faq")).toEqual({
+      firstIndex: 0,
+      lastIndex: 1,
+    })
+    expect(resolveRevealRange(keyframes, "connect")).toEqual({
+      firstIndex: 1,
+      lastIndex: 1,
+    })
   })
 
   it("never ends a scene before it starts", () => {
@@ -1429,6 +1641,24 @@ describe("resolveRevealRange", () => {
     expect(resolveRevealRange(readingTimeline, "cube")).toEqual({
       firstIndex: 0,
       lastIndex: 0,
+    })
+  })
+
+  it("holds a slotted scene that is read after its pin lit through the next transit", () => {
+    const readTimeline: DotSceneKeyframe[] = []
+
+    for (const keyframe of readingTimeline) {
+      if (keyframe.scene === "cube") {
+        readTimeline.push({ ...keyframe, isReadAfterPin: true })
+        continue
+      }
+
+      readTimeline.push(keyframe)
+    }
+
+    expect(resolveRevealRange(readTimeline, "cube")).toEqual({
+      firstIndex: 0,
+      lastIndex: 1,
     })
   })
 
@@ -2023,6 +2253,91 @@ describe("resolvePlacement", () => {
       Array.from(buildCubeRotation(tuning.staticYaw, tuning.pitch, tuning.roll))
     )
   })
+
+  function buildSignKeyframe(slot: DotFieldRect): DotSceneKeyframe {
+    return {
+      id: "footer",
+      scene: "footer",
+      shape: "sign",
+      start: 0,
+      end: 100,
+      slot,
+    }
+  }
+
+  it("draws the sign at the name's dot size and full light when the slot holds its ink", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        buildSignKeyframe({ x: 40, y: 250, width: 1360, height: 405 }),
+        { spinSeconds: 7, yawOffset: 0.4, introScale: 0.5 }
+      )
+    )
+
+    expect(placement.isName).toBe(false)
+    expect(placement.shape).toBe("sign")
+    expect(placement.center).toEqual({ x: 1440, y: 905 })
+    expect(placement.halfSize).toEqual({ x: 1, y: 1 })
+    expect(Array.from(placement.rotation)).toEqual([1, 0, 0, 0, 1, 0, 0, 0, 1])
+    expect(placement.cameraDistance).toBe(0)
+    expect(placement.visible).toBe(1)
+    expect(placement.dotSize).toBe(DOT_FIELD_TUNING.dotSize)
+    expect(placement.inkHeight).toBe(TEXT_SAMPLE.height)
+    expect(placement.farLight).toBe(1)
+    expect(placement.opacity).toBe(1)
+  })
+
+  it("shrinks the sign to a narrow slot and scales its dots with it", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        buildSignKeyframe({ x: 24, y: 300, width: 342, height: 156 }),
+        {}
+      )
+    )
+    const fit = (342 * 2) / TEXT_SAMPLE.width
+
+    expect(placement.halfSize.x).toBeCloseTo(fit, 9)
+    expect(placement.halfSize.y).toBeCloseTo(fit, 9)
+    expect(placement.dotSize).toBeCloseTo(DOT_FIELD_TUNING.dotSize * fit, 9)
+    expect(placement.inkHeight).toBeCloseTo(TEXT_SAMPLE.height * fit, 9)
+  })
+
+  it("shrinks the sign to a short slot as well", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        buildSignKeyframe({ x: 40, y: 250, width: 1360, height: 100 }),
+        {}
+      )
+    )
+
+    expect(placement.halfSize.x).toBeCloseTo((100 * 2) / TEXT_SAMPLE.height, 9)
+  })
+
+  it("rounds the sign's centre to whole device pixels", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        buildSignKeyframe({ x: 24.3, y: 300.2, width: 342, height: 156 }),
+        {}
+      )
+    )
+
+    expect(placement.center).toEqual({ x: 391, y: 756 })
+  })
+
+  it("lands a sign dot where the shader draws it", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        buildSignKeyframe({ x: 40, y: 250, width: 1360, height: 100 }),
+        {}
+      )
+    )
+    const fit = placement.halfSize.x
+    const homes = new Float32Array(3)
+
+    projectShapePoints(new Float32Array([10, 4, 0, 0.5]), placement, homes)
+
+    expect(homes[0]).toBeCloseTo(placement.center.x + 10 * fit, 2)
+    expect(homes[1]).toBeCloseTo(placement.center.y - 4 * fit, 2)
+  })
 })
 
 describe("resolveFrameOutset", () => {
@@ -2047,14 +2362,17 @@ describe("isShapeSpinning", () => {
     expect(isShapeSpinning("dust")).toBe(false)
   })
 
-  it("holds every How I work state and every frame still, so the loop can sleep", () => {
+  it("holds every How I work state, every frame and the ending's drawings still, so the loop can sleep", () => {
     const stillShapes = [
       ...parseSceneShapes(PROCESS_SCENE_SHAPES),
       ...parseSceneShapes(FRAME_SCENE_SHAPES),
       ...parseSceneShapes(CONTACT_SCENE_SHAPES),
+      ...parseSceneShapes(FAQ_SCENE_SHAPES),
+      ...parseSceneShapes(CONNECT_SCENE_SHAPES),
+      ...parseSceneShapes(FOOTER_SCENE_SHAPES),
     ]
 
-    expect(stillShapes).toHaveLength(7)
+    expect(stillShapes).toHaveLength(10)
 
     for (const shape of stillShapes) {
       expect(isShapeSpinning(shape), shape).toBe(false)

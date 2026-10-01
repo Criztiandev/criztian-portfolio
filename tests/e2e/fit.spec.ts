@@ -2,6 +2,10 @@ import { expect, test } from "@playwright/test"
 import type { Page } from "@playwright/test"
 
 import {
+  CONTACT_FIELD_NUMBERS,
+  CONTACT_SERVICE_LABELS,
+} from "@/data/contact.data"
+import {
   PROCESS_SCENE_SHAPES,
   PROJECT_PLATE_WINDOW_CLASS,
   SERVICES_SCENE_SHAPES,
@@ -44,7 +48,7 @@ const TRANSPARENT_BACKGROUND_PATTERN = /^rgba\(\d+, \d+, \d+, 0\)$/
 
 const OPAQUE_BACKGROUND_PATTERN = /^rgb\(/
 
-const SINGLE_FRAME_SCENES = ["#about", "#testimonials"]
+const SINGLE_FRAME_SCENES = ["#about", "#testimonials", "#connect"]
 
 const SINGLE_FRAME_VIEWPORTS = [
   { width: 375, height: 548, hasTextSpacing: false },
@@ -65,7 +69,7 @@ const STATEMENT_SELECTORS = [
   "#services h3",
   "#about p[class*='cqi']",
   "#testimonials blockquote p",
-  "#faq p[class*='cqi']",
+  "#connect p[class*='cqi']",
   "#contact p[class*='cqi']",
 ]
 
@@ -103,9 +107,35 @@ const FOCUS_SHIFT_TOLERANCE_PX = 24
 const FIXED_FORM = {
   name: "Suite Reader",
   email: "suite.reader@example.com",
-  service: "branding",
+  service: CONTACT_SERVICE_LABELS.branding,
   message: "Checking the form pins again once it fits.",
 }
+
+const MESSAGE_LABEL_SELECTOR = "label[for=contact-message]"
+
+const MESSAGE_FIELD_SELECTOR = "#contact-message"
+
+const WRAPPED_LABEL_LINES = 2
+
+const LABEL_WRAP_VIEWPORTS = [
+  { width: 683, height: 384, hasTextSpacing: false, isPinned: null },
+  { width: 667, height: 320, hasTextSpacing: false, isPinned: null },
+  { width: 640, height: 360, hasTextSpacing: false, isPinned: null },
+  { width: 700, height: 450, hasTextSpacing: false, isPinned: null },
+  { width: 768, height: 1024, hasTextSpacing: true, isPinned: true },
+  { width: 720, height: 450, hasTextSpacing: true, isPinned: null },
+]
+
+const LABEL_ROW_VIEWPORTS = [
+  { width: 1440, height: 900 },
+  { width: 390, height: 844 },
+]
+
+const LABEL_ROW_PX = 16
+
+const LABEL_ROW_NUMBERS: string[] = Object.values(CONTACT_FIELD_NUMBERS)
+
+const LABEL_ROW_TOLERANCE_PX = 0.5
 
 const DEEP_LINK_HASHES = [
   "#project",
@@ -822,7 +852,7 @@ test.describe("#contact when fixed errors pin it again on a phone", () => {
 
     await page.locator("#contact-name").fill(FIXED_FORM.name)
     await page.locator("#contact-email").fill(FIXED_FORM.email)
-    await page.locator("#contact-service").selectOption(FIXED_FORM.service)
+    await page.getByRole("radio", { name: FIXED_FORM.service }).check()
     await page.locator("#contact-message").fill(FIXED_FORM.message)
     await expect(section).not.toHaveAttribute("data-fit", { timeout: 5000 })
     await page.waitForTimeout(GATE_SETTLE_MS)
@@ -840,6 +870,134 @@ test.describe("#contact when fixed errors pin it again on a phone", () => {
     expect(problems).toEqual([])
   })
 })
+
+async function readMessageLabel(page: Page) {
+  return page.evaluate(
+    function measureMessageLabel(selectors) {
+      const label = document.querySelector(selectors.label)
+      const field = document.querySelector(selectors.field)
+
+      if (label === null || field === null) {
+        return { lineCount: 0, textBottom: Number.NaN, fieldTop: Number.NaN }
+      }
+
+      const range = document.createRange()
+      const lineTops: number[] = []
+      let textBottom = Number.NEGATIVE_INFINITY
+
+      range.selectNodeContents(label)
+
+      for (const rect of range.getClientRects()) {
+        if (!lineTops.includes(rect.top)) {
+          lineTops.push(rect.top)
+        }
+
+        textBottom = Math.max(textBottom, rect.bottom)
+      }
+
+      return {
+        lineCount: lineTops.length,
+        textBottom,
+        fieldTop: field.getBoundingClientRect().top,
+      }
+    },
+    { label: MESSAGE_LABEL_SELECTOR, field: MESSAGE_FIELD_SELECTOR }
+  )
+}
+
+async function readLabelRowHeights(page: Page) {
+  return page.evaluate(
+    function measureLabelRows(input) {
+      const heights: number[] = []
+
+      for (const number of document.querySelectorAll(
+        input.selector + " form [aria-hidden='true']"
+      )) {
+        const text = (number.textContent ?? "").trim()
+
+        if (input.numbers.includes(text) && number.parentElement !== null) {
+          heights.push(number.parentElement.getBoundingClientRect().height)
+        }
+      }
+
+      return heights
+    },
+    {
+      selector: CONTACT_SELECTOR,
+      numbers: LABEL_ROW_NUMBERS,
+    }
+  )
+}
+
+for (const viewport of LABEL_WRAP_VIEWPORTS) {
+  const spacing = viewport.hasTextSpacing ? " with text spacing" : ""
+
+  test.describe(`#contact's message label at ${viewport.width}x${viewport.height}${spacing}`, () => {
+    test.use({
+      viewport: { width: viewport.width, height: viewport.height },
+      reducedMotion: "reduce",
+    })
+
+    test("wraps to two lines that end above the message field", async ({
+      page,
+    }) => {
+      const problems = collectPageProblems(page)
+
+      await page.goto("/")
+      await waitForRunningStage(page)
+      await waitForFonts(page)
+
+      if (viewport.hasTextSpacing) {
+        await page.addStyleTag({ content: TEXT_SPACING_CSS })
+      }
+
+      await page.waitForTimeout(GATE_SETTLE_MS)
+
+      const label = await readMessageLabel(page)
+
+      expect(label.lineCount, "label lines").toBe(WRAPPED_LABEL_LINES)
+      expect(
+        label.textBottom,
+        `label text bottom over the field top ${label.fieldTop}`
+      ).toBeLessThanOrEqual(label.fieldTop)
+
+      if (viewport.isPinned === true) {
+        const section = page.locator(CONTACT_SELECTOR)
+
+        await expect(section).not.toHaveAttribute("data-fit")
+        await expect(section).toHaveAttribute("data-dot-shapes", "gather")
+        await expect(section.locator("[data-dot-slot]")).toHaveCount(1)
+      }
+
+      expect(problems).toEqual([])
+    })
+  })
+}
+
+for (const viewport of LABEL_ROW_VIEWPORTS) {
+  test.describe(`#contact's numbered labels at ${viewport.width}x${viewport.height}`, () => {
+    test.use({ viewport, reducedMotion: "reduce" })
+
+    test("keeps every numbered label row one 16px line tall", async ({
+      page,
+    }) => {
+      await page.goto("/")
+      await waitForRunningStage(page)
+      await waitForFonts(page)
+
+      const heights = await readLabelRowHeights(page)
+
+      expect(heights.length, "numbered rows").toBe(LABEL_ROW_NUMBERS.length)
+
+      for (const height of heights) {
+        expect(
+          Math.abs(height - LABEL_ROW_PX),
+          `a ${height}px row`
+        ).toBeLessThanOrEqual(LABEL_ROW_TOLERANCE_PX)
+      }
+    })
+  })
+}
 
 async function readProjectWindows(page: Page) {
   return page.evaluate(function readScreenWindows(windowClass) {

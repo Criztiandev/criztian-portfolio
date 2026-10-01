@@ -22,7 +22,7 @@ Their job on the site is to judge, quickly, whether Criztian can take their proj
 
 ## Product Purpose
 
-A personal portfolio that wins freelance work. It is one public scrolling page (home, belief quote, projects, services, process, about, testimonials, FAQ, contact) that ends in a contact form, and behind it a private owner dashboard for editing that content. Success means qualified clients leave convinced and send a message through the contact form.
+A personal portfolio that wins freelance work. It is one public scrolling page (home, belief quote, projects, services, process, about, testimonials, FAQ, Let's connect, contact) that ends in a contact form, and behind it a private owner dashboard for editing that content. Success means qualified clients leave convinced and send a message through the contact form.
 
 ## Positioning
 
@@ -54,8 +54,8 @@ The owner's own summary: "I specialize in crafting custom web solutions, includi
 
 **Public site:**
 
-- Single page. The anchors (`#home`, `#quote`, `#project`, `#services`, `#process`, `#about`, `#testimonials`, `#faq`, `#contact`) are the navigation. `#contact` must keep working because the e2e suite depends on it.
-- **Order** (owner, 2026-09-29; built in Phase 5. The design is locked to mockup B, recorded in DESIGN.md, and Phases 6–10 in `plans/handoff.md` built the dots, Services, How I work, the projects deck and the motion):
+- Single page. The anchors (`#home`, `#quote`, `#project`, `#services`, `#process`, `#about`, `#testimonials`, `#faq`, `#connect`, `#contact`) are the navigation. `#contact` must keep working because the e2e suite depends on it.
+- **Order** (owner, 2026-09-29; built in Phase 5. The design is locked to mockup B, recorded in DESIGN.md, and Phases 6–10 in `plans/handoff.md` built the dots, Services, How I work, the projects deck and the motion. Phase 12 (owner, 2026-10-01) rebuilt the ending: Let's connect became its own screen before Contact):
   1. Hero
   2. Belief quote
   3. Projects
@@ -64,34 +64,37 @@ The owner's own summary: "I specialize in crafting custom web solutions, includi
   6. About
   7. Testimonials
   8. FAQ
-  9. Contact, with Let's connect's email merged in
-  10. Footer
+  9. Let's connect (not in the nav)
+  10. Contact
+  11. Footer
 
   Blog is hidden until real posts exist. About shows the owner's real photo, framed by dots like a project image. Testimonials pairs each client quote with the client's photo or logo, framed the same way. The layout follows mockup B ("Statement"): a huge statement on the left and one dot object on the right.
 
 - The list below describes the page as built today.
-- Every screen below the hero is the B statement split: a small section label, one big statement on the left and one object on the right (the object comes first on a phone).
+- Every screen below the hero is the B statement split: a small section label, one big statement on the left and one object on the right (the object comes first on a phone). FAQ's numbered questions stand in for its statement, and Let's connect, like the quote, has no label.
 - Hero: the name rendered as a dot-matrix WebGL wordmark whose dots scatter from a cursor or a finger and spring back. It falls back to a real text `<h1>` when WebGL2 is unavailable; with reduced motion the dots render still.
 - Belief quote (`#quote`, not in the nav): scrolling out of the hero morphs the name's dots into a turning dot cube beside one owner-editable statement. The seed is a visible placeholder ("[Your belief line, in your own words]"); the owner supplies the real line.
 - Work (`#project`): a pinned deck, one project at a time ("Work · 01 / 03"), with the title as the statement, the summary, tag and stack, and a 10:7 plate on the right. The scroll triggers each project, and the dots unwind and redraw the frame round the new plate; the scroll is never held (Phase 9). Where the deck can't pin, each project is its own screen. A project without a valid image shows a monochrome placeholder plate with an "Image placeholder" chip. The three seeded cards are visible placeholders ("Project one", "[What you built, and for whom]").
 - My services (`#services`): Branding, Web design and Development on one pinned B screen: the service name as the statement, the owner's short copy and six numbered items, beside the dot drawing of that stage of the product. The scroll triggers each service and its drawing plays by itself; the scroll is never held (Phase 7).
-- How I work (`#process`): the owner's five numbered steps on a centred wheel, the step's dot shape above its big hollow numeral and its title and copy under it. The scroll triggers each step, and the wheel turns as the dots draw the next state of the page; the scroll is never held (Phase 8).
-- Who am I (`#about`): "I am Criztian.", the owner's line, a bracketed "[Your story, in your own words]" and three stats (5+ years experience, 500+ projects done, 140 happy clients), beside a black-and-white placeholder photo plate with a "[Your photo]" chip.
+- How I work (`#process`): the owner's five numbered steps on a centred wheel, the step's dot shape above its big hollow numeral and its title and copy under it. The scroll triggers each step, and the wheel turns as the dots draw the next state of the page; the scroll is never held (Phase 8).- Who am I (`#about`): "I am Criztian.", the owner's line, a bracketed "[Your story, in your own words]" and three stats (5+ years experience, 500+ projects done, 140 happy clients), beside a black-and-white placeholder photo plate with a "[Your photo]" chip.
 - Testimonials (`#testimonials`): one bracketed placeholder quote as the statement, its bracketed attribution, and a "[Client photo or logo]" plate.
-- FAQ (`#faq`): the owner's nine questions in native disclosures, beside a big "FAQ".
-- Get in touch (`#contact`): "Let's start your project today.", the "Or email me" line (Let's connect merged in), and the form.
+- FAQ (`#faq`): the owner's nine questions, numbered 01 to 09, in native disclosures that open downward, beside a still dot drawing of two speech bubbles (the conversation). Its label arrives as a big title like every other section's.
+- Let's connect (`#connect`, not in the nav; owner, Phase 12): the statement "Let's connect." and the "Or email me" line with the owner's address, beside two hands shaking, drawn in dots. Scrolling on, the handshake's dots fly to the frame round the form.
+- Get in touch (`#contact`): "Let's start your project today." and the form, with the dots gathered round it.
+- Footer: the dots spell "LET'S BUILD" in the name's dot lettering (owner, Phase 12), above the footer bar.
 - Blog is hidden from the page and the nav until real posts exist; its code stays.
-- Contact form: name, email, a required "Service needed" select (Branding, Web design, Development, Something else) and "What can I help you with?". The service is stored with the message and shown in the notification.
+- Contact form (restyled in Phase 12): numbered rows 01 to 04 with underline fields: name, email, a required "Service needed" choice of four square chips (a native radio group: Branding, Web design, Development, Something else) and "What can I help you with?", then a full-width "Send message". The service is stored with the message and shown in the notification.
 - Contact form anti-spam: a honeypot, a two-second minimum time-to-submit, and a limit of five submissions per hour per hashed IP. These are deliberate; do not weaken them.
 - Contact notifications are written as local HTML previews. No email is actually sent yet.
-- Motion (Phase 10): every section's text sweeps in with the dots and out as they leave, and About's stats count up with it. On desktop the copy of the quote, About, Testimonials, FAQ and Contact drifts as each screen arrives and leaves, and a custom cursor (a dot and a trailing ring) adapts to links and fields, and stays small over the dots (owner, Phase 11). A scroll-spy dot marks the current section in the header nav, over a hairline that fills with the page's scroll. A sent message keeps its box and takes focus.
+- Motion (Phase 10): every section's text sweeps in with the dots and out as they leave, and About's stats count up with it. On desktop the copy of the quote, About, Testimonials, FAQ, Let's connect and Contact drifts as each screen arrives and leaves, and a custom cursor (a dot and a trailing ring) adapts to links and fields, and stays small over the dots (owner, Phase 11). A scroll-spy dot marks the current section in the header nav, over a hairline that fills with the page's scroll. A sent message keeps its box and takes focus.
+- Breathers (owner, Phase 12): three-quarters of a screen of black separates every section after the hero, so each dot transition has room to play on its own and a fast scroll never stacks two sections' text.
 - Section titles (owner, Phase 11): each section's label is bold Antonio, and as a section scrolls in its name arrives as a big title that shrinks into the label as the section pins, so a visitor always knows which section they are in.
 - Pause motion (owner, Phase 11): a square toggle in the header stops every moving thing on the page (the cube's spin and the Services sway included) and gives the reduced-motion page. The browser remembers it.
 
 **Owner side:**
 
 - Single owner account and public signup is disabled.
-- Editable today: the hero (name, and a rich-text tagline with bold and italic only), the quote (text, and an optional author), the projects (up to six, each with a title, tag, summary, stack line, https link, image and alt text) and a curated set of six theme colours. The projects heading and intro were retired in Phase 5 (the label "Work" stands in); the schema still stores them.
+- Editable today: the hero (name, and a rich-text tagline with bold and italic only), the quote (text, and an optional author), the projects (up to six, each with a title, tag, summary, stack line, https link, image and alt text), the FAQ (up to twelve questions with their answers: add, edit, reorder and remove; a blank question hides its row), Let's connect (the statement, the email line and the email address, which the footer's email link also reads), Contact's label and statement, and a curated set of six theme colours. The projects heading and intro were retired in Phase 5 (the label "Work" stands in); the schema still stores them. The form's fields stay fixed.
 - Project images are referenced, not uploaded: a file committed to `public/projects/` (for example `/projects/shop.webp`) or an https URL. Anything else shows the placeholder plate.
 - Draft and published states only, with no version history.
 - The content schema is built so that making another section editable is a data change, not a rewrite.
@@ -102,14 +105,14 @@ The owner's own summary: "I specialize in crafting custom web solutions, includi
 - live email
 - reading contact messages in the dashboard
 - a blog rendering pipeline
-- editing the Services, About, Process, Testimonials, FAQ, Blog and Get in touch copy (hard-coded in `src/data/page-sections.data.ts` for now; the CMS for them comes later)
+- editing the Services, About, Process, Testimonials and Blog copy (hard-coded in `src/data/page-sections.data.ts` for now; the CMS for them comes later)
 
 **Terminology:** _owner_, _draft_, _published_, _section_, _site content_.
 
 ## Brand Commitments
 
 - The name **Criztian** is the hero wordmark and the site's identity.
-- Public copy is owner-controlled. The hero, quote, projects and theme copy lives in the site-content record (seed defaults in `src/data/`); the other sections are hard-coded in `src/data/page-sections.data.ts` until the CMS phase.
+- Public copy is owner-controlled. The hero, quote, projects, FAQ, Let's connect, Contact and theme copy lives in the site-content record (seed defaults in `src/data/site-content.data.ts`); the other sections are hard-coded in `src/data/page-sections.data.ts` until the CMS phase.
 
 ## Evidence on Hand
 

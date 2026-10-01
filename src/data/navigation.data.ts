@@ -1,4 +1,7 @@
-import type { PortfolioNavigationItem } from "@/types/portfolio.type"
+import type {
+  PortfolioNavigationItem,
+  PortfolioSection,
+} from "@/types/portfolio.type"
 
 export const PORTFOLIO_BRAND_LABEL = "Criztian"
 
@@ -115,4 +118,16 @@ export const PORTFOLIO_NAVIGATION: PortfolioNavigationItem[] = [
   TESTIMONIALS_ITEM,
   FAQ_ITEM,
   CONTACT_ITEM,
+]
+
+export const SCROLL_SPY_SECTION_IDS: PortfolioSection[] = [
+  "home",
+  "project",
+  "services",
+  "process",
+  "about",
+  "testimonials",
+  "faq",
+  "connect",
+  "contact",
 ]

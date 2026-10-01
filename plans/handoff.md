@@ -2,9 +2,9 @@
 
 > **For:** the next Claude Code session picking up this build.
 >
-> **Current phase:** **New elements (to scope with the owner).** Phase 11 is done (see its done note). The owner handles deployment; the checklist is under "Deployment (the owner's)". The owner's device checks and the recordings' sign-off are still open. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference), except How I work's centred wheel (owner, Phase 8); the renders are in `plans/mockups/`. To start, paste the prompt under "Start here".
+> **Current phase:** none open. **Phase 12, the page's ending** (FAQ, Let's connect, Contact and the footer, plus the owner's breathers between sections and the slower arrival title) is done and committed on the owner's OK (2026-10-02, "ok commit everything"): see its done note. Nothing after Phase 12 is planned yet: the owner chooses the next feature (see "Start here"). The owner handles deployment; the checklist is under "Deployment (the owner's)". The owner's device checks and the recordings' sign-off are still open. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference), except How I work's centred wheel (owner, Phase 8); the renders are in `plans/mockups/`. To resume, paste the prompt under "Start here".
 >
-> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, Phase 5 is `ca4d45c`, Phase 6 is `bb808b1`, Phase 7 is `32efb4b`, Phase 8 is `e8cbbe5`, Phase 9 is `684db97`, Phase 10 is `78f4973` and Phase 11 is one commit on top of it, made on the owner's OK. Nothing is pushed, and `portfolio/phase-3` is not merged to `main` yet.
+> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, Phase 5 is `ca4d45c`, Phase 6 is `bb808b1`, Phase 7 is `32efb4b`, Phase 8 is `e8cbbe5`, Phase 9 is `684db97`, Phase 10 is `78f4973` and Phase 11 is `ef06f1a`, each made on the owner's OK. Nothing is pushed, and `portfolio/phase-3` is not merged to `main` yet.
 >
 > **How this file works:** each phase is one conversation. It lists its scope, the owner inputs it needs and its acceptance. It ends with the prompt that starts the next conversation. When a phase ends, write its done note under it, move "Current phase" forward, and give the owner the next prompt.
 >
@@ -12,14 +12,13 @@
 
 ## Start here
 
-Paste this into a new conversation to start the current phase:
+Paste this into a new conversation to resume the current phase:
 
 ```text
-Continue the portfolio: I'm adding new elements.
-Read CLAUDE.md, then plans/handoff.md (Phase 11's done note, "New elements", "The DOM contract" and "Landmines still live"), PRODUCT.md and DESIGN.md.
-Ask me what the new elements are, where they go and what they say before building anything; never invent their content.
-Then scope them as the next phase in plans/handoff.md and build it.
-Ask me before committing.
+Continue the portfolio after Phase 12 (the page's ending, with the breathers between sections and the slower arrival title).
+Read CLAUDE.md, then plans/handoff.md (Phase 12's done note, "Open owner decisions" and "Landmines still live"), PRODUCT.md and DESIGN.md.
+First run git status and check what is listening on ports 3100 and 3201. If Phase 12 is still uncommitted, summarise the diff and ask me before committing.
+Then ask me what comes next: my real material ("Anytime: the owner's material"), dot shapes for the breathers between sections (a design on a Claude Design canvas first), or the device checks and deployment.
 ```
 
 ## Direction (owner redirect #4, 2026-09-29)
@@ -223,11 +222,12 @@ The mockups use these, and the owner approved them all. Use them in place of the
 - **Phase 8** (`e8cbbe5`): How I work as a centred wheel (owner), no plates, the ring drawn in dots, the shape at full size above the numeral, and the turn triggered and played by the dots' own progress (see its done note).
 - **Phase 9** (`684db97`): the projects deck, one step per visible project on a sticky board, `project-k` step ids, the frame unwound and redrawn in place (`isRedrawSegment`, `uRedraw`), the keyboard rule, and the Phase 5 list as the fallback (see its done note).
 - **Phase 10** (`78f4973`): every section's text swept by the dots, the About count-up, the desktop copy drift, the scroll-spy with the nav dot, the scroll-progress hairline, the menu wipe, the contact success moment, the FAQ disclosure, the no-JS fix and the adaptive cursor (old Part 4) (see its done note).
-- **Phase 11** (the commit on top of `78f4973`): the big arriving section titles, the pause-motion toggle, the small cursor over the dots, How I work's exit, the uncached published read, the accessibility and performance passes, and the docs (see its done note).
-- **Last evidence (2026-10-01, Phase 11):**
-  - 515 unit tests pass and `pnpm check` is clean.
-  - e2e is green on a production build at :3100, with Supabase up (275 specs).
-  - The hero pixel diff held: 0 pixels against Phase 10. The method is in the history and the landmines.
+- **Phase 11** (`ef06f1a`): the big arriving section titles, the pause-motion toggle, the small cursor over the dots, How I work's exit, the uncached published read, the accessibility and performance passes, and the docs (see its done note).
+- **Phase 12** (committed on the owner's OK, 2026-10-02): the ending as row B (FAQ's numbered questions and the conversation, Let's connect and the handshake, the restyled form and the gather, LET'S BUILD), the FAQ, Let's connect and Contact copy in the editor, the 19 review fixes, a 75svh breather before every section after the hero, and the arrival title swept in with the scroll (see its done note).
+- **Last evidence (2026-10-01, Phase 12):**
+  - 597 unit tests pass and `pnpm check` is clean.
+  - e2e is green on a production build at :3100, with Supabase up (335 specs, one run).
+  - The hero pixel diff held: 0 pixels against Phase 11. The method is in the history and the landmines.
 
 **Carried-over open items,** each assigned to a phase:
 
@@ -360,7 +360,7 @@ These still hold, and CLAUDE.md explains each one:
 
 Every section that takes part in the timeline follows these rules. The engine trusts them, and a dev-only assert checks rules 1–3.
 
-1. **The container.** A scene is a `[data-dot-scene="<id>"]` container with an `id` anchor and `scroll-margin-top` equal to its `stickyTop`. It has **no padding**.
+1. **The container.** A scene is a `[data-dot-scene="<id>"]` container with an `id` anchor and `scroll-margin-top` equal to its `stickyTop`. It has **no padding**. Space between two scenes is a top margin on the later container, never padding or an element: the breather (one rule in globals.css gives every scene after the hero a 75svh top margin, 25svh for Let's connect after FAQ's hold, owner, Phase 12) lengthens each transit and never a pin. It never depends on `data-fit`, which would move a reader who is past the scene.
 2. **The frame.** The container's **first child** is the sticky frame, with no margins:
    - Scenes: `sticky top-18 h-[calc(100svh-4.5rem)] self-start`.
    - The hero: `top-0 h-svh`.
@@ -375,7 +375,7 @@ Every section that takes part in the timeline follows these rules. The engine tr
 
 5. **Overflow.** Ancestors of sticky elements use `overflow: visible` or `clip` only. `hidden`, `auto` and `overflow-x-hidden` silently stop the pin.
 6. **Named groups only.** Tailwind groups are named (`group/stage`). An unnamed `group` on the page wrapper would make every unnamed `group-*` react to the whole page.
-7. **Coverage.** Every section belongs to a scene; dust counts. No transit may stretch across unassigned sections as a half-formed smear.
+7. **Coverage.** Every section belongs to a scene; dust counts. No transit may stretch across unassigned sections as a half-formed smear. The breather is empty space inside one transit, not a section.
 8. **The top band.** Where the copy docks as curtains, the label and the slot form a band at the top of the frame, and the step blocks are `sticky` directly below it (at `step-top`) on an opaque ground, so copy never enters the band. In Services' split the band is the label alone, since the slot is in the other column; How I work's band is the label and its centred slot at every width. Conditions:
    - The step list ends where the container ends, or the last step unsticks into the band.
    - Each step's height is at most `F − step-top`, where `F` is the frame (`svh − 72`).
@@ -386,12 +386,13 @@ Every section that takes part in the timeline follows these rules. The engine tr
    - `ServicesSection` and `ProcessSection` implement this in their unstaged layouts; `ProjectsSection` has no curtains, and its unstaged layout is the Phase 5 list. Services' maths: each caption is `--caption` tall and sticks at `--caption-top` (the foot of a portrait frame, or one row gap under the label in the split's left column, where it never meets the slot), with its bottom inset as padding so the stuck curtains end with the frame, and `not-first:mt-[pitch − caption]` docks caption `k` at `k·pitch`. Process's maths: the frame and the list share one grid cell, the list starts `--orbit-step-top` below the top (right under the label and the centred slot, at every width since Phase 8), each step is `F − step-top` tall and sticks at `step-top`, and `not-first:mt-[pitch − (F − step-top)]` keeps step `k` docking at `k·pitch`. Space docked curtains with `margin-top`, never `margin-bottom`: a sticky element's margin box must stay inside its containing block, so a bottom margin pushes every stuck curtain up by that margin as the list ends. The last step unsticks together with the frame.
 9. **In-scene anchors.** Every `id` inside a scene has `scroll-margin-top` equal to that scene's `stickyTop` (`scroll-mt-18`). A larger margin lands before the pin starts. `data-scene` then reads `moving`, and if a spinning shape is the outgoing one, the loop never sleeps.
    - **Focusables too.** Every focusable inside a scene also carries `scroll-mt-18` (`FOCUS_RING_CLASS` does). This keeps a Shift-Tab target clear of the 72px fixed header, because `scroll-padding-top` is banned.
+   - **A 1px stand-in control** (the service radios inside their chips) sits at the top edge of what it stands for and adds a bottom scroll margin the height of that thing (`top-0 scroll-mb-10`), so its scroll box spans the chip. A mid-chip radio with `scroll-mt-18` alone left the chip half under the header on Shift+Tab (Phase 12 review).
 10. **Dust scene endings.** The last section of a dust scene is at least one frame tall (`min-h-[calc(100svh_-_4.5rem)]`). Otherwise its anchor lands in the transit to the next scene, with a half-formed shape over it. `#contact` needed this until Phase 6; now FAQ is the dust scene's only section and carries it at every width.
 11. **Reveals are drawn by the dots.** Since Phase 10 no section text reveals on an observer, a margin or a timer: it sweeps from its scene's `--scene-reveal`, so a pinned element can never wait for a margin it doesn't cross. (That was this rule's old hazard: the retired projects heading sat at 65% of a phone screen behind a −40% margin and never revealed.) A scene without a slot, or a pinned frame that grew past the viewport under rule 12 (`isGrown`), stays lit through the transit after it (`resolveRevealRange`), because a grown frame's lower lines only come into view after its pin.
-12. **Frames that can grow, grow.** A single-frame scene (Quote, About, Testimonials, footer) uses `min-h-[…]`, never a fixed `h-[…]`. Contact is the exception and follows rule 13 instead: its gather needs the whole form in one pinned frame, and a grown frame would hide the submit button for the length of the pin. Its pin length comes from a fixed spacer after the frame (`PIN_SPACER_CLASS`: 50svh; 60svh for the quote, 25svh for the footer; hidden without WebGL), never from a container `min-h`: a grown frame then keeps its whole pin instead of dropping it to zero (Phase 5 review). Work's frame is an exception: it is fixed and holds only the slot. Its cards are fixed-height step boxes, one frame each (`PROJECT_CARD_CLASS`), and join the gate (rule 13); they grow from a one-frame minimum only when `unpinned` or without JavaScript (Phase 9). Step boxes are the other exception: they are fixed and join the gate (rule 13), because a step that grows would move the next step's docking point. Zoom or WCAG text spacing then lengthens the frame instead of clipping or overlapping the copy. The engine re-reads frame and container heights on every measure.
+12. **Frames that can grow, grow.** A single-frame scene (Quote, About, Testimonials, footer) uses `min-h-[…]`, never a fixed `h-[…]`. Contact is the exception and follows rule 13 instead: its gather needs the whole form in one pinned frame, and a grown frame would hide the submit button for the length of the pin. Its pin length comes from a fixed spacer after the frame (`PIN_SPACER_CLASS`: 50svh; 60svh for the quote, 25svh for the footer; hidden without WebGL), never from a container `min-h`: a grown frame then keeps its whole pin instead of dropping it to zero (Phase 5 review). Work's frame is an exception: it is fixed and holds only the slot. Its cards are fixed-height step boxes, one frame each (`PROJECT_CARD_CLASS`), and join the gate (rule 13); they grow from a one-frame minimum only when `unpinned` or without JavaScript (Phase 9). Step boxes are the other exception: they are fixed and join the gate (rule 13), because a step that grows would move the next step's docking point. Zoom or WCAG text spacing then lengthens the frame instead of clipping or overlapping the copy. The engine re-reads frame and container heights on every measure. FAQ's frame is fixed too and holds only the slot; its copy layer shares the frame's cell, ends with the list and carries `FAQ_HOLD_CLASS` (a minimum of one frame plus 25svh), so its hold is never under 25svh whatever the list's length (Phase 12 review; 50svh plus a 50svh spacer left the drawing alone on black too long, owner).
 13. **The fit gate.** A docked step cannot grow: it is sticky, and a taller step is covered by the next one. A deck card cannot grow either: the cards share one frame-tall board, and in the list a taller card would slide its plate off the pinned slot. So each step scene (`ProjectsSection`, `ServicesSection`, `ProcessSection`) renders `SceneFitGate` (a hidden `<span>`) as its **last** child. The frame stays first. `ContactSection` does the same, with its fixed-height frame as the fit box (Phase 6). How it works:
     - It checks every `[data-fit-box]` step or card.
-    - If one overflows, it sets `data-fit="flow"` on the container, removes `data-dot-slot` from the slot and sets `data-dot-shapes="dust"`. The engine re-reads both attributes on its next measure, so the scene becomes a plain dust scene. It never sees a hidden 0×0 slot.
+    - If one overflows, it sets `data-fit="flow"` on the container, removes `data-dot-slot` from the slot and sets `data-dot-shapes="dust"`. The engine re-reads both attributes on its next measure, so the scene becomes a plain dust scene. It never sees a hidden 0×0 slot. (The same holds outside the gate: in forced colours the footer's slot keeps its size and the sign's text overlays it in the same grid cell.)
     - When everything fits again, it restores both attributes.
     - Its cleanup clears `data-fit` and restores the slot attribute but never writes `data-dot-shapes`: React writes the new value whenever `shapes` changes, which is the only time the cleanup runs. Writing the old value back left an emptied deck (the editor hiding every project) on its stale frames, with no slot (Phase 9 review).
     - The check runs in `requestAnimationFrame`, scheduled by a ResizeObserver (on the container, each box's children and the slot) and by `document.fonts.ready`. It never mutates layout inside the observer callback, because that raises ResizeObserver loop errors, which the e2e specs count as page errors.
@@ -1412,9 +1413,285 @@ The owner handles deployment (owner, 2026-10-01). This is the checklist, for the
 - **The owner's material** before launch (the placeholders are marked in PRODUCT.md "Evidence on Hand"): the logo, the photo, the belief line and story, client quotes with permission, and real projects.
 - **Before launch:** re-check the image-variant hang (landmines) on the host, and run the e2e suite against a preview deployment.
 
-### New elements (to scope)
+### Phase 12: the page's ending
 
-The owner is adding more elements to the page (owner, 2026-10-01). Nothing is scoped yet. The next conversation asks what they are, where they go and what they say, then writes the phase here with its scope, owner inputs and acceptance, like the phases above. Every new section follows the DOM contract and the fit rules; the prompt is under "Start here".
+**Goal.** The end of the page matches the brand. FAQ gets bigger numbered questions and a dot object. A new "Let's connect" screen draws two hands shaking, and its dots fly into the frame round the real form. The form is restyled. The footer's dots spell "LET'S BUILD". The owner agrees the design on a Claude Design canvas before any code.
+
+**Owner answers** (2026-10-01; typos fixed, words kept):
+
+- **Why:** "the FAQ and the contact form feel not aligned with the brand, and this needs to be updated; the footer needs to be updated as well."
+- **FAQ:** "do something about the questions, because right now it's bland." Bigger, numbered questions and a dot object, with two directions to choose from. A bug: "when I open the accordion it pushes up, where it should push down."
+- **Let's connect,** a new section before Contact: "a handshake, like two hands shaking each other, saying let's connect; then when you scroll down, the dots will be the image of the contact form."
+  - The statement is "Let's connect.", with the email line ("Or email me: criztiandev@gmail.com") moved here from Contact.
+  - The handshake's dots fly to a frame round the real form (today's gather).
+- **Footer:** "rather than Criztian, make an image that is compelling, like it symbolises me." Asked which image, the owner answered "just name it let's build", then confirmed that the footer's dots spell "LET'S BUILD" in the name's dot lettering.
+- **Editable in the editor:** Let's connect (the statement and the email line), the FAQ questions and answers (add, edit, reorder, hide, like the projects), and Contact's label and statement. The form's fields stay fixed.
+- **Process:** "create a design first so we agree with the design; please use Claude Design so we are aligned before you go code, and surprise me."
+
+**Defaults taken** (the owner can overrule them on the canvas):
+
+- Let's connect has no label, like the quote, and isn't in the nav; the nav dot hides while it is on screen, as on Testimonials.
+- The email address is editable once, and the footer bar reads the same field.
+- FAQ holds at most 12 questions, and a blank question hides its row, as a blank project title does.
+- FAQ drops its big "FAQ" duplicate. Its label gets the arrival title like every other section, and the numbered questions carry the screen.
+
+**Gate 1: the design.**
+
+- **A new Design canvas, "Portfolio · The ending":** https://claude.ai/artifact/MMQCiqBruMwzB2E5cob9uT (private; the owner can share it from its Share menu). Its first draft was published on 2026-10-01. The Phase 4 canvas stays as it is, as the B1 reference.
+  - **The story artboard:** tiles 01–12 copied from Phase 4, then 13 FAQ's object, 14 the handshake, 15 the gather and 16 LET'S BUILD.
+  - **Two rows:** A, "The number" (the dots draw the open question's number big and redraw it when another opens), and B, "The conversation" (a still drawing of two speech bubbles, so the story reads questions, conversation, handshake, form). Each row has desktop and phone artboards of the whole ending, and the rows differ only in FAQ's object.
+  - **Shared by both:** Let's connect with the handshake; the restyled form (numbered signage rows with the field names word for word, underline fields, the four services as square chips, a full-width "Send message"); and the LET'S BUILD footer.
+- **New dot art** is sketched in a scratch script that mirrors the engine's generators: line art in the chalk stipple, and text on the 3px grid with 4px dots. The approved handshake is the geometry the build encodes.
+  - **The tooling** is in `.local/phase12/` (git-ignored). `sketch.js` mirrors `createRandomSource`, `generateLineArtPoints`, `buildCubeRotation`, the depth light, the gather and the text sampler. `render.mjs` renders a jobs file to PNG in full Chromium. `jobs-final.mjs` holds the geometry and the sizes. `spec.md` is the canvas spec the artboard writers followed.
+  - **The handshake's geometry** is Lucide's `handshake` icon (ISC, already a dependency through `lucide-react`) redrawn with sleeves and double cuffs. It is in SVG path units, with the back arm at z −0.08 and the front hand at z +0.08, in the house 3/4 pose (`PROCESS_LINE_ART_TUNING`, `sizeRatio` 0.5, `sway` 0). For the build's pen order (from each wrist to the clasp, both hands at once), interleave the two arms' strokes, and reverse the front hand's long path so it starts at its cuff.
+  - **Measured on the sketch:** "LET'S BUILD" in the name's lettering is 15,553 dots at 1,296px wide. The build's shrink-to-`SHAPE_POINTS` rule puts it at 11,905 dots and 1,134px wide at 1440, about the hero name's width. The desktop "03" is 8,687 dots.
+- **The cost of the FAQ pick,** told to the owner with the canvas: B is one more line-art shape (small, low risk). A needs a click-triggered redraw in the engine (about 300 lines, medium-high risk), and on a phone its number is covered while the lower questions are read.
+- **The owner's pick (2026-10-01): B, "The conversation."** In the owner's words: "I like the b."
+  - Row B is the whole ending: FAQ's speech bubbles, the handshake, the restyled form and LET'S BUILD. It drew no change, so **Gate 1 is passed with B**, and the defaults above stand.
+  - Direction A (the number and its click-triggered redraw) is dropped.
+- **The build's source of truth for the look:**
+  - the canvas's `B-desktop.dc.html` and `B-phone.dc.html` (Artifact tool, `read` with a `path`);
+  - `.local/phase12/spec.md`, which holds every size, colour and string.
+- **Two values changed after the artboard review:**
+  - the desktop chips' side padding is 10px, because at 12px the four chips wrap and push the form out of its 472px box;
+  - every numbered label line is a fixed 16px tall, because a mixed-font baseline can grow it.
+
+**Gate 2: the build.** Checked against the code on 2026-10-01; the full plan the owner approved is also in `C:\Users\crizt\.claude\plans\pasted-content-id-d91c-continue-the-dapper-elephant.md`.
+
+1. **The contract first** (lead, in the working tree; nothing is committed without the owner's OK):
+   - the shape ids `handshake` and `conversation` (line art) and `sign` (text), registered everywhere with placeholder geometry at first;
+   - `CONNECT_SCENE_SHAPES = "handshake"`, `FAQ_SCENE_SHAPES = "conversation"` and `FOOTER_SCENE_SHAPES = "sign"` in `page-sections.data.ts`;
+   - the site-content keys `faq`, `connect` and `contact`, with their types and defaults.
+2. **Engine** (`hero.type.ts`, `hero.data.ts`, `dot-field.rules.ts`, the sampler and renderer services, `use-dot-field.hook.ts`):
+   - **Line art.** `handshake` and `conversation` join, with TypeScript's exhaustive records catching any it misses:
+     - `LineArtShapeId`;
+     - `LINE_ART_SHAPE_IDS`, which feeds `DOT_SHAPE_IDS` and `GENERATED_SHAPE_IDS`;
+     - `LINE_ART_SHAPES`;
+     - `DOT_SHAPE_TUNING`: `PROCESS_LINE_ART_TUNING` with `sizeRatio: 0.5`;
+     - `buildShapeLibrary`;
+     - the renderer's literal `shapeBuffers` map.
+   - **The approved geometry** is `HANDSHAKE` and `CONVERSATION` in `.local/phase12/jobs-final.mjs`.
+     - It is SVG paths in design units. Map them to the model by `x = (px − cx) / unit` and `y = −(py − cy) / unit`, with each layer's z.
+     - Every curve there is a circular arc, so it converts to the existing `arc` stroke kind (centre, radius, angles) or to polylines, with a throwaway script in `.local/`. No cubic kind is needed.
+     - **Pen order.** The handshake draws both hands at once from the wrist to the clasp: interleave the two arms' strokes, and reverse the front hand's long path so it starts at its cuff. The conversation draws the question bubble and its two lines, then the answer bubble and its three dots.
+   - **`sign`, the "LET'S BUILD" text shape:**
+     - **Types:** `TextShapeId = "sign"` in `DotGeneratedShapeId`. `DotShapeFit` gains `"text"`, and `DotFieldPlacementRequest` gains a `textSample`.
+     - **Data:**
+       - `TEXT_SHAPE_IDS`;
+       - `FOOTER_SIGN_TEXT = "Let's build"`, uppercased for the sampler like the name;
+       - a seed and `TEXT_SHAPE_SHRINK`;
+       - `DOT_SHAPE_TUNING.sign`: `fit: "text"`, no perspective, spin or sway, `farLight` 1 and the name's dot size. Move `DOT_FIELD_TUNING` above `DOT_SHAPE_TUNING` to reference it.
+     - **Sampler:** `sampleTextShape` reuses `sampleWordToPoints` with the name's tuning (pitch, dot size, 0.05em tracking). While the count is over `SHAPE_POINTS`, it scales down by √(12000 / count) · 0.97 and resamples, because the vertex shader's pen key is `gl_VertexID / SHAPE_POINTS` and every vertex past 12,000 arrives at once.
+     - **Rules:**
+       - `buildTextShapePoints` centres on the sample box, flips y, sets z to 0, gives each point a seeded rank below 1 and sorts by column then row, so the arrival sweeps left to right like the name's intro.
+       - A `fit === "text"` branch in `resolvePlacement` fits the ink box by `min(1, slot / ink)` (shrink only), rounds the centre like the name's, and scales `dotSize` and `inkHeight` by the fit.
+       - `padShapePoints` sets every rank to `HIDDEN_RANK` when a shape is empty; today it returns visible zeros.
+     - **Renderer:** `sign` joins the buffer maps. A new `uploadShapePoints` uploads it padded to the point total, and `uploadShapeBuffers` re-pads it when the total changes.
+     - **Hook:**
+       - Sample the sign in the geometry effect (`buildGeometry`), right after the name's upload and before `data-status="running"`, so it inherits every resample: font load, resize, DPR and `[text, fontFamily]`.
+       - Keep its metrics in a ref, like `nameSampleRef`, which the GL effect's `placeKeyframe` reads.
+       - The two effects stay separate and attribute 0 is untouched, so the hero pixel diff holds.
+     - **Behaviour:** the footer slot is bare, so the sign scatters under the pointer like the name. The loop sleeps at rest, and reduced motion draws it through the static path.
+   - **FAQ stays lit while it is read:**
+     - `DotSceneMotion` gains `isReadAfterPin`, and `DOT_SCENE_MOTION.faq = { share: 0, isThread: false, hasTurn: false, isReadAfterPin: true }`.
+     - `buildSceneKeyframes` marks FAQ's keyframe like a grown frame, so `resolveRevealRange` keeps its rows lit through the transit to the handshake.
+3. **Content and editor** (`site-content.schema.ts`, `site-content.data.ts`, `site-content.type.ts`, `editor-config-panel.component.tsx`, a new `editor-faq-fields.component.tsx`):
+   - **Schema:**
+     - `faq: { items: [{ question, answer }] }`, up to `FAQ_MAX` 12;
+     - `connect: { statement, emailPrompt, email }`, with `email` a `z.email()`;
+     - `contact: { label, statement }`;
+     - each block `.prefault({})`.
+   - **Limits** must fit the seed copy: the longest answer is about 215 characters, so a question limit of 120 and an answer limit of 400 work. `parseSiteContent` drops the whole document to the defaults when one key fails. Contact's label stays within about 16 characters, so its arrival title fits.
+   - **Defaults** move from `page-sections.data.ts` (the FAQ items, Contact's copy, the email line) to `site-content.data.ts`. `page-sections.data.ts` keeps ids, scene ids, shapes and classes.
+   - **Editor:**
+     - `SITE_CONTENT_ENTRIES` in page order: hero, quote, projects, faq, connect, contact, theme.
+     - The FAQ panel mirrors the projects cards in `editor-config-panel.component.tsx`: `useFieldArray` with add, move up and remove, and a blank question hides the row.
+     - The connect and contact fields sit inline.
+     - No editor label may contain "name", because `editor.spec` matches `getByLabel("Name")` by substring.
+   - **No migration:** `draft` and `published` are jsonb, and `.prefault({})` fills a stored record that predates these keys.
+   - **The footer's email link** reads `connect.email`.
+4. **The contact form** (`contact.form.tsx`, `contact.data.ts`, `contact.type.ts`, and the form box classes in `contact-section.component.tsx`):
+   - **The look is the canvas's:**
+     - numbered rows 01–04, with the numbers `aria-hidden` and outside the `<label>`s;
+     - underline fields;
+     - the four services as a real radio group of square chips under a fieldset named "Service needed", the chosen chip lit with a 6px dot;
+     - a full-width "Send message" with the arrow.
+   - **Sizes:**
+     - Desktop: a 560×472 box with 32px padding.
+     - Phone: a 342×452 box with no padding. The compact rows keep Contact pinned at 390×844.
+   - **Kept exactly:**
+     - the honeypot;
+     - `renderedAt` and its hidden input;
+     - `method="post"`, with no remount, `key` or `reset()`;
+     - `focusOnAttach`, the always-mounted `role="status"` and `focusableWhenDisabled`;
+     - the `aria-invalid` and `aria-describedby` wiring.
+   - `contact.schema.ts`, `contact.rules.ts` and `contact.service.ts` stay untouched.
+5. **Sections** (after 2 and 3):
+   - **`connect-section.component.tsx`, modelled on `QuoteSection`:**
+     - `id` and `data-dot-scene` both `connect`, and `data-dot-shapes="handshake"`;
+     - a `min-h` sticky frame with the slot: 600×480 in the split, 342×274 and first on a phone;
+     - the statement (default size) on line 0, and the email line (`CUE_CLASS`, with Contact's padded link) on line 1;
+     - `buildSceneCaptionStyle(1)`, copy drift, `SCREEN_TIMELINE_CLASS` and `PIN_SPACER_CLASS`;
+     - no label, arrival title or `aria-labelledby`, like the quote.
+   - **FAQ becomes a slotted scene.** `<section id="faq" data-dot-scene="faq" data-dot-shapes="conversation">` is a one-cell grid. The dust wrapper and `dustStyle` leave `site-page.component.tsx`.
+     - **The first child is the sticky frame** (`top-18`, one frame tall), holding only the slot: the right column's 480×480 in the split, or 342×240 at the top on a phone. It hides when WebGL is unsupported.
+     - **The second child is the copy layer,** in the same cell:
+       - the label `h2`, now titled: `SECTION_TITLE_CLASS` goes on the container and the big "FAQ" statement goes;
+       - a phone-only spacer as tall as the slot;
+       - a top-aligned copy column, `split:self-start`. This is the push-down fix: today `SCREEN_OBJECT_CLASS`'s `split:self-center` centres the list, so an opening answer grows it upward too.
+       - The column has copy drift, `pointer-events-auto`, and an opaque ground below `split`, so on a phone the list slides over the pinned drawing, as the Projects phone screens do.
+       - The layer's wrapper is `pointer-events-none`, so the pointer reaches the slot.
+     - **The list** is `<ol>` › `<li>` › `<details>` › `<summary>`:
+       - each `<li>` carries the border and the sweep (`--line` = index + 2);
+       - `<details>` keeps `FAQ_DISCLOSURE_CLASS`;
+       - `<summary>` holds an `aria-hidden` two-digit number and the question in Antonio (26px on desktop, 20px on a phone, as on the canvas);
+       - the rows are keyed by index, so a disclosure stays open across editor edits.
+     - `PIN_SPACER_CLASS` goes after the list.
+   - **Contact** loses the email line: the label is line 0 and the statement line 1, and the copy comes from props.
+   - **Footer:** `data-dot-shapes="sign"`. The fallback `<p>` reads `FOOTER_SIGN_TEXT`: `sr-only` while the dots run, and visible when WebGL is unsupported or without scripting.
+   - **SitePage:** the order runs … Testimonials, FAQ, Let's connect, Contact, footer, passing `content.faq`, `content.connect` and `content.contact`. The public components stay plain synchronous components with no schema or Tiptap imports.
+   - **Scroll-spy:** `connect` joins `PortfolioSection` and a `SCROLL_SPY_SECTION_IDS` list that `readSectionTops` reads, so the nav dot hides on it, as on Testimonials.
+6. **Tests:**
+   - **Unit tests to update:**
+     - `site-page.test.tsx`: `SCENE_ORDER` swaps `dust` for `faq` and adds `connect`; `SECTION_ORDER` adds connect; `RETIRED_SECTION_IDS` becomes `["blog"]`; the unlabelled ids gain connect; the drift, timeline and `SCENE_SWEEP_IDS` lists change; FAQ moves to the titled labels; and the email line lives in `#connect`.
+     - `line-art-shapes.test.ts`: the registries and the scene wiring.
+     - `dot-field-rules.test.ts`: `textSample`, the still-shape count and `isReadAfterPin`.
+     - `section-navigation.test.tsx`.
+     - `contact-form.test.tsx`: radios for the service.
+   - **Unit tests to add:**
+     - `buildTextShapePoints`, the text placement, and `padShapePoints` with an empty shape;
+     - `connect-section.test.tsx`;
+     - FAQ numbering and hiding;
+     - the editor's FAQ panel (add, move, remove);
+     - the schema parsing a record saved before these keys existed.
+   - **E2E specs to update:**
+     - `hero.spec` (`SCENE_WALK`, `JUMP_SKIPPED_SCENES`, `RESTING_SCENES`) and `anchors.spec`;
+     - `cursor.spec`: dust becomes faq, and the question selector changes;
+     - `motion-fallbacks`: `DRIFT_SCREENS`;
+     - `section-motion`: the scene lists; the FAQ-to-Contact tab test now goes through connect; `resolveExpectedState` honours `isReadAfterPin`;
+     - `section-title`: FAQ joins the titled sections, and its "never grows" test goes;
+     - `fit.spec`: the statement and scene lists, `selectOption` becoming a radio, and a re-measure of Contact;
+     - `contact.spec` and `editor.spec`.
+   - **E2E specs to add:**
+     - An FAQ answer opens downward: the summary and every row above keep their top within ±0.5px. This test must fail on today's code first.
+     - FAQ stays lit into the handshake.
+     - The FAQ slot never meets a summary at 1440×900, and the phone list's ground is opaque.
+     - The footer sign has lit pixels, the loop sleeps there, and it is read out and shown without WebGL.
+     - Tab goes from the connect email link to `#contact-name`.
+7. **How it runs:**
+   1. The lead makes the contract edits.
+   2. A workflow runs the engine, content-and-editor and contact-form agents in parallel (their files don't overlap), then the sections agent.
+   3. The lead merges, runs `pnpm check` and the unit tests, builds, and serves on :3100 beside the owner's dev server. The dev server on :3000 stays untouched.
+   4. A multi-lens review workflow (engine and contract, accessibility, conventions, fidelity to the canvas, tests), each lens with an adversarial skeptic.
+   5. An e2e workflow with at most four Playwright agents on one build.
+   6. Every agent finishes before a turn ends.
+   - **Risks to watch:**
+     - the hero pixel diff after the hook and renderer edits;
+     - the fit sizes after the FAQ restructure and the form restyle;
+     - Contact still pinning at 390×844 and 1440×900;
+     - the fallback to defaults when a limit is too tight.
+
+**Gate 2 progress (2026-10-01; the first build conversation stopped before compaction).** Nothing is committed.
+
+- **Done, in the working tree:**
+  - Step 1, the contract, by the lead. Steps 2 to 5 by a build workflow: the engine, content-and-editor and contact-form agents in parallel, then the sections agent. Their full reports are in `.local/phase12/build-reports.txt`.
+  - `pnpm check` is clean (two warnings in the throwaway `.local/phase12/sketch.js`) and 591 unit tests pass. The production build is clean.
+  - **Hero pixel diff:** 0 pixels against `ef06f1a` at DPR 1 and 2, at rest and with reduced motion, in two runs (`.local/phase12/pixel/pixel-diff-1.json`; the script is `.local/phase12/pixel-diff.mjs <candidate> <baseline>`).
+  - **Docs:** DESIGN.md, PRODUCT.md, CLAUDE.md and `.impeccable/design.json` are updated (the sidecar by `.local/phase12/update-design-json.mjs`). The Phase 12 done note is still to write.
+  - **Captures** of the built ending at 1440×900 and 390×844: `.local/phase12/captures/` (`capture-ending.mjs`). They match the B artboards closely.
+- **Deviations from the plan,** each in the build reports:
+  - FAQ rows sweep on `--line` = visible index + 1, not + 2: the big FAQ statement that was line 1 is gone.
+  - The handshake and the conversation are one engine layer each, with z on every vertex, so the handshake's two arms can interleave in pen order.
+  - **The sign** is sampled at the name's width: 11,910 dots and 1,124px wide at 1440, so no shrink is needed. Above about 1,445px wide the 12,000-dot pen key holds it at about 1,100px while the name keeps growing (1,498px at 1920). **Tell the owner** and show it on a big monitor.
+  - **Contact:** the phone box sits 70px under the statement (the scatter reaches 63px above it). The message box has a fixed height, as on the artboard. The phone chips are capped at 320px so they always sit two by two. The chips fill the cursor's disc. `CONTACT_SERVICE_PROMPT` stays, because the schema uses it as the required message.
+  - **Editor:** the FAQ card's legend reads "FAQ N", with the fields "Question N" and "Answer N". "Statement" appears in both the connect and contact panels; then "Email line", "Email address" and "Label".
+- **In flight when the conversation ended:** the review workflow, read-only. It is run `wf_3be333dc-7ad`, with five lenses (engine and contract, accessibility, conventions, fidelity, tests), each finding checked by a skeptic. Its result lands in `C:\Users\crizt\AppData\Local\Temp\claude\e--Project-criztian-portfolio\6452afd0-0092-4b4a-9f78-63ec7f8d45a9\tasks\wduq58jqk.output` (`result.confirmed`). The per-agent journal is `C:\Users\crizt\.claude\projects\e--Project-criztian-portfolio\6452afd0-0092-4b4a-9f78-63ec7f8d45a9\subagents\workflows\wf_3be333dc-7ad\journal.jsonl`; a confirmed finding has `verdict.isReal` true. The script is `.local/phase12/review-workflow.js`. Its throwaway probes are in `.local/phase12/review/`.
+- **Servers this conversation left running:**
+  - `:3100` serves the Phase 12 build.
+  - `:3201` serves the Phase 11 baseline. It lives in `E:\Project\criztian-phase10-78f4973`, now checked out at `ef06f1a`, with `.env.local` copied in. It is built with `next build --webpack`, because Turbopack rejects its symlinked `node_modules`.
+  - Check both with `Get-NetTCPConnection -LocalPort 3100,3201 -State Listen`, and stop `:3100` before rebuilding `.next`.
+  - Both background tasks hit their two-hour limit at the end of the conversation, but the `node` processes kept listening (`:3100` PID 25284, `:3201` PID 31812), as the landmine warns. Stop them by PID once their command lines are confirmed.
+  - The second build conversation rebuilt `:3100` three times; at its end `:3100` is PID 25208 (the final Phase 12 build, with the shorter FAQ into Let's connect) and `:3201` is still PID 31812 (Phase 11).
+- **The review finished** (26 agents, none failed): **19 confirmed, 2 refuted**.
+  - Every finding with the skeptic's reproduction and corrected fix is in `.local/phase12/review-result.json` (`result.confirmed[].verdict.correctedFix`), and the list is in `.local/phase12/review-confirmed.txt`. Use the skeptics' corrected fixes, which differ from the reviewers' in places.
+  - Grouped:
+    - **The footer sign in forced colours** (four lenses, one fix): the canvas is hidden there and the sign's text stays `sr-only`, so the footer is blank. Show the text in forced colours as the hero shows its `<h1>`, without hiding the slot the engine measures.
+    - **FAQ's pin length** comes from the list's height, so it drops to 0 on tall screens (2560×1600) or with about three questions. Under reduced motion the drawing then never shows. Fix: `min-h-[calc(150svh_-_4.5rem)]` on the copy layer, with `group-data-[status=unsupported]/stage:min-h-0`.
+    - **The form:**
+      - the wrapped "What can I help you with?" label overlaps the textarea at 200% zoom and on landscape phones (the label line is a fixed 16px);
+      - the four radios report invalid from page load;
+      - Shift+Tab up the empty form leaves a field under the fixed header (2.4.11).
+    - **The FAQ plus:** it vanishes in the light forced-colours palette, and it is about two-thirds of the canvas's size and thinner.
+    - **The conversation:** the answer bubble's three dots are hollow rings, where the approved drawing has solid dots.
+    - **The sign** loses its left-to-right arrival on phones and narrow windows (the pen key only spans count / 12,000).
+    - **The phone footer:** LET'S BUILD already sits 16px below the artboard. The planned bar fix (below) would make that 36px, so measure before changing it.
+    - **Lint:** `pnpm check` goes red whenever a throwaway script under the git-ignored `.local/` has lint errors. Add `.local/**` to ESLint's global ignores.
+    - **Tests to add:**
+      - the FAQ rows keyed by index;
+      - the sign's full brightness;
+      - the conversation's question-then-lines order;
+      - focus clearance on the radios;
+      - the FAQ frame and the connect slot hidden without WebGL2.
+- **Next:** done in the second build conversation; see the done note below.
+- **Known and accepted** (told to the reviewers):
+  - the sign's dots are uniform, without the name's coverage edge (that would need a shader change);
+  - the sign's wide-screen cap;
+  - the FAQ phone list covers the pinned drawing as it scrolls, and the drawing shows again in the pin spacer;
+  - Contact flows wherever the whole form can't pin;
+  - in the 1301–1332px band the chips wrap once one is chosen;
+  - the chips' invalid border is subtle (the message carries the error).
+
+**Acceptance.**
+
+- The owner's yes on the canvas, recorded here: done (B, 2026-10-01).
+- `pnpm check`, the unit tests and e2e are green. e2e runs on a production build at :3100, with `draft = published` before and after.
+- The hero pixel diff is 0 against `ef06f1a`, at DPR 1 and 2, at rest and with reduced motion.
+- The fit sizes (see the landmines) hold for FAQ, Let's connect and Contact.
+- An FAQ question's summary keeps its place when its answer opens, on desktop and phone.
+- The keyboard, "Let's build" read out, forced colours, reduced motion, the pause, no JavaScript and no WebGL2 all work.
+- The owner signs off the built ending on desktop and phone.
+
+**Done note (2026-10-01 to 2026-10-02, the second build conversation; signed off and committed on the owner's OK: "ok commit everything").**
+
+- **Owner requests during the build** (their words, typos fixed; recorded under "Open owner decisions"):
+  - **The breather:** "add more space [between] my services and how it works so there is like a breather, especially when you are speed scrolling"; then, for every section, "a huge space for spacing per section so it's dramatic and the transition of the dots is not short", naming FAQ into Let's connect as the model ("it has a huge space"); then "make it smaller a little so when I scroll down I can still see the bottom". 100svh came first, then 75svh. Then (2026-10-02) "the transition of FAQ and Let's connect is too long, can you shorten it a little", with a screenshot of the conversation drawing alone on black after the questions had scrolled away: FAQ's 50svh spacer and the review's hold (a frame plus 50svh) were stacked on the breather. Let's connect's breather became 25svh, FAQ's spacer went, and its hold became a frame plus 25svh (`FAQ_HOLD_CLASS`), so the drawing starts flying to the handshake while the last questions are still on screen. From FAQ's pin to Let's connect's pin went from about 2,090px to about 1,370px at 1915×962.
+  - **The title:** "make the transition of the title sync well when I'm scrolling because sudden pop out hurts my eye".
+  - **More dot shapes:** the same message said the space is room "we can add more dot shapes" to. Not built: it is new dot art, so it needs a design on a canvas first (open below).
+- **Shipped:**
+  - **The ending as row B** (Gate 2; see "Gate 2 progress" for the build and its deviations).
+  - **All 19 confirmed review findings,** each fix checked by an adversarial checker (`.local/phase12/fixes/`):
+    - the answer bubble's three dots are filled (a centre-to-rim stroke before each ring);
+    - the sign's dots spread over all 12,000 pen keys, so LET'S BUILD writes itself left to right on phones too;
+    - FAQ's drawing holds at least 25svh with any number of rows (`FAQ_HOLD_CLASS`; 50svh at first, cut with the spacer after the list at the owner's request);
+    - the FAQ plus is the artboard's 14px mark, visible in forced colours;
+    - LET'S BUILD shows as text in forced colours, over a slot that keeps its size;
+    - on a phone the footer bar is the artboard's 213px and LET'S BUILD sits where the artboard has it;
+    - a wrapped field label grows its row instead of covering the textarea;
+    - the radios no longer announce "invalid entry" before any error; a Shift+Tab target in the form is never left under the header;
+    - ESLint ignores `.local/`, and the missing tests were added.
+    - **Two lead decisions** differ from the skeptics' fixes. The radiogroup carries `aria-required`, `aria-invalid` and `aria-describedby` and the radios carry neither `required` nor `aria-invalid`: `aria-invalid` is not an ARIA 1.2 radio attribute and drew the only lint warning in `src`, and the form is `noValidate`, so `required` only produced the false "invalid entry". The phone footer took the review's spacer together with the planned bar fix, because the bar fix alone would have left the sign 36px low.
+  - **The breather:** one rule in `globals.css` gives every scene after the hero a top margin of `var(--scene-breather, 75svh)`, and Let's connect sets 25svh after FAQ's own band (none without WebGL2 or scripting; it stays under reduced motion and the pause). Each transit is a frame plus 75svh (1503px at 1440×900, was 828); the page is about 26,000px tall at 1440×900.
+  - **The title timing:** `section-title`'s hold ramps over entry 10–40%, the plateau is 40–64% and the shrink 64–97% (was 38–44%, 44–68% and 68–90%).
+  - **Docs:** CLAUDE.md, DESIGN.md ("The Breather", the arrival title, the form, the footer, forced colours), PRODUCT.md, `.impeccable/design.json` and this handoff.
+- **Evidence:**
+  - `pnpm check` is clean, with no lint warnings, and 597 unit tests pass (591 before the review).
+  - **e2e:** 335 of 335 in one run on the production build at :3100 (21.2 minutes, workers 1, no retries, no flakes; `draft = published` before, between and after, with the hero name Criztian), and 335 of 335 again on the final build after FAQ's hold and Let's connect's breather were shortened (21.0 minutes, `.local/phase12/e2e/final-run.log`). Before the spec updates the old suite passed 238 of 270, and every failure came from a Phase 12 change.
+    - **New:** `ending.spec.ts` (27 tests: FAQ opening downward, which fails on Phase 11; FAQ lit into the handshake; the slot and summaries; FAQ's hold; the footer sign; the connect-to-form Tab; Shift+Tab clearance; the radios' accessibility tree). The breather and the fast-wheel guarantee (section-motion), the word sweeping in with the scroll (section-title), the scroll-spy in a breather (navigation), the label wrap (fit), the fallback margins, slots and forced colours (motion-fallbacks) and the chip's cursor disc (cursor).
+    - Every new test was shown to fail against a deliberate break of the page or on the Phase 11 baseline, and to pass on the build.
+  - **Hero pixel diff:** 0 pixels against Phase 11 (`ef06f1a` on :3201) at DPR 1 and 2, at rest and with reduced motion, on every rebuild (`.local/phase12/pixel/pixel-diff-3.json`).
+  - **Measured on the build:**
+    - the breather on a fast wheel from Services into How I work at 1440×900: a flick went from 0ms of clear screen and 116ms of overlap to 167ms clear and none; a scroll straight through went from 0ms and 550ms to 117ms and none;
+    - the title sweeps in over 228px of scroll at 1440×900 and 212px at 390×844 (was 41px), and the copy behind it over 83px and 77px (was 41px);
+    - the answer dots light 69–100% within 3px of their centres (the approved render: 76–91%; before the fix: 0–9%);
+    - the FAQ plus is 12×12 at 1.5px in one uniform Lit Grey;
+    - the phone sign arrives left to right (an x-to-arrival correlation of 0.986, was 0.62).
+  - **For the owner:** the built ending beside the artboards (`.local/phase12/captures-final/compare-desktop.png` and `compare-phone.png`); recordings (`.local/phase12/recordings/phase12-1440x900.webm` and `phase12-390x844.webm`, the ending; `.local/phase12/breather/recordings/speed-scroll-before-1440x900.webm` and `speed-scroll-built-75svh-1440x900.webm`, a fast scroll through Services into How I work before and after).
+- **Open:**
+  - **The owner:** the built ending, the breathers and the title timing are signed off (2026-10-02). Still to do: look at the sign's wide-screen cap on a big monitor; decide on dot shapes in the breathers (canvas first).
+  - **The fast-wheel guarantee has almost no slack at 390×844:** the title starts at the foot of the screen just as Services' last list line clears the header. A smaller breather, or a hold that starts before entry 10%, trips section-motion's breather test (b), which is the test doing its job.
+  - **A quick Tab then Shift+Tab between Send message and the footer's first link** leaves Send message focused off-screen while the native smooth focus scroll to the footer finishes. It predates Phase 12 (Phase 11 shows it too) and needs a held Tab under about 300ms. Making focus scrolls instant page-wide would fix it; that is the owner's call on the page's feel.
+  - **Gaps the agents named:** fit.spec's line scan can't include FAQ (closed answers keep zero-height rects); `editor.spec` doesn't edit the new FAQ, Let's connect or Contact panels (unit tests cover the FAQ panel); motion-fallbacks keeps the breather's 0.75 as a constant, so a retune changes both.
+  - **Carried:** the device checks (the Android trace and fling test, the iPhone checklist) and the recordings' sign-off from Phases 10 and 11.
 
 ### Anytime: the owner's material
 
@@ -1468,6 +1745,8 @@ These are the ones CLAUDE.md doesn't already cover:
 - **A finished conversation's background workflow keeps running** (Phase 10). The first Phase 10 conversation ended its turn while its e2e agents still worked, and they went on editing specs and running against :3100 for about 45 minutes. That collided with the next session, which the first conversation then took for a rogue agent. Before resuming, check `ListAgents` and the previous session's `subagents/workflows/*/journal.jsonl` for agents still running.
 - **A background server outlives its task.** When a background `next start` hits the task time limit, only the shell wrapper stops: `node` keeps listening on the port. Find it with `Get-NetTCPConnection -LocalPort 3100 -State Listen`, check its command line, and stop that PID before rebuilding `.next`.
 - **Keep parallel Playwright agents to about four.** Eight at once crashed Chromium (`Target crashed`, exit 0xC0000142) from machine load, not from the tests.
+- **The account's usage limit can stop a workflow mid-run** (Phase 12): all six e2e agents failed at once with "You've hit your session limit · resets 1pm", six minutes in, leaving a partial spec edit on disk. Check `git diff tests/` before re-running, give the next run its exact failure list (run the old suite once yourself first: it costs no agent tokens), and keep the handoff current while big workflows run.
+- **A previous session can wake up** when its background workflow finishes (Phase 12): the first build conversation resumed at 10:03 to write its review's results into this handoff while the second was working. Before editing the handoff, re-read it; tell the owner not to reply in the old session.
 - **Tailwind 4's `!` utilities are `!important` inside `@layer utilities`,** so a test can't override them with an injected unlayered `!important` rule: a layered important declaration beats an unlayered one. Break them by removing the class instead.
 - **With JavaScript off in Playwright,** `page.addStyleTag` hangs and `requestAnimationFrame` from `page.evaluate` never fires. Inject a `<style>` through `evaluate`, and poll.
 - **Touch scrolls for recordings:** CDP `Input.synthesizeScrollGesture` with `gestureSourceType: "touch"` scrolls nothing in this Chromium. Drive swipes with `Input.dispatchTouchEvent`, as `.local/phase10/record.mjs` does.
@@ -1484,8 +1763,11 @@ These are the ones CLAUDE.md doesn't already cover:
 - **Contact on small phones (Phase 6, for the owner to see):** the gather shows wherever the whole form fits one pinned frame (desktop, tablets, a 390×844 phone). Below that the section flows as plain black and the gather gives way, so a pin never hides the submit button.
 - **Phase 10 (for the owner):** sign off the two screen recordings in `.local/phase10/recordings/` (1440×900 and 390×844); save the cursive logo as `public/brand/logo.svg` so a session can wire it (see Phase 10's done note).
 - **Phase 11 (for the owner):** the Android trace and fling test, the iPhone checklist, and the sign-off of the Phase 10 and Phase 11 recordings (see Phase 11's done note, Open).
+- **Phase 12 (for the owner):** signed off on 2026-10-02 ("ok commit everything"). Still open: look at the sign's wide-screen cap on a big monitor; decide on dot shapes in the breathers ("we can add more dot shapes"; a canvas first); decide whether focus scrolls become instant page-wide, which fixes a pre-existing quick Tab and Shift+Tab race at the footer (see Phase 12's done note, Open).
 - **Material:** the belief line, the story and photo, client quotes, real projects.
 - **Decided, recorded:**
+  - Phase 12 build (owner, 2026-10-01): a breather between sections ("add more space … so there is like a breather, especially when you are speed scrolling", then for every section, "a huge space … so it's dramatic and the transition of the dots is not short", then "smaller a little so when I scroll down I can still see the bottom": 75svh; then "the transition of FAQ and Let's connect is too long": 25svh there, after FAQ's own band); the arrival title sweeps in with the scroll ("sync well when I'm scrolling because sudden pop out hurts my eye")
+  - Phase 12 (owner, 2026-10-01): FAQ gets bigger numbered questions and a dot object, and opens downward; a new Let's connect screen with the handshake and the email line, whose dots fly to the frame round the real form; a restyled form; LET'S BUILD in the footer's dots; Let's connect, the FAQ and Contact's copy editable; design first on Claude Design ("surprise me"); direction B ("I like the b")
   - Phase 11 wrap-up (owner, 2026-10-01): commit Phase 11 as it stands, with the device checks still open; the owner handles deployment; more elements come next
   - Phase 11 (owner, 2026-09-30): Phase 10 committed on its own first (`78f4973`); the cursor ring stays the small idle ring over the dots; section titles in bold Antonio that arrive big and dock into the label, the old section's text wiping out first, a black halo against the dots, a long hold, and the section's copy waiting for the title; a pause-motion toggle in the header, remembered by the browser; `SMOOTH_SCROLL_LERP` stays 0.1; devices checked by the owner at the end
   - Phase 10 (owner, 2026-09-30): Phase 9 committed on its own first (`684db97`); section text sweeps with the dots (in as they land, out as they leave, replayed every visit, body per paragraph, the stats counting with it); a hard edge for every text sweep; a 1px Wire Grey scroll-progress hairline; a 6px Lamp White nav dot shared with the cursor dot; parallax on every single-frame screen, desktop only (the owner first said no, then "I think we add parallax"); the adaptive cursor as old Part 4 designs it; the cursive logo, from the owner's own SVG

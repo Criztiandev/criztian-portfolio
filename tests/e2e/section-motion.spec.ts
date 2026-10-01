@@ -1,12 +1,13 @@
 import { expect, test } from "@playwright/test"
 import type { Page } from "@playwright/test"
 
-import { MORPH_LANDING_TOLERANCE_PX } from "@/data/hero.data"
+import { DOT_SCENE_MOTION, MORPH_LANDING_TOLERANCE_PX } from "@/data/hero.data"
 import { PORTFOLIO_PRIMARY_NAVIGATION } from "@/data/navigation.data"
 import {
   ABOUT_SECTION,
+  CONNECT_SECTION,
   COPY_DRIFT_CLASS,
-  OWNER_EMAIL_HREF,
+  MAILTO_PREFIX,
 } from "@/data/page-sections.data"
 import { PROJECTS_SCENE_ID } from "@/data/portfolio.data"
 import { formatSceneStepId } from "@/features/portfolio/dot-field.rules"
@@ -14,13 +15,17 @@ import { parseStatCount } from "@/features/portfolio/stat-count.rules"
 
 const LINE_SELECTOR = '[class*="swept:caption-line"]'
 
+const COPY_LINE_SELECTOR = '[class*="caption-line"]'
+
 const STAGE_SELECTOR = "[data-status]"
 
 const COPY_DRIFT_CHILD_SELECTOR = `.${COPY_DRIFT_CLASS} > *`
 
 const FAQ_SUMMARY_SELECTOR = "#faq summary"
 
-const CONTACT_EMAIL_SELECTOR = `#contact a[href="${OWNER_EMAIL_HREF}"]`
+const CONNECT_EMAIL_SELECTOR = `#connect a[href^="${MAILTO_PREFIX}"]`
+
+const CONTACT_NAME_SELECTOR = "#contact-name"
 
 const CONTACT_SUBMIT_SELECTOR = "#contact button[type=submit]"
 
@@ -52,7 +57,8 @@ const SINGLE_FRAME_SCENES = [
   "cube",
   "about",
   "testimonials",
-  "dust",
+  "faq",
+  "connect",
   "contact",
   "footer",
 ]
@@ -108,6 +114,24 @@ const STAT_COUNTER_PATTERN = /^stat-count (-?\d+)$/
 const LINE_TEXT_LENGTH = 32
 
 const STAT_WIDTH_TOLERANCE_PX = 0.5
+
+const HERO_SCENE = "name"
+
+const BREATHER_VIEWPORT_SHARE = 0.75
+
+const CONNECT_BREATHER_VIEWPORT_SHARE = 0.25
+
+const BREATHER_TOLERANCE_PX = 1
+
+const WHEEL_STEP_PX = 100
+
+const WHEEL_GAP_MS = 16
+
+const WHEEL_POINTER_INSET_PX = 60
+
+const WHEEL_POINTER_TOP_PX = 160
+
+const LIT_THRESHOLD = 0.05
 
 const TEXT_SPACING_CSS = `
 * {
@@ -199,6 +223,25 @@ type SceneSightings = {
 type ScanRange = {
   pinEnd: number
   leave: number
+}
+
+type Transit = {
+  start: number
+  end: number
+  frameHeight: number
+}
+
+type SceneBox = {
+  scene: string
+  marginTop: string
+  top: number
+  bottom: number
+}
+
+type CrossingSample = {
+  scrollY: number
+  arrivingHold: number
+  litLines: string[]
 }
 
 function collectPageProblems(page: Page): string[] {
@@ -310,6 +353,199 @@ async function waitForScrollRest(page: Page) {
       window.requestAnimationFrame(sampleScroll)
     })
   }, SCROLL_REST_FRAMES)
+}
+
+async function readScrollY(page: Page) {
+  return page.evaluate(function readWindowScroll() {
+    return window.scrollY
+  })
+}
+
+async function readSceneBoxes(page: Page) {
+  return page.evaluate(function measureScenes() {
+    const boxes: SceneBox[] = []
+
+    for (const container of document.querySelectorAll<HTMLElement>(
+      "[data-dot-scene]"
+    )) {
+      const rect = container.getBoundingClientRect()
+
+      boxes.push({
+        scene: container.dataset.dotScene ?? "",
+        marginTop: getComputedStyle(container).marginTop,
+        top: rect.top + window.scrollY,
+        bottom: rect.bottom + window.scrollY,
+      })
+    }
+
+    return { viewportHeight: window.innerHeight, boxes }
+  })
+}
+
+function findBreatherProblems(
+  boxes: SceneBox[],
+  viewportHeight: number
+): string[] {
+  const problems: string[] = []
+  const hero = boxes[0]
+
+  if (hero?.scene !== HERO_SCENE || hero.marginTop !== "0px") {
+    problems.push(
+      `the first scene is ${hero?.scene} with a ${hero?.marginTop} top margin`
+    )
+  }
+
+  for (let boxIndex = 1; boxIndex < boxes.length; boxIndex += 1) {
+    const previous = boxes[boxIndex - 1]
+    const current = boxes[boxIndex]
+
+    if (previous === undefined || current === undefined) {
+      continue
+    }
+
+    const gap = current.top - previous.bottom
+    let breather = BREATHER_VIEWPORT_SHARE * viewportHeight
+
+    if (current.scene === CONNECT_SECTION.sceneId) {
+      breather = CONNECT_BREATHER_VIEWPORT_SHARE * viewportHeight
+    }
+
+    if (Math.abs(gap - breather) > BREATHER_TOLERANCE_PX) {
+      problems.push(
+        `${previous.scene} to ${current.scene}: ${gap}px apart, not ${breather}px`
+      )
+    }
+  }
+
+  return problems
+}
+
+async function installCrossingLog(
+  page: Page,
+  request: { from: string; to: string }
+) {
+  await page.addInitScript(
+    function logCrossingFrames(input) {
+      const samples: CrossingSample[] = []
+
+      Object.assign(window, {
+        crossingSamples: samples,
+        isCrossingLogged: false,
+      })
+
+      function readTextBounds(line: HTMLElement) {
+        const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT)
+        const range = document.createRange()
+        let top = Number.POSITIVE_INFINITY
+        let bottom = Number.NEGATIVE_INFINITY
+
+        while (walker.nextNode() !== null) {
+          range.selectNodeContents(walker.currentNode)
+
+          for (const textRect of range.getClientRects()) {
+            if (textRect.height > 0) {
+              top = Math.min(top, textRect.top)
+              bottom = Math.max(bottom, textRect.bottom)
+            }
+          }
+        }
+
+        return { top, bottom }
+      }
+
+      function readLitLines(leaving: HTMLElement): string[] {
+        const litLines: string[] = []
+
+        for (const line of leaving.querySelectorAll<HTMLElement>(
+          input.lineSelector
+        )) {
+          const text = readTextBounds(line)
+          const match = /^inset\(\S+ (\S+)/.exec(
+            getComputedStyle(line).clipPath
+          )
+          const rightInset = match === null ? 0 : parseFloat(match[1] ?? "")
+          const isOnScreen =
+            text.bottom > input.headerLine && text.top < window.innerHeight
+
+          if (rightInset < input.litInset && isOnScreen) {
+            litLines.push(
+              `"${(line.textContent ?? "").trim().slice(0, input.textLength)}"` +
+                ` with its text from ${Math.round(text.top)}px to ` +
+                `${Math.round(text.bottom)}px, clipped ${rightInset}%`
+            )
+          }
+        }
+
+        return litLines
+      }
+
+      function recordFrame() {
+        const leaving = document.querySelector<HTMLElement>(
+          `[data-dot-scene="${input.from}"]`
+        )
+        const arriving = document.querySelector<HTMLElement>(
+          `[data-dot-scene="${input.to}"]`
+        )
+
+        if (leaving === null || arriving === null) {
+          return
+        }
+
+        samples.push({
+          scrollY: Math.round(window.scrollY),
+          arrivingHold: Number(
+            getComputedStyle(arriving).getPropertyValue("--title-hold")
+          ),
+          litLines: readLitLines(leaving),
+        })
+      }
+
+      function sampleFrame() {
+        if (Reflect.get(window, "isCrossingLogged") === true) {
+          recordFrame()
+        }
+
+        window.requestAnimationFrame(sampleFrame)
+      }
+
+      window.requestAnimationFrame(sampleFrame)
+    },
+    {
+      ...request,
+      lineSelector: COPY_LINE_SELECTOR,
+      headerLine: HEADER_LINE_PX,
+      litInset:
+        HIDDEN_RIGHT_INSET_PERCENT - LIT_THRESHOLD * CAPTION_CLIP_SPAN_PERCENT,
+      textLength: LINE_TEXT_LENGTH,
+    }
+  )
+}
+
+async function setCrossingLogged(page: Page, isLogged: boolean) {
+  await page.evaluate(function toggleCrossingLog(value) {
+    Object.assign(window, { isCrossingLogged: value })
+  }, isLogged)
+}
+
+async function readCrossingSamples(page: Page): Promise<CrossingSample[]> {
+  return page.evaluate(function readCrossingLog() {
+    return Reflect.get(window, "crossingSamples") ?? []
+  })
+}
+
+function findCrossingOverlaps(samples: CrossingSample[]): string[] {
+  const overlaps: string[] = []
+
+  for (const sample of samples) {
+    if (sample.litLines.length > 0 && sample.arrivingHold > LIT_THRESHOLD) {
+      overlaps.push(
+        `at ${sample.scrollY}px with the title held at ` +
+          `${sample.arrivingHold}: ${sample.litLines.join(", ")}`
+      )
+    }
+  }
+
+  return overlaps
 }
 
 function resolveKeyframeIds(sceneId: string, shapes: string[]): string[] {
@@ -471,12 +707,12 @@ async function landOnKeyframe(page: Page, sceneId: string, stepIndex: number) {
   return keyframeId
 }
 
-async function scrollIntoTransit(
+async function readTransit(
   page: Page,
-  request: { from: string; to: string; share: number }
-) {
-  await page.evaluate(
-    function scrollBetweenPins(input) {
+  request: { from: string; to: string }
+): Promise<Transit> {
+  return page.evaluate(
+    function measureTransit(input) {
       function readPin(sceneId: string) {
         const container = document.querySelector<HTMLElement>(
           `[data-dot-scene="${sceneId}"]`
@@ -491,24 +727,22 @@ async function scrollIntoTransit(
           getComputedStyle(container).scrollMarginTop
         )
         const rect = container.getBoundingClientRect()
+        const frameHeight = frame.getBoundingClientRect().height
 
         return {
           start: rect.top + window.scrollY - stickyTop,
-          end:
-            rect.bottom +
-            window.scrollY -
-            frame.getBoundingClientRect().height -
-            stickyTop,
+          end: rect.bottom + window.scrollY - frameHeight - stickyTop,
+          frameHeight,
         }
       }
 
-      const from = readPin(input.from)
-      const arrival = readPin(input.to).start - input.landingTolerance
+      const arrival = readPin(input.to)
 
-      window.scrollTo({
-        top: Math.round(from.end + input.share * (arrival - from.end)),
-        behavior: "instant",
-      })
+      return {
+        start: readPin(input.from).end,
+        end: arrival.start - input.landingTolerance,
+        frameHeight: arrival.frameHeight,
+      }
     },
     { ...request, landingTolerance: MORPH_LANDING_TOLERANCE_PX }
   )
@@ -518,6 +752,18 @@ async function scrollToPosition(page: Page, top: number) {
   await page.evaluate(function scrollInstantly(position) {
     window.scrollTo({ top: position, behavior: "instant" })
   }, top)
+}
+
+async function scrollIntoTransit(
+  page: Page,
+  request: { from: string; to: string; share: number }
+) {
+  const transit = await readTransit(page, request)
+
+  await scrollToPosition(
+    page,
+    Math.round(transit.start + request.share * (transit.end - transit.start))
+  )
 }
 
 async function readScrollStops(page: Page) {
@@ -658,7 +904,10 @@ function resolveExpectedState(
     return "whole"
   }
 
-  if (!scene.hasSlot && nextScene?.keyframeIds[0] === formedId) {
+  const isReadAfterPin =
+    !scene.hasSlot || DOT_SCENE_MOTION[scene.scene]?.isReadAfterPin === true
+
+  if (isReadAfterPin && nextScene?.keyframeIds[0] === formedId) {
     return "whole"
   }
 
@@ -1838,22 +2087,25 @@ test.describe("section text from the keyboard", () => {
     await expectFocusLit(page, true)
   })
 
-  test("lights Contact for its email link tabbed to from the last FAQ row", async ({
+  test("lights Let's connect for its email link tabbed to from the last FAQ row, then tabs on to the name field", async ({
     page,
   }) => {
     test.setTimeout(LANDING_TEST_TIMEOUT_MS)
 
     await openRunningPage(page)
-    await landOnKeyframe(page, "dust", 0)
+    await landOnKeyframe(page, "faq", 0)
     await page.locator(FAQ_SUMMARY_SELECTOR).last().focus()
 
     await page.keyboard.press("Tab")
-    await expect(page.locator(CONTACT_EMAIL_SELECTOR)).toBeFocused()
+    await expect(page.locator(CONNECT_EMAIL_SELECTOR)).toBeFocused()
     await waitForScrollRest(page)
     await expectFocusLit(page, false)
 
-    await landOnKeyframe(page, "dust", 0)
+    await landOnKeyframe(page, "faq", 0)
     await expectFocusLit(page, true)
+
+    await page.keyboard.press("Tab")
+    await expect(page.locator(CONTACT_NAME_SELECTOR)).toBeFocused()
   })
 
   test("lights the footer for each link tabbed to from the contact form", async ({
@@ -1892,10 +2144,14 @@ test.describe("the About stats", () => {
     expect(targets.length).toBe(ABOUT_SECTION.stats.length)
 
     await openRunningPage(page)
+
+    const transit = await readTransit(page, { from: "process", to: "about" })
+    const frameLeft = (1 - STAT_ARRIVAL_SHARE) * transit.frameHeight
+
     await scrollIntoTransit(page, {
       from: "process",
       to: "about",
-      share: STAT_ARRIVAL_SHARE,
+      share: 1 - frameLeft / (transit.end - transit.start),
     })
     await waitForDotsRest(page)
 
@@ -2011,6 +2267,84 @@ for (const viewport of REDUCED_MOTION_VIEWPORTS) {
         expect(await readUnsweptProblems(page), `at ${top}px`).toEqual([])
       }
 
+      expect(problems).toEqual([])
+    })
+  })
+}
+
+for (const viewport of LANDING_VIEWPORTS) {
+  test.describe(`the breather at ${viewport.width}x${viewport.height}`, () => {
+    test.use({ viewport })
+
+    test("parts every two scenes by three quarters of the viewport, with none above the hero", async ({
+      page,
+    }) => {
+      const problems = collectPageProblems(page)
+
+      await openRunningPage(page)
+
+      const layout = await readSceneBoxes(page)
+
+      expect(layout.boxes.length).toBeGreaterThan(1)
+      expect(findBreatherProblems(layout.boxes, layout.viewportHeight)).toEqual(
+        []
+      )
+      expect(problems).toEqual([])
+    })
+
+    test("never leaves Services' copy lit on screen under How I work's arriving title on a fast wheel", async ({
+      page,
+    }) => {
+      test.setTimeout(LANDING_TEST_TIMEOUT_MS)
+
+      const problems = collectPageProblems(page)
+
+      await installCrossingLog(page, { from: "services", to: "process" })
+      await openRunningPage(page)
+      await page.mouse.move(
+        viewport.width - WHEEL_POINTER_INSET_PX,
+        WHEEL_POINTER_TOP_PX
+      )
+      await landOnKeyframe(page, "services", 0)
+
+      const transit = await readTransit(page, {
+        from: "services",
+        to: "process",
+      })
+      const wheelCount =
+        Math.ceil((transit.end - (await readScrollY(page))) / WHEEL_STEP_PX) + 1
+
+      await setCrossingLogged(page, true)
+
+      for (let wheel = 0; wheel < wheelCount; wheel += 1) {
+        await page.mouse.wheel(0, WHEEL_STEP_PX)
+        await page.waitForTimeout(WHEEL_GAP_MS)
+      }
+
+      await waitForScrollRest(page)
+      await waitForDotsRest(page)
+      await setCrossingLogged(page, false)
+
+      const samples = await readCrossingSamples(page)
+      let litFrames = 0
+      let titledFrames = 0
+
+      for (const sample of samples) {
+        if (sample.litLines.length > 0) {
+          litFrames += 1
+        }
+
+        if (sample.arrivingHold > 1 - LIT_THRESHOLD) {
+          titledFrames += 1
+        }
+      }
+
+      expect(await readScrollY(page), "past How I work's pin").toBeGreaterThan(
+        transit.end
+      )
+      expect(litFrames, "frames with Services lit").toBeGreaterThan(0)
+      expect(titledFrames, "frames with How I work titled").toBeGreaterThan(0)
+      expect(findCrossingOverlaps(samples)).toEqual([])
       expect(problems).toEqual([])
     })
   })

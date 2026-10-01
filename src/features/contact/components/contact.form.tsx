@@ -2,28 +2,29 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
-import { ChevronDown, TriangleAlert } from "lucide-react"
+import { ArrowUpRight, TriangleAlert } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field"
+import { Field, FieldError, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import {
   CONTACT_ACKNOWLEDGEMENT_CLASS,
+  CONTACT_CHIP_CLASS,
+  CONTACT_CHIP_DOT_CLASS,
+  CONTACT_CHIP_INPUT_CLASS,
   CONTACT_ERROR_IDS,
   CONTACT_FIELD_CLASS,
-  CONTACT_SELECT_CLASS,
+  CONTACT_FIELD_NUMBERS,
+  CONTACT_LABEL_CLASS,
+  CONTACT_LABEL_LINE_CLASS,
+  CONTACT_MESSAGE_CLASS,
+  CONTACT_NUMBER_CLASS,
   CONTACT_SEND_LABEL,
   CONTACT_SENDING_LABEL,
   CONTACT_SERVICE_LABELS,
-  CONTACT_SERVICE_PROMPT,
   CONTACT_SERVICES,
   CONTACT_SUBMIT_CLASS,
   EMPTY_CONTACT_FORM,
@@ -48,6 +49,15 @@ function ContactFieldError({ id, message }: ContactFieldErrorProps) {
       <TriangleAlert aria-hidden="true" className="mt-0.75 size-3.5 shrink-0" />
       <span>{message}</span>
     </FieldError>
+  )
+}
+
+function movesWithinGroup(event: React.FocusEvent<HTMLInputElement>): boolean {
+  const nextFocus = event.relatedTarget
+
+  return (
+    nextFocus instanceof HTMLInputElement &&
+    nextFocus.name === event.currentTarget.name
   )
 }
 
@@ -89,10 +99,17 @@ export function ContactForm() {
         noValidate
         className={cn("[grid-area:1/1]", submit.isSuccess && "invisible")}
       >
-        <FieldGroup className="gap-4">
-          <div className="grid gap-4 @md/field-group:grid-cols-2">
-            <Field>
-              <FieldLabel htmlFor="contact-name">Name</FieldLabel>
+        <FieldGroup className="gap-3.5 split:gap-7">
+          <div className="grid gap-3.5 @md/field-group:grid-cols-2 @md/field-group:gap-x-6">
+            <Field className="gap-1.5 split:gap-2">
+              <div className={CONTACT_LABEL_LINE_CLASS}>
+                <span aria-hidden="true" className={CONTACT_NUMBER_CLASS}>
+                  {CONTACT_FIELD_NUMBERS.name}
+                </span>
+                <label htmlFor="contact-name" className={CONTACT_LABEL_CLASS}>
+                  Name
+                </label>
+              </div>
               <Input
                 id="contact-name"
                 className={CONTACT_FIELD_CLASS}
@@ -110,8 +127,15 @@ export function ContactForm() {
               />
             </Field>
 
-            <Field>
-              <FieldLabel htmlFor="contact-email">Email</FieldLabel>
+            <Field className="gap-1.5 split:gap-2">
+              <div className={CONTACT_LABEL_LINE_CLASS}>
+                <span aria-hidden="true" className={CONTACT_NUMBER_CLASS}>
+                  {CONTACT_FIELD_NUMBERS.email}
+                </span>
+                <label htmlFor="contact-email" className={CONTACT_LABEL_CLASS}>
+                  Email
+                </label>
+              </div>
               <Input
                 id="contact-email"
                 className={CONTACT_FIELD_CLASS}
@@ -131,50 +155,70 @@ export function ContactForm() {
             </Field>
           </div>
 
-          <Field>
-            <FieldLabel htmlFor="contact-service">Service needed</FieldLabel>
-            <div className="relative">
-              <select
-                id="contact-service"
-                required
-                defaultValue=""
-                aria-invalid={errors.service !== undefined}
-                aria-describedby={
-                  errors.service ? CONTACT_ERROR_IDS.service : undefined
-                }
-                className={CONTACT_SELECT_CLASS}
-                {...form.register("service")}
-              >
-                <option value="" disabled>
-                  {CONTACT_SERVICE_PROMPT}
-                </option>
-                {CONTACT_SERVICES.map(function renderServiceOption(service) {
+          <fieldset
+            role="radiogroup"
+            aria-required="true"
+            aria-invalid={errors.service !== undefined}
+            aria-describedby={
+              errors.service ? CONTACT_ERROR_IDS.service : undefined
+            }
+            className="group/service min-w-0"
+          >
+            <legend className={CONTACT_LABEL_LINE_CLASS}>
+              <span aria-hidden="true" className={CONTACT_NUMBER_CLASS}>
+                {CONTACT_FIELD_NUMBERS.service}
+              </span>
+              <span className={CONTACT_LABEL_CLASS}>Service needed</span>
+            </legend>
+            <div className="mt-2 grid gap-1.5 split:mt-3 split:gap-2">
+              <div className="flex max-w-80 flex-wrap gap-1.5 split:max-w-none">
+                {CONTACT_SERVICES.map(function renderServiceChip(service) {
+                  const serviceField = form.register("service")
+
                   return (
-                    <option key={service} value={service}>
+                    <label key={service} className={CONTACT_CHIP_CLASS}>
+                      <input
+                        type="radio"
+                        value={service}
+                        className={CONTACT_CHIP_INPUT_CLASS}
+                        {...serviceField}
+                        onBlur={function leaveServiceChoice(event) {
+                          if (movesWithinGroup(event)) {
+                            return
+                          }
+
+                          serviceField.onBlur(event)
+                        }}
+                      />
+                      <span
+                        aria-hidden="true"
+                        className={CONTACT_CHIP_DOT_CLASS}
+                      />
                       {CONTACT_SERVICE_LABELS[service]}
-                    </option>
+                    </label>
                   )
                 })}
-              </select>
-              <ChevronDown
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-y-0 right-3 my-auto size-3 text-foreground/75 forced-colors:text-[CanvasText] split:right-4"
+              </div>
+              <ContactFieldError
+                id={CONTACT_ERROR_IDS.service}
+                message={errors.service?.message}
               />
             </div>
-            <ContactFieldError
-              id={CONTACT_ERROR_IDS.service}
-              message={errors.service?.message}
-            />
-          </Field>
+          </fieldset>
 
-          <Field>
-            <FieldLabel htmlFor="contact-message">
-              What can I help you with?
-            </FieldLabel>
+          <Field className="gap-1.5 split:gap-2">
+            <div className={CONTACT_LABEL_LINE_CLASS}>
+              <span aria-hidden="true" className={CONTACT_NUMBER_CLASS}>
+                {CONTACT_FIELD_NUMBERS.message}
+              </span>
+              <label htmlFor="contact-message" className={CONTACT_LABEL_CLASS}>
+                What can I help you with?
+              </label>
+            </div>
             <Textarea
               id="contact-message"
               data-lenis-prevent=""
-              className={cn(CONTACT_FIELD_CLASS, "h-auto min-h-28 py-2.5")}
+              className={cn(CONTACT_FIELD_CLASS, CONTACT_MESSAGE_CLASS)}
               required
               aria-invalid={errors.message !== undefined}
               aria-describedby={
@@ -219,6 +263,7 @@ export function ContactForm() {
             className={CONTACT_SUBMIT_CLASS}
           >
             {submit.isPending ? CONTACT_SENDING_LABEL : CONTACT_SEND_LABEL}
+            <ArrowUpRight aria-hidden="true" className="size-4" />
           </Button>
 
           <p role="status" className="sr-only">

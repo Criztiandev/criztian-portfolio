@@ -21,7 +21,8 @@ const SCENE_WALK = [
   { selector: "#process", scene: "listening" },
   { selector: "#about", scene: "about" },
   { selector: "#testimonials", scene: "testimonials" },
-  { selector: "[data-dot-scene='dust']", scene: "dust" },
+  { selector: "#faq", scene: "faq" },
+  { selector: "#connect", scene: "connect" },
   { selector: "#contact", scene: "contact" },
   { selector: "[data-dot-scene='footer']", scene: "footer" },
 ]
@@ -39,7 +40,8 @@ const JUMP_SKIPPED_SCENES = [
   "delivery",
   "about",
   "testimonials",
-  "dust",
+  "faq",
+  "connect",
 ]
 
 const HEADER_LINE_PX = 72
@@ -52,7 +54,8 @@ const RESTING_SCENES = [
   { id: FIRST_PROJECT_SCENE, selector: "#project", step: 0 },
   { id: "listening", selector: "#process", step: 0 },
   { id: "building", selector: "#process", step: 3 },
-  { id: "dust", selector: "[data-dot-scene='dust']", step: 0 },
+  { id: "faq", selector: "#faq", step: 0 },
+  { id: "connect", selector: "#connect", step: 0 },
 ]
 
 function readLocationHash() {

@@ -6,6 +6,7 @@ import {
   NAV_DOT_CLASS,
   PORTFOLIO_NAVIGATION,
   PORTFOLIO_PRIMARY_NAVIGATION,
+  SCROLL_SPY_SECTION_IDS,
   SCROLL_SPY_TOLERANCE_PX,
 } from "@/data/navigation.data"
 import { DEFAULT_PORTFOLIO_SECTION } from "@/data/portfolio.data"
@@ -109,6 +110,13 @@ type DotJumpRecord = {
   painted: PaintedDot[]
 }
 
+type BreatherStop = {
+  scene: string
+  sectionId: string
+  breather: number
+  middle: number
+}
+
 type Insets = {
   top: number
   right: number
@@ -177,6 +185,18 @@ function listSectionStops(): NavMarks[] {
   return stops
 }
 
+function listSpyStops(): NavMarks[] {
+  const stops: NavMarks[] = []
+
+  for (const sectionId of SCROLL_SPY_SECTION_IDS) {
+    if (sectionId !== DEFAULT_PORTFOLIO_SECTION) {
+      stops.push(resolveMarks(sectionId))
+    }
+  }
+
+  return stops
+}
+
 function listSectionIds(): string[] {
   const ids: string[] = []
 
@@ -199,6 +219,55 @@ async function landOnSection(page: Page, sectionId: string) {
       section.scrollIntoView({ block: "start", behavior: "instant" })
     },
     { sectionId }
+  )
+}
+
+async function readBreatherStops(page: Page): Promise<BreatherStop[]> {
+  return page.evaluate(
+    function readBreathers(input) {
+      const stops: BreatherStop[] = []
+      const spyIds: string[] = input.spyIds
+      let sectionId: string = input.fallback
+      let previousBottom: number | null = null
+
+      for (const container of document.querySelectorAll<HTMLElement>(
+        "[data-dot-scene]"
+      )) {
+        const rect = container.getBoundingClientRect()
+        const top = rect.top + window.scrollY
+
+        if (previousBottom !== null) {
+          const landing = parseFloat(
+            getComputedStyle(container).scrollMarginTop
+          )
+
+          stops.push({
+            scene: container.dataset.dotScene ?? "",
+            sectionId,
+            breather: top - previousBottom,
+            middle: (previousBottom + top) / 2 - landing,
+          })
+        }
+
+        if (spyIds.includes(container.id)) {
+          sectionId = container.id
+        }
+
+        previousBottom = rect.bottom + window.scrollY
+      }
+
+      return stops
+    },
+    { spyIds: SCROLL_SPY_SECTION_IDS, fallback: DEFAULT_PORTFOLIO_SECTION }
+  )
+}
+
+async function scrollToOffset(page: Page, top: number) {
+  await page.evaluate(
+    function scrollToPosition(input) {
+      window.scrollTo({ top: input.top, behavior: "instant" })
+    },
+    { top }
   )
 }
 
@@ -1158,7 +1227,7 @@ test.describe(`the scroll-spy at ${DESKTOP_VIEWPORT.width}x${DESKTOP_VIEWPORT.he
 
     await openRunningPage(page, "/")
 
-    for (const stop of listSectionStops()) {
+    for (const stop of listSpyStops()) {
       const expectedAbove = above
 
       await landOnSection(page, stop.sectionId)
@@ -1185,6 +1254,37 @@ test.describe(`the scroll-spy at ${DESKTOP_VIEWPORT.width}x${DESKTOP_VIEWPORT.he
         .toEqual([])
 
       above = stop
+    }
+
+    expect(problems).toEqual([])
+  })
+
+  test("keeps the section above current in the middle of every breather between two scenes", async ({
+    page,
+  }) => {
+    const problems = collectPageProblems(page)
+
+    await openRunningPage(page, "/")
+
+    const stops = await readBreatherStops(page)
+
+    expect(stops.length).toBeGreaterThan(0)
+
+    for (const stop of stops) {
+      const expected = resolveMarks(stop.sectionId)
+
+      await scrollToOffset(page, stop.middle)
+      await expect
+        .poll(
+          function readBreatherMarks() {
+            return checkNavMarks(page, expected)
+          },
+          {
+            message: `the middle of the ${stop.breather}px breather above the ${stop.scene} scene`,
+            timeout: MARKS_TIMEOUT_MS,
+          }
+        )
+        .toEqual([])
     }
 
     expect(problems).toEqual([])

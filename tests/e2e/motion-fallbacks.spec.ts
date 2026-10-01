@@ -1,9 +1,12 @@
 import { expect, test } from "@playwright/test"
 import type { Page } from "@playwright/test"
 
-import { COPY_DRIFT_PX } from "@/data/motion.data"
+import { FOOTER_SIGN_TEXT } from "@/data/hero.data"
+import { COPY_DRIFT_PX, MOTION_PAUSED_VALUE } from "@/data/motion.data"
+import { PAUSE_MOTION_LABEL } from "@/data/navigation.data"
 import {
   ABOUT_SECTION,
+  CONNECT_SECTION,
   CONTACT_SCENE_SHAPES,
   CONTACT_SECTION,
   COPY_DRIFT_CLASS,
@@ -47,7 +50,8 @@ const DRIFT_SCREENS = [
     scene: TESTIMONIALS_SECTION.sceneId,
     isPinned: true,
   },
-  { id: FAQ_SECTION.id, scene: "dust", isPinned: false },
+  { id: FAQ_SECTION.id, scene: FAQ_SECTION.sceneId, isPinned: true },
+  { id: CONNECT_SECTION.id, scene: CONNECT_SECTION.sceneId, isPinned: true },
   { id: CONTACT_SECTION.id, scene: CONTACT_SECTION.sceneId, isPinned: true },
 ]
 
@@ -78,6 +82,27 @@ const WHEEL_PAUSE_MS = 100
 const MAX_SCROLL_STEPS = 200
 
 const SCROLL_REST_FRAMES = 20
+
+const HERO_SCENE = "name"
+
+const BREATHER_VIEWPORT_SHARE = 0.75
+
+const CONNECT_BREATHER_VIEWPORT_SHARE = 0.25
+
+const SHOWN_SLOT_SELECTOR =
+  "[data-dot-scene]:not([data-dot-scene='name']) [data-dot-slot]"
+
+const FAQ_PHONE_SPACER_SELECTOR = `#${FAQ_SECTION.id} > :nth-child(2) > :nth-child(2)`
+
+const FORCED_COLOR_SCHEMES = ["dark", "light"] as const
+
+const SIGN_VIEWPORTS = [DESKTOP_VIEWPORT, PHONE_VIEWPORT]
+
+const SIGN_CENTRE_TOLERANCE_PX = 1
+
+const INK_CHANNEL_DIFFERENCE = 128
+
+const LIGHT_CANVAS_TEXT = "rgb(0, 0, 0)"
 
 type DriftExpectation = "arriving" | "pinned" | "leaving" | "off"
 
@@ -527,12 +552,207 @@ async function readFlowedScenes(page: Page) {
   }, STEP_SCENE_IDS)
 }
 
+async function readSceneMargins(page: Page) {
+  return page.evaluate(function readMargins() {
+    const margins: { scene: string; margin: number }[] = []
+
+    for (const scene of document.querySelectorAll("[data-dot-scene]")) {
+      margins.push({
+        scene: scene.getAttribute("data-dot-scene") ?? "",
+        margin: parseFloat(getComputedStyle(scene).marginTop),
+      })
+    }
+
+    return margins
+  })
+}
+
+async function expectSceneMargins(page: Page, breatherPx: number) {
+  const margins = await readSceneMargins(page)
+
+  expect(margins.length, "scene containers").toBeGreaterThan(1)
+
+  for (const entry of margins) {
+    let expected = breatherPx
+
+    if (entry.scene === HERO_SCENE) {
+      expected = 0
+    }
+
+    if (entry.scene === CONNECT_SECTION.sceneId) {
+      expected =
+        (breatherPx * CONNECT_BREATHER_VIEWPORT_SHARE) / BREATHER_VIEWPORT_SHARE
+    }
+
+    expect(
+      Math.abs(entry.margin - expected),
+      `${entry.scene} margin-top ${entry.margin}px`
+    ).toBeLessThanOrEqual(MEASURE_TOLERANCE_PX)
+  }
+}
+
+async function readShownSlots(page: Page) {
+  return page.evaluate(function findShownSlots(selector) {
+    const shown: string[] = []
+
+    for (const slot of document.querySelectorAll(selector)) {
+      if (slot.getClientRects().length > 0) {
+        shown.push(
+          slot.closest("[data-dot-scene]")?.getAttribute("data-dot-scene") ??
+            "a slot outside a scene"
+        )
+      }
+    }
+
+    return shown
+  }, SHOWN_SLOT_SELECTOR)
+}
+
+async function readScrollHeight(page: Page) {
+  return page.evaluate(function measureScrollHeight() {
+    return document.documentElement.scrollHeight
+  })
+}
+
+async function readFaqPhoneSpacerHeight(page: Page) {
+  return page.evaluate(function measureSpacer(selector) {
+    const spacer = document.querySelector(selector)
+
+    if (spacer === null) {
+      return Number.NaN
+    }
+
+    return spacer.getBoundingClientRect().height
+  }, FAQ_PHONE_SPACER_SELECTOR)
+}
+
+async function readFooterSign(page: Page) {
+  return page.evaluate(function measureFooterSign(signText) {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: "instant",
+    })
+
+    const footer = document.querySelector("footer[data-dot-scene]")
+    const frame = footer?.firstElementChild
+    const slot = footer?.querySelector("[data-dot-slot]")
+    const bar = frame?.lastElementChild
+    let sign: Element | null = null
+
+    for (const paragraph of footer?.querySelectorAll("p") ?? []) {
+      if ((paragraph.textContent ?? "").trim() === signText) {
+        sign = paragraph
+      }
+    }
+
+    if (
+      frame === null ||
+      frame === undefined ||
+      slot === null ||
+      slot === undefined ||
+      bar === null ||
+      bar === undefined ||
+      sign === null
+    ) {
+      throw new Error("missing the footer's frame, slot, bar or sign")
+    }
+
+    const signRect = sign.getBoundingClientRect()
+    const slotRect = slot.getBoundingClientRect()
+    const frameRect = frame.getBoundingClientRect()
+    const bandTop = Math.ceil(frameRect.top) + 1
+    const bandBottom = Math.floor(bar.getBoundingClientRect().top) - 1
+
+    return {
+      position: getComputedStyle(sign).position,
+      signCentreX: signRect.left + signRect.width / 2,
+      signCentreY: signRect.top + signRect.height / 2,
+      slotCentreX: slotRect.left + slotRect.width / 2,
+      slotCentreY: slotRect.top + slotRect.height / 2,
+      slotRect: [slotRect.x, slotRect.y, slotRect.width, slotRect.height],
+      frameHeight: frameRect.height,
+      band: {
+        x: 0,
+        y: bandTop,
+        width: window.innerWidth,
+        height: bandBottom - bandTop,
+      },
+    }
+  }, FOOTER_SIGN_TEXT)
+}
+
+async function countInkPixels(
+  page: Page,
+  clip: { x: number; y: number; width: number; height: number }
+) {
+  const image = await page.screenshot({ clip })
+
+  return page.evaluate(
+    async function countInk(input) {
+      const picture = new Image()
+
+      await new Promise(function waitForImage(resolve) {
+        picture.onload = resolve
+        picture.src = input.source
+      })
+
+      const canvas = document.createElement("canvas")
+
+      canvas.width = picture.width
+      canvas.height = picture.height
+
+      const context = canvas.getContext("2d", { willReadFrequently: true })
+
+      if (context === null) {
+        return 0
+      }
+
+      context.drawImage(picture, 0, 0)
+
+      const background: number[] = []
+      const backgroundColor = getComputedStyle(document.body).backgroundColor
+
+      for (const channel of backgroundColor.matchAll(/\d+/g)) {
+        background.push(Number(channel[0]))
+      }
+
+      const pixels = context.getImageData(0, 0, picture.width, picture.height)
+      let ink = 0
+
+      for (let index = 0; index < pixels.data.length; index += 4) {
+        let difference = 0
+
+        for (let channel = 0; channel < 3; channel += 1) {
+          difference = Math.max(
+            difference,
+            Math.abs(
+              (pixels.data[index + channel] ?? 0) - (background[channel] ?? 0)
+            )
+          )
+        }
+
+        if (difference > input.threshold) {
+          ink += 1
+        }
+      }
+
+      return ink
+    },
+    {
+      source: "data:image/png;base64," + image.toString("base64"),
+      threshold: INK_CHANNEL_DIFFERENCE,
+    }
+  )
+}
+
 async function expectFallbackShown(page: Page) {
   expect(
     await readUnsweptProblems(page, UNSWEPT_WITHOUT_WEBGL),
     "swept lines"
   ).toEqual([])
   expect(await readStatProblems(page), "stats").toEqual([])
+  expect(await readShownSlots(page), "shown slots").toEqual([])
+  await expectSceneMargins(page, 0)
 }
 
 async function toggleFaqAnswer(page: Page): Promise<DisclosureRecord> {
@@ -902,6 +1122,7 @@ for (const viewport of NO_SCRIPT_VIEWPORTS) {
         "reveals, headings and lines"
       ).toEqual([])
       expect(await readStatProblems(page), "stats").toEqual([])
+      await expectSceneMargins(page, 0)
 
       for (const screen of DRIFT_SCREENS) {
         if (!screen.isPinned) {
@@ -987,6 +1208,7 @@ test.describe("the page without WebGL2 at 320x256", () => {
       })
       .toEqual(["flow", "flow", "flow"])
     await expectFallbackShown(page)
+    expect(await readFaqPhoneSpacerHeight(page), "the FAQ phone spacer").toBe(0)
 
     expect(problems).toEqual([])
   })
@@ -1165,7 +1387,7 @@ test.describe("the FAQ disclosure at 1440x900", () => {
     await openRunningPage(page, `/#${FAQ_SECTION.id}`)
     await expect(page.locator("[data-status]")).toHaveAttribute(
       "data-scene",
-      "dust",
+      FAQ_SECTION.sceneId,
       { timeout: SCENE_TIMEOUT_MS }
     )
 
@@ -1205,6 +1427,136 @@ test.describe("the FAQ disclosure under reduced motion at 1440x900", () => {
       answer: 0,
       degrees: 0,
     })
+  })
+})
+
+test.describe("the breathers under reduced motion at 1440x900", () => {
+  test.use({ viewport: DESKTOP_VIEWPORT, reducedMotion: "reduce" })
+
+  test("keeps a breather above every scene after the hero", async ({
+    page,
+  }) => {
+    await openRunningPage(page, "/")
+    await expectSceneMargins(
+      page,
+      DESKTOP_VIEWPORT.height * BREATHER_VIEWPORT_SHARE
+    )
+  })
+})
+
+test.describe("the breathers when the page's motion is paused at 1440x900", () => {
+  test.use({ viewport: DESKTOP_VIEWPORT })
+
+  test("keeps every breather, so the page is as long paused as playing", async ({
+    page,
+  }) => {
+    const problems = collectPageProblems(page)
+    const breatherPx = DESKTOP_VIEWPORT.height * BREATHER_VIEWPORT_SHARE
+
+    await openRunningPage(page, "/")
+    await expectSceneMargins(page, breatherPx)
+
+    const playingHeight = await readScrollHeight(page)
+
+    await page.getByRole("button", { name: PAUSE_MOTION_LABEL }).click()
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-motion",
+      MOTION_PAUSED_VALUE
+    )
+    await waitForTwoFrames(page)
+    await expectSceneMargins(page, breatherPx)
+    expect(await readScrollHeight(page), "the paused page's height").toBe(
+      playingHeight
+    )
+
+    expect(problems).toEqual([])
+  })
+})
+
+for (const colorScheme of FORCED_COLOR_SCHEMES) {
+  for (const viewport of SIGN_VIEWPORTS) {
+    test.describe(`the footer sign in ${colorScheme} forced colours at ${viewport.width}x${viewport.height}`, () => {
+      test.use({ viewport, colorScheme, forcedColors: "active" })
+
+      test("shows the words on the slot, which keeps its size", async ({
+        page,
+      }) => {
+        const problems = collectPageProblems(page)
+
+        await openRunningPage(page, "/")
+
+        const forced = await readFooterSign(page)
+
+        expect(forced.position, "the sign's position").toBe("static")
+        expect(
+          Math.abs(forced.signCentreX - forced.slotCentreX),
+          "the sign's centre across the slot"
+        ).toBeLessThanOrEqual(SIGN_CENTRE_TOLERANCE_PX)
+        expect(
+          Math.abs(forced.signCentreY - forced.slotCentreY),
+          "the sign's centre down the slot"
+        ).toBeLessThanOrEqual(SIGN_CENTRE_TOLERANCE_PX)
+        expect(
+          await countInkPixels(page, forced.band),
+          "ink in the band above the bar"
+        ).toBeGreaterThan(0)
+
+        await page.emulateMedia({ forcedColors: "none" })
+
+        const plain = await readFooterSign(page)
+
+        expect(forced.slotRect, "the slot's rect").toEqual(plain.slotRect)
+        expect(forced.frameHeight, "the frame's height").toBe(plain.frameHeight)
+
+        expect(problems).toEqual([])
+      })
+    })
+  }
+}
+
+test.describe("the FAQ plus in light forced colours at 1440x900", () => {
+  test.use({
+    viewport: DESKTOP_VIEWPORT,
+    colorScheme: "light",
+    forcedColors: "active",
+  })
+
+  test("draws every question's plus in CanvasText", async ({ page }) => {
+    const problems = collectPageProblems(page)
+    const pluses = page.locator(`#${FAQ_SECTION.id} summary svg`)
+
+    await openRunningPage(page, `/#${FAQ_SECTION.id}`)
+    await expect(page.locator("[data-status]")).toHaveAttribute(
+      "data-scene",
+      FAQ_SECTION.sceneId,
+      { timeout: SCENE_TIMEOUT_MS }
+    )
+
+    const plusCount = await pluses.count()
+
+    expect(plusCount, "pluses").toBeGreaterThan(0)
+
+    for (let plusIndex = 0; plusIndex < plusCount; plusIndex += 1) {
+      const plus = pluses.nth(plusIndex)
+      const box = await plus.boundingBox()
+
+      await expect(plus).toHaveCSS("color", LIGHT_CANVAS_TEXT)
+
+      if (box === null) {
+        throw new Error(`plus ${plusIndex + 1} has no box`)
+      }
+
+      await expect
+        .poll(
+          function readPlusInk() {
+            return countInkPixels(page, box)
+          },
+          { message: `plus ${plusIndex + 1} ink`, timeout: SCENE_TIMEOUT_MS }
+        )
+        .toBeGreaterThan(0)
+    }
+
+    expect(problems).toEqual([])
   })
 })
 

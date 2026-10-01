@@ -11,7 +11,8 @@ const SCENE_DEEP_LINKS = [
   { hash: "#process", scene: "listening" },
   { hash: "#about", scene: "about" },
   { hash: "#testimonials", scene: "testimonials" },
-  { hash: "#faq", scene: "dust" },
+  { hash: "#faq", scene: "faq" },
+  { hash: "#connect", scene: "connect" },
   { hash: "#contact", scene: "contact" },
 ]
 

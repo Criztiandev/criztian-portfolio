@@ -10,15 +10,18 @@ import {
   DOT_SCENE_SELECTOR,
   DOT_SLOT_SELECTOR,
   DOT_STAGE_SELECTOR,
+  FOOTER_SIGN_TEXT,
   HEIGHT_CHANGE_IGNORE_PX,
   HERO_INTRO_TIMING,
   IN_PAGE_ANCHOR_SELECTOR,
   JUMP_CANCEL_EVENTS,
   MAX_FRAME_DELTA_SECONDS,
   MORPH_LANDING_TOLERANCE_PX,
+  PLACEHOLDER_TEXT_SAMPLE,
   RESIZE_DEBOUNCE_MS,
   SCENE_REVEAL_PROPERTY,
   SETTLED_INTRO_SECONDS,
+  TEXT_SHAPE_SEED,
   THREAD_REVEAL_DECIMALS,
   THREAD_REVEAL_PROPERTY_PREFIX,
   THREAD_TURN_PROPERTY,
@@ -34,6 +37,7 @@ import {
   buildFontShorthand,
   buildSceneKeyframes,
   buildShapeLibrary,
+  buildTextShapePoints,
   easeInOutSine,
   followTriggeredProgress,
   isRedrawSegment,
@@ -73,8 +77,10 @@ import {
   resizeDotField,
   uploadOffsets,
   uploadPoints,
+  uploadShapePoints,
 } from "@/features/portfolio/services/dot-field-renderer.service"
 import {
+  sampleTextShape,
   sampleWordToPoints,
   waitForDisplayFont,
 } from "@/features/portfolio/services/dot-field-sampler.service"
@@ -86,6 +92,7 @@ import type {
   DotFieldPlacement,
   DotFieldPointer,
   DotFieldRuntime,
+  DotFieldTextSample,
   DotFieldVector,
   DotFieldViewport,
   DotSceneKeyframe,
@@ -249,6 +256,7 @@ export function useDotField(request: UseDotFieldRequest): void {
   const pointerRef = useRef<DotFieldPointer>(createPointer())
   const viewportRef = useRef<DotFieldViewport | null>(null)
   const nameSampleRef = useRef<DotFieldNameSample | null>(null)
+  const textSampleRef = useRef<DotFieldTextSample | null>(null)
   const rebuildRef = useRef<(() => void) | null>(null)
   const redrawRef = useRef<(() => void) | null>(null)
   const introStartRef = useRef<number | null>(null)
@@ -394,6 +402,16 @@ export function useDotField(request: UseDotFieldRequest): void {
         return sample
       }
 
+      function resolveTextSample(): DotFieldTextSample {
+        const sample = textSampleRef.current
+
+        if (sample === null) {
+          return PLACEHOLDER_TEXT_SAMPLE
+        }
+
+        return sample
+      }
+
       function resolveIntro(): DotFieldIntroFrame {
         const sample = nameSampleRef.current
 
@@ -460,6 +478,7 @@ export function useDotField(request: UseDotFieldRequest): void {
             pixelRatio,
           },
           nameSample: resolveNameSample(),
+          textSample: resolveTextSample(),
           introScale,
           spinSeconds,
           yawOffset,
@@ -1211,6 +1230,32 @@ export function useDotField(request: UseDotFieldRequest): void {
         primaryFamily
       )
 
+      function buildSign(
+        runtime: DotFieldRuntime,
+        sampleViewport: DotFieldViewport
+      ): void {
+        const sample = sampleTextShape({
+          text: FOOTER_SIGN_TEXT.toUpperCase(),
+          fontFamily: primaryFamily,
+          viewport: sampleViewport,
+          tuning: DOT_FIELD_TUNING,
+        })
+
+        if (sample === null) {
+          return
+        }
+
+        uploadShapePoints(
+          runtime,
+          "sign",
+          buildTextShapePoints(sample, TEXT_SHAPE_SEED)
+        )
+        textSampleRef.current = {
+          width: sample.right - sample.left,
+          height: sample.inkHeight,
+        }
+      }
+
       function buildGeometry(): void {
         const runtime = runtimeRef.current
         const viewport = viewportRef.current
@@ -1246,6 +1291,7 @@ export function useDotField(request: UseDotFieldRequest): void {
           },
           inkHeight: sample.inkHeight,
         }
+        buildSign(runtime, sampleViewport)
         canvas.dataset.pointCount = String(sample.count)
         stage.dataset.status = "running"
 

@@ -3,6 +3,7 @@ import type { Page } from "@playwright/test"
 
 import {
   CONTACT_ACKNOWLEDGEMENT,
+  CONTACT_SERVICE_LABELS,
   MIN_SECONDS_BEFORE_SUBMIT,
 } from "@/data/contact.data"
 import { CONTACT_SECTION } from "@/data/page-sections.data"
@@ -35,7 +36,9 @@ async function openContactSection(page: Page) {
 async function fillMessage(page: Page) {
   await page.getByLabel("Name").fill("Playwright Tester")
   await page.getByLabel("Email").fill("playwright.tester@example.test")
-  await page.getByLabel("Service needed").selectOption("development")
+  await page
+    .getByRole("radio", { name: CONTACT_SERVICE_LABELS.development })
+    .check()
   await page
     .getByLabel("What can I help you with?")
     .fill("Sent by the end-to-end suite to verify the contact pipeline.")
