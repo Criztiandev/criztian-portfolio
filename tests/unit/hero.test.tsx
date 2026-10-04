@@ -4,9 +4,12 @@ import { describe, expect, it, vi } from "vitest"
 import { HERO_SCROLL_LABEL } from "@/data/hero.data"
 import { DEFAULT_HERO_TAGLINE_TEXT } from "@/data/site-content.data"
 import { Hero } from "@/features/portfolio/components/hero.component"
+import { renderRichTextHtml } from "@/features/site-content/services/rich-text-renderer.service"
 import { createDefaultSiteContent } from "@/features/site-content/site-content.rules"
 
 const DISPLAY_FONT_FAMILY = `"Antonio", "Antonio Fallback"`
+
+const TAGLINE_HTML = renderRichTextHtml(createDefaultSiteContent().hero.tagline)
 
 function renderHero() {
   return render(
@@ -14,6 +17,7 @@ function renderHero() {
       <Hero
         content={createDefaultSiteContent()}
         displayFontFamily={DISPLAY_FONT_FAMILY}
+        taglineHtml={TAGLINE_HTML}
       />
     </div>
   )
@@ -91,6 +95,7 @@ describe("Hero", () => {
       <Hero
         content={createDefaultSiteContent()}
         displayFontFamily={DISPLAY_FONT_FAMILY}
+        taglineHtml={TAGLINE_HTML}
       />
     )
 
@@ -111,6 +116,22 @@ describe("Hero", () => {
     )
     expect(taglineFade?.style.opacity).toBe("1")
     expect(cueFade?.style.opacity).toBe("1")
+  })
+
+  it("tags the four intro elements Motion hides on the server for the no-JavaScript reveal", () => {
+    const { container } = renderHero()
+    const heading = screen.getByRole("heading", { level: 1 })
+    const tagline = screen.getByText(DEFAULT_HERO_TAGLINE_TEXT).parentElement
+    const cue = screen.getByText(HERO_SCROLL_LABEL).parentElement
+
+    expect(container.querySelectorAll("[data-reveal]")).toHaveLength(4)
+    expect(heading).toHaveAttribute("data-reveal", "")
+    expect(heading.parentElement?.parentElement).toHaveAttribute(
+      "data-reveal",
+      ""
+    )
+    expect(tagline).toHaveAttribute("data-reveal", "")
+    expect(cue).toHaveAttribute("data-reveal", "")
   })
 
   it("starts with the dots forming the name", () => {

@@ -1,4 +1,4 @@
-import { OFFSCREEN_CLIP_POSITION } from "@/data/hero.data"
+import { OFFSCREEN_CLIP_POSITION, SHAPE_POINTS } from "@/data/hero.data"
 
 export const DOT_FIELD_VERTEX_SHADER = `#version 300 es
 
@@ -41,6 +41,19 @@ uniform float uMorph;
 uniform float uMorphStagger;
 uniform float uMorphJitter;
 uniform float uMorphArc;
+uniform float uPenJitter;
+uniform float uBurstPixels;
+uniform float uBurstScale;
+uniform float uSwell;
+uniform float uStrikeSize;
+uniform float uStrike;
+uniform float uThread;
+uniform float uThreadStagger;
+uniform float uThreadJitter;
+uniform float uThreadArc;
+uniform float uThreadBurst;
+uniform float uRedraw;
+uniform float uRedrawEdge;
 uniform Placement uFrom;
 uniform Placement uTo;
 
@@ -56,6 +69,36 @@ float easeInOutCubic(float progress) {
   float tail = 2.0 - 2.0 * progress;
 
   return 1.0 - 0.5 * tail * tail * tail;
+}
+
+float hashCell(vec2 cell) {
+  return fract(sin(dot(cell, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+float valueNoise(vec2 point) {
+  vec2 cell = floor(point);
+  vec2 local = fract(point);
+  vec2 blend = local * local * (3.0 - 2.0 * local);
+  float bottomLeft = hashCell(cell);
+  float bottomRight = hashCell(cell + vec2(1.0, 0.0));
+  float topLeft = hashCell(cell + vec2(0.0, 1.0));
+  float topRight = hashCell(cell + vec2(1.0, 1.0));
+
+  return mix(
+    mix(bottomLeft, bottomRight, blend.x),
+    mix(topLeft, topRight, blend.x),
+    blend.y
+  );
+}
+
+vec2 curlNoise(vec2 point) {
+  float probe = 0.05;
+  float above = valueNoise(point + vec2(0.0, probe));
+  float below = valueNoise(point - vec2(0.0, probe));
+  float right = valueNoise(point + vec2(probe, 0.0));
+  float left = valueNoise(point - vec2(probe, 0.0));
+
+  return vec2(above - below, left - right) / (2.0 * probe);
 }
 
 Placed placeName(Placement placement) {
@@ -127,23 +170,61 @@ void main() {
   float sweepKey = mix(shapeKey, nameKey, step(0.5, hasName));
   float rank = mix(aTo.w, aFrom.w, step(0.5, uTo.isName));
   float randomKey = fract(rank * 97.13);
-  float morphKey = mix(sweepKey, randomKey, uMorphJitter);
+  float sweepDepartKey = mix(sweepKey, randomKey, uMorphJitter);
+  float penKey = min(float(gl_VertexID) / ${SHAPE_POINTS}.0, 1.0);
+  float threadKey = mix(
+    penKey,
+    randomKey,
+    mix(uPenJitter, uThreadJitter, uThread)
+  );
+  float departKey = mix(sweepDepartKey, threadKey, uThread);
+  float arriveKey = mix(threadKey, sweepDepartKey, step(0.5, hasName));
+  float stagger = mix(uMorphStagger, uThreadStagger, uThread);
+  float departStart = departKey * stagger;
+  float arriveEnd = 1.0 - (1.0 - arriveKey) * stagger;
   float localMorph = clamp(
-    (uMorph - morphKey * uMorphStagger) / max(1.0 - uMorphStagger, 0.001),
+    (uMorph - departStart) / max(arriveEnd - departStart, 0.001),
     0.0,
     1.0
   );
   float eased = easeInOutCubic(localMorph);
+  float flight = sin(3.14159265 * eased) * (1.0 - uRedraw);
 
   vec2 travel = to.position - from.position;
   vec2 side = vec2(-travel.y, travel.x) / max(length(travel), 1.0);
-  float arc = sin(3.14159265 * eased) * (0.3 + 0.7 * randomKey) * uMorphArc;
+  float arcSpread = mix(0.3 + 0.7 * randomKey, 1.0, uThread);
+  float arc = flight * arcSpread * mix(uMorphArc, uThreadArc, uThread);
   vec2 position =
     mix(from.position, to.position, eased) + side * arc + aOffset;
 
-  vPointSize = max(mix(from.size, to.size, eased) * uPixelRatio, 1.0);
+  vec2 fieldPoint =
+    position / max(uBurstScale, 1.0) + vec2(randomKey * 0.6, eased * 1.3);
+  vec2 burst =
+    curlNoise(fieldPoint) * 0.6 * uBurstPixels * flight *
+    mix(1.0, uThreadBurst, uThread);
+  position = clamp(
+    position + burst,
+    min(position, vec2(0.0)),
+    max(position, uResolution)
+  );
+
+  float swell = 1.0 + uSwell * flight;
+  float strike = 1.0 + uStrikeSize * uStrike;
+
+  vPointSize =
+    max(mix(from.size, to.size, eased) * uPixelRatio * swell * strike, 1.0);
   vShade = mix(from.shade, to.shade, eased);
-  vOpacity = mix(from.opacity, to.opacity, eased);
+
+  float unwound = uMorph * 2.0 * (1.0 + uRedrawEdge);
+  float redrawn = (uMorph * 2.0 - 1.0) * (1.0 + uRedrawEdge);
+  float kept = smoothstep(unwound - uRedrawEdge, unwound, threadKey);
+  float drawn = 1.0 - smoothstep(redrawn - uRedrawEdge, redrawn, threadKey);
+  float redrawShown = mix(1.0, max(kept, drawn), uRedraw);
+
+  vOpacity = min(
+    mix(from.opacity, to.opacity, eased) * (1.0 + 0.5 * uSwell * flight),
+    1.0
+  ) * redrawShown;
 
   if (vOpacity <= 0.0) {
     gl_Position = vec4(vec3(${OFFSCREEN_CLIP_POSITION}.0), 1.0);

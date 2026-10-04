@@ -1,8 +1,7 @@
 "use client"
 
 import { ArrowDownRight } from "lucide-react"
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react"
-import type { Transition, Variants } from "motion/react"
+import { motion, useScroll, useTransform } from "motion/react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import {
@@ -10,87 +9,40 @@ import {
   HERO_COPY_FADE_PROGRESS,
   HERO_COPY_FADE_SCROLL,
   HERO_INTRO_TIMING,
+  HERO_SCROLL_CUE_TRANSITION,
   HERO_SCROLL_LABEL,
+  HERO_SWEEP_TRANSITION,
+  HERO_SWEEP_VARIANTS,
+  HERO_TAGLINE_TRANSITION,
+  HERO_TEXT_SETTLE_MS,
+  HERO_WORDMARK_TEXT_CLASS,
+  HERO_WORDMARK_TRANSITION,
+  HERO_WORDMARK_VARIANTS,
   LIFT_VARIANTS,
-  SIGNAL_EASE,
 } from "@/data/hero.data"
 import { useDotField } from "@/features/portfolio/hooks/use-dot-field.hook"
+import { usePrefersReducedMotion } from "@/features/portfolio/hooks/use-motion-preference.hook"
 import { resolveMotionTransition } from "@/features/portfolio/motion.rules"
-import { renderRichTextHtml } from "@/features/site-content/services/rich-text-renderer.service"
 import { cn } from "@/lib/utils"
 import type { HeroWordmarkMode } from "@/types/hero.type"
 import type { SiteContent } from "@/types/site-content.type"
 
-const WORDMARK_TEXT_CLASS = cn(
-  "block text-center leading-none font-bold uppercase",
-  "text-[min(25vw,40svh)] md:text-[clamp(3rem,18vw,16rem)]"
-)
-
-const WORDMARK_VARIANTS: Variants = {
-  hidden: {
-    opacity: 0,
-    scale: HERO_INTRO_TIMING.smallScale,
-  },
-  visible: {
-    opacity: 1,
-    scale: 1,
-  },
-}
-
-const WORDMARK_TRANSITION: Transition = {
-  opacity: {
-    duration: HERO_INTRO_TIMING.sweepDelaySeconds,
-    ease: "easeOut",
-  },
-  scale: {
-    delay: HERO_INTRO_TIMING.growDelaySeconds,
-    duration: HERO_INTRO_TIMING.growDurationSeconds,
-    ease: SIGNAL_EASE,
-  },
-}
-
-const SWEEP_VARIANTS: Variants = {
-  hidden: {
-    clipPath: "inset(0% 100% 0% 0%)",
-  },
-  visible: {
-    clipPath: "inset(0% 0% 0% 0%)",
-  },
-}
-
-const SWEEP_TRANSITION: Transition = {
-  delay: HERO_INTRO_TIMING.sweepDelaySeconds,
-  duration: HERO_INTRO_TIMING.sweepDurationSeconds,
-  ease: SIGNAL_EASE,
-}
-
-const TAGLINE_TRANSITION: Transition = {
-  delay: HERO_INTRO_TIMING.taglineDelayAfterSettleSeconds,
-  duration: HERO_INTRO_TIMING.taglineDurationSeconds,
-  ease: "easeOut",
-}
-
-const SCROLL_CUE_TRANSITION: Transition = {
-  delay: HERO_INTRO_TIMING.scrollCueDelayAfterSettleSeconds,
-  duration: HERO_INTRO_TIMING.scrollCueDurationSeconds,
-  ease: "easeOut",
-}
-
-const TEXT_SETTLE_MS =
-  (HERO_INTRO_TIMING.growDelaySeconds + HERO_INTRO_TIMING.growDurationSeconds) *
-  1000
-
 export function Hero({
   content,
   displayFontFamily,
-}: Readonly<{ content: SiteContent; displayFontFamily: string }>) {
+  taglineHtml,
+}: Readonly<{
+  content: SiteContent
+  displayFontFamily: string
+  taglineHtml: string
+}>) {
   const sceneRef = useRef<HTMLDivElement | null>(null)
   const wordmarkRef = useRef<HTMLDivElement | null>(null)
   const taglineRef = useRef<HTMLDivElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [hasIntroSettled, setHasIntroSettled] = useState(false)
   const [isDotFieldUnsupported, setIsDotFieldUnsupported] = useState(false)
-  const shouldReduceMotion = useReducedMotion() === true
+  const shouldReduceMotion = usePrefersReducedMotion()
   const { scrollYProgress } = useScroll({
     ...HERO_COPY_FADE_SCROLL,
     target: sceneRef,
@@ -132,7 +84,7 @@ export function Hero({
         return
       }
 
-      const settleMs = shouldReduceMotion ? 0 : TEXT_SETTLE_MS
+      const settleMs = shouldReduceMotion ? 0 : HERO_TEXT_SETTLE_MS
       const handle = window.setTimeout(markIntroSettled, settleMs)
 
       return function cancelSettle() {
@@ -142,14 +94,13 @@ export function Hero({
     [isTextWordmark, shouldReduceMotion, markIntroSettled]
   )
 
-  const taglineHtml = renderRichTextHtml(content.hero.tagline)
   const wordmarkTarget = isTextWordmark ? "visible" : "hidden"
   const introTarget = hasIntroSettled ? "visible" : "hidden"
   const copyFadeOpacity = isDotFieldUnsupported ? 1 : copyOpacity
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-lvh">
+      <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-lvh forced-colors:invisible">
         <canvas
           ref={canvasRef}
           aria-hidden="true"
@@ -184,12 +135,13 @@ export function Hero({
               <motion.div
                 initial="hidden"
                 animate={wordmarkTarget}
-                variants={WORDMARK_VARIANTS}
+                variants={HERO_WORDMARK_VARIANTS}
                 transition={resolveMotionTransition(
-                  WORDMARK_TRANSITION,
+                  HERO_WORDMARK_TRANSITION,
                   shouldReduceMotion
                 )}
-                className="absolute inset-0 flex items-center justify-center px-4"
+                data-reveal=""
+                className="absolute inset-0 flex items-center justify-center px-4 forced-colors:transform-none! forced-colors:opacity-100!"
               >
                 <div className="relative max-w-full">
                   <span
@@ -209,19 +161,23 @@ export function Hero({
                       fontFamily: displayFontFamily,
                       opacity: HERO_INTRO_TIMING.dimAlpha,
                     }}
-                    className={WORDMARK_TEXT_CLASS}
+                    className={HERO_WORDMARK_TEXT_CLASS}
                   >
                     {content.hero.name}
                   </span>
 
                   <motion.h1
-                    variants={SWEEP_VARIANTS}
+                    variants={HERO_SWEEP_VARIANTS}
                     transition={resolveMotionTransition(
-                      SWEEP_TRANSITION,
+                      HERO_SWEEP_TRANSITION,
                       shouldReduceMotion
                     )}
+                    data-reveal=""
                     style={{ fontFamily: displayFontFamily }}
-                    className={cn(WORDMARK_TEXT_CLASS, "absolute inset-0")}
+                    className={cn(
+                      HERO_WORDMARK_TEXT_CLASS,
+                      "absolute inset-0 forced-colors:[clip-path:none]!"
+                    )}
                   >
                     {content.hero.name}
                   </motion.h1>
@@ -242,11 +198,12 @@ export function Hero({
                 animate={introTarget}
                 variants={LIFT_VARIANTS}
                 transition={resolveMotionTransition(
-                  TAGLINE_TRANSITION,
+                  HERO_TAGLINE_TRANSITION,
                   shouldReduceMotion
                 )}
+                data-reveal=""
                 className={cn(
-                  "relative max-w-[21rem] px-5 md:max-w-[34rem] md:px-6",
+                  "relative max-w-[21rem] px-5 md:max-w-[35rem] md:px-6",
                   "text-center uppercase",
                   "text-[0.8125rem] leading-[1.7] tracking-[0.05em] text-foreground/70",
                   "md:text-sm md:leading-relaxed md:tracking-[0.14em] md:text-foreground/75"
@@ -264,14 +221,13 @@ export function Hero({
                 animate={introTarget}
                 variants={LIFT_VARIANTS}
                 transition={resolveMotionTransition(
-                  SCROLL_CUE_TRANSITION,
+                  HERO_SCROLL_CUE_TRANSITION,
                   shouldReduceMotion
                 )}
+                data-reveal=""
                 className={cn(
                   "flex items-center justify-center gap-2",
-                  "text-muted-foreground uppercase",
-                  "text-[0.75rem] tracking-[0.12em]",
-                  "md:text-[0.6875rem] md:tracking-[0.22em]"
+                  "text-[0.6875rem] tracking-[0.22em] text-muted-foreground uppercase"
                 )}
               >
                 <span>{HERO_SCROLL_LABEL}</span>

@@ -1,7 +1,9 @@
 import {
   DISPLAY_LETTER_SPACING,
   DOT_FIELD_TUNING,
+  SHAPE_POINTS,
   TEXT_PADDING_PX,
+  TEXT_SHAPE_MAX_SAMPLES,
 } from "@/data/hero.data"
 import { hasFontLoadingApi } from "@/features/portfolio/browser-capability.rules"
 import {
@@ -9,6 +11,7 @@ import {
   clampFontSize,
   resolveDotPitch,
   resolveFontSize,
+  resolveTextShapeShrink,
   samplePixelGrid,
 } from "@/features/portfolio/dot-field.rules"
 import type { DotFieldSample, DotFieldSampleRequest } from "@/types/hero.type"
@@ -192,6 +195,33 @@ export function sampleWordToPoints(
     count: pointCloud.count,
     left: offsetX + TEXT_PADDING_PX,
     right: offsetX + canvasWidth - TEXT_PADDING_PX,
+    top: offsetY + TEXT_PADDING_PX,
     inkHeight,
   }
+}
+
+export function sampleTextShape(
+  request: DotFieldSampleRequest
+): DotFieldSample | null {
+  const { viewport } = request
+  let scale = 1
+
+  for (let attempt = 0; attempt < TEXT_SHAPE_MAX_SAMPLES; attempt += 1) {
+    const sample = sampleWordToPoints({
+      ...request,
+      viewport: {
+        width: viewport.width * scale,
+        height: viewport.height * scale,
+        pixelRatio: viewport.pixelRatio,
+      },
+    })
+
+    if (sample === null || sample.count <= SHAPE_POINTS) {
+      return sample
+    }
+
+    scale *= resolveTextShapeShrink(sample.count)
+  }
+
+  return null
 }

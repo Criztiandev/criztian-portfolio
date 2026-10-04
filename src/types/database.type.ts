@@ -36,6 +36,7 @@ export type Database = {
     Tables: {
       contact_messages: {
         Row: {
+          archived_at: string | null
           created_at: string
           email: string
           id: number
@@ -44,9 +45,11 @@ export type Database = {
           name: string
           notified_at: string | null
           notify_error: string | null
+          read_at: string | null
           service: string | null
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           email: string
           id?: never
@@ -55,9 +58,11 @@ export type Database = {
           name: string
           notified_at?: string | null
           notify_error?: string | null
+          read_at?: string | null
           service?: string | null
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           email?: string
           id?: never
@@ -66,6 +71,7 @@ export type Database = {
           name?: string
           notified_at?: string | null
           notify_error?: string | null
+          read_at?: string | null
           service?: string | null
         }
         Relationships: []

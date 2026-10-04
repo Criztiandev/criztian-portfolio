@@ -10,6 +10,7 @@ export type ContactValues = z.output<typeof contactSchema>
 export type ContactService = (typeof CONTACT_SERVICES)[number]
 
 export type ContactFieldErrorProps = {
+  id: string
   message: string | undefined
 }
 

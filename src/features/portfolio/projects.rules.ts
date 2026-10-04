@@ -1,6 +1,8 @@
 import {
-  PROJECT_COUNT_DIGITS,
-  PROJECT_COUNT_PREFIX,
+  FRAME_SCENE_SHAPES,
+  SCENE_FLOW_SHAPES,
+} from "@/data/page-sections.data"
+import {
   PROJECT_IMAGE_PATH_PATTERN,
   PROJECT_LINK_PROTOCOL,
 } from "@/data/portfolio.data"
@@ -61,8 +63,16 @@ export function selectVisibleProjects(items: ProjectItem[]): ProjectItem[] {
   return visible
 }
 
-export function formatProjectCount(count: number): string {
-  const digits = String(count).padStart(PROJECT_COUNT_DIGITS, "0")
+export function buildDeckShapes(projectCount: number): string {
+  if (projectCount <= 0) {
+    return SCENE_FLOW_SHAPES
+  }
 
-  return `${PROJECT_COUNT_PREFIX}${digits}`
+  const shapes: string[] = []
+
+  for (let index = 0; index < projectCount; index += 1) {
+    shapes.push(FRAME_SCENE_SHAPES)
+  }
+
+  return shapes.join(" ")
 }

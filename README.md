@@ -162,17 +162,29 @@ files to `.local/email-previews/` while `EMAIL_MODE=preview`. Nothing is sent.
 
 Two tiers, no integration tier.
 
-**Unit** — Vitest with jsdom, covering the contact schema, the anti-spam rules,
-the portfolio UI store, the section navigation component, environment
-validation, log redaction, the notification template and the email preview
-writer.
+**Unit** — Vitest with jsdom, `tests/unit/**` (33 files). They cover the pure
+layers: the dot field's timeline, shapes, physics and placement
+(`dot-field.rules.ts`), the sweep and step maths, the scroll-spy, the cursor
+states, the motion preference and pause, the stat counter, the site-content
+schema and draft/publish rules, the contact schema, anti-spam and notification,
+the inbox's addresses, previews, paging and dates, environment validation and
+log redaction; plus the structure of the page's sections, labels and swept
+lines, the header, the projects deck, the fit gate and the inbox's list,
+message view and actions. `vitest.config.ts` injects a synthetic environment,
+so they need no Docker.
 
 ```bash
 pnpm test:unit
 ```
 
-**End-to-end** — Playwright against Chromium. Two specs: the contact happy path,
-and `/dashboard` redirecting a logged-out visitor to `/login`.
+**End-to-end** — Playwright against Chromium, `tests/e2e/**` (16 specs). They
+need Supabase running, and cover the whole public page: the dot field and its
+fallbacks (no WebGL2, a lost context, no JavaScript, reduced motion, the pause
+toggle), every scene's pin and anchor landing, the triggered step scenes, the fit
+gate at phone, landscape, 400% zoom and text-spacing sizes, the sweeps, the
+section titles, the copy drift, the scroll-spy, the cursor, smooth scroll, the
+contact form with its anti-spam, and the dashboard's auth, editor and inbox
+(including who may read the messages).
 
 Before the first run, download the browser. This is a **~120 MB** download and
 is stored outside the repo, in your user profile:
@@ -187,20 +199,29 @@ Then:
 pnpm test:e2e
 ```
 
-The e2e suite **runs a production build first** (`pnpm build && pnpm start`)
-rather than using the dev server, so a run takes roughly 15 seconds. This keeps
-it deterministic and independent of dev-server bundler behaviour. If you already
-have a server on :3000 it will reuse that instead of building.
+The suite runs a production build (`pnpm build && pnpm start`) on :3000, but it
+reuses any server already on :3000, and the dev server does not work for it:
+Next's dev indicator adds a second `[data-status]` element, which the strict
+locators reject. Stop `pnpm dev` first, or serve a build on another port and
+point a Playwright config at it (`plans/handoff.md`, "e2e without touching the
+dev server"). A full serial run takes 15 to 20 minutes.
 
-Two deliberate properties of the contact spec, so they do not get "simplified"
-into failures:
+Deliberate properties, so they do not get "simplified" into failures:
 
+- `editor.spec.ts` edits the hero name, publishes, restores it and publishes
+  again, so anything else waiting in the draft goes live. Check that the draft
+  equals the published content before a run.
 - The form rejects submissions made in under two seconds as bot traffic, so the
-  spec waits it out. The wait is derived from the app's own constant — do not
-  weaken the check to make the test faster.
+  contact spec waits it out. The wait is derived from the app's own constant —
+  do not weaken the check to make the test faster.
 - Submissions are rate-limited to five per hour per hashed IP. Each run sends a
   unique `x-forwarded-for`, so repeat runs get their own bucket instead of
   tripping the limit. Do not clear the table to work around this.
+- Logged-in specs create and delete a throwaway owner through the admin API; no
+  real password is needed.
+- Every spec that sends or inserts a contact message deletes it afterwards, by a
+  marker unique to the run in the message text (`tests/e2e/contact-messages.ts`),
+  so the owner's inbox only ever shows real messages.
 
 ## Project layout
 
@@ -211,7 +232,7 @@ src/
   config/         environment validation, fails fast at import
   data/           static values and constants
   emails/         notification templates
-  features/       per-feature code: auth, contact, portfolio
+  features/       per-feature code: auth, contact, inbox, portfolio, site-content
   lib/            Supabase clients, tRPC client, query factory
   providers/      React context providers
   server/         server-only code: tRPC init, logging, integrations
@@ -262,7 +283,6 @@ deliberate rather than forgotten.
 | Hosted Supabase   | Local Docker only. No hosted project, no linked remote.                                                  |
 | Vercel deployment | No deployment of any kind. No Vercel project or CI.                                                      |
 | Resend live email | `EmailAdapter` exists with a preview-only implementation. No provider, no API key, nothing is ever sent. |
-| Dashboard data    | `/dashboard` authenticates and shows who is signed in. It does not yet read contact messages.            |
 | Blog              | No content, no rendering pipeline, no Markdown tooling.                                                  |
 
 ## See also

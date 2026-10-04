@@ -36,6 +36,40 @@ export type SiteContentThemeKey = keyof SiteContent["theme"]
 
 export type SiteContentProjects = SiteContent["projects"]
 
+export type SiteContentFaq = SiteContent["faq"]
+
+export type SiteContentConnect = SiteContent["connect"]
+
+export type SiteContentContact = SiteContent["contact"]
+
+export type FaqItem = {
+  question: string
+  answer: string
+}
+
+export type FaqItemKey = keyof FaqItem
+
+export type FaqItemField = {
+  key: FaqItemKey
+  label: string
+  maxLength: number
+  multiline: boolean
+  hint: string | null
+}
+
+export type SectionTextInputType = "text" | "email"
+
+export type SectionTextField<Key extends string> = {
+  key: Key
+  label: string
+  maxLength: number
+  inputType: SectionTextInputType
+}
+
+export type ConnectTextField = SectionTextField<keyof SiteContentConnect>
+
+export type ContactTextField = SectionTextField<keyof SiteContentContact>
+
 export type ProjectItem = {
   title: string
   tag: string
@@ -56,7 +90,8 @@ export type ProjectItemField = {
   hint: string | null
 }
 
-export type SiteContentEntryId = "hero" | "quote" | "projects" | "theme"
+export type SiteContentEntryId =
+  "hero" | "quote" | "projects" | "faq" | "connect" | "contact" | "theme"
 
 export type SiteContentEntry = {
   id: SiteContentEntryId

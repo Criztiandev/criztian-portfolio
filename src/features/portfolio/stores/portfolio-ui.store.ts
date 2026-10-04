@@ -23,16 +23,16 @@ export function createPortfolioUiStore(
       })
     }
 
-    function selectSection(section: PortfolioSection) {
-      setState(function select() {
-        return { isMobileNavOpen: false, activeSection: section }
+    function setActiveSection(section: PortfolioSection) {
+      setState(function setActive(state) {
+        return { ...state, activeSection: section }
       })
     }
 
     return {
       closeMobileNav,
       toggleMobileNav,
-      selectSection,
+      setActiveSection,
     }
   })
 }

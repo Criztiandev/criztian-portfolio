@@ -139,6 +139,19 @@ function resolveUniformLocations(
     morphStagger: context.getUniformLocation(program, "uMorphStagger"),
     morphJitter: context.getUniformLocation(program, "uMorphJitter"),
     morphArc: context.getUniformLocation(program, "uMorphArc"),
+    penJitter: context.getUniformLocation(program, "uPenJitter"),
+    burstPixels: context.getUniformLocation(program, "uBurstPixels"),
+    burstScale: context.getUniformLocation(program, "uBurstScale"),
+    swell: context.getUniformLocation(program, "uSwell"),
+    strikeSize: context.getUniformLocation(program, "uStrikeSize"),
+    strike: context.getUniformLocation(program, "uStrike"),
+    thread: context.getUniformLocation(program, "uThread"),
+    threadStagger: context.getUniformLocation(program, "uThreadStagger"),
+    threadJitter: context.getUniformLocation(program, "uThreadJitter"),
+    threadArc: context.getUniformLocation(program, "uThreadArc"),
+    threadBurst: context.getUniformLocation(program, "uThreadBurst"),
+    redraw: context.getUniformLocation(program, "uRedraw"),
+    redrawEdge: context.getUniformLocation(program, "uRedrawEdge"),
     from: resolvePlacementUniforms(context, program, "uFrom"),
     to: resolvePlacementUniforms(context, program, "uTo"),
   }
@@ -211,8 +224,20 @@ export function createDotFieldRuntime(
   const blankBuffer = createBuffer(context)
   const shapeBuffers: Record<DotGeneratedShapeId, WebGLBuffer> = {
     cube: createBuffer(context),
-    sphere: createBuffer(context),
     dust: createBuffer(context),
+    branding: createBuffer(context),
+    "web-design": createBuffer(context),
+    development: createBuffer(context),
+    planning: createBuffer(context),
+    visualising: createBuffer(context),
+    building: createBuffer(context),
+    frame: createBuffer(context),
+    listening: createBuffer(context),
+    delivery: createBuffer(context),
+    gather: createBuffer(context),
+    handshake: createBuffer(context),
+    conversation: createBuffer(context),
+    sign: createBuffer(context),
   }
 
   context.bindVertexArray(vertexArray)
@@ -260,8 +285,20 @@ export function createDotFieldRuntime(
     shapeLibrary,
     shapePoints: {
       cube: new Float32Array(0),
-      sphere: new Float32Array(0),
       dust: new Float32Array(0),
+      branding: new Float32Array(0),
+      "web-design": new Float32Array(0),
+      development: new Float32Array(0),
+      planning: new Float32Array(0),
+      visualising: new Float32Array(0),
+      building: new Float32Array(0),
+      frame: new Float32Array(0),
+      listening: new Float32Array(0),
+      delivery: new Float32Array(0),
+      gather: new Float32Array(0),
+      handshake: new Float32Array(0),
+      conversation: new Float32Array(0),
+      sign: new Float32Array(0),
     },
     boundFrom: blankBuffer,
     boundTo: blankBuffer,
@@ -292,6 +329,22 @@ export function applyStaticUniforms(
   context.uniform1f(uniforms.morphStagger, morphTuning.morphStagger)
   context.uniform1f(uniforms.morphJitter, morphTuning.morphJitter)
   context.uniform1f(uniforms.morphArc, morphTuning.morphArcPixels * pixelRatio)
+  context.uniform1f(uniforms.penJitter, morphTuning.penJitter)
+  context.uniform1f(uniforms.burstPixels, morphTuning.burstPixels * pixelRatio)
+  context.uniform1f(
+    uniforms.burstScale,
+    morphTuning.burstScalePixels * pixelRatio
+  )
+  context.uniform1f(uniforms.swell, morphTuning.swell)
+  context.uniform1f(uniforms.strikeSize, morphTuning.strikeSize)
+  context.uniform1f(uniforms.threadStagger, morphTuning.threadStagger)
+  context.uniform1f(uniforms.threadJitter, morphTuning.threadJitter)
+  context.uniform1f(
+    uniforms.threadArc,
+    morphTuning.threadArcPixels * pixelRatio
+  )
+  context.uniform1f(uniforms.threadBurst, morphTuning.threadBurst)
+  context.uniform1f(uniforms.redrawEdge, morphTuning.redrawEdge)
 }
 
 export function applyDotColor(
@@ -324,15 +377,24 @@ export function resizeDotField(runtime: DotFieldRuntime): void {
   context.uniform2f(uniforms.resolution, widthPx, heightPx)
 }
 
+function uploadShapeBuffer(
+  runtime: DotFieldRuntime,
+  shape: DotGeneratedShapeId,
+  total: number
+): void {
+  const { context } = runtime
+  const padded = padShapePoints(runtime.shapeLibrary[shape], total)
+
+  runtime.shapePoints[shape] = padded
+  context.bindBuffer(context.ARRAY_BUFFER, runtime.shapeBuffers[shape])
+  context.bufferData(context.ARRAY_BUFFER, padded, context.STATIC_DRAW)
+}
+
 function uploadShapeBuffers(runtime: DotFieldRuntime, total: number): void {
   const { context } = runtime
 
   for (const shape of GENERATED_SHAPE_IDS) {
-    const padded = padShapePoints(runtime.shapeLibrary[shape], total)
-
-    runtime.shapePoints[shape] = padded
-    context.bindBuffer(context.ARRAY_BUFFER, runtime.shapeBuffers[shape])
-    context.bufferData(context.ARRAY_BUFFER, padded, context.STATIC_DRAW)
+    uploadShapeBuffer(runtime, shape, total)
   }
 
   context.bindBuffer(context.ARRAY_BUFFER, runtime.blankBuffer)
@@ -375,6 +437,15 @@ export function uploadPoints(
   )
 
   runtime.pointCount = total
+}
+
+export function uploadShapePoints(
+  runtime: DotFieldRuntime,
+  shape: DotGeneratedShapeId,
+  points: Float32Array
+): void {
+  runtime.shapeLibrary[shape] = points
+  uploadShapeBuffer(runtime, shape, runtime.pointCount)
 }
 
 export function uploadOffsets(runtime: DotFieldRuntime): void {
@@ -468,6 +539,9 @@ export function drawDotField(
     frame.wordBounds.right
   )
   context.uniform1f(uniforms.morph, frame.progress)
+  context.uniform1f(uniforms.strike, frame.strike)
+  context.uniform1f(uniforms.thread, frame.thread)
+  context.uniform1f(uniforms.redraw, frame.redraw)
   applyPlacement(context, uniforms.from, frame.from)
   applyPlacement(context, uniforms.to, frame.to)
 

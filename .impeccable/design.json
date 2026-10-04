@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-26T00:00:00Z",
+  "generatedAt": "2026-10-02T00:00:00Z",
   "title": "Design System: Criztian",
   "extensions": {
     "colorMeta": {
@@ -93,45 +93,88 @@
           "#c2c2c2",
           "#f0f0f0"
         ]
+      },
+      "rule-grey": {
+        "role": "neutral",
+        "displayName": "Rule Grey (white 12%, dividers only)",
+        "canonical": "#1f1f1f",
+        "tonalRamp": [
+          "#1f1f1f",
+          "#333333",
+          "#4d4d4d",
+          "#666666",
+          "#808080",
+          "#999999",
+          "#c2c2c2",
+          "#f0f0f0"
+        ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "The name only; the source shape the dot field samples."
+        "purpose": "Antonio 700 uppercase, min(25vw, 40svh) on mobile and clamp(3rem, 18vw, 16rem) from 768px, 0.05em tracking. The name only; the source shape the dot field samples."
       },
-      "headline": {
-        "displayName": "Headline",
-        "purpose": "Section titles, uppercase. Size to be set with the first real section."
+      "statement": {
+        "displayName": "Statement",
+        "purpose": "Antonio 700 uppercase, line-height 0.95, Lamp White. The one big line per screen, sized from its column as min(cap, k·cqi + rem, h·svh): 176px default (a project title, I am Criztian., Let's connect.), 127px for Development, 136px belief, 120px client, 128px contact at 1440. FAQ has none since Phase 12: its numbered questions carry the screen."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Antonio 700 digits, line-height 0.86, a 2px outline and no fill (Lit Grey active, Wire Grey neighbours). How I work step numbers only, 45svh less 9.5rem from 48rem (96px to 320px), 17.8svh on a phone (72px to 150px). Decorative and aria-hidden."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Antonio 700 uppercase, clamp(2.75rem, 2.47rem + 1.14vw, 3.5rem), line-height 0.95. How I work step titles and About stat values; 32px on short phones."
+      },
+      "section-label": {
+        "displayName": "Section Label",
+        "purpose": "Antonio 700 uppercase, 18px on a phone and 20px from 768px, 0.04em tracking, in a 16px line box. The one h2 style: the name in Lamp White, the position count (· 02 / 03) in Dim Grey."
+      },
+      "arrival-title": {
+        "displayName": "Arrival Title",
+        "purpose": "The section label's own name at min(8rem, 17cqi, 14svh), about 122px at 1440×900. Big while the section scrolls in, docked into the label by the time the dots land. Never a second element; FAQ has none."
       },
       "body": {
         "displayName": "Body",
-        "purpose": "Paragraphs and form text, 65–75ch."
+        "purpose": "Geist 400, 15px/1.55 on a phone and 18px/1.5 from 768px, Lit Grey, at most 40ch. Paragraphs under statements, the About story, FAQ answers."
       },
       "lede": {
         "displayName": "Lede",
-        "purpose": "Hero tagline and one-line statements, uppercase and tracked."
+        "purpose": "Geist 400 uppercase, 14px/1.625 with 0.14em tracking from 768px, 13px/1.7 with 0.05em on mobile. The hero tagline only, max 34rem."
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Nav links and the Contact action."
+        "purpose": "Geist 400 uppercase, 14px, 0.025em tracking. Nav links and the Contact action; the project tag at 12px; the submit button in Geist 500."
+      },
+      "item": {
+        "displayName": "Item",
+        "purpose": "Geist 400 uppercase, 13px/16px, 0.08em tracking, Lit Grey after a Dim Grey tabular number. Numbered lists such as the service items, on Rule Grey hairlines."
       },
       "cue": {
         "displayName": "Cue",
-        "purpose": "Scroll cue and quiet wayfinding."
+        "purpose": "Geist 400 uppercase, 11px, 0.22em tracking, Dim Grey. The scroll cue, plate chips, captions, the email line and the footer bar."
+      },
+      "question": {
+        "displayName": "Question",
+        "purpose": "Antonio 700 uppercase, 26px on desktop and 20px on a phone, line-height 1.05, 0.02em tracking, Lit Grey (Lamp White while open), after a Dim Grey Antonio number. The FAQ questions only (Phase 12)."
+      },
+      "field-label": {
+        "displayName": "Field label",
+        "purpose": "Geist 500 uppercase, 12px on a 16px line that grows only when the label wraps, 0.08em tracking, Lamp White, 10px after an aria-hidden Dim Grey Antonio 700 number at 14px. The contact form's four labels and the service chips' text (Phase 12)."
       }
     },
     "shadows": [],
     "motion": [
       {
-        "name": "ease-intro",
+        "name": "ease-signal",
         "value": "cubic-bezier(0.65, 0, 0.35, 1)",
-        "purpose": "Wordmark sweep and grow."
+        "purpose": "The one ease: the wordmark intro, the light sweep, the wheel turn, the nav dot, the cursor, the menu wipe."
       },
       {
         "name": "intro-sweep",
         "value": "900ms after 250ms",
-        "purpose": "Left-to-right reveal of the dim wordmark, 26px feather."
+        "purpose": "Left-to-right reveal of the ghost wordmark (14%), 26px feather; the only soft-edged sweep."
       },
       {
         "name": "intro-grow",
@@ -139,9 +182,24 @@
         "purpose": "Wordmark scales 0.75 to 1."
       },
       {
-        "name": "lift",
-        "value": "16px, 600–700ms ease-out",
-        "purpose": "Tagline and scroll cue rise in after the intro settles."
+        "name": "light-sweep",
+        "value": "hard-edged wipe, 24px slide, driven by the dots' progress",
+        "purpose": "Every section's label, statement and copy sweep in as the dots land and out as they leave, one line at a time (0.15 line stagger). Never on a clock."
+      },
+      {
+        "name": "pen-draw",
+        "value": "1.6s per drawing, triggered 12% into a transit",
+        "purpose": "Step scenes (Projects, Services, How I work) trigger and play by themselves; the scroll is never held."
+      },
+      {
+        "name": "copy-drift",
+        "value": "up to 40px, from 48rem, on the screen's view timeline",
+        "purpose": "Single-frame screens' copy drifts against its dot object as the screen arrives and leaves; 0 while pinned."
+      },
+      {
+        "name": "arrival-title",
+        "value": "scroll-linked, docks on the signal ease as the dots land",
+        "purpose": "A section's label arrives big and shrinks into the label as the section pins."
       },
       {
         "name": "header-drop",
@@ -151,83 +209,236 @@
       {
         "name": "header-solid",
         "value": "300ms colors",
-        "purpose": "Header turns translucent black past 120px of scroll."
+        "purpose": "Header turns black at 80% with a backdrop blur and a Rule Grey bottom rule past 120px of scroll."
       },
       {
-        "name": "canvas-fade",
-        "value": "500ms opacity",
-        "purpose": "Dot field fades in once running."
+        "name": "indicator",
+        "value": "300ms signal ease",
+        "purpose": "The nav dot slide and the cursor's state changes."
+      },
+      {
+        "name": "menu-wipe",
+        "value": "300ms clip-path, signal ease",
+        "purpose": "Mobile menu panel wipes open from the top."
+      },
+      {
+        "name": "faq-open",
+        "value": "350ms height, signal ease",
+        "purpose": "FAQ answer opens and its plus turns 45°."
+      },
+      {
+        "name": "lift",
+        "value": "16px, 600ms, 300ms after the intro",
+        "purpose": "Tagline and scroll cue rise in after the intro settles."
       }
     ],
-    "breakpoints": [{ "name": "md", "value": "768px" }]
+    "breakpoints": [
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "split",
+        "value": "min-width: 48rem, or max-height: 30rem from 34rem wide"
+      },
+      {
+        "name": "short",
+        "value": "short screens; tightens frame insets, step type and copy budget"
+      },
+      {
+        "name": "lg",
+        "value": "1024px (header nav, Contact action)"
+      }
+    ]
   },
   "components": [
     {
       "name": "Dot-Field Wordmark",
       "kind": "custom",
       "refersTo": "display",
-      "description": "The name as a matrix of lit points on black; static approximation of the WebGL field.",
+      "description": "The name as a matrix of lit points on black; a static approximation of the WebGL field. A real h1 always carries the name.",
       "html": "<div class=\"ds-wordmark-stage\"><h1 class=\"ds-wordmark\">Criztian</h1></div>",
-      "css": ".ds-wordmark-stage { background: #000000; padding: 32px 24px; display: flex; justify-content: center; } .ds-wordmark { margin: 0; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1; font-size: 96px; color: transparent; background: radial-gradient(circle, #ffffff 48%, transparent 53%) 0 0 / 6px 6px; -webkit-background-clip: text; background-clip: text; transition: filter 0.3s; } .ds-wordmark:hover { filter: brightness(1.15); }"
+      "css": ".ds-wordmark-stage { background: #000000; padding: 32px 24px; display: flex; justify-content: center; } .ds-wordmark { margin: 0; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1; font-size: 96px; color: transparent; background: radial-gradient(circle, #ffffff 48%, transparent 53%) 0 0 / 3px 3px; -webkit-background-clip: text; background-clip: text; }"
     },
     {
-      "name": "Navigation Link",
-      "kind": "nav",
-      "refersTo": "nav-link",
-      "description": "Uppercase tracked label at Lit Grey over black; Lamp White when hovered or current.",
-      "html": "<nav class=\"ds-nav\" aria-label=\"Primary\"><a class=\"ds-nav-link\" href=\"#home\" aria-current=\"true\">Home</a><a class=\"ds-nav-link\" href=\"#project\">Project</a><a class=\"ds-nav-link\" href=\"#about\">About</a></nav>",
-      "css": ".ds-nav { background: #000000; padding: 16px 24px; display: flex; gap: 4px; justify-content: center; } .ds-nav-link { font-family: Geist, system-ui, sans-serif; font-size: 12px; line-height: 16px; letter-spacing: 0.025em; text-transform: uppercase; color: #bfbfbf; text-decoration: none; padding: 8px 12px; border-radius: 0; transition: color 0.15s; } .ds-nav-link:hover, .ds-nav-link[aria-current] { color: #ffffff; } .ds-nav-link:focus-visible { outline: 2px solid #ffffff; outline-offset: 0; }"
+      "name": "Footer Sign",
+      "kind": "custom",
+      "refersTo": "display",
+      "description": "The footer's dots spell LET'S BUILD in the name's own lettering (Antonio sampled onto the 3px grid with 4px dots), at the name's width, above the Cue-type footer bar. The words are real text in an sr-only paragraph that shows when WebGL2 or scripting is missing, and under forced colours, where the canvas is hidden (Phase 12).",
+      "html": "<div class=\"ds-sign\"><p class=\"ds-sign-text\">Let's build</p></div>",
+      "css": ".ds-sign { background: #000000; padding: 40px; display: flex; justify-content: center; } .ds-sign-text { margin: 0; font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 160px; line-height: 1; letter-spacing: 0.05em; text-transform: uppercase; color: #ffffff; }"
     },
     {
-      "name": "Contact Action",
-      "kind": "button",
-      "refersTo": "button-contact",
-      "description": "The header's one call to action: square hairline outline that inverts on hover.",
-      "html": "<div class=\"ds-contact-stage\"><a class=\"ds-contact\" href=\"#contact\">Contact</a></div>",
-      "css": ".ds-contact-stage { background: #000000; padding: 24px; } .ds-contact { display: inline-block; font-family: Geist, system-ui, sans-serif; font-size: 12px; line-height: 16px; letter-spacing: 0.025em; text-transform: uppercase; color: #ffffff; text-decoration: none; padding: 8px 20px; border: 1px solid #666666; border-radius: 0; transition: background-color 0.15s, color 0.15s; } .ds-contact:hover { background: #ffffff; color: #000000; } .ds-contact:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }"
+      "name": "Statement Split Screen",
+      "kind": "custom",
+      "refersTo": "statement",
+      "description": "The B composition: section label top left, the statement and copy in the left column, the dot object in the right. On a phone the object comes first.",
+      "html": "<section class=\"ds-split\"><div class=\"ds-split-copy\"><h2 class=\"ds-label\">Who am I</h2><p class=\"ds-statement\">I am Criztian.</p><p class=\"ds-body\">[Your story, in your own words]</p></div><div class=\"ds-split-object\" aria-hidden=\"true\"></div></section>",
+      "css": ".ds-split { background: #000000; padding: 40px; display: grid; grid-template-columns: 6fr 5fr; gap: 40px; } .ds-label { margin: 0 0 32px; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; font-size: 20px; line-height: 16px; letter-spacing: 0.04em; text-transform: uppercase; color: #ffffff; } .ds-statement { margin: 0; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; font-size: 72px; line-height: 0.95; text-transform: uppercase; color: #ffffff; } .ds-body { margin: 16px 0 0; font-family: Geist, system-ui, sans-serif; font-size: 18px; line-height: 1.5; color: #bfbfbf; max-width: 40ch; } .ds-split-object { aspect-ratio: 4 / 5; outline: 3px dotted #ffffff; outline-offset: 18px; margin: 18px; }"
     },
     {
-      "name": "Primary Button",
-      "kind": "button",
-      "refersTo": "button-primary",
-      "description": "Form submit: square Lamp White fill with black text.",
-      "html": "<div class=\"ds-btn-stage\"><button class=\"ds-btn-primary\" type=\"button\">Send message</button></div>",
-      "css": ".ds-btn-stage { background: #000000; padding: 24px; } .ds-btn-primary { font-family: Geist, system-ui, sans-serif; font-size: 14px; font-weight: 500; height: 32px; padding: 0 10px; background: #ffffff; color: #000000; border: 1px solid transparent; border-radius: 0; cursor: pointer; transition: background-color 0.15s, transform 0.1s; } .ds-btn-primary:hover { background: rgba(255, 255, 255, 0.8); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
+      "name": "Section Label",
+      "kind": "custom",
+      "refersTo": "section-label",
+      "description": "The one h2 style: bold Antonio, the name in Lamp White and the position count in Dim Grey. It arrives as the big arrival title and docks into this size as its section pins.",
+      "html": "<div class=\"ds-label-stage\"><h2 class=\"ds-section-label\"><span>My services</span> <span class=\"ds-section-count\" aria-hidden=\"true\">· 02 / 03</span></h2><p class=\"ds-arrival\" aria-hidden=\"true\">My services</p></div>",
+      "css": ".ds-label-stage { background: #000000; padding: 24px; } .ds-section-label { margin: 0; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; font-size: 20px; line-height: 16px; letter-spacing: 0.04em; text-transform: uppercase; color: #ffffff; } .ds-section-count { color: #999999; } .ds-arrival { margin: 24px 0 0; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; font-size: 96px; line-height: 0.8; letter-spacing: 0.04em; text-transform: uppercase; color: #ffffff; }"
+    },
+    {
+      "name": "Belief Quote",
+      "kind": "custom",
+      "refersTo": "statement",
+      "description": "The one quote: a statement at the belief size (at most 11ch) beside the dot cube, with a Cue-type author after an em dash. No section label.",
+      "html": "<figure class=\"ds-quote\"><blockquote class=\"ds-quote-text\"><p>[Your belief line]</p></blockquote><figcaption class=\"ds-quote-author\">— [Author]</figcaption></figure>",
+      "css": ".ds-quote { margin: 0; background: #000000; padding: 40px; } .ds-quote-text { margin: 0; } .ds-quote-text p { margin: 0; max-width: 11ch; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; font-size: 64px; line-height: 0.95; text-transform: uppercase; color: #ffffff; text-wrap: balance; } .ds-quote-author { margin-top: 24px; font-family: Geist, system-ui, sans-serif; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #999999; }"
+    },
+    {
+      "name": "Project Plate",
+      "kind": "card",
+      "refersTo": "plate",
+      "description": "A 10:7 project image on the deck, framed by a still ring of dots 18px out (never a border or shadow). A project without an image shows the monochrome placeholder with a Dim Grey chip.",
+      "html": "<div class=\"ds-plate-stage\"><figure class=\"ds-plate\"><span class=\"ds-plate-chip\">Image placeholder</span></figure></div>",
+      "css": ".ds-plate-stage { background: #000000; padding: 40px; } .ds-plate { position: relative; margin: 0; aspect-ratio: 10 / 7; max-width: 420px; background: linear-gradient(#333333, #1f1f1f); border-radius: 0; outline: 3px dotted #ffffff; outline-offset: 18px; } .ds-plate-chip { position: absolute; top: 16px; left: 16px; padding: 4px 8px; background: #000000; font-family: Geist, system-ui, sans-serif; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #999999; }"
+    },
+    {
+      "name": "Project Card",
+      "kind": "card",
+      "refersTo": "statement",
+      "description": "One card of the projects deck: the title as the statement (and the link when there is one), the summary in Body, a square Wire Grey tag and a Cue-type stack line.",
+      "html": "<article class=\"ds-card\"><h3 class=\"ds-card-title\"><a href=\"#\">[Project title]</a></h3><p class=\"ds-card-summary\">[Project summary]</p><div class=\"ds-card-meta\"><span class=\"ds-tag\">Web design</span><span class=\"ds-stack\">Next.js · Supabase</span></div></article>",
+      "css": ".ds-card { background: #000000; padding: 40px; } .ds-card-title { margin: 0; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; font-size: 64px; line-height: 0.95; text-transform: uppercase; } .ds-card-title a { color: #ffffff; text-decoration: none; } .ds-card-title a:hover { text-decoration: underline; } .ds-card-title a:focus-visible { outline: 3px solid rgba(255, 255, 255, 0.5); outline-offset: 2px; } .ds-card-summary { margin: 16px 0 0; font-family: Geist, system-ui, sans-serif; font-size: 18px; line-height: 1.5; color: #bfbfbf; max-width: 40ch; } .ds-card-meta { margin-top: 20px; display: flex; gap: 16px; align-items: center; } .ds-tag { padding: 4px 8px; border: 1px solid #666666; border-radius: 0; font-family: Geist, system-ui, sans-serif; font-size: 12px; letter-spacing: 0.025em; text-transform: uppercase; color: #999999; } .ds-stack { font-family: Geist, system-ui, sans-serif; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #999999; }"
+    },
+    {
+      "name": "Service Thread",
+      "kind": "list",
+      "refersTo": "item",
+      "description": "My services: the service name as the statement, Body copy, and six numbered items in Item type between Rule Grey hairlines. The dots draw one product beside it.",
+      "html": "<ol class=\"ds-items\"><li><span class=\"ds-item-num\" aria-hidden=\"true\">01</span>Logo design</li><li><span class=\"ds-item-num\" aria-hidden=\"true\">02</span>Visual identity</li><li><span class=\"ds-item-num\" aria-hidden=\"true\">03</span>Brand guidelines</li></ol>",
+      "css": ".ds-items { margin: 0; padding: 24px; list-style: none; background: #000000; max-width: 360px; } .ds-items li { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid #1f1f1f; font-family: Geist, system-ui, sans-serif; font-size: 13px; line-height: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: #bfbfbf; } .ds-item-num { color: #999999; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Orbit Step",
+      "kind": "custom",
+      "refersTo": "numeral",
+      "description": "How I work: a centred wheel. The outlined numeral sits on the top of a ring drawn in Wire Grey dots, the title in Lamp White and the copy in Body under it; neighbours wait dim at the edges.",
+      "html": "<div class=\"ds-orbit\"><svg class=\"ds-orbit-ring\" viewBox=\"0 0 400 120\" aria-hidden=\"true\"><circle cx=\"200\" cy=\"620\" r=\"600\" fill=\"none\" stroke=\"#666666\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-dasharray=\"0 10\"/></svg><span class=\"ds-numeral\" aria-hidden=\"true\">02</span><h3 class=\"ds-step-title\">Planning</h3><p class=\"ds-step-body\">[Step copy]</p></div>",
+      "css": ".ds-orbit { background: #000000; padding: 24px; text-align: center; } .ds-orbit-ring { display: block; width: 100%; height: 60px; } .ds-numeral { display: block; margin-top: -40px; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; font-size: 120px; line-height: 0.86; color: transparent; -webkit-text-stroke: 2px #bfbfbf; } .ds-step-title { margin: 12px 0 0; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; font-size: 44px; line-height: 0.95; text-transform: uppercase; color: #ffffff; } .ds-step-body { margin: 12px auto 0; max-width: 40ch; font-family: Geist, system-ui, sans-serif; font-size: 18px; line-height: 1.5; color: #bfbfbf; }"
+    },
+    {
+      "name": "About Stats",
+      "kind": "custom",
+      "refersTo": "title",
+      "description": "Three stats as a dl under a Rule Grey rule: each value in Title type in Lamp White with a Cue-type label under it. The values count up with the sweep over the real value.",
+      "html": "<dl class=\"ds-stats\"><div><dd class=\"ds-stat-value\">5+</dd><dt class=\"ds-stat-label\">Years experience</dt></div><div><dd class=\"ds-stat-value\">500+</dd><dt class=\"ds-stat-label\">Projects done</dt></div><div><dd class=\"ds-stat-value\">140</dd><dt class=\"ds-stat-label\">Happy clients</dt></div></dl>",
+      "css": ".ds-stats { margin: 0; padding: 24px 24px 32px; display: flex; gap: 40px; background: #000000; border-top: 1px solid #1f1f1f; } .ds-stats div { display: flex; flex-direction: column-reverse; gap: 8px; } .ds-stat-value { margin: 0; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; font-size: 48px; line-height: 0.95; color: #ffffff; } .ds-stat-label { font-family: Geist, system-ui, sans-serif; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #999999; }"
+    },
+    {
+      "name": "Testimonial",
+      "kind": "custom",
+      "refersTo": "statement",
+      "description": "The client's words as the statement in curly quotes, a Cue-type attribution, and the client's plate framed by dots. Bracketed placeholders until real quotes arrive.",
+      "html": "<figure class=\"ds-testimonial\"><blockquote><p>“[Client's words]”</p></blockquote><figcaption>[Client name] · [Role, company]</figcaption></figure>",
+      "css": ".ds-testimonial { margin: 0; background: #000000; padding: 40px; } .ds-testimonial blockquote { margin: 0; } .ds-testimonial p { margin: 0; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; font-size: 56px; line-height: 0.95; text-transform: uppercase; color: #ffffff; } .ds-testimonial figcaption { margin-top: 24px; font-family: Geist, system-ui, sans-serif; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #999999; }"
+    },
+    {
+      "name": "FAQ Disclosure",
+      "kind": "custom",
+      "refersTo": "body",
+      "description": "Numbered native details rows between Rule Grey hairlines: a Dim Grey Antonio number, the question in Question type (Lit Grey, Lamp White when open) and a Lit Grey plus that turns 45°; the answer in Body, indented under the question. Opens downward: the question and every row above it keep their place.",
+      "html": "<ol class=\"ds-faq\"><li><details class=\"ds-faq-row\"><summary><span class=\"ds-faq-number\" aria-hidden=\"true\">01</span><span class=\"ds-faq-question\">What is included in your branding services?</span></summary></details></li><li><details class=\"ds-faq-row\" open><summary><span class=\"ds-faq-number\" aria-hidden=\"true\">02</span><span class=\"ds-faq-question\">Do you offer mobile-friendly designs?</span></summary><p>Yes. All my web designs are fully responsive and optimized for desktops, tablets and mobile devices to ensure a seamless user experience.</p></details></li></ol>",
+      "css": ".ds-faq { background: #000000; padding: 24px; max-width: 720px; margin: 0; list-style: none; } .ds-faq li { border-top: 1px solid #1f1f1f; } .ds-faq li:last-child { border-bottom: 1px solid #1f1f1f; } .ds-faq-row summary { min-height: 56px; display: flex; align-items: center; gap: 20px; padding: 14px 0; cursor: pointer; list-style: none; } .ds-faq-row summary::-webkit-details-marker { display: none; } .ds-faq-row summary::after { content: '+'; margin-left: auto; color: #bfbfbf; font-size: 18px; transition: rotate 0.35s cubic-bezier(0.65, 0, 0.35, 1); } .ds-faq-row[open] summary::after { rotate: 45deg; } .ds-faq-row summary:focus-visible { outline: 3px solid rgba(255, 255, 255, 0.5); } .ds-faq-number { flex: none; width: 36px; font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 20px; line-height: 1; letter-spacing: 0.04em; color: #999999; font-variant-numeric: tabular-nums; } .ds-faq-question { flex: 1; font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 26px; line-height: 1.05; letter-spacing: 0.02em; text-transform: uppercase; color: #bfbfbf; } .ds-faq-row[open] .ds-faq-question { color: #ffffff; } .ds-faq-row p { margin: 0; padding: 0 0 20px 56px; font-family: Geist, system-ui, sans-serif; font-size: 18px; line-height: 1.5; color: #bfbfbf; max-width: 40ch; }"
+    },
+    {
+      "name": "Let's Connect",
+      "kind": "custom",
+      "refersTo": "statement",
+      "description": "The screen between FAQ and Contact (Phase 12): no label, the statement Let's connect. at the default size, and the email line in Cue type 32px under it with the address as a Lamp White link with a 1px underline; the dots draw two hands shaking on the right (5:4).",
+      "html": "<div class=\"ds-connect\"><p class=\"ds-connect-statement\">Let's connect.</p><p class=\"ds-connect-line\">Or email me: <a href=\"mailto:criztiandev@gmail.com\">criztiandev@gmail.com</a></p></div>",
+      "css": ".ds-connect { background: #000000; padding: 40px; } .ds-connect-statement { margin: 0; font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 120px; line-height: 0.95; text-transform: uppercase; color: #ffffff; } .ds-connect-line { margin: 32px 0 0; font-family: Geist, system-ui, sans-serif; font-size: 11px; line-height: 16px; letter-spacing: 0.22em; text-transform: uppercase; color: #999999; } .ds-connect-line a { color: #ffffff; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; } .ds-connect-line a:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
+    },
+    {
+      "name": "Contact Form",
+      "kind": "form",
+      "refersTo": "input",
+      "description": "The form on a black box (560×472 with 32px padding at 1440; 342×452 with none on a phone) that the dots gather round: numbered signage rows 01 to 04 with underline fields, the service as a radio group of square chips, and the full-width submit with an up-right arrow.",
+      "html": "<form class=\"ds-form\" method=\"post\"><div class=\"ds-row-pair\"><div><div class=\"ds-label-line\"><span class=\"ds-field-number\" aria-hidden=\"true\">01</span><label class=\"ds-field-label\" for=\"ds-name\">Name</label></div><input class=\"ds-input\" id=\"ds-name\" /></div><div><div class=\"ds-label-line\"><span class=\"ds-field-number\" aria-hidden=\"true\">02</span><label class=\"ds-field-label\" for=\"ds-email\">Email</label></div><input class=\"ds-input\" id=\"ds-email\" type=\"email\" /></div></div><fieldset class=\"ds-fieldset\" role=\"radiogroup\"><legend class=\"ds-label-line\"><span class=\"ds-field-number\" aria-hidden=\"true\">03</span><span class=\"ds-field-label\">Service needed</span></legend><div class=\"ds-chips\"><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-service\" value=\"branding\" />Branding</label><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-service\" value=\"web_design\" checked />Web design</label><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-service\" value=\"development\" />Development</label><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-service\" value=\"something_else\" />Something else</label></div></fieldset><div class=\"ds-message\"><div class=\"ds-label-line\"><span class=\"ds-field-number\" aria-hidden=\"true\">04</span><label class=\"ds-field-label\" for=\"ds-message\">What can I help you with?</label></div><textarea class=\"ds-input ds-textarea\" id=\"ds-message\"></textarea></div><button class=\"ds-btn-primary\" type=\"button\">Send message ↗</button></form>",
+      "css": ".ds-form { background: #000000; padding: 32px; display: flex; flex-direction: column; width: 560px; box-sizing: border-box; } .ds-row-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; } .ds-fieldset { margin: 28px 0 0; padding: 0; border: 0; min-width: 0; } .ds-message { margin-top: 28px; } .ds-textarea { height: 112px; padding: 10px 0; resize: none; line-height: 1.5; } .ds-label-line { display: flex; align-items: baseline; gap: 10px; min-height: 16px; } .ds-field-number { font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 14px; line-height: 16px; letter-spacing: 0.04em; color: #999999; } .ds-field-label { font-family: Geist, system-ui, sans-serif; font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: #ffffff; margin-bottom: -3px; } .ds-input { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; font-family: Geist, system-ui, sans-serif; font-size: 15px; height: 44px; padding: 0; background: transparent; color: #ffffff; border: 0; border-bottom: 1px solid #666666; border-radius: 0; outline: none; } .ds-input:focus-visible { border-bottom-color: #ffffff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); } .ds-input[aria-invalid='true'] { border-bottom-color: rgba(255, 255, 255, 0.5); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4); } .ds-chips { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px; } .ds-chip { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 40px; box-sizing: border-box; padding: 0 10px; border: 1px solid #666666; font-family: Geist, system-ui, sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #bfbfbf; cursor: pointer; } .ds-chip input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; } .ds-chip:has(input:checked) { border-color: #ffffff; color: #ffffff; } .ds-chip:has(input:checked)::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #ffffff; } .ds-chip:has(input:focus-visible) { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); } .ds-btn-primary { margin-top: 32px; height: 48px; width: 100%; background: #ffffff; color: #000000; border: 0; border-radius: 0; font-family: Geist, system-ui, sans-serif; font-weight: 500; font-size: 14px; letter-spacing: 0.025em; text-transform: uppercase; cursor: pointer; } .ds-btn-primary:hover { background: rgba(255, 255, 255, 0.8); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
+    },
+    {
+      "name": "Service Chips",
+      "kind": "custom",
+      "refersTo": "input",
+      "description": "A native radio group of square chips under a numbered legend: 40px tall, 10px side padding (12px on a phone), 6px gaps, a Wire Grey border and Lit Grey Field label text; the chosen chip turns Lamp White with a 6px dot before its text. Tab reaches the group once; the arrow keys move and choose.",
+      "html": "<fieldset class=\"ds-fieldset ds-chip-stage\" role=\"radiogroup\"><legend class=\"ds-label-line\"><span class=\"ds-field-number\" aria-hidden=\"true\">03</span><span class=\"ds-field-label\">Service needed</span></legend><div class=\"ds-chips\"><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-chip-demo\" value=\"branding\" />Branding</label><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-chip-demo\" value=\"web_design\" checked />Web design</label><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-chip-demo\" value=\"development\" />Development</label><label class=\"ds-chip\"><input type=\"radio\" name=\"ds-chip-demo\" value=\"something_else\" />Something else</label></div></fieldset>",
+      "css": ".ds-chip-stage { background: #000000; padding: 24px; margin: 0; border: 0; min-width: 0; } .ds-label-line { display: flex; align-items: baseline; gap: 10px; min-height: 16px; } .ds-field-number { font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 14px; line-height: 16px; letter-spacing: 0.04em; color: #999999; } .ds-field-label { font-family: Geist, system-ui, sans-serif; font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: #ffffff; margin-bottom: -3px; } .ds-input { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; font-family: Geist, system-ui, sans-serif; font-size: 15px; height: 44px; padding: 0; background: transparent; color: #ffffff; border: 0; border-bottom: 1px solid #666666; border-radius: 0; outline: none; } .ds-input:focus-visible { border-bottom-color: #ffffff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); } .ds-input[aria-invalid='true'] { border-bottom-color: rgba(255, 255, 255, 0.5); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4); } .ds-chips { margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px; } .ds-chip { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 40px; box-sizing: border-box; padding: 0 10px; border: 1px solid #666666; font-family: Geist, system-ui, sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #bfbfbf; cursor: pointer; } .ds-chip input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; } .ds-chip:has(input:checked) { border-color: #ffffff; color: #ffffff; } .ds-chip:has(input:checked)::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #ffffff; } .ds-chip:has(input:focus-visible) { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
     },
     {
       "name": "Text Input",
       "kind": "input",
       "refersTo": "input",
-      "description": "Square hairline field on black with a label above.",
-      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-name\">Name</label><input class=\"ds-input\" id=\"ds-name\" placeholder=\"Your name\" /></div>",
-      "css": ".ds-field { background: #000000; padding: 24px; display: flex; flex-direction: column; gap: 8px; max-width: 360px; } .ds-field-label { font-family: Geist, system-ui, sans-serif; font-size: 14px; font-weight: 500; color: #ffffff; } .ds-input { font-family: Geist, system-ui, sans-serif; font-size: 14px; height: 32px; padding: 4px 10px; background: transparent; color: #ffffff; border: 1px solid #666666; border-radius: 0; outline: none; transition: border-color 0.15s, box-shadow 0.15s; } .ds-input::placeholder { color: #999999; } .ds-input:hover { border-color: #999999; } .ds-input:focus-visible { border-color: #ffffff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
+      "description": "An underline field (Phase 12): transparent on black, no top or side border and no side padding, a 1px Wire Grey bottom rule, Lamp White text, on a numbered 16px label line; focus turns the rule Lamp White with the 3px half-strength ring.",
+      "html": "<div class=\"ds-field-stage\"><div class=\"ds-label-line\"><span class=\"ds-field-number\" aria-hidden=\"true\">02</span><label class=\"ds-field-label\" for=\"ds-email-stage\">Email</label></div><input class=\"ds-input\" id=\"ds-email-stage\" type=\"email\" /></div>",
+      "css": ".ds-field-stage { background: #000000; padding: 24px; max-width: 360px; } .ds-label-line { display: flex; align-items: baseline; gap: 10px; min-height: 16px; } .ds-field-number { font-family: Antonio, system-ui, sans-serif; font-weight: 700; font-size: 14px; line-height: 16px; letter-spacing: 0.04em; color: #999999; } .ds-field-label { font-family: Geist, system-ui, sans-serif; font-size: 12px; font-weight: 500; line-height: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: #ffffff; margin-bottom: -3px; } .ds-input { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; font-family: Geist, system-ui, sans-serif; font-size: 15px; height: 44px; padding: 0; background: transparent; color: #ffffff; border: 0; border-bottom: 1px solid #666666; border-radius: 0; outline: none; } .ds-input:focus-visible { border-bottom-color: #ffffff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); } .ds-input[aria-invalid='true'] { border-bottom-color: rgba(255, 255, 255, 0.5); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4); }"
     },
     {
-      "name": "Section Headline",
+      "name": "Navigation",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Label-type links at Lit Grey, Lamp White when hovered or current. A 6px Lamp White scroll-spy dot sits 10px under the current link; a 1px Wire Grey progress hairline fills along the header's bottom edge.",
+      "html": "<header class=\"ds-header\"><nav class=\"ds-nav\" aria-label=\"Primary\"><a class=\"ds-nav-link\" href=\"#project\" aria-current=\"true\">Work<span class=\"ds-nav-dot\" aria-hidden=\"true\"></span></a><a class=\"ds-nav-link\" href=\"#services\">Services</a><a class=\"ds-nav-link\" href=\"#process\">Process</a><a class=\"ds-nav-link\" href=\"#about\">About</a><a class=\"ds-nav-link\" href=\"#faq\">FAQ</a></nav><span class=\"ds-progress\" aria-hidden=\"true\"></span></header>",
+      "css": ".ds-header { position: relative; background: rgba(0, 0, 0, 0.8); border-bottom: 1px solid #1f1f1f; padding: 20px 24px; } .ds-nav { display: flex; gap: 16px; justify-content: center; } .ds-nav-link { position: relative; font-family: Geist, system-ui, sans-serif; font-size: 14px; line-height: 20px; letter-spacing: 0.025em; text-transform: uppercase; color: #bfbfbf; text-decoration: none; padding: 8px 12px; border-radius: 0; transition: color 0.15s; } .ds-nav-link:hover, .ds-nav-link[aria-current] { color: #ffffff; } .ds-nav-link:focus-visible { outline: 3px solid rgba(255, 255, 255, 0.5); } .ds-nav-dot { position: absolute; left: 50%; bottom: -10px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: #ffffff; } .ds-progress { position: absolute; left: 0; bottom: -1px; height: 1px; width: 40%; background: #666666; }"
+    },
+    {
+      "name": "Pause Motion Toggle",
+      "kind": "button",
+      "refersTo": "motion-toggle",
+      "description": "Square ghost icon button in Lamp White, first in the header's right zone. Pauses every motion, giving the reduced-motion page; hidden where the system already asks for reduced motion.",
+      "html": "<div class=\"ds-toggle-stage\"><button class=\"ds-toggle\" type=\"button\" aria-label=\"Pause motion\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"currentColor\" aria-hidden=\"true\"><rect x=\"6\" y=\"5\" width=\"4\" height=\"14\"/><rect x=\"14\" y=\"5\" width=\"4\" height=\"14\"/></svg></button></div>",
+      "css": ".ds-toggle-stage { background: #000000; padding: 24px; } .ds-toggle { display: inline-grid; place-items: center; width: 40px; height: 40px; padding: 0; background: transparent; color: #ffffff; border: 0; border-radius: 0; cursor: pointer; transition: background-color 0.15s; } .ds-toggle:hover { background: rgba(255, 255, 255, 0.1); } .ds-toggle:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
+    },
+    {
+      "name": "Contact Action",
+      "kind": "button",
+      "refersTo": "button-contact",
+      "description": "The header's one call to action: a square Lamp White fill with Unlit Black Label text and an up-right arrow; the fill dims to 80% on hover. Hidden below 1024px.",
+      "html": "<div class=\"ds-contact-stage\"><a class=\"ds-contact\" href=\"#contact\">Let's talk<svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M7 17 17 7\"/><path d=\"M7 7h10v10\"/></svg></a></div>",
+      "css": ".ds-contact-stage { background: #000000; padding: 24px; } .ds-contact { display: inline-flex; align-items: center; gap: 10px; font-family: Geist, system-ui, sans-serif; font-size: 14px; letter-spacing: 0.025em; text-transform: uppercase; color: #000000; background: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 0; transition: background-color 0.15s; } .ds-contact:hover { background: #cccccc; } .ds-contact:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Form submit: square Lamp White fill, Unlit Black text, 48px tall, Geist 500 in the uppercase Label voice. Hover dims to 80%, active nudges down 1px.",
+      "html": "<div class=\"ds-btn-stage\"><button class=\"ds-btn-primary\" type=\"button\">Send message</button></div>",
+      "css": ".ds-btn-stage { background: #000000; padding: 24px; } .ds-btn-primary { font-family: Geist, system-ui, sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 0.025em; text-transform: uppercase; height: 48px; padding: 0 20px; background: #ffffff; color: #000000; border: 0; border-radius: 0; cursor: pointer; transition: background-color 0.15s, transform 0.1s; } .ds-btn-primary:hover { background: rgba(255, 255, 255, 0.8); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5); }"
+    },
+    {
+      "name": "Adaptive Cursor",
       "kind": "custom",
-      "refersTo": "headline",
-      "description": "Antonio uppercase section title over a Geist body line.",
-      "html": "<section class=\"ds-section\"><h2 class=\"ds-headline\">Services</h2><p class=\"ds-section-body\">What I can help with will go here.</p></section>",
-      "css": ".ds-section { background: #000000; padding: 32px 24px; } .ds-headline { margin: 0; font-family: Antonio, 'Arial Narrow', sans-serif; font-weight: 700; text-transform: uppercase; line-height: 1; font-size: 56px; color: #ffffff; } .ds-section-body { margin: 12px 0 0; font-family: Geist, system-ui, sans-serif; font-size: 16px; line-height: 1.5; color: #bfbfbf; max-width: 65ch; }"
+      "refersTo": "cursor",
+      "description": "Desktop mouse only: a 6px white dot at the pointer and a 36px 1px hairline ring at 40% trailing it, both mix-blend-mode difference. Over an action the ring fills to a 56px disc with the dot as a hole.",
+      "html": "<div class=\"ds-cursor-stage\"><span class=\"ds-cursor-ring\" aria-hidden=\"true\"></span><span class=\"ds-cursor-dot\" aria-hidden=\"true\"></span></div>",
+      "css": ".ds-cursor-stage { position: relative; background: #000000; height: 120px; } .ds-cursor-ring, .ds-cursor-dot { position: absolute; left: 50%; top: 50%; border-radius: 50%; mix-blend-mode: difference; pointer-events: none; } .ds-cursor-ring { width: 36px; height: 36px; margin: -18px 0 0 -18px; border: 1px solid rgba(255, 255, 255, 0.4); } .ds-cursor-dot { width: 6px; height: 6px; margin: -3px 0 0 -3px; background: #ffffff; }"
     },
     {
       "name": "Scroll Cue",
       "kind": "custom",
       "refersTo": "cue",
-      "description": "Quiet tracked wayfinding label with a down-right arrow.",
-      "html": "<div class=\"ds-cue-stage\"><a class=\"ds-cue\" href=\"#project\"><span>Scroll to explore</span><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m7 7 10 10\"/><path d=\"M17 7v10H7\"/></svg></a></div>",
-      "css": ".ds-cue-stage { background: #000000; padding: 24px; display: flex; justify-content: center; } .ds-cue { display: inline-flex; align-items: center; gap: 8px; font-family: Geist, system-ui, sans-serif; font-size: 11px; line-height: 1.5; letter-spacing: 0.22em; text-transform: uppercase; color: #999999; text-decoration: none; transition: color 0.15s; } .ds-cue:hover { color: #ffffff; } .ds-cue:focus-visible { outline: 2px solid #ffffff; outline-offset: 4px; }"
+      "description": "Cue type in Dim Grey with a 14px down-right arrow, pinned 40px from the bottom of the hero stage.",
+      "html": "<div class=\"ds-cue-stage\"><a class=\"ds-cue\" href=\"#quote\"><span>Scroll to explore</span><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m7 7 10 10\"/><path d=\"M17 7v10H7\"/></svg></a></div>",
+      "css": ".ds-cue-stage { background: #000000; padding: 24px; display: flex; justify-content: center; } .ds-cue { display: inline-flex; align-items: center; gap: 8px; font-family: Geist, system-ui, sans-serif; font-size: 11px; line-height: 1.5; letter-spacing: 0.22em; text-transform: uppercase; color: #999999; text-decoration: none; transition: color 0.15s; } .ds-cue:hover { color: #ffffff; } .ds-cue:focus-visible { outline: 3px solid rgba(255, 255, 255, 0.5); outline-offset: 4px; }"
     }
   ],
   "narrative": {
     "northStar": "The Lit Signal Board",
-    "overview": "The site is a dark room with a display board. The name Criztian is not typeset. It is built from thousands of points of light that sit on black and ripple away from the cursor like a vortex in a field of bulbs. Everything around the board is quiet signage: small, tracked-out, uppercase labels at partial brightness that never compete with it. The board is what you remember, and the rest of the page exists so you can read it.\n\nThe world is black throughout and strictly monochrome. Hierarchy is set by how brightly something is lit (full white, three-quarter, dimmed, ghost), never by hue. Every corner is square, because signage and hardware are square. The only round thing on the site is a dot. Motion is deliberate and cinematic. The name sweeps on dim, grows into place, and only then does the supporting copy lift in. The planned signature goes further: the dots leave the wordmark as you scroll and re-form into other shapes between sections.\n\nThis file describes the public site. The owner surfaces (/login, /dashboard, the editor) are tools that use the stock shadcn neutral system with light and dark modes. Only the Square Signal Rule reaches them, because it is set at the token level.",
+    "overview": "The site is a dark room with a display board. The name Criztian is not typeset. It is built from thousands of points of light that sit on black, scatter from a cursor or a finger, and spring back with a bounce.\n\nThe one idea: the dots build one product. As the visitor scrolls, the name's dots become the idea (a turning cube) and frame the finished work. Then they build one product stage by stage: the mark, the mark in a page layout, and the layout opening into code; then the same page listened for, planned, wireframed, built and launched. They frame the real people behind the work, draw the conversation beside the questions, shake hands, gather round the contact form, and end on an invitation in the name's own lettering: LET'S BUILD. A client should leave remembering one sentence: \"I build whole products.\"\n\nThe page rule: every screen shows one dot object and one big, bold statement. Everything else is quiet signage. On FAQ the numbered questions carry the screen in place of a statement.\n\nThe world is black throughout and strictly monochrome. Hierarchy is set by how brightly something is lit (full white, three-quarter, dimmed, ghost), never by hue. Every corner is square, because signage and hardware are square. The feeling is calm, precise and premium.\n\nThis file describes the public site. The owner surfaces (/login, /dashboard, the editor and the contact inbox) are tools that use the stock shadcn neutral system with light and dark modes. Only the Square Signal Rule reaches them, because it is set at the token level. The inbox (Phase 13, the owner's pick of the stock look) is a list beside the open message on desktop and one screen each on a phone; a new message is marked by a small round dot and a bold name, the one curve on the owner side.",
     "keyCharacteristics": [
-      "Black ground from hero to footer. The public page ignores the OS colour scheme.",
+      "Black ground from hero to footer, with no texture. The public page ignores the OS colour scheme.",
+      "One dot object and one statement per screen (FAQ's numbered questions stand in for its statement).",
       "One display voice (Antonio, uppercase) and one working voice (Geist).",
       "Brightness is the only emphasis tool. No accent hue.",
-      "Zero radius. Dots are the only curves.",
-      "The dot field is decorative. A real <h1> always carries the name."
+      "Zero radius. Dots are the only curves; the How I work ring is drawn in dots, and the cursor's ring is the one hairline circle.",
+      "The dots are decorative. A real <h1> always carries the name, and real text carries every statement."
     ],
     "rules": [
       {
@@ -242,12 +453,17 @@
       },
       {
         "name": "The Always-Night Rule",
-        "body": "The public page is black from top to bottom in every OS colour scheme. The owner can retune the six theme colours in the editor, but the seeded defaults stay dark.",
+        "body": "The public page is black from top to bottom in every OS colour scheme. The owner can retune the theme colours in the editor, but the seeded defaults stay dark.",
         "section": "colors"
       },
       {
+        "name": "The One-Statement Rule",
+        "body": "Big type is emphasis only: the name, the belief line, one statement per section and the How I work numerals. A screen never has two statements, and a pinned section's name is never big type: it is the section label. The one exception is the arrival title, which is big only while its section scrolls in and is docked by the time the dots land.",
+        "section": "typography"
+      },
+      {
         "name": "The Two-Voice Rule",
-        "body": "Antonio is for uppercase headlines and the name. Geist handles everything else. There is no third voice, and there is no mixed-case Antonio.",
+        "body": "Antonio is for the name, statements, titles, section labels and numerals. Geist handles everything else. There is no third voice, and there is no mixed-case Antonio.",
         "section": "typography"
       },
       {
@@ -256,36 +472,90 @@
         "section": "typography"
       },
       {
+        "name": "The Split Rule",
+        "body": "The statement is on the left and the object on the right; on a phone the object comes first. The composition axis never changes from one section to the next, with one exception: the Wheel.",
+        "section": "layout"
+      },
+      {
+        "name": "The Wheel Rule",
+        "body": "How I work turns on a wheel, and a wheel only reads as a real rotation when its centre is the screen's centre. So How I work stacks on the centre axis at every width: the shape above, the numeral on the top of the ring, the title and copy under it, the neighbouring steps dim at both edges. Its label stays top left.",
+        "section": "layout"
+      },
+      {
         "name": "The Stage Rule",
         "body": "The hero owns the first viewport. Nothing else competes above the fold, not even a secondary call to action.",
         "section": "layout"
       },
       {
         "name": "The Lit-Not-Lifted Rule",
-        "body": "Nothing on the public site gets a box-shadow or a raised surface. When something needs to come forward, it gets brighter.",
+        "body": "Nothing on the public site gets a box-shadow or a raised surface. When something needs to come forward, it gets brighter. A plate is framed by dots, never by a border or a shadow.",
         "section": "elevation"
       },
       {
         "name": "The Square Signal Rule",
-        "body": "Zero radius everywhere. The only round thing on the site is a dot.",
+        "body": "Zero radius everywhere. The only round things on the site are dots, rings drawn in dots, and the cursor's 1px hairline ring.",
         "section": "shapes"
+      },
+      {
+        "name": "The One-Motion Rule",
+        "body": "Section content moves in one of four ways, and no section gets its own trick: the light sweep (a hard-edged left-to-right wipe with a 24px slide, drawn by the dots' progress, never a clock); the pen-order draw of the dots; the desktop copy drift (up to 40px, still while pinned); and the arrival title, which docks into the label as the dots land.",
+        "section": "motion"
+      },
+      {
+        "name": "The One-Scroll Rule",
+        "body": "Trigger, play, no lock. Inside a scene with steps, a step triggers once the scroll passes 12% into a transit, in either direction, and then plays by itself (1.6s for a drawing). The page never holds the scroll; a fast scroll carries on and the next trigger takes over. Between scenes the flight follows the scroll.",
+        "section": "motion"
+      },
+      {
+        "name": "The Breather",
+        "body": "Every section after the hero starts three-quarters of a screen of black below the one before (owner, Phase 12). The old section's copy sweeps out as it rises, the dots fly across the black, and only then does the next section's title sweep in, so a transition reads as its own moment and even a fast scroll never stacks two sections' text. The old section's bottom edge is still on screen as the next one's top comes up, so the screen is never empty. FAQ's drawing holds only a quarter of a screen after its questions and Let's connect adds only a quarter of a screen, so the conversation never sits alone on black. It is space, not a pin; it goes where the dots can't run (no WebGL2, no JavaScript) and stays under reduced motion and the pause, so a motion setting never changes the page's length.",
+        "section": "motion"
+      },
+      {
+        "name": "The Moving-Line Rule",
+        "body": "A drawn line that travels (the ring's dots, the numerals' outlines, a drawing hairline) is never Lamp White; it is Lit Grey or Wire Grey. Lamp White is for settled, lit states. The dot field is exempt.",
+        "section": "motion"
+      },
+      {
+        "name": "The Draw-and-Frame Rule",
+        "body": "The dots draw ideas and frame real things. Ideas are drawn in dots: the name, the cube, the product being built. Real things (a project image, the owner's photo, a client's plate, the form) are framed by dots, never made of them. A dot object is never shrunk into a corner, and no screen has a background texture.",
+        "section": "components"
+      },
+      {
+        "name": "Reduced Motion",
+        "body": "No sweep, draw, flight, spin, wobble, drift, arrival title or count. Text appears in place, each shape is drawn still in its resting pose only while its section is pinned, and the canvas is empty between scenes. The scroll-progress hairline stays, because it moves only with the reader's own scroll.",
+        "section": "motion"
+      },
+      {
+        "name": "Pause Motion",
+        "body": "The header's square toggle gives the reduced-motion page to anyone (WCAG 2.2.2). Paused, the cube and the Services stages stop turning and the browser remembers the choice. Where the system already asks for reduced motion the toggle is hidden.",
+        "section": "motion"
       }
     ],
     "dos": [
-      "Do keep every public section on Unlit Black (#000000) and express hierarchy through brightness steps: Lamp White, Lit Grey, Dim Grey.",
-      "Do set section titles in Antonio 700 uppercase and everything else in Geist.",
-      "Do track out uppercase Geist (0.025em for labels, 0.14em for ledes, 0.22em for cues).",
-      "Do keep a real, readable <h1> behind the dot field, and mark only the canvas aria-hidden.",
-      "Do route every motion through the reduced-motion preference. The dot field checks it separately, because it is not a motion component.",
+      "Do give every screen one dot object and one statement (FAQ's numbered questions stand in for its statement), and keep everything else quiet signage.",
+      "Do open every section from Projects to Contact with the section label <h2>: bold Antonio, the name in Lamp White, the count in Dim Grey.",
+      "Do keep every public section on plain Unlit Black (#000000) and express hierarchy through brightness steps: Lamp White, Lit Grey, Dim Grey.",
+      "Do set the name, statements, titles, section labels and numerals in Antonio 700 uppercase and everything else in Geist.",
+      "Do track out uppercase Geist (0.025em for labels, 0.08em for items, 0.14em for the lede, 0.22em for cues).",
+      "Do draw ideas in dots and frame real things with dots.",
+      "Do let the scroll trigger a step and let it play by itself.",
+      "Do keep a real, readable <h1> behind the dot field, and mark only decorative leaves aria-hidden.",
+      "Do route every motion through the reduced-motion preference and the pause toggle.",
       "Do square corners through the --radius token rather than by editing vendored components."
     ],
     "donts": [
-      "Don't introduce an accent hue, gradient or tinted surface. The palette is white at different intensities on black.",
-      "Don't use a border radius anywhere. The only round thing is a dot.",
+      "Don't introduce an accent hue, gradient, tinted surface or background texture. The palette is white at different intensities on black.",
+      "Don't use a border radius anywhere. The only round things are dots, rings drawn in dots, and the cursor's ring.",
       "Don't use shadows or raised cards. Brightness, not elevation, brings things forward.",
       "Don't put readable text in Ghost Grey (#737373). It fails AA at body sizes.",
+      "Don't outline anything interactive in Rule Grey (#1f1f1f). It is for dividers.",
+      "Don't fill a surface with Lamp White unless it is an action (the Contact action, the submit button).",
+      "Don't put two statements on one screen, or set a section's name in big type once it has pinned.",
+      "Don't render a real thing (a photo, a project image, a logo) in dots, or shrink a dot object into a corner.",
+      "Don't hold the scroll, or give a section a content effect outside the light sweep, the pen draw, the desktop copy drift and the arrival title.",
       "Don't let the public page follow the OS light or dark scheme.",
-      "Don't lift copy, layouts or components verbatim from the reference sites. The seeded tagline and nav labels that match adriavale.framer.website are placeholders to replace with the owner's own words."
+      "Don't lift copy, layouts or components from the reference sites, or design a section against one."
     ]
   }
 }

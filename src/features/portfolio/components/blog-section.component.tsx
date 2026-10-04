@@ -1,10 +1,10 @@
 import {
   BLOG_SECTION,
+  CUE_CLASS,
   DUST_SECTION_SPACING_CLASS,
   SECTION_FRAME_CLASS,
   SECTION_HEADLINE_CLASS,
 } from "@/data/page-sections.data"
-import { PROJECTS_CUE_CLASS } from "@/data/portfolio.data"
 import { cn } from "@/lib/utils"
 
 export function BlogSection() {
@@ -29,9 +29,7 @@ export function BlogSection() {
                 key={index}
                 className="relative aspect-[4/3] border border-border"
               >
-                <span
-                  className={cn("absolute top-4 left-4", PROJECTS_CUE_CLASS)}
-                >
+                <span className={cn("absolute top-4 left-4", CUE_CLASS)}>
                   {placeholder}
                 </span>
               </li>

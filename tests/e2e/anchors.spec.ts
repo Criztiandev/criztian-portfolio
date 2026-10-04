@@ -1,11 +1,19 @@
 import { expect, test } from "@playwright/test"
 
+import { PROJECTS_SCENE_ID } from "@/data/portfolio.data"
+import { formatSceneStepId } from "@/features/portfolio/dot-field.rules"
+
 const HEADER_OFFSET = "72px"
 
 const SCENE_DEEP_LINKS = [
-  { hash: "#services", scene: "services" },
+  { hash: "#project", scene: formatSceneStepId(PROJECTS_SCENE_ID, 0) },
+  { hash: "#services", scene: "branding" },
+  { hash: "#process", scene: "listening" },
   { hash: "#about", scene: "about" },
-  { hash: "#process", scene: "process" },
+  { hash: "#testimonials", scene: "testimonials" },
+  { hash: "#faq", scene: "faq" },
+  { hash: "#connect", scene: "connect" },
+  { hash: "#contact", scene: "contact" },
 ]
 
 test.describe("in-page anchors", () => {

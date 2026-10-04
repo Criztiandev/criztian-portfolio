@@ -6,30 +6,43 @@ import {
   CONTEXT_OPTIONS,
   DOT_FIELD_MORPH_TUNING,
   DOT_FIELD_TUNING,
+  DOT_SCENE_MOTION,
   DOT_SCENE_SELECTOR,
   DOT_SLOT_SELECTOR,
   DOT_STAGE_SELECTOR,
+  FOOTER_SIGN_TEXT,
   HEIGHT_CHANGE_IGNORE_PX,
   HERO_INTRO_TIMING,
   IN_PAGE_ANCHOR_SELECTOR,
   JUMP_CANCEL_EVENTS,
   MAX_FRAME_DELTA_SECONDS,
   MORPH_LANDING_TOLERANCE_PX,
+  PLACEHOLDER_TEXT_SAMPLE,
   RESIZE_DEBOUNCE_MS,
+  SCENE_REVEAL_PROPERTY,
   SETTLED_INTRO_SECONDS,
+  TEXT_SHAPE_SEED,
+  THREAD_REVEAL_DECIMALS,
+  THREAD_REVEAL_PROPERTY_PREFIX,
+  THREAD_TURN_PROPERTY,
 } from "@/data/hero.data"
 import {
   hasFontLoadingApi,
   hasResizeObserver,
   prefersReducedMotion,
-  readReducedMotionQuery,
+  subscribeMotionPreference,
 } from "@/features/portfolio/browser-capability.rules"
 import {
+  applyArrivalImpulse,
   buildFontShorthand,
   buildSceneKeyframes,
   buildShapeLibrary,
-  followTimelineProgress,
+  buildTextShapePoints,
+  easeInOutSine,
+  followTriggeredProgress,
+  isRedrawSegment,
   isShapeSpinning,
+  isThreadSegment,
   parseCssPixels,
   parsePrimaryFontFamily,
   parseSceneShapes,
@@ -37,9 +50,16 @@ import {
   resolveCanvasPixelRatio,
   resolveIntroFrame,
   resolvePlacement,
+  resolveRevealRange,
+  resolveSceneReveal,
   resolveSceneState,
+  resolveThreadReveal,
+  resolveThreadState,
+  resolveThreadTurn,
   resolveStaticKeyframe,
+  resolveArrivalStrike,
   resolveTimelinePosition,
+  resolveTriggeredTarget,
   resolveTimelineSegment,
   resolveViewportHeight,
   shouldLoopSleep,
@@ -57,8 +77,10 @@ import {
   resizeDotField,
   uploadOffsets,
   uploadPoints,
+  uploadShapePoints,
 } from "@/features/portfolio/services/dot-field-renderer.service"
 import {
+  sampleTextShape,
   sampleWordToPoints,
   waitForDisplayFont,
 } from "@/features/portfolio/services/dot-field-sampler.service"
@@ -70,6 +92,8 @@ import type {
   DotFieldPlacement,
   DotFieldPointer,
   DotFieldRuntime,
+  DotFieldTextSample,
+  DotFieldVector,
   DotFieldViewport,
   DotSceneKeyframe,
   DotSceneMeasure,
@@ -180,6 +204,10 @@ function readLayout(
   }
 }
 
+function readSceneContainers(stage: HTMLElement): HTMLElement[] {
+  return Array.from(stage.querySelectorAll<HTMLElement>(DOT_SCENE_SELECTOR))
+}
+
 function hasLayoutSizeChanged(
   previous: DotFieldLayout,
   next: DotFieldLayout
@@ -228,6 +256,7 @@ export function useDotField(request: UseDotFieldRequest): void {
   const pointerRef = useRef<DotFieldPointer>(createPointer())
   const viewportRef = useRef<DotFieldViewport | null>(null)
   const nameSampleRef = useRef<DotFieldNameSample | null>(null)
+  const textSampleRef = useRef<DotFieldTextSample | null>(null)
   const rebuildRef = useRef<(() => void) | null>(null)
   const redrawRef = useRef<(() => void) | null>(null)
   const introStartRef = useRef<number | null>(null)
@@ -307,7 +336,6 @@ export function useDotField(request: UseDotFieldRequest): void {
       applyClearColor(runtime, backgroundColorRef.current)
 
       const pointer = pointerRef.current
-      const reducedMotionQuery = readReducedMotionQuery()
       const slots = Array.from(
         stage.querySelectorAll<HTMLElement>(DOT_SLOT_SELECTOR)
       )
@@ -321,11 +349,17 @@ export function useDotField(request: UseDotFieldRequest): void {
       let keyframes = buildKeyframes(layout)
       let progress = 0
       let progressTarget = 0
+      let previousScrollTarget = Number.NaN
+      let threadState: string | null = null
+      const sceneContainers = readSceneContainers(stage)
       let staticIndex = -1
       let spinSeconds = 0
       let isFieldAtRest = true
       let sceneState = stage.dataset.scene ?? ""
       let jumpScrollTop: number | null = null
+      let isSnapPending = false
+      let landedIndex = -1
+      let strikeStartSeconds = Number.NEGATIVE_INFINITY
 
       function applyCanvasSize(): void {
         pixelRatio = resolveCanvasPixelRatio(
@@ -363,6 +397,16 @@ export function useDotField(request: UseDotFieldRequest): void {
 
         if (sample === null) {
           return PLACEHOLDER_NAME_SAMPLE
+        }
+
+        return sample
+      }
+
+      function resolveTextSample(): DotFieldTextSample {
+        const sample = textSampleRef.current
+
+        if (sample === null) {
+          return PLACEHOLDER_TEXT_SAMPLE
         }
 
         return sample
@@ -434,11 +478,69 @@ export function useDotField(request: UseDotFieldRequest): void {
             pixelRatio,
           },
           nameSample: resolveNameSample(),
+          textSample: resolveTextSample(),
           introScale,
           spinSeconds,
           yawOffset,
           isStatic: prefersReducedMotion(),
         })
+      }
+
+      function resolveStrike(): number {
+        if (prefersReducedMotion()) {
+          return 0
+        }
+
+        return resolveArrivalStrike(
+          elapsedSeconds - strikeStartSeconds,
+          DOT_FIELD_MORPH_TUNING.strikeSeconds
+        )
+      }
+
+      function resolveShapeCenter(frame: DotFieldFrame): DotFieldVector {
+        const placement = frame.from
+
+        if (placement.shape !== "name") {
+          return placement.center
+        }
+
+        return {
+          x: placement.center.x + frame.wordCenter.x,
+          y: placement.center.y + frame.wordCenter.y,
+        }
+      }
+
+      function strikeOnLanding(frame: DotFieldFrame): void {
+        if (!Number.isInteger(progress)) {
+          landedIndex = -1
+          return
+        }
+
+        if (progress === landedIndex) {
+          return
+        }
+
+        landedIndex = progress
+
+        const sinceLastStrike = elapsedSeconds - strikeStartSeconds
+
+        if (
+          !canPush() ||
+          sinceLastStrike < DOT_FIELD_MORPH_TUNING.strikeMinIntervalSeconds
+        ) {
+          return
+        }
+
+        strikeStartSeconds = elapsedSeconds
+        writeHomes(frame)
+        applyArrivalImpulse(
+          runtime.homes,
+          runtime.velocities,
+          resolveShapeCenter(frame),
+          (DOT_FIELD_MORPH_TUNING.strikeImpulse * frame.from.inkHeight) /
+            DOT_FIELD_TUNING.referenceInkHeight
+        )
+        isFieldAtRest = false
       }
 
       function buildFrame(): DotFieldFrame | null {
@@ -452,7 +554,14 @@ export function useDotField(request: UseDotFieldRequest): void {
 
         const intro = resolveIntro()
         const nameSample = resolveNameSample()
-        const morphSpin = DOT_FIELD_MORPH_TUNING.morphSpin
+        const isThread = isThreadSegment(fromKeyframe, toKeyframe)
+        const isRedraw = isRedrawSegment(fromKeyframe, toKeyframe)
+
+        let morphSpin = DOT_FIELD_MORPH_TUNING.morphSpin
+
+        if (isThread) {
+          morphSpin *= DOT_FIELD_MORPH_TUNING.threadSpin
+        }
 
         return {
           intro,
@@ -461,7 +570,12 @@ export function useDotField(request: UseDotFieldRequest): void {
             y: nameSample.height / 2,
           },
           wordBounds: nameSample.bounds,
-          progress: segment.progress,
+          progress: isThread
+            ? easeInOutSine(segment.progress)
+            : segment.progress,
+          strike: resolveStrike(),
+          thread: isThread ? 1 : 0,
+          redraw: isRedraw ? 1 : 0,
           from: placeKeyframe(
             fromKeyframe,
             segment.progress * morphSpin,
@@ -490,12 +604,117 @@ export function useDotField(request: UseDotFieldRequest): void {
         stage.dataset.scene = nextState
       }
 
+      function publishThreadState(): void {
+        const nextState = resolveThreadState(keyframes, progressTarget)
+
+        if (nextState === threadState) {
+          return
+        }
+
+        threadState = nextState
+
+        if (nextState === null) {
+          delete stage.dataset.thread
+          return
+        }
+
+        stage.dataset.thread = nextState
+      }
+
+      function writeSceneProperty(
+        container: HTMLElement,
+        property: string,
+        value: number
+      ): void {
+        const formatted = value.toFixed(THREAD_REVEAL_DECIMALS)
+
+        if (container.style.getPropertyValue(property) === formatted) {
+          return
+        }
+
+        container.style.setProperty(property, formatted)
+      }
+
+      function resolveContainerReveal(sceneId: string): number {
+        const range = resolveRevealRange(keyframes, sceneId)
+
+        if (range === null) {
+          return 1
+        }
+
+        return resolveSceneReveal(
+          progress,
+          range,
+          DOT_FIELD_MORPH_TUNING.sceneRevealSpan
+        )
+      }
+
+      function publishThreadReveals(
+        container: HTMLElement,
+        sceneId: string
+      ): void {
+        for (let index = 0; index < keyframes.length; index += 1) {
+          const keyframe = keyframes[index]
+
+          if (keyframe?.isThread !== true || keyframe.scene !== sceneId) {
+            continue
+          }
+
+          writeSceneProperty(
+            container,
+            THREAD_REVEAL_PROPERTY_PREFIX + keyframe.id,
+            resolveThreadReveal(
+              progress,
+              index,
+              DOT_FIELD_MORPH_TUNING.threadCaptionSpan
+            )
+          )
+        }
+      }
+
+      function publishSceneMotion(): void {
+        for (const container of sceneContainers) {
+          const sceneId = container.dataset.dotScene ?? ""
+          const motion = DOT_SCENE_MOTION[sceneId]
+
+          writeSceneProperty(
+            container,
+            SCENE_REVEAL_PROPERTY,
+            resolveContainerReveal(sceneId)
+          )
+
+          if (motion?.isThread !== true) {
+            continue
+          }
+
+          publishThreadReveals(container, sceneId)
+
+          if (motion.hasTurn !== true) {
+            continue
+          }
+
+          const turn = resolveThreadTurn(keyframes, sceneId, progress)
+
+          if (turn !== null) {
+            writeSceneProperty(container, THREAD_TURN_PROPERTY, turn)
+          }
+        }
+      }
+
       function drawSingleFrame(): void {
-        drawDotField(runtime, buildFrame())
+        const frame = buildFrame()
+
+        drawDotField(runtime, frame)
         publishSceneState()
+        publishThreadState()
+        publishSceneMotion()
       }
 
       function canPush(): boolean {
+        if (runtime.context.isContextLost()) {
+          return false
+        }
+
         if (!hasSettledRef.current || prefersReducedMotion()) {
           return false
         }
@@ -554,12 +773,18 @@ export function useDotField(request: UseDotFieldRequest): void {
         previousTimestamp = timestamp
         elapsedSeconds += deltaSeconds
 
-        progress = followTimelineProgress(
-          progress,
-          progressTarget,
-          deltaSeconds,
-          DOT_FIELD_MORPH_TUNING
-        )
+        if (isSnapPending) {
+          progress = progressTarget
+          isSnapPending = false
+        } else {
+          progress = followTriggeredProgress(
+            progress,
+            progressTarget,
+            deltaSeconds,
+            keyframes,
+            DOT_FIELD_MORPH_TUNING
+          )
+        }
 
         if (progress >= 1) {
           notifySettled()
@@ -571,7 +796,13 @@ export function useDotField(request: UseDotFieldRequest): void {
           spinSeconds += deltaSeconds
         }
 
-        const frame = buildFrame()
+        let frame = buildFrame()
+
+        if (frame !== null) {
+          strikeOnLanding(frame)
+          frame = { ...frame, strike: resolveStrike() }
+        }
+
         const isPushing = frame !== null && pointer.isActive && canPush()
 
         if (frame !== null && (isPushing || !isFieldAtRest)) {
@@ -603,12 +834,15 @@ export function useDotField(request: UseDotFieldRequest): void {
 
         drawDotField(runtime, frame)
         publishSceneState()
+        publishThreadState()
+        publishSceneMotion()
 
         const isLoopDone = shouldLoopSleep({
           isFieldAtRest,
           hasSettled: hasSettledRef.current,
           isProgressResting: progress === progressTarget,
           isSpinning,
+          isStriking: frame !== null && frame.strike > 0,
         })
 
         if (isLoopDone) {
@@ -665,11 +899,25 @@ export function useDotField(request: UseDotFieldRequest): void {
         )
         const hasStaticChanged = nextStaticIndex !== staticIndex
 
-        progressTarget = resolveTimelinePosition(
+        const scrollTarget = resolveTimelinePosition(
           keyframes,
           scrolled,
           MORPH_LANDING_TOLERANCE_PX
         )
+
+        progressTarget = resolveTriggeredTarget({
+          keyframes,
+          scrollTarget,
+          previousScrollTarget,
+          committedTarget: progressTarget,
+          trigger: DOT_FIELD_MORPH_TUNING.threadTrigger,
+        })
+
+        if (Math.abs(scrollTarget - previousScrollTarget) > 1) {
+          isSnapPending = true
+        }
+
+        previousScrollTarget = scrollTarget
         staticIndex = nextStaticIndex
 
         return hasStaticChanged
@@ -678,6 +926,7 @@ export function useDotField(request: UseDotFieldRequest): void {
       function syncToScroll(): void {
         readScrollTargets()
         progress = progressTarget
+        landedIndex = Number.isInteger(progress) ? progress : -1
       }
 
       function onScroll(): void {
@@ -745,7 +994,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         pointer.y = (event.clientY - layerRect.top) * pixelRatio
         pointer.isActive = true
 
-        if (reducedMotionQuery?.matches === true || !canPush()) {
+        if (prefersReducedMotion() || !canPush()) {
           return
         }
 
@@ -862,6 +1111,7 @@ export function useDotField(request: UseDotFieldRequest): void {
 
       for (const slot of slots) {
         resizeObserver?.observe(slot)
+        slot.addEventListener("pointerover", onPointerMove)
         slot.addEventListener("pointermove", onPointerMove)
         slot.addEventListener("pointerdown", onPointerMove)
         slot.addEventListener("pointerleave", onPointerLeave)
@@ -878,7 +1128,9 @@ export function useDotField(request: UseDotFieldRequest): void {
       window.addEventListener("blur", onPointerLeave)
       document.addEventListener("visibilitychange", onVisibilityChanged)
       canvas.addEventListener("webglcontextlost", onContextLost)
-      reducedMotionQuery?.addEventListener("change", onMotionPreferenceChanged)
+      const releaseMotionPreference = subscribeMotionPreference(
+        onMotionPreferenceChanged
+      )
 
       redrawRef.current = drawSingleFrame
 
@@ -892,6 +1144,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         resizeObserver?.disconnect()
 
         for (const slot of slots) {
+          slot.removeEventListener("pointerover", onPointerMove)
           slot.removeEventListener("pointermove", onPointerMove)
           slot.removeEventListener("pointerdown", onPointerMove)
           slot.removeEventListener("pointerleave", onPointerLeave)
@@ -908,10 +1161,7 @@ export function useDotField(request: UseDotFieldRequest): void {
         window.removeEventListener("blur", onPointerLeave)
         document.removeEventListener("visibilitychange", onVisibilityChanged)
         canvas.removeEventListener("webglcontextlost", onContextLost)
-        reducedMotionQuery?.removeEventListener(
-          "change",
-          onMotionPreferenceChanged
-        )
+        releaseMotionPreference()
 
         destroyRuntime(runtime)
 
@@ -980,6 +1230,32 @@ export function useDotField(request: UseDotFieldRequest): void {
         primaryFamily
       )
 
+      function buildSign(
+        runtime: DotFieldRuntime,
+        sampleViewport: DotFieldViewport
+      ): void {
+        const sample = sampleTextShape({
+          text: FOOTER_SIGN_TEXT.toUpperCase(),
+          fontFamily: primaryFamily,
+          viewport: sampleViewport,
+          tuning: DOT_FIELD_TUNING,
+        })
+
+        if (sample === null) {
+          return
+        }
+
+        uploadShapePoints(
+          runtime,
+          "sign",
+          buildTextShapePoints(sample, TEXT_SHAPE_SEED)
+        )
+        textSampleRef.current = {
+          width: sample.right - sample.left,
+          height: sample.inkHeight,
+        }
+      }
+
       function buildGeometry(): void {
         const runtime = runtimeRef.current
         const viewport = viewportRef.current
@@ -1015,6 +1291,7 @@ export function useDotField(request: UseDotFieldRequest): void {
           },
           inkHeight: sample.inkHeight,
         }
+        buildSign(runtime, sampleViewport)
         canvas.dataset.pointCount = String(sample.count)
         stage.dataset.status = "running"
 

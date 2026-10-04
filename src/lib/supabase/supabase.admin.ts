@@ -6,6 +6,13 @@ import { publicEnv } from "@/config/env.public"
 import { serverEnv } from "@/config/env.server"
 import type { Database } from "@/types/database.type"
 
+function fetchUncached(
+  input: RequestInfo | URL,
+  init?: RequestInit
+): Promise<Response> {
+  return fetch(input, { ...init, cache: "no-store" })
+}
+
 export function createSupabaseAdminClient() {
   return createClient<Database>(
     publicEnv.NEXT_PUBLIC_SUPABASE_URL,
@@ -14,6 +21,9 @@ export function createSupabaseAdminClient() {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
+      },
+      global: {
+        fetch: fetchUncached,
       },
     }
   )

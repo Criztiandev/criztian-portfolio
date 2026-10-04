@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { NEW_PROJECT_ITEM } from "@/data/site-content.data"
+import { NEW_PROJECT_ITEM, PROJECTS_MAX } from "@/data/site-content.data"
+import { parseSceneShapes } from "@/features/portfolio/dot-field.rules"
 import {
-  formatProjectCount,
+  buildDeckShapes,
   resolveProjectHref,
   resolveProjectImage,
   selectVisibleProjects,
@@ -90,10 +91,25 @@ describe("selectVisibleProjects", () => {
   })
 })
 
-describe("formatProjectCount", () => {
-  it("pads the count to two digits after a slash", () => {
-    expect(formatProjectCount(0)).toBe("/ 00")
-    expect(formatProjectCount(3)).toBe("/ 03")
-    expect(formatProjectCount(12)).toBe("/ 12")
+describe("buildDeckShapes", () => {
+  it("falls back to dust when no project is visible", () => {
+    expect(buildDeckShapes(0)).toBe("dust")
+  })
+
+  it("frames each visible project once", () => {
+    expect(buildDeckShapes(1)).toBe("frame")
+    expect(buildDeckShapes(3)).toBe("frame frame frame")
+  })
+
+  it("parses back to one frame per project, up to the most projects", () => {
+    for (let count = 1; count <= PROJECTS_MAX; count += 1) {
+      const shapes = parseSceneShapes(buildDeckShapes(count))
+
+      expect(shapes).toHaveLength(count)
+
+      for (const shape of shapes) {
+        expect(shape).toBe("frame")
+      }
+    }
   })
 })

@@ -3,26 +3,44 @@ import { describe, expect, it } from "vitest"
 import {
   CUBE_EDGE_JITTER,
   DOT_FIELD_MORPH_TUNING,
+  DOT_SCENE_MOTION,
   DOT_FIELD_TUNING,
+  DOT_FRAME_OUTSET,
   DOT_SHAPE_TUNING,
-  DOT_SPHERE_TUNING,
+  FRAME_EDGE,
+  GATHER_SHAPE,
+  GROWN_FRAME_TOLERANCE_PX,
   HIDDEN_RANK,
   MAX_CANVAS_PIXELS,
   SHAPE_POINTS,
   SHAPE_STRIDE,
+  TEXT_SHAPE_SHRINK,
 } from "@/data/hero.data"
+import {
+  CONNECT_SCENE_SHAPES,
+  CONTACT_SCENE_SHAPES,
+  FAQ_SCENE_SHAPES,
+  FOOTER_SCENE_SHAPES,
+  FRAME_SCENE_SHAPES,
+  PROCESS_SCENE_SHAPES,
+  SERVICES_SCENE_SHAPES,
+} from "@/data/page-sections.data"
+import { PROJECTS_SCENE_ID } from "@/data/portfolio.data"
 import {
   buildCubeRotation,
   buildFontShorthand,
   buildSceneKeyframes,
+  buildTextShapePoints,
   clampFontSize,
   createRandomSource,
   followMorphProgress,
-  followTimelineProgress,
+  followTriggeredProgress,
+  formatSceneStepId,
   generateCubePoints,
   generateDustPoints,
-  generateSpherePoints,
+  isRedrawSegment,
   isShapeSpinning,
+  isThreadSegment,
   padNamePoints,
   padShapePoints,
   parseCssPixels,
@@ -32,16 +50,28 @@ import {
   resolveCanvasPixelRatio,
   resolveDotPitch,
   resolveFontSize,
+  resolveFrameOutset,
   resolvePixelRatio,
   resolvePlacement,
   resolvePointTotal,
+  resolvePushRadius,
+  resolveRevealRange,
+  resolveSceneRange,
+  resolveSceneReveal,
   resolveSceneState,
   resolveStaticKeyframe,
+  resolveTextShapeShrink,
+  resolveThreadReveal,
+  resolveThreadState,
+  resolveThreadTurn,
   resolveTimelinePosition,
+  resolveTriggeredTarget,
   resolveTimelineSegment,
   resolveViewportHeight,
   resolveVisibleFraction,
   samplePixelGrid,
+  resolveArrivalStrike,
+  applyArrivalImpulse,
   shouldLoopSleep,
   shouldRebuildPoints,
   stepDotPhysics,
@@ -50,6 +80,8 @@ import {
 import type {
   DotFieldPlacement,
   DotFieldPlacementRequest,
+  DotFieldRect,
+  DotFieldSample,
   DotSceneKeyframe,
   DotSceneMeasure,
 } from "@/types/hero.type"
@@ -199,6 +231,51 @@ describe("resolveFontSize", () => {
         probeSize: 100,
       })
     ).toBe(100)
+  })
+})
+
+describe("resolvePushRadius", () => {
+  it("is 300px at the reference ink height", () => {
+    expect(
+      resolvePushRadius(DOT_FIELD_TUNING.referenceInkHeight, DOT_FIELD_TUNING)
+    ).toBe(300)
+  })
+
+  it("scales with the ink height", () => {
+    expect(
+      resolvePushRadius(
+        DOT_FIELD_TUNING.referenceInkHeight / 2,
+        DOT_FIELD_TUNING
+      )
+    ).toBe(150)
+  })
+
+  it("is the radius the physics pushes within", () => {
+    const radius = resolvePushRadius(
+      DOT_FIELD_TUNING.referenceInkHeight,
+      DOT_FIELD_TUNING
+    )
+
+    function pushFrom(distance: number): number {
+      const offsets = new Float32Array(2)
+
+      stepDotPhysics(
+        {
+          homes: new Float32Array([distance, 0, 1]),
+          offsets,
+          velocities: new Float32Array(2),
+          inkHeight: DOT_FIELD_TUNING.referenceInkHeight,
+          pointer: { x: 0, y: 0, isActive: true },
+          deltaSeconds: 1 / 60,
+        },
+        DOT_FIELD_TUNING
+      )
+
+      return offsets[0] ?? 0
+    }
+
+    expect(pushFrom(radius - 1)).toBeGreaterThan(0)
+    expect(pushFrom(radius + 1)).toBe(0)
   })
 })
 
@@ -406,9 +483,23 @@ function buildScene(overrides: Partial<DotSceneMeasure>): DotSceneMeasure {
 }
 
 const TIMELINE: DotSceneKeyframe[] = [
-  { id: "name", shape: "name", start: 0, end: 90, slot: SLOT },
-  { id: "cube", shape: "cube", start: 900, end: 1500, slot: SLOT },
-  { id: "dust", shape: "dust", start: 2000, end: 3000, slot: null },
+  { id: "name", scene: "name", shape: "name", start: 0, end: 90, slot: SLOT },
+  {
+    id: "cube",
+    scene: "cube",
+    shape: "cube",
+    start: 900,
+    end: 1500,
+    slot: SLOT,
+  },
+  {
+    id: "dust",
+    scene: "dust",
+    shape: "dust",
+    start: 2000,
+    end: 3000,
+    slot: null,
+  },
 ]
 
 const VIEWPORT = { width: 1440, height: 900, pixelRatio: 2 }
@@ -420,6 +511,11 @@ const NAME_SAMPLE = {
   inkHeight: 800,
 }
 
+const TEXT_SAMPLE = {
+  width: 2268,
+  height: 456,
+}
+
 function buildPlacementRequest(
   keyframe: DotSceneKeyframe,
   overrides: Partial<DotFieldPlacementRequest>
@@ -428,6 +524,7 @@ function buildPlacementRequest(
     keyframe,
     viewport: VIEWPORT,
     nameSample: NAME_SAMPLE,
+    textSample: TEXT_SAMPLE,
     introScale: 1,
     spinSeconds: 0,
     yawOffset: 0,
@@ -490,30 +587,6 @@ describe("generateCubePoints", () => {
   })
 })
 
-describe("generateSpherePoints", () => {
-  it("stipples rings and meridians on the unit sphere", () => {
-    const points = generateSpherePoints(600, DOT_SPHERE_TUNING)
-    const bound = DOT_SPHERE_TUNING.jitter * 1.5 * Math.sqrt(3) + 0.000001
-
-    expect(points).toHaveLength(600 * SHAPE_STRIDE)
-
-    for (let index = 0; index < 600; index += 1) {
-      const [pointX, pointY, pointZ, rank] = readShapePoint(points, index) as [
-        number,
-        number,
-        number,
-        number,
-      ]
-
-      expect(Math.abs(Math.hypot(pointX, pointY, pointZ) - 1)).toBeLessThan(
-        bound
-      )
-      expect(rank).toBeGreaterThanOrEqual(0)
-      expect(rank).toBeLessThan(1)
-    }
-  })
-})
-
 describe("generateDustPoints", () => {
   it("scatters flat dots across the unit square", () => {
     const points = generateDustPoints(300)
@@ -567,12 +640,177 @@ describe("padShapePoints", () => {
       HIDDEN_RANK,
     ])
   })
+
+  it("hides every point of a shape that has not been sampled yet", () => {
+    expect(Array.from(padShapePoints(new Float32Array(0), 3))).toEqual([
+      0,
+      0,
+      0,
+      HIDDEN_RANK,
+      0,
+      0,
+      0,
+      HIDDEN_RANK,
+      0,
+      0,
+      0,
+      HIDDEN_RANK,
+    ])
+  })
 })
 
 describe("resolvePointTotal", () => {
   it("never drops below the shape budget", () => {
     expect(resolvePointTotal(100)).toBe(SHAPE_POINTS)
     expect(resolvePointTotal(SHAPE_POINTS + 5)).toBe(SHAPE_POINTS + 5)
+  })
+})
+
+describe("resolveTextShapeShrink", () => {
+  it("keeps a text shape that fits the shape budget at full size", () => {
+    expect(resolveTextShapeShrink(SHAPE_POINTS)).toBe(1)
+    expect(resolveTextShapeShrink(100)).toBe(1)
+  })
+
+  it("scales an oversized text by the root of its excess, with a margin", () => {
+    const exact = Math.sqrt(SHAPE_POINTS / 15553)
+
+    expect(resolveTextShapeShrink(15553)).toBeCloseTo(
+      exact * TEXT_SHAPE_SHRINK,
+      9
+    )
+    expect(resolveTextShapeShrink(15553)).toBeLessThan(exact)
+  })
+
+  it("brings a count that scales with the area under budget in one resample", () => {
+    for (const count of [SHAPE_POINTS + 1, 15553, 48000]) {
+      const scale = resolveTextShapeShrink(count)
+
+      expect(count * scale * scale, String(count)).toBeLessThan(SHAPE_POINTS)
+    }
+  })
+})
+
+describe("buildTextShapePoints", () => {
+  const sample: DotFieldSample = {
+    positions: new Float32Array([
+      20, 10, 1, 23, 10, 1, 26, 10, 0.6, 20, 13, 1, 23, 13, 1, 26, 13, 0.8,
+    ]),
+    count: 6,
+    left: 18,
+    right: 30,
+    top: 8,
+    inkHeight: 8,
+  }
+
+  function collectShownOffsets(points: Float32Array): number[] {
+    const offsets: number[] = []
+
+    for (let offset = 0; offset < points.length; offset += SHAPE_STRIDE) {
+      if (points[offset + 3] !== HIDDEN_RANK) {
+        offsets.push(offset)
+      }
+    }
+
+    return offsets
+  }
+
+  function readCoordinates(points: Float32Array): number[][] {
+    const coordinates: number[][] = []
+
+    for (const offset of collectShownOffsets(points)) {
+      coordinates.push([points[offset], points[offset + 1], points[offset + 2]])
+    }
+
+    return coordinates
+  }
+
+  it("centres the dots on the ink box with y up and z flat", () => {
+    const points = buildTextShapePoints(sample, 7)
+
+    expect(points).toHaveLength(SHAPE_POINTS * SHAPE_STRIDE)
+    expect(readCoordinates(points)).toEqual([
+      [-4, 2, 0],
+      [-4, -1, 0],
+      [-1, 2, 0],
+      [-1, -1, 0],
+      [2, 2, 0],
+      [2, -1, 0],
+    ])
+  })
+
+  it("orders the dots by column, then by row, so they arrive left to right", () => {
+    const points = buildTextShapePoints(sample, 7)
+    const offsets = collectShownOffsets(points)
+
+    expect(offsets).toHaveLength(sample.count)
+
+    for (let index = 1; index < offsets.length; index += 1) {
+      const previous = offsets[index - 1]
+      const current = offsets[index]
+      const isSameColumn = points[current] === points[previous]
+
+      expect(points[current]).toBeGreaterThanOrEqual(points[previous])
+
+      if (isSameColumn) {
+        expect(points[current + 1]).toBeLessThan(points[previous + 1])
+      }
+    }
+  })
+
+  it("gives the dots the seed's ranks in column order, every one below one", () => {
+    const points = buildTextShapePoints(sample, 7)
+    const nextRandom = createRandomSource(7)
+    const ranks: number[] = []
+    const seeded: number[] = []
+
+    for (const offset of collectShownOffsets(points)) {
+      ranks.push(points[offset + 3])
+      seeded.push(Math.fround(nextRandom()))
+      expect(points[offset + 3]).toBeGreaterThanOrEqual(0)
+      expect(points[offset + 3]).toBeLessThan(1)
+    }
+
+    expect(ranks).toHaveLength(sample.count)
+    expect(ranks).toEqual(seeded)
+  })
+
+  it("spreads the dots evenly over every pen key, each gap a hidden copy of the dot before it", () => {
+    const points = buildTextShapePoints(sample, 7)
+    const expected: number[] = []
+    const shown: number[] = []
+    const strays: number[] = []
+    let shownOffset = 0
+
+    for (let dotIndex = 0; dotIndex < sample.count; dotIndex += 1) {
+      expected.push(Math.floor((dotIndex * SHAPE_POINTS) / sample.count))
+    }
+
+    for (let offset = 0; offset < points.length; offset += SHAPE_STRIDE) {
+      if (points[offset + 3] !== HIDDEN_RANK) {
+        shown.push(offset / SHAPE_STRIDE)
+        shownOffset = offset
+        continue
+      }
+
+      for (let axis = 0; axis < 3; axis += 1) {
+        if (points[offset + axis] !== points[shownOffset + axis]) {
+          strays.push(offset / SHAPE_STRIDE)
+        }
+      }
+    }
+
+    expect(shown).toEqual(expected)
+    expect(strays).toEqual([])
+  })
+
+  it("returns no dots for an empty sample", () => {
+    expect(
+      buildTextShapePoints(
+        { ...sample, positions: new Float32Array(0), count: 0 },
+        7
+      )
+    ).toHaveLength(0)
   })
 })
 
@@ -764,22 +1002,9 @@ describe("followMorphProgress", () => {
   })
 })
 
-describe("followTimelineProgress", () => {
-  it("eases within one segment", () => {
-    const next = followTimelineProgress(1, 1.8, 1 / 60, DOT_FIELD_MORPH_TUNING)
-
-    expect(next).toBeGreaterThan(1)
-    expect(next).toBeLessThan(1.8)
-  })
-
-  it("snaps when the target is more than one segment away", () => {
-    expect(followTimelineProgress(0, 3, 1 / 60, DOT_FIELD_MORPH_TUNING)).toBe(3)
-  })
-})
-
 describe("parseSceneShapes", () => {
   it("keeps known shapes in order and drops the rest", () => {
-    expect(parseSceneShapes("cube  bogus sphere")).toEqual(["cube", "sphere"])
+    expect(parseSceneShapes("cube  bogus frame")).toEqual(["cube", "frame"])
     expect(parseSceneShapes(undefined)).toEqual([])
   })
 })
@@ -792,11 +1017,20 @@ describe("parseCssPixels", () => {
 })
 
 describe("resolveViewportHeight", () => {
-  it("reads the small viewport from the tallest pinned frame", () => {
+  it("reads the small viewport from the shortest pinned frame", () => {
     const scenes = [
       buildScene({ stickyTop: 0, frameHeight: 900 }),
       buildScene({ stickyTop: 72, frameHeight: 828 }),
       buildScene({ slot: null, frameHeight: 0 }),
+    ]
+
+    expect(resolveViewportHeight(scenes, 1000)).toBe(900)
+  })
+
+  it("ignores a frame that grew past one viewport", () => {
+    const scenes = [
+      buildScene({ stickyTop: 0, frameHeight: 900 }),
+      buildScene({ stickyTop: 72, frameHeight: 1040 }),
     ]
 
     expect(resolveViewportHeight(scenes, 1000)).toBe(900)
@@ -817,6 +1051,7 @@ describe("buildSceneKeyframes", () => {
 
     expect(keyframe).toEqual({
       id: "cube",
+      scene: "cube",
       shape: "cube",
       start: 928,
       end: 1600,
@@ -845,6 +1080,68 @@ describe("buildSceneKeyframes", () => {
     expect(keyframe?.slot).toBeNull()
   })
 
+  it("marks a pinned frame that grew past the viewport, and only that one", () => {
+    const [grown, fitting, dust] = buildSceneKeyframes(
+      [
+        buildScene({ frameHeight: 1040 }),
+        buildScene({
+          id: "about",
+          shapes: ["frame"],
+          containerTop: 3000,
+          containerBottom: 4500,
+          frameHeight: 828 + GROWN_FRAME_TOLERANCE_PX,
+        }),
+        buildScene({
+          id: "dust",
+          shapes: ["dust"],
+          containerTop: 5000,
+          containerBottom: 7000,
+          frameHeight: 0,
+          slot: null,
+        }),
+      ],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+
+    expect(grown?.isGrown).toBe(true)
+    expect(fitting?.isGrown).toBeUndefined()
+    expect(dust?.isGrown).toBeUndefined()
+  })
+
+  it("keeps FAQ lit while it is read, through the transit to the handshake", () => {
+    const keyframes = buildSceneKeyframes(
+      [
+        buildScene({
+          id: "faq",
+          shapes: parseSceneShapes(FAQ_SCENE_SHAPES),
+        }),
+        buildScene({
+          id: "connect",
+          shapes: parseSceneShapes(CONNECT_SCENE_SHAPES),
+          containerTop: 3000,
+          containerBottom: 4500,
+        }),
+      ],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+    const [faq, connect] = keyframes
+
+    expect(DOT_SCENE_MOTION.faq?.isReadAfterPin).toBe(true)
+    expect(faq?.isReadAfterPin).toBe(true)
+    expect(faq?.isGrown).toBeUndefined()
+    expect(connect?.isReadAfterPin).toBeUndefined()
+    expect(resolveRevealRange(keyframes, "faq")).toEqual({
+      firstIndex: 0,
+      lastIndex: 1,
+    })
+    expect(resolveRevealRange(keyframes, "connect")).toEqual({
+      firstIndex: 1,
+      lastIndex: 1,
+    })
+  })
+
   it("never ends a scene before it starts", () => {
     const [keyframe] = buildSceneKeyframes(
       [buildScene({ containerBottom: 1100 })],
@@ -855,12 +1152,12 @@ describe("buildSceneKeyframes", () => {
     expect(keyframe?.end).toBe(keyframe?.start)
   })
 
-  it("splits a multi-step scene evenly with a morph gap between steps", () => {
+  it("centres each step on the copy pitch with the morph on each boundary", () => {
     const keyframes = buildSceneKeyframes(
       [
         buildScene({
-          id: "services",
-          shapes: ["cube", "sphere", "dust"],
+          id: "steps",
+          shapes: ["cube", "frame", "dust"],
           containerTop: 1072,
         }),
       ],
@@ -874,10 +1171,125 @@ describe("buildSceneKeyframes", () => {
     }
 
     expect(ranges).toEqual([
-      ["cube", 1000, 1160],
-      ["sphere", 1240, 1360],
-      ["dust", 1440, 1600],
+      ["cube", 1000, 1090],
+      ["frame", 1210, 1390],
+      ["dust", 1510, 1600],
     ])
+  })
+
+  it("gives a threaded scene its own morph share and threads its steps", () => {
+    const keyframes = buildSceneKeyframes(
+      [
+        buildScene({
+          id: "services",
+          shapes: ["cube", "frame", "dust"],
+          containerTop: 1072,
+        }),
+      ],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+    const share = DOT_SCENE_MOTION.services?.share ?? 0
+    const halfGap = (300 * share) / 2
+
+    expect(keyframes[0]?.end).toBeCloseTo(1150 - halfGap, 6)
+    expect(keyframes[1]?.start).toBeCloseTo(1150 + halfGap, 6)
+
+    for (const keyframe of keyframes) {
+      expect(keyframe.isThread).toBe(true)
+    }
+  })
+
+  it("names each step's scene and threads How I work's steps too", () => {
+    const keyframes = buildSceneKeyframes(
+      [
+        buildScene({
+          id: "process",
+          shapes: ["listening", "planning", "visualising"],
+          containerTop: 1072,
+        }),
+      ],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+    const share = DOT_SCENE_MOTION.process?.share ?? 0
+    const halfGap = (300 * share) / 2
+
+    expect(keyframes[0]?.end).toBeCloseTo(1150 - halfGap, 6)
+
+    for (const keyframe of keyframes) {
+      expect(keyframe.scene).toBe("process")
+      expect(keyframe.isThread).toBe(true)
+    }
+  })
+
+  it("never threads a single-shape scene", () => {
+    const keyframes = buildSceneKeyframes(
+      [buildScene({ id: "services", shapes: ["dust"] })],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+
+    expect(keyframes[0]).not.toHaveProperty("isThread")
+  })
+
+  it("numbers each step of a scene that repeats its shape", () => {
+    const keyframes = buildSceneKeyframes(
+      [
+        buildScene({
+          id: PROJECTS_SCENE_ID,
+          shapes: ["frame", "frame", "frame"],
+          containerTop: 1072,
+        }),
+      ],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+    const share = DOT_SCENE_MOTION.project?.share ?? 0
+    const halfGap = (300 * share) / 2
+    const ranges: (string | number)[][] = []
+
+    for (const keyframe of keyframes) {
+      ranges.push([keyframe.id, keyframe.start, keyframe.end])
+      expect(keyframe.scene).toBe(PROJECTS_SCENE_ID)
+      expect(keyframe.shape).toBe("frame")
+      expect(keyframe.slot).toEqual(SLOT)
+      expect(keyframe.isThread).toBe(true)
+    }
+
+    expect(ranges).toEqual([
+      ["project-1", 1000, 1150 - halfGap],
+      ["project-2", 1150 + halfGap, 1450 - halfGap],
+      ["project-3", 1450 + halfGap, 1600],
+    ])
+  })
+
+  it("keeps the shape ids for a scene whose shapes are all different", () => {
+    const shapes = parseSceneShapes(SERVICES_SCENE_SHAPES)
+    const keyframes = buildSceneKeyframes(
+      [buildScene({ id: "services", shapes })],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+    const ids: string[] = []
+
+    for (const keyframe of keyframes) {
+      ids.push(keyframe.id)
+    }
+
+    expect(ids).toEqual(shapes)
+  })
+
+  it("keeps the scene id for a one-project deck and never threads it", () => {
+    const keyframes = buildSceneKeyframes(
+      [buildScene({ id: PROJECTS_SCENE_ID, shapes: ["frame"] })],
+      900,
+      DOT_FIELD_MORPH_TUNING
+    )
+
+    expect(keyframes).toHaveLength(1)
+    expect(keyframes[0]?.id).toBe(PROJECTS_SCENE_ID)
+    expect(keyframes[0]).not.toHaveProperty("isThread")
   })
 
   it("skips a scene without a known shape", () => {
@@ -888,6 +1300,704 @@ describe("buildSceneKeyframes", () => {
         DOT_FIELD_MORPH_TUNING
       )
     ).toEqual([])
+  })
+})
+
+const THREAD_TIMELINE: DotSceneKeyframe[] = [
+  { id: "cube", scene: "cube", shape: "cube", start: 0, end: 100, slot: SLOT },
+  {
+    id: "branding",
+    scene: "services",
+    shape: "branding",
+    start: 500,
+    end: 600,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "web-design",
+    scene: "services",
+    shape: "web-design",
+    start: 1000,
+    end: 1100,
+    slot: SLOT,
+    isThread: true,
+  },
+]
+
+const SERVICE_TIMELINE: DotSceneKeyframe[] = [
+  { id: "cube", scene: "cube", shape: "cube", start: 0, end: 100, slot: SLOT },
+  {
+    id: "branding",
+    scene: "services",
+    shape: "branding",
+    start: 500,
+    end: 600,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "web-design",
+    scene: "services",
+    shape: "web-design",
+    start: 1000,
+    end: 1100,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "development",
+    scene: "services",
+    shape: "development",
+    start: 1500,
+    end: 1600,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "listening",
+    scene: "process",
+    shape: "listening",
+    start: 2000,
+    end: 2100,
+    slot: SLOT,
+  },
+]
+
+const TRIGGER = DOT_FIELD_MORPH_TUNING.threadTrigger
+
+function triggerAt(
+  scrollTarget: number,
+  previousScrollTarget: number,
+  committedTarget: number,
+  keyframes: DotSceneKeyframe[] = THREAD_TIMELINE
+): number {
+  return resolveTriggeredTarget({
+    keyframes,
+    scrollTarget,
+    previousScrollTarget,
+    committedTarget,
+    trigger: TRIGGER,
+  })
+}
+
+describe("resolveTriggeredTarget", () => {
+  it("keeps scrubbing a segment that is not threaded", () => {
+    expect(triggerAt(0.4, 0.3, 0.3)).toBe(0.4)
+  })
+
+  it("commits to the next shape once a downward scroll passes the trigger", () => {
+    expect(triggerAt(1 + TRIGGER / 2, 1, 1)).toBe(1)
+    expect(triggerAt(1 + TRIGGER, 1 + TRIGGER / 2, 1)).toBe(2)
+  })
+
+  it("keeps playing forward while the reader keeps scrolling down", () => {
+    expect(triggerAt(1.6, 1.5, 2)).toBe(2)
+  })
+
+  it("commits back once an upward scroll passes the trigger from the end", () => {
+    expect(triggerAt(2 - TRIGGER / 2, 2, 2)).toBe(2)
+    expect(triggerAt(1.5, 1.6, 2)).toBe(1)
+  })
+
+  it("stops at the near shape when a fast scroll enters from outside", () => {
+    expect(triggerAt(1.5, 0.8, 0.8)).toBe(1)
+    expect(triggerAt(1.5, 2.4, 2.4)).toBe(2)
+  })
+
+  it("holds the committed shape when the scroll stops", () => {
+    expect(triggerAt(1.4, 1.4, 2)).toBe(2)
+  })
+
+  it("lands a fresh load on the nearer shape", () => {
+    expect(triggerAt(1.3, Number.NaN, 0.5)).toBe(1)
+    expect(triggerAt(1.7, Number.NaN, 0.5)).toBe(2)
+  })
+})
+
+describe("followTriggeredProgress", () => {
+  const seconds = DOT_FIELD_MORPH_TUNING.threadDrawSeconds
+
+  it("draws a threaded segment at a constant speed", () => {
+    expect(
+      followTriggeredProgress(
+        1,
+        2,
+        seconds / 4,
+        THREAD_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+    ).toBeCloseTo(1.25, 6)
+  })
+
+  it("lands exactly on the target", () => {
+    expect(
+      followTriggeredProgress(
+        1.99,
+        2,
+        seconds / 4,
+        THREAD_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+    ).toBe(2)
+  })
+
+  it("follows any other segment as before", () => {
+    expect(
+      followTriggeredProgress(
+        0.2,
+        0.6,
+        0.1,
+        THREAD_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+    ).toBe(followMorphProgress(0.2, 0.6, 0.1, DOT_FIELD_MORPH_TUNING))
+  })
+
+  it("hurries through a drawing the reader has already scrolled past, never skipping it", () => {
+    const frame = 1 / 60
+    const next = followTriggeredProgress(
+      1.4,
+      3,
+      frame,
+      SERVICE_TIMELINE,
+      DOT_FIELD_MORPH_TUNING
+    )
+
+    expect(next).toBeGreaterThan(1.4 + frame / seconds)
+    expect(next).toBeLessThan(2)
+  })
+
+  it("finishes the passed drawing fast, then draws the committed one at its own pace", () => {
+    const frame = 1 / 60
+    let progress = 1.4
+    let frames = 0
+    let framesToPassedShape = 0
+
+    while (progress < 3 && frames < 600) {
+      const next = followTriggeredProgress(
+        progress,
+        3,
+        frame,
+        SERVICE_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+
+      expect(next - progress).toBeLessThan(0.1)
+      progress = next
+      frames += 1
+
+      if (framesToPassedShape === 0 && progress >= 2) {
+        framesToPassedShape = frames
+      }
+    }
+
+    expect(progress).toBe(3)
+    expect(framesToPassedShape * frame).toBeLessThan(0.5)
+    expect(frames * frame).toBeLessThan(seconds + 0.5)
+  })
+
+  it("un-draws back through a threaded shape without skipping it", () => {
+    const next = followTriggeredProgress(
+      2.6,
+      1,
+      1 / 60,
+      SERVICE_TIMELINE,
+      DOT_FIELD_MORPH_TUNING
+    )
+
+    expect(next).toBeLessThan(2.6)
+    expect(next).toBeGreaterThan(2)
+  })
+
+  it("follows the flight out of the scene smoothly, even two segments behind", () => {
+    const next = followTriggeredProgress(
+      3,
+      4.8,
+      1 / 60,
+      SERVICE_TIMELINE,
+      DOT_FIELD_MORPH_TUNING
+    )
+
+    expect(next).toBe(
+      followMorphProgress(3, 4.8, 1 / 60, DOT_FIELD_MORPH_TUNING)
+    )
+    expect(next).toBeLessThan(4)
+  })
+})
+
+describe("resolveThreadReveal", () => {
+  const span = DOT_FIELD_MORPH_TUNING.threadCaptionSpan
+
+  it("shows a caption fully while its drawing is formed", () => {
+    expect(resolveThreadReveal(2, 2, span)).toBe(1)
+  })
+
+  it("hides a caption once the pen is half way to the next drawing", () => {
+    expect(resolveThreadReveal(2 + span, 2, span)).toBe(0)
+    expect(resolveThreadReveal(2 - span, 2, span)).toBe(0)
+    expect(resolveThreadReveal(3.4, 2, span)).toBe(0)
+  })
+
+  it("never shows two captions at once during a hop", () => {
+    for (let step = 0; step <= 20; step += 1) {
+      const progress = 1 + step / 20
+      const outgoing = resolveThreadReveal(progress, 1, span)
+      const incoming = resolveThreadReveal(progress, 2, span)
+
+      expect(Math.min(outgoing, incoming)).toBe(0)
+    }
+  })
+
+  it("follows the pen both ways, so scrolling back reverses it", () => {
+    const early = resolveThreadReveal(1.7, 2, span)
+    const late = resolveThreadReveal(1.9, 2, span)
+
+    expect(early).toBeGreaterThan(0)
+    expect(late).toBeGreaterThan(early)
+    expect(resolveThreadReveal(2.3, 2, span)).toBeCloseTo(early, 9)
+  })
+})
+
+describe("resolveSceneRange", () => {
+  it("spans every step of a multi-step scene", () => {
+    expect(resolveSceneRange(SERVICE_TIMELINE, "services")).toEqual({
+      firstIndex: 1,
+      lastIndex: 3,
+    })
+  })
+
+  it("is one index for a single-frame scene", () => {
+    expect(resolveSceneRange(SERVICE_TIMELINE, "cube")).toEqual({
+      firstIndex: 0,
+      lastIndex: 0,
+    })
+    expect(resolveSceneRange(SERVICE_TIMELINE, "process")).toEqual({
+      firstIndex: 4,
+      lastIndex: 4,
+    })
+  })
+
+  it("is null for a scene with no keyframe", () => {
+    expect(resolveSceneRange(SERVICE_TIMELINE, "about")).toBeNull()
+  })
+})
+
+describe("resolveRevealRange", () => {
+  const readingTimeline: DotSceneKeyframe[] = [
+    ...SERVICE_TIMELINE,
+    {
+      id: "dust",
+      scene: "dust",
+      shape: "dust",
+      start: 2600,
+      end: 2600,
+      slot: null,
+    },
+    {
+      id: "contact",
+      scene: "contact",
+      shape: "gather",
+      start: 3400,
+      end: 3500,
+      slot: SLOT,
+    },
+  ]
+
+  it("keeps a scene with a slot to its own keyframes", () => {
+    expect(resolveRevealRange(readingTimeline, "services")).toEqual({
+      firstIndex: 1,
+      lastIndex: 3,
+    })
+    expect(resolveRevealRange(readingTimeline, "contact")).toEqual({
+      firstIndex: 6,
+      lastIndex: 6,
+    })
+  })
+
+  it("holds a scene without a slot lit through the transit that follows it", () => {
+    expect(resolveRevealRange(readingTimeline, "dust")).toEqual({
+      firstIndex: 5,
+      lastIndex: 6,
+    })
+  })
+
+  it("holds a grown frame lit through the transit that follows it", () => {
+    const grownTimeline: DotSceneKeyframe[] = []
+
+    for (const keyframe of readingTimeline) {
+      if (keyframe.scene === "cube") {
+        grownTimeline.push({ ...keyframe, isGrown: true })
+        continue
+      }
+
+      grownTimeline.push(keyframe)
+    }
+
+    expect(resolveRevealRange(grownTimeline, "cube")).toEqual({
+      firstIndex: 0,
+      lastIndex: 1,
+    })
+    expect(resolveRevealRange(readingTimeline, "cube")).toEqual({
+      firstIndex: 0,
+      lastIndex: 0,
+    })
+  })
+
+  it("holds a slotted scene that is read after its pin lit through the next transit", () => {
+    const readTimeline: DotSceneKeyframe[] = []
+
+    for (const keyframe of readingTimeline) {
+      if (keyframe.scene === "cube") {
+        readTimeline.push({ ...keyframe, isReadAfterPin: true })
+        continue
+      }
+
+      readTimeline.push(keyframe)
+    }
+
+    expect(resolveRevealRange(readTimeline, "cube")).toEqual({
+      firstIndex: 0,
+      lastIndex: 1,
+    })
+  })
+
+  it("keeps a grown last scene to its own keyframe", () => {
+    const lastKeyframe = readingTimeline[readingTimeline.length - 1]
+    const grownTimeline = readingTimeline.slice(0, -1)
+
+    if (lastKeyframe !== undefined) {
+      grownTimeline.push({ ...lastKeyframe, isGrown: true })
+    }
+
+    expect(resolveRevealRange(grownTimeline, "contact")).toEqual({
+      firstIndex: 6,
+      lastIndex: 6,
+    })
+  })
+
+  it("keeps a last scene without a slot to its own keyframe", () => {
+    expect(resolveRevealRange(readingTimeline.slice(0, 6), "dust")).toEqual({
+      firstIndex: 5,
+      lastIndex: 5,
+    })
+  })
+
+  it("is null for a scene with no keyframe", () => {
+    expect(resolveRevealRange(readingTimeline, "about")).toBeNull()
+  })
+})
+
+describe("resolveSceneReveal", () => {
+  const span = DOT_FIELD_MORPH_TUNING.sceneRevealSpan
+  const services = { firstIndex: 1, lastIndex: 3 }
+
+  it("keeps a scene lit across all of its steps", () => {
+    for (const progress of [1, 1.25, 1.5, 2, 2.75, 3]) {
+      expect(resolveSceneReveal(progress, services, span)).toBe(1)
+    }
+  })
+
+  it("goes dark half a hop outside either end", () => {
+    expect(resolveSceneReveal(1 - span, services, span)).toBe(0)
+    expect(resolveSceneReveal(3 + span, services, span)).toBe(0)
+    expect(resolveSceneReveal(0, services, span)).toBe(0)
+    expect(resolveSceneReveal(4, services, span)).toBe(0)
+  })
+
+  it("sweeps in as the dots arrive and out as they leave, mirrored", () => {
+    const arriving = resolveSceneReveal(1 - span / 2, services, span)
+    const leaving = resolveSceneReveal(3 + span / 2, services, span)
+
+    expect(arriving).toBeGreaterThan(0)
+    expect(arriving).toBeLessThan(1)
+    expect(leaving).toBeCloseTo(arriving, 9)
+    expect(resolveSceneReveal(0.9, services, span)).toBeGreaterThan(arriving)
+  })
+
+  it("matches a thread caption for a one-keyframe range", () => {
+    const single = { firstIndex: 2, lastIndex: 2 }
+
+    for (const progress of [1.4, 1.6, 1.9, 2, 2.2, 2.6]) {
+      expect(resolveSceneReveal(progress, single, span)).toBe(
+        resolveThreadReveal(progress, 2, span)
+      )
+    }
+  })
+})
+
+const CROSSING_TIMELINE: DotSceneKeyframe[] = [
+  ...THREAD_TIMELINE,
+  {
+    id: "listening",
+    scene: "process",
+    shape: "listening",
+    start: 1500,
+    end: 1600,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "planning",
+    scene: "process",
+    shape: "planning",
+    start: 2000,
+    end: 2100,
+    slot: SLOT,
+    isThread: true,
+  },
+]
+
+describe("crossing between two thread scenes", () => {
+  it("threads steps inside one scene only", () => {
+    expect(isThreadSegment(CROSSING_TIMELINE[1], CROSSING_TIMELINE[2])).toBe(
+      true
+    )
+    expect(isThreadSegment(CROSSING_TIMELINE[3], CROSSING_TIMELINE[4])).toBe(
+      true
+    )
+    expect(isThreadSegment(CROSSING_TIMELINE[2], CROSSING_TIMELINE[3])).toBe(
+      false
+    )
+  })
+
+  it("scrubs the flight from one thread scene into the next", () => {
+    expect(
+      resolveTriggeredTarget({
+        keyframes: CROSSING_TIMELINE,
+        scrollTarget: 2.4,
+        previousScrollTarget: 2.3,
+        committedTarget: 2.3,
+        trigger: TRIGGER,
+      })
+    ).toBe(2.4)
+    expect(
+      followTriggeredProgress(
+        2.3,
+        2.4,
+        1 / 60,
+        CROSSING_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+    ).toBe(followMorphProgress(2.3, 2.4, 1 / 60, DOT_FIELD_MORPH_TUNING))
+  })
+
+  it("still triggers the first step inside the next scene", () => {
+    expect(
+      resolveTriggeredTarget({
+        keyframes: CROSSING_TIMELINE,
+        scrollTarget: 3 + TRIGGER,
+        previousScrollTarget: 3,
+        committedTarget: 3,
+        trigger: TRIGGER,
+      })
+    ).toBe(4)
+  })
+})
+
+describe("resolveThreadTurn", () => {
+  it("rests on each step while its drawing is formed", () => {
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "process", 3)).toBe(0)
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "process", 4)).toBe(1)
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "services", 2)).toBe(1)
+  })
+
+  it("turns on the signal ease between two steps", () => {
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "process", 3.5)).toBeCloseTo(
+      0.5,
+      9
+    )
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "process", 3.25)).toBeCloseTo(
+      0.0625,
+      9
+    )
+  })
+
+  it("counts the flight in as the step before the first", () => {
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "process", 0)).toBe(-1)
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "process", 2.5)).toBeCloseTo(
+      -0.5,
+      9
+    )
+  })
+
+  it("holds the last step after the scene", () => {
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "services", 3.6)).toBe(1)
+  })
+
+  it("has no turn for a scene without threaded steps", () => {
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "cube", 0)).toBeNull()
+    expect(resolveThreadTurn(CROSSING_TIMELINE, "about", 2)).toBeNull()
+  })
+})
+
+describe("resolveThreadState", () => {
+  it("names the threaded shape nearest the target", () => {
+    expect(resolveThreadState(THREAD_TIMELINE, 1)).toBe("branding")
+    expect(resolveThreadState(THREAD_TIMELINE, 1.6)).toBe("web-design")
+  })
+
+  it("names nothing away from a threaded scene", () => {
+    expect(resolveThreadState(THREAD_TIMELINE, 0.2)).toBeNull()
+  })
+})
+
+describe("formatSceneStepId", () => {
+  it("numbers a scene's steps from one", () => {
+    expect(formatSceneStepId(PROJECTS_SCENE_ID, 0)).toBe("project-1")
+    expect(formatSceneStepId(PROJECTS_SCENE_ID, 5)).toBe("project-6")
+  })
+})
+
+const DECK_TIMELINE: DotSceneKeyframe[] = [
+  { id: "cube", scene: "cube", shape: "cube", start: 0, end: 100, slot: SLOT },
+  {
+    id: "project-1",
+    scene: PROJECTS_SCENE_ID,
+    shape: "frame",
+    start: 500,
+    end: 600,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "project-2",
+    scene: PROJECTS_SCENE_ID,
+    shape: "frame",
+    start: 1000,
+    end: 1100,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "project-3",
+    scene: PROJECTS_SCENE_ID,
+    shape: "frame",
+    start: 1500,
+    end: 1600,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "branding",
+    scene: "services",
+    shape: "branding",
+    start: 2000,
+    end: 2100,
+    slot: SLOT,
+    isThread: true,
+  },
+  {
+    id: "web-design",
+    scene: "services",
+    shape: "web-design",
+    start: 2500,
+    end: 2600,
+    slot: SLOT,
+    isThread: true,
+  },
+]
+
+const ABOUT_FRAME: DotSceneKeyframe = {
+  id: "about",
+  scene: "about",
+  shape: "frame",
+  start: 3000,
+  end: 3100,
+  slot: SLOT,
+}
+
+describe("the projects deck", () => {
+  it("threads the deck like Services, with no turn", () => {
+    expect(DOT_SCENE_MOTION[PROJECTS_SCENE_ID]).toMatchObject({
+      isThread: true,
+      hasTurn: false,
+    })
+    expect(DOT_SCENE_MOTION[PROJECTS_SCENE_ID]?.share).toBe(
+      DOT_SCENE_MOTION.services?.share
+    )
+  })
+
+  it("softens the redraw's pen edge by a small positive share", () => {
+    expect(DOT_FIELD_MORPH_TUNING.redrawEdge).toBeGreaterThan(0)
+    expect(DOT_FIELD_MORPH_TUNING.redrawEdge).toBeLessThan(0.1)
+  })
+
+  it("redraws the frame between two projects of the deck", () => {
+    expect(isThreadSegment(DECK_TIMELINE[1], DECK_TIMELINE[2])).toBe(true)
+    expect(isRedrawSegment(DECK_TIMELINE[1], DECK_TIMELINE[2])).toBe(true)
+    expect(isRedrawSegment(DECK_TIMELINE[2], DECK_TIMELINE[3])).toBe(true)
+  })
+
+  it("never redraws between two shapes or across scenes", () => {
+    expect(isRedrawSegment(DECK_TIMELINE[4], DECK_TIMELINE[5])).toBe(false)
+    expect(isRedrawSegment(DECK_TIMELINE[0], DECK_TIMELINE[1])).toBe(false)
+    expect(isRedrawSegment(DECK_TIMELINE[3], DECK_TIMELINE[4])).toBe(false)
+    expect(isRedrawSegment(DECK_TIMELINE[3], ABOUT_FRAME)).toBe(false)
+  })
+
+  it("never redraws at the ends of the timeline", () => {
+    expect(isRedrawSegment(DECK_TIMELINE[3], undefined)).toBe(false)
+    expect(isRedrawSegment(undefined, DECK_TIMELINE[1])).toBe(false)
+    expect(isRedrawSegment(undefined, undefined)).toBe(false)
+  })
+
+  it("commits the next project once the scroll passes the trigger, not before", () => {
+    expect(triggerAt(1 + TRIGGER / 2, 1, 1, DECK_TIMELINE)).toBe(1)
+    expect(triggerAt(1 + TRIGGER, 1 + TRIGGER / 2, 1, DECK_TIMELINE)).toBe(2)
+  })
+
+  it("commits back once an upward scroll passes the trigger from the end", () => {
+    expect(triggerAt(3 - TRIGGER / 2, 3, 3, DECK_TIMELINE)).toBe(3)
+    expect(triggerAt(3 - 2 * TRIGGER, 3 - TRIGGER / 2, 3, DECK_TIMELINE)).toBe(
+      2
+    )
+  })
+
+  it("scrubs the flights into and out of the deck", () => {
+    expect(triggerAt(0.4, 0.3, 0.3, DECK_TIMELINE)).toBe(0.4)
+    expect(triggerAt(3.4, 3.3, 3.3, DECK_TIMELINE)).toBe(3.4)
+  })
+
+  it("plays a hop between two projects at the drawing's pace, both ways", () => {
+    const seconds = DOT_FIELD_MORPH_TUNING.threadDrawSeconds
+
+    expect(
+      followTriggeredProgress(
+        1,
+        2,
+        seconds / 4,
+        DECK_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+    ).toBeCloseTo(1.25, 6)
+    expect(
+      followTriggeredProgress(
+        3,
+        2,
+        seconds / 4,
+        DECK_TIMELINE,
+        DOT_FIELD_MORPH_TUNING
+      )
+    ).toBeCloseTo(2.75, 6)
+  })
+
+  it("names the committed project", () => {
+    expect(resolveThreadState(DECK_TIMELINE, 2)).toBe("project-2")
+    expect(resolveThreadState(DECK_TIMELINE, 2.6)).toBe("project-3")
+    expect(resolveThreadState(DECK_TIMELINE, 0.2)).toBeNull()
+  })
+
+  it("hides both projects' copy at the half hop, where the frame is unwound", () => {
+    const span = DOT_FIELD_MORPH_TUNING.threadCaptionSpan
+
+    expect(resolveThreadReveal(2, 1, span)).toBe(0)
+    expect(resolveThreadReveal(2, 2, span)).toBe(1)
+    expect(resolveThreadReveal(2, 3, span)).toBe(0)
+    expect(resolveThreadReveal(1.5, 1, span)).toBe(0)
+    expect(resolveThreadReveal(1.5, 2, span)).toBe(0)
+    expect(resolveThreadReveal(1.25, 1, span)).toBeGreaterThan(0)
+    expect(resolveThreadReveal(1.75, 2, span)).toBeGreaterThan(0)
   })
 })
 
@@ -917,8 +2027,22 @@ describe("resolveTimelinePosition", () => {
 
   it("switches without travelling when two keyframes touch", () => {
     const touching: DotSceneKeyframe[] = [
-      { id: "name", shape: "name", start: 0, end: 1000, slot: SLOT },
-      { id: "cube", shape: "cube", start: 1000.5, end: 1600, slot: SLOT },
+      {
+        id: "name",
+        scene: "name",
+        shape: "name",
+        start: 0,
+        end: 1000,
+        slot: SLOT,
+      },
+      {
+        id: "cube",
+        scene: "cube",
+        shape: "cube",
+        start: 1000.5,
+        end: 1600,
+        slot: SLOT,
+      },
     ]
 
     expect(resolveTimelinePosition(touching, 1000.2, 1)).toBe(0)
@@ -985,6 +2109,7 @@ describe("resolveVisibleFraction", () => {
 describe("resolvePlacement", () => {
   const nameKeyframe: DotSceneKeyframe = {
     id: "name",
+    scene: "name",
     shape: "name",
     start: 0,
     end: 90,
@@ -1018,6 +2143,7 @@ describe("resolvePlacement", () => {
       buildPlacementRequest(
         {
           id: "cube",
+          scene: "cube",
           shape: "cube",
           start: 900,
           end: 1500,
@@ -1045,6 +2171,75 @@ describe("resolvePlacement", () => {
     expect(Array.from(placement.rotation)).toEqual([1, 0, 0, 0, 1, 0, 0, 0, 1])
   })
 
+  it("frames a slotted plate just outside its rect", () => {
+    const slot = { x: 100, y: 200, width: 700, height: 490 }
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        {
+          id: "project",
+          scene: "project",
+          shape: "frame",
+          start: 900,
+          end: 1500,
+          slot,
+        },
+        {}
+      )
+    )
+    const outset = DOT_FRAME_OUTSET.maxPixels
+
+    expect(placement.center).toEqual({ x: 900, y: 890 })
+    expect(placement.halfSize.x * FRAME_EDGE).toBeCloseTo((350 + outset) * 2, 6)
+    expect(placement.halfSize.y * FRAME_EDGE).toBeCloseTo((245 + outset) * 2, 6)
+    expect(placement.cameraDistance).toBe(0)
+  })
+
+  it("lays the gather perimeter on the same outset round the form box", () => {
+    const slot = { x: 800, y: 200, width: 520, height: 442 }
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        {
+          id: "contact",
+          scene: "contact",
+          shape: "gather",
+          start: 900,
+          end: 1500,
+          slot,
+        },
+        {}
+      )
+    )
+    const outset = DOT_FRAME_OUTSET.maxPixels
+
+    expect(placement.halfSize.x * GATHER_SHAPE.perimeter).toBeCloseTo(
+      (260 + outset) * 2,
+      6
+    )
+    expect(placement.halfSize.y * GATHER_SHAPE.perimeter).toBeCloseTo(
+      (221 + outset) * 2,
+      6
+    )
+  })
+
+  it("holds a still shape in one resting pose with or without motion", () => {
+    const keyframe: DotSceneKeyframe = {
+      id: "building",
+      scene: "process",
+      shape: "building",
+      start: 0,
+      end: 100,
+      slot: SLOT,
+    }
+    const moving = resolvePlacement(
+      buildPlacementRequest(keyframe, { spinSeconds: 7 })
+    )
+    const still = resolvePlacement(
+      buildPlacementRequest(keyframe, { isStatic: true })
+    )
+
+    expect(Array.from(moving.rotation)).toEqual(Array.from(still.rotation))
+  })
+
   it("holds the resting pose under reduced motion", () => {
     const placement = resolvePlacement(
       buildPlacementRequest(TIMELINE[1] as DotSceneKeyframe, {
@@ -1058,6 +2253,106 @@ describe("resolvePlacement", () => {
       Array.from(buildCubeRotation(tuning.staticYaw, tuning.pitch, tuning.roll))
     )
   })
+
+  function buildSignKeyframe(slot: DotFieldRect): DotSceneKeyframe {
+    return {
+      id: "footer",
+      scene: "footer",
+      shape: "sign",
+      start: 0,
+      end: 100,
+      slot,
+    }
+  }
+
+  it("draws the sign at the name's dot size and full light when the slot holds its ink", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        buildSignKeyframe({ x: 40, y: 250, width: 1360, height: 405 }),
+        { spinSeconds: 7, yawOffset: 0.4, introScale: 0.5 }
+      )
+    )
+
+    expect(placement.isName).toBe(false)
+    expect(placement.shape).toBe("sign")
+    expect(placement.center).toEqual({ x: 1440, y: 905 })
+    expect(placement.halfSize).toEqual({ x: 1, y: 1 })
+    expect(Array.from(placement.rotation)).toEqual([1, 0, 0, 0, 1, 0, 0, 0, 1])
+    expect(placement.cameraDistance).toBe(0)
+    expect(placement.visible).toBe(1)
+    expect(placement.dotSize).toBe(DOT_FIELD_TUNING.dotSize)
+    expect(placement.inkHeight).toBe(TEXT_SAMPLE.height)
+    expect(placement.farLight).toBe(1)
+    expect(placement.opacity).toBe(1)
+  })
+
+  it("shrinks the sign to a narrow slot and scales its dots with it", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        buildSignKeyframe({ x: 24, y: 300, width: 342, height: 156 }),
+        {}
+      )
+    )
+    const fit = (342 * 2) / TEXT_SAMPLE.width
+
+    expect(placement.halfSize.x).toBeCloseTo(fit, 9)
+    expect(placement.halfSize.y).toBeCloseTo(fit, 9)
+    expect(placement.dotSize).toBeCloseTo(DOT_FIELD_TUNING.dotSize * fit, 9)
+    expect(placement.inkHeight).toBeCloseTo(TEXT_SAMPLE.height * fit, 9)
+  })
+
+  it("shrinks the sign to a short slot as well", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        buildSignKeyframe({ x: 40, y: 250, width: 1360, height: 100 }),
+        {}
+      )
+    )
+
+    expect(placement.halfSize.x).toBeCloseTo((100 * 2) / TEXT_SAMPLE.height, 9)
+  })
+
+  it("rounds the sign's centre to whole device pixels", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        buildSignKeyframe({ x: 24.3, y: 300.2, width: 342, height: 156 }),
+        {}
+      )
+    )
+
+    expect(placement.center).toEqual({ x: 391, y: 756 })
+  })
+
+  it("lands a sign dot where the shader draws it", () => {
+    const placement = resolvePlacement(
+      buildPlacementRequest(
+        buildSignKeyframe({ x: 40, y: 250, width: 1360, height: 100 }),
+        {}
+      )
+    )
+    const fit = placement.halfSize.x
+    const homes = new Float32Array(3)
+
+    projectShapePoints(new Float32Array([10, 4, 0, 0.5]), placement, homes)
+
+    expect(homes[0]).toBeCloseTo(placement.center.x + 10 * fit, 2)
+    expect(homes[1]).toBeCloseTo(placement.center.y - 4 * fit, 2)
+  })
+})
+
+describe("resolveFrameOutset", () => {
+  it("sets a frame 18px out round a desktop plate and closer on a phone", () => {
+    expect(resolveFrameOutset({ x: 0, y: 0, width: 700, height: 490 })).toBe(
+      DOT_FRAME_OUTSET.maxPixels
+    )
+    expect(
+      resolveFrameOutset({ x: 0, y: 0, width: 342, height: 240 })
+    ).toBeCloseTo(240 * DOT_FRAME_OUTSET.slotRatio, 6)
+  })
+
+  it("gives a viewport-filling shape no outset", () => {
+    expect(resolveFrameOutset(null)).toBe(0)
+  })
 })
 
 describe("isShapeSpinning", () => {
@@ -1065,6 +2360,54 @@ describe("isShapeSpinning", () => {
     expect(isShapeSpinning("cube")).toBe(true)
     expect(isShapeSpinning("name")).toBe(false)
     expect(isShapeSpinning("dust")).toBe(false)
+  })
+
+  it("holds every How I work state, every frame and the ending's drawings still, so the loop can sleep", () => {
+    const stillShapes = [
+      ...parseSceneShapes(PROCESS_SCENE_SHAPES),
+      ...parseSceneShapes(FRAME_SCENE_SHAPES),
+      ...parseSceneShapes(CONTACT_SCENE_SHAPES),
+      ...parseSceneShapes(FAQ_SCENE_SHAPES),
+      ...parseSceneShapes(CONNECT_SCENE_SHAPES),
+      ...parseSceneShapes(FOOTER_SCENE_SHAPES),
+    ]
+
+    expect(stillShapes).toHaveLength(10)
+
+    for (const shape of stillShapes) {
+      expect(isShapeSpinning(shape), shape).toBe(false)
+    }
+  })
+
+  it("sways every services stage like the cube turns", () => {
+    for (const shape of parseSceneShapes(SERVICES_SCENE_SHAPES)) {
+      expect(isShapeSpinning(shape), shape).toBe(true)
+    }
+  })
+})
+
+describe("resolveArrivalStrike", () => {
+  it("starts at full strength and decays to exactly zero at its duration", () => {
+    expect(resolveArrivalStrike(0, 0.3)).toBe(1)
+    expect(resolveArrivalStrike(0.15, 0.3)).toBeCloseTo(0.25)
+    expect(resolveArrivalStrike(0.3, 0.3)).toBe(0)
+    expect(resolveArrivalStrike(5, 0.3)).toBe(0)
+  })
+
+  it("is zero before any strike has started", () => {
+    expect(resolveArrivalStrike(-1, 0.3)).toBe(0)
+    expect(resolveArrivalStrike(Number.NEGATIVE_INFINITY, 0.3)).toBe(0)
+  })
+})
+
+describe("applyArrivalImpulse", () => {
+  it("kicks every dot outward from the shape centre", () => {
+    const homes = new Float32Array([110, 100, 0, 100, 80, 0, 100, 100, 0])
+    const velocities = new Float32Array(6)
+
+    applyArrivalImpulse(homes, velocities, { x: 100, y: 100 }, 2)
+
+    expect(Array.from(velocities)).toEqual([2, 0, 0, -2, 0, 0])
   })
 })
 
@@ -1074,6 +2417,7 @@ describe("shouldLoopSleep", () => {
     hasSettled: true,
     isProgressResting: true,
     isSpinning: false,
+    isStriking: false,
   }
 
   it("sleeps once everything rests", () => {
@@ -1082,6 +2426,10 @@ describe("shouldLoopSleep", () => {
 
   it("keeps a spinning shape turning", () => {
     expect(shouldLoopSleep({ ...resting, isSpinning: true })).toBe(false)
+  })
+
+  it("keeps drawing until an arrival strike has decayed", () => {
+    expect(shouldLoopSleep({ ...resting, isStriking: true })).toBe(false)
   })
 
   it("keeps running while anything is still moving", () => {

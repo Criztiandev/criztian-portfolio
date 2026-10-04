@@ -1,6 +1,5 @@
 import { PUBLIC_TOKEN_OVERRIDES } from "@/data/portfolio.data"
 import { AboutSection } from "@/features/portfolio/components/about-section.component"
-import { BlogSection } from "@/features/portfolio/components/blog-section.component"
 import { ConnectSection } from "@/features/portfolio/components/connect-section.component"
 import { ContactSection } from "@/features/portfolio/components/contact-section.component"
 import { FaqSection } from "@/features/portfolio/components/faq-section.component"
@@ -12,6 +11,7 @@ import { SectionNavigation } from "@/features/portfolio/components/section-navig
 import { ServicesSection } from "@/features/portfolio/components/services-section.component"
 import { SiteFooter } from "@/features/portfolio/components/site-footer.component"
 import { TestimonialsSection } from "@/features/portfolio/components/testimonials-section.component"
+import { renderRichTextHtml } from "@/features/site-content/services/rich-text-renderer.service"
 import { buildThemeStyle } from "@/features/site-content/site-content.rules"
 import { cn } from "@/lib/utils"
 import { PortfolioStoreProvider } from "@/providers/portfolio-store.provider"
@@ -40,36 +40,32 @@ export function SitePage({
         <SectionNavigation />
 
         <main>
-          <Hero content={content} displayFontFamily={displayFontFamily} />
+          <Hero
+            content={content}
+            displayFontFamily={displayFontFamily}
+            taglineHtml={renderRichTextHtml(content.hero.tagline)}
+          />
 
           <QuoteSection quote={content.quote} />
 
-          <ServicesSection />
-
-          <AboutSection />
-
           <ProjectsSection projects={content.projects} />
+
+          <ServicesSection />
 
           <ProcessSection />
 
-          <div
-            data-dot-scene="dust"
-            data-dot-shapes="dust"
-            className="scroll-mt-18"
-          >
-            <ConnectSection />
+          <AboutSection />
 
-            <TestimonialsSection />
+          <TestimonialsSection />
 
-            <FaqSection />
+          <FaqSection faq={content.faq} />
 
-            <BlogSection />
+          <ConnectSection connect={content.connect} />
 
-            <ContactSection />
-          </div>
+          <ContactSection contact={content.contact} />
         </main>
 
-        <SiteFooter name={content.hero.name} />
+        <SiteFooter name={content.hero.name} email={content.connect.email} />
       </div>
     </PortfolioStoreProvider>
   )

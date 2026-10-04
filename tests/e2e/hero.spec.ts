@@ -1,19 +1,66 @@
 import { expect, test } from "@playwright/test"
 import type { Page } from "@playwright/test"
 
+import { PROJECTS_SCENE_ID } from "@/data/portfolio.data"
+import { formatSceneStepId } from "@/features/portfolio/dot-field.rules"
+
 const GL_PROBLEM_PATTERN = /INVALID_|GL_INVALID|WebGL: /
+
+const FIRST_PROJECT_SCENE = formatSceneStepId(PROJECTS_SCENE_ID, 0)
+
+const DECK_CARD_SELECTOR = "#project [data-fit-box]"
+
+const QUOTE_LINE_SELECTOR = "#quote blockquote p"
+
+const WHOLE_TRANSLATES = ["none", "0px"]
 
 const SCENE_WALK = [
   { selector: "#quote", scene: "cube" },
-  { selector: "#services", scene: "services" },
+  { selector: "#project", scene: FIRST_PROJECT_SCENE },
+  { selector: "#services", scene: "branding" },
+  { selector: "#process", scene: "listening" },
   { selector: "#about", scene: "about" },
-  { selector: "#project", scene: "project" },
-  { selector: "#process", scene: "process" },
-  { selector: "[data-dot-scene='dust']", scene: "dust" },
+  { selector: "#testimonials", scene: "testimonials" },
+  { selector: "#faq", scene: "faq" },
+  { selector: "#connect", scene: "connect" },
+  { selector: "#contact", scene: "contact" },
   { selector: "[data-dot-scene='footer']", scene: "footer" },
 ]
 
-const JUMP_SKIPPED_SCENES = ["cube", "services", "about", "project", "process"]
+const JUMP_SKIPPED_SCENES = [
+  "cube",
+  PROJECTS_SCENE_ID,
+  "branding",
+  "web-design",
+  "development",
+  "listening",
+  "planning",
+  "visualising",
+  "building",
+  "delivery",
+  "about",
+  "testimonials",
+  "faq",
+  "connect",
+]
+
+const HEADER_LINE_PX = 72
+
+const REST_WINDOW_MS = 500
+
+const REST_TIMEOUT_MS = 12000
+
+const RESTING_SCENES = [
+  { id: FIRST_PROJECT_SCENE, selector: "#project", step: 0 },
+  { id: "listening", selector: "#process", step: 0 },
+  { id: "building", selector: "#process", step: 3 },
+  { id: "faq", selector: "#faq", step: 0 },
+  { id: "connect", selector: "#connect", step: 0 },
+]
+
+function readLocationHash() {
+  return window.location.hash
+}
 
 function collectPageProblems(page: Page): string[] {
   const problems: string[] = []
@@ -98,10 +145,114 @@ async function countLitPixels(page: Page, selector: string) {
   )
 }
 
+async function readDeckSceneIds(page: Page) {
+  const cardCount = await page.locator(DECK_CARD_SELECTOR).count()
+  const ids: string[] = []
+
+  for (let stepIndex = 0; stepIndex < cardCount; stepIndex += 1) {
+    ids.push(formatSceneStepId(PROJECTS_SCENE_ID, stepIndex))
+  }
+
+  return ids
+}
+
+async function scrollToStepRest(
+  page: Page,
+  rest: { selector: string; step: number }
+) {
+  await page.evaluate(function scrollToRest(target) {
+    const container = document.querySelector<HTMLElement>(target.selector)
+    const frame = container?.firstElementChild
+
+    if (container === null || frame === null || frame === undefined) {
+      return
+    }
+
+    const stickyTop = parseFloat(getComputedStyle(container).scrollMarginTop)
+    const containerTop = container.getBoundingClientRect().top + window.scrollY
+    const start = containerTop - stickyTop
+    const steps = container.dataset.dotShapes?.split(" ").length ?? 1
+    let pitch = 0
+
+    if (steps > 1) {
+      const end =
+        containerTop +
+        container.getBoundingClientRect().height -
+        frame.getBoundingClientRect().height -
+        stickyTop
+
+      pitch = (end - start) / (steps - 1)
+    }
+
+    window.scrollTo({ top: start + target.step * pitch, behavior: "instant" })
+  }, rest)
+}
+
+async function countAnimationFrames(page: Page, durationMs: number) {
+  return page.evaluate(function countFrames(windowMs) {
+    return new Promise<number>(function measure(resolve) {
+      const original = window.requestAnimationFrame
+      let calls = 0
+
+      window.requestAnimationFrame = function countedFrame(callback) {
+        calls += 1
+
+        return original.call(window, callback)
+      }
+
+      window.setTimeout(function finish() {
+        window.requestAnimationFrame = original
+        resolve(calls)
+      }, windowMs)
+    })
+  }, durationMs)
+}
+
 async function scrollToTop(page: Page) {
   await page.evaluate(function scrollToTop() {
     window.scrollTo({ top: 0, behavior: "instant" })
   })
+}
+
+function isClipWhole(clipPath: string): boolean {
+  if (clipPath === "none") {
+    return true
+  }
+
+  const match = /^inset\((.+)\)$/.exec(clipPath)
+
+  if (match === null) {
+    return false
+  }
+
+  for (const inset of (match[1] ?? "").split(" ")) {
+    if (parseFloat(inset) > 0) {
+      return false
+    }
+  }
+
+  return true
+}
+
+async function readQuoteSweepProblems(page: Page) {
+  const sweep = await page
+    .locator(QUOTE_LINE_SELECTOR)
+    .evaluate(function readSweep(line) {
+      const style = getComputedStyle(line)
+
+      return { clipPath: style.clipPath, translate: style.translate }
+    })
+  const problems: string[] = []
+
+  if (!isClipWhole(sweep.clipPath)) {
+    problems.push(`clip-path ${sweep.clipPath}`)
+  }
+
+  if (!WHOLE_TRANSLATES.includes(sweep.translate)) {
+    problems.push(`translate ${sweep.translate}`)
+  }
+
+  return problems
 }
 
 test.describe("hero dot field", () => {
@@ -145,7 +296,7 @@ test.describe("hero dot field", () => {
 
     const stage = await waitForRunningStage(page)
 
-    await expect(stage).toHaveAttribute("data-scene", "dust", {
+    await expect(stage).toHaveAttribute("data-scene", "contact", {
       timeout: 10000,
     })
   })
@@ -169,11 +320,18 @@ test.describe("scroll timeline", () => {
       timeout: 5000,
     })
 
-    const quote = page.locator("#quote blockquote p")
+    const quote = page.locator(QUOTE_LINE_SELECTOR)
 
     await expect(quote).toBeVisible()
     await expect(quote).not.toHaveText("")
-    await expect(quote).toHaveCSS("clip-path", "inset(0%)", { timeout: 5000 })
+    await expect
+      .poll(
+        function readQuoteSweep() {
+          return readQuoteSweepProblems(page)
+        },
+        { message: "the quote is whole with the cube", timeout: 5000 }
+      )
+      .toEqual([])
     await expect(page.locator("canvas")).toHaveCSS("opacity", "1")
     await page.waitForTimeout(600)
 
@@ -224,44 +382,70 @@ test.describe("scroll timeline", () => {
     await page.goto("/")
     await waitForRunningStage(page)
 
-    const trail = await page.evaluate(function followJump() {
-      return new Promise<string[]>(function record(resolve) {
-        const stage = document.querySelector("[data-status]")
-        const scenes: string[] = []
-        const observer = new MutationObserver(function onSceneChange() {
-          const scene = stage?.getAttribute("data-scene") ?? ""
+    const deckSceneIds = await readDeckSceneIds(page)
 
-          scenes.push(scene)
+    expect(deckSceneIds.length).toBeGreaterThan(0)
 
-          if (scene === "dust") {
-            observer.disconnect()
-            resolve(scenes)
-          }
-        })
-
-        window.setTimeout(function giveUp() {
-          observer.disconnect()
-          resolve(scenes)
-        }, 5000)
-
-        if (stage !== null) {
-          observer.observe(stage, {
-            attributes: true,
-            attributeFilter: ["data-scene"],
+    const jump = await page.evaluate(function followJump() {
+      return new Promise<{ scenes: string[]; endedByLenis: boolean }>(
+        function record(resolve) {
+          const stage = document.querySelector("[data-status]")
+          const scenes: string[] = []
+          let endedByLenis = false
+          const observer = new MutationObserver(function onSceneChange() {
+            scenes.push(stage?.getAttribute("data-scene") ?? "")
           })
+
+          function finish() {
+            observer.disconnect()
+            window.removeEventListener("scrollend", onScrollEnd)
+            resolve({ scenes, endedByLenis })
+          }
+
+          function onScrollEnd(event: Event) {
+            if (event instanceof CustomEvent && event.detail?.lenisScrollEnd) {
+              endedByLenis = true
+              finish()
+            }
+          }
+
+          window.addEventListener("scrollend", onScrollEnd)
+          window.setTimeout(finish, 5000)
+
+          if (stage !== null) {
+            observer.observe(stage, {
+              attributes: true,
+              attributeFilter: ["data-scene"],
+            })
+          }
+
+          document
+            .querySelector<HTMLAnchorElement>("header a[href='#contact']")
+            ?.click()
         }
-
-        document
-          .querySelector<HTMLAnchorElement>("header a[href='#contact']")
-          ?.click()
-      })
+      )
     })
+    const trail = jump.scenes
 
-    expect(trail).toContain("dust")
+    expect(jump.endedByLenis).toBe(true)
+    expect(trail).toContain("contact")
 
-    for (const skipped of JUMP_SKIPPED_SCENES) {
+    for (const skipped of [...JUMP_SKIPPED_SCENES, ...deckSceneIds]) {
       expect(trail).not.toContain(skipped)
     }
+
+    const firstContact = trail.indexOf("contact")
+
+    for (const scene of trail.slice(firstContact)) {
+      expect(scene).toBe("contact")
+    }
+
+    const contactTop = await page.evaluate(function readContactTop() {
+      return document.querySelector("#contact")?.getBoundingClientRect().top
+    })
+
+    expect(Math.abs((contactTop ?? 0) - HEADER_LINE_PX)).toBeLessThanOrEqual(1)
+    expect(await page.evaluate(readLocationHash)).toBe("#contact")
     expect(problems).toEqual([])
   })
 
@@ -289,7 +473,7 @@ test.describe("scroll timeline", () => {
 
     const stage = await waitForRunningStage(page)
 
-    await expect(stage).toHaveAttribute("data-scene", "project", {
+    await expect(stage).toHaveAttribute("data-scene", FIRST_PROJECT_SCENE, {
       timeout: 10000,
     })
     await expect(page.locator("#project h2")).toBeVisible()
@@ -348,6 +532,36 @@ test.describe("scroll timeline", () => {
   })
 })
 
+test.describe("the loop at rest", () => {
+  for (const rest of RESTING_SCENES) {
+    test(`stops requesting frames once ${rest.id} has settled`, async ({
+      page,
+    }) => {
+      const problems = collectPageProblems(page)
+
+      await page.goto("/")
+
+      const stage = await waitForRunningStage(page)
+
+      await scrollToStepRest(page, rest)
+      await expect(stage).toHaveAttribute("data-scene", rest.id, {
+        timeout: 5000,
+      })
+      await expect
+        .poll(
+          function countRestingFrames() {
+            return countAnimationFrames(page, REST_WINDOW_MS)
+          },
+          { timeout: REST_TIMEOUT_MS }
+        )
+        .toBe(0)
+      await expect(stage).toHaveAttribute("data-scene", rest.id)
+
+      expect(problems).toEqual([])
+    })
+  }
+})
+
 test.describe("scroll timeline with reduced motion", () => {
   test.use({ reducedMotion: "reduce" })
 
@@ -363,10 +577,11 @@ test.describe("scroll timeline with reduced motion", () => {
     await expect(stage).toHaveAttribute("data-scene", "cube", {
       timeout: 10000,
     })
-    await expect(page.locator("#quote blockquote p")).toHaveCSS(
-      "clip-path",
-      "inset(0%)"
-    )
+
+    const quote = page.locator(QUOTE_LINE_SELECTOR)
+
+    await expect(quote).toHaveCSS("clip-path", "none")
+    await expect(quote).toHaveCSS("translate", "none")
 
     expect(problems).toEqual([])
   })
@@ -432,8 +647,18 @@ test.describe("hero dot field on a phone", () => {
 
     const stage = await waitForRunningStage(page)
 
-    await expect(stage).toHaveAttribute("data-scene", "project", {
+    await expect(stage).toHaveAttribute("data-scene", FIRST_PROJECT_SCENE, {
       timeout: 10000,
     })
+  })
+
+  test("leaves touch scrolling native with no smooth scroller", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    await waitForRunningStage(page)
+    await page.waitForTimeout(1000)
+
+    await expect(page.locator("html")).not.toHaveClass(/\blenis\b/)
   })
 })

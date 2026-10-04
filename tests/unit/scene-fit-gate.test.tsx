@@ -2,9 +2,13 @@ import { act, render } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { SERVICES_SCENE } from "@/data/page-sections.data"
-import { StepScene } from "@/features/portfolio/components/step-scene.component"
+import { ServicesSection } from "@/features/portfolio/components/services-section.component"
 
 const BOX_CLIENT_HEIGHT = 400
+
+const ROOMY_SLOT_HEIGHT = 300
+
+const CRAMPED_SLOT_HEIGHT = 40
 
 const OVERFLOWING_SCROLL_HEIGHT = 500
 
@@ -55,13 +59,28 @@ class RecordingResizeObserver {
   }
 }
 
+function setSlotHeight(section: HTMLElement, height: number): void {
+  const slot = section.querySelector("[data-dot-slot]")
+
+  if (slot === null) {
+    throw new Error("The services scene has no slot")
+  }
+
+  Object.defineProperty(slot, "clientHeight", {
+    configurable: true,
+    value: height,
+  })
+}
+
 function renderServices(): HTMLElement {
-  const { container } = render(<StepScene {...SERVICES_SCENE} />)
+  const { container } = render(<ServicesSection />)
   const section = container.querySelector<HTMLElement>("#services")
 
   if (section === null) {
     throw new Error("The services scene did not render")
   }
+
+  setSlotHeight(section, ROOMY_SLOT_HEIGHT)
 
   return section
 }
@@ -170,6 +189,18 @@ describe("SceneFitGate", () => {
     expect(section).not.toHaveAttribute("data-fit")
     expect(section).toHaveAttribute("data-dot-shapes", SERVICES_SCENE.shapes)
     expect(section.querySelectorAll("[data-dot-slot]")).toHaveLength(1)
+  })
+
+  it("flows the scene when its slot has no room for the shape", () => {
+    const section = renderServices()
+
+    setBoxScrollHeight(section, BOX_CLIENT_HEIGHT)
+    setSlotHeight(section, CRAMPED_SLOT_HEIGHT)
+    notifyResize()
+    flushFrames()
+
+    expect(section).toHaveAttribute("data-fit", "flow")
+    expect(section).toHaveAttribute("data-dot-shapes", "dust")
   })
 
   for (const placement of ANCHORED_PLACEMENTS) {

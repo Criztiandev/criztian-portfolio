@@ -1,10 +1,26 @@
 export type HeroWordmarkMode = "dots" | "text"
 
-export type DotGeneratedShapeId = "cube" | "sphere" | "dust"
+export type LineArtShapeId =
+  | "branding"
+  | "web-design"
+  | "development"
+  | "planning"
+  | "visualising"
+  | "building"
+  | "frame"
+  | "handshake"
+  | "conversation"
+
+export type ScatterShapeId = "listening" | "delivery" | "gather"
+
+export type TextShapeId = "sign"
+
+export type DotGeneratedShapeId =
+  "cube" | "dust" | LineArtShapeId | ScatterShapeId | TextShapeId
 
 export type DotShapeId = "name" | DotGeneratedShapeId
 
-export type DotShapeFit = "contain" | "fill"
+export type DotShapeFit = "contain" | "fill" | "text"
 
 export type DotShapeLibrary = Record<DotGeneratedShapeId, Float32Array>
 
@@ -18,6 +34,74 @@ export type CubeEdge = {
 }
 
 export type RandomSource = () => number
+
+export type LineArtPolyline = {
+  kind: "polyline"
+  points: CubeVector[]
+}
+
+export type LineArtArc = {
+  kind: "arc"
+  center: CubeVector
+  radius: number
+  startAngle: number
+  endAngle: number
+}
+
+export type LineArtStroke = LineArtPolyline | LineArtArc
+
+export type LineArtLayer = {
+  strokes: LineArtStroke[]
+  offset: CubeVector
+  scale: number
+}
+
+export type LineArtShape = {
+  seed: number
+  jitter: number
+  layers: LineArtLayer[]
+}
+
+export type ScatterRingShape = {
+  seed: number
+  ringShare: number
+  radiusX: number
+  radiusY: number
+  ringJitter: number
+  scatterReach: number
+  startAngle: number
+}
+
+export type LaunchShape = {
+  seed: number
+  page: LineArtShape
+  pageShare: number
+  trailX: number
+  trailTop: number
+  trailBottom: number
+  topWidth: number
+  bottomWidth: number
+  trailFalloff: number
+}
+
+export type GatherShape = {
+  seed: number
+  perimeter: number
+  lineShare: number
+  lineJitter: number
+  spreadFalloff: number
+}
+
+export type DotFrameOutset = {
+  maxPixels: number
+  slotRatio: number
+}
+
+export type LineArtSegment = {
+  start: CubeVector
+  end: CubeVector
+  length: number
+}
 
 export type DotFieldVector = {
   x: number
@@ -34,6 +118,38 @@ export type DotFieldMorphTuning = {
   cameraDistance: number
   wobbleSpeed: number
   stepMorphShare: number
+  penJitter: number
+  burstPixels: number
+  burstScalePixels: number
+  swell: number
+  strikeSize: number
+  strikeSeconds: number
+  strikeMinIntervalSeconds: number
+  strikeImpulse: number
+  swaySpeed: number
+  threadStagger: number
+  threadJitter: number
+  threadArcPixels: number
+  threadBurst: number
+  threadSpin: number
+  threadTrigger: number
+  threadDrawSeconds: number
+  threadHurrySeconds: number
+  threadCaptionSpan: number
+  sceneRevealSpan: number
+  redrawEdge: number
+}
+
+export type DotSceneMotion = {
+  share: number
+  isThread: boolean
+  hasTurn: boolean
+  isReadAfterPin: boolean
+}
+
+export type DotSceneRange = {
+  firstIndex: number
+  lastIndex: number
 }
 
 export type DotFieldFollowTuning = Pick<
@@ -41,27 +157,29 @@ export type DotFieldFollowTuning = Pick<
   "morphFollowRate" | "morphSettleEpsilon"
 >
 
+export type DotFieldTriggerTuning = DotFieldFollowTuning &
+  Pick<
+    DotFieldMorphTuning,
+    "threadTrigger" | "threadDrawSeconds" | "threadHurrySeconds"
+  >
+
 export type DotShapeTuning = {
   fit: DotShapeFit
   sizeRatio: number
   pointsPerArea: number
+  pointCount: number
   hasPerspective: boolean
   spinSpeed: number
   pitch: number
   roll: number
   wobble: number
   staticYaw: number
+  sway: number
   farLight: number
   depthRadius: number
   dotSize: number
   opacity: number
   inkRatio: number
-}
-
-export type DotSphereTuning = {
-  rings: number
-  meridians: number
-  jitter: number
 }
 
 export type DotFieldRect = {
@@ -83,10 +201,22 @@ export type DotSceneMeasure = {
 
 export type DotSceneKeyframe = {
   id: string
+  scene: string
   shape: DotShapeId
   start: number
   end: number
   slot: DotFieldRect | null
+  isThread?: boolean
+  isGrown?: boolean
+  isReadAfterPin?: boolean
+}
+
+export type DotTriggeredTargetRequest = {
+  keyframes: DotSceneKeyframe[]
+  scrollTarget: number
+  previousScrollTarget: number
+  committedTarget: number
+  trigger: number
 }
 
 export type DotTimelineSegment = {
@@ -100,6 +230,7 @@ export type DotFieldLoopRestRequest = {
   hasSettled: boolean
   isProgressResting: boolean
   isSpinning: boolean
+  isStriking: boolean
 }
 
 export type DotFieldPlacement = {
@@ -124,10 +255,16 @@ export type DotFieldNameSample = {
   inkHeight: number
 }
 
+export type DotFieldTextSample = {
+  width: number
+  height: number
+}
+
 export type DotFieldPlacementRequest = {
   keyframe: DotSceneKeyframe
   viewport: DotFieldViewport
   nameSample: DotFieldNameSample
+  textSample: DotFieldTextSample
   introScale: number
   spinSeconds: number
   yawOffset: number
@@ -148,6 +285,9 @@ export type DotFieldFrame = {
   wordCenter: DotFieldVector
   wordBounds: DotFieldBounds
   progress: number
+  strike: number
+  thread: number
+  redraw: number
   from: DotFieldPlacement
   to: DotFieldPlacement
 }
@@ -221,6 +361,7 @@ export type DotFieldSample = {
   count: number
   left: number
   right: number
+  top: number
   inkHeight: number
 }
 
@@ -274,6 +415,19 @@ export type DotFieldUniforms = {
   morphStagger: WebGLUniformLocation | null
   morphJitter: WebGLUniformLocation | null
   morphArc: WebGLUniformLocation | null
+  penJitter: WebGLUniformLocation | null
+  burstPixels: WebGLUniformLocation | null
+  burstScale: WebGLUniformLocation | null
+  swell: WebGLUniformLocation | null
+  strikeSize: WebGLUniformLocation | null
+  strike: WebGLUniformLocation | null
+  thread: WebGLUniformLocation | null
+  threadStagger: WebGLUniformLocation | null
+  threadJitter: WebGLUniformLocation | null
+  threadArc: WebGLUniformLocation | null
+  threadBurst: WebGLUniformLocation | null
+  redraw: WebGLUniformLocation | null
+  redrawEdge: WebGLUniformLocation | null
   from: DotFieldPlacementUniforms
   to: DotFieldPlacementUniforms
 }
