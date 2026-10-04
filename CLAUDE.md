@@ -60,6 +60,7 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
 - Server-side identity uses `getClaims()`, never `getSession()` or `getUser()`.
 - Public signup is disabled, so `authenticated` _is_ the owner. There is deliberately no owners table.
 - Nothing is granted to `anon`. The public page reads content, and the contact form writes messages, **server-side through the admin (secret-key) client**.
+- The owner reads contact messages through their own session (`ctx.supabase`), never the admin client, so RLS and the column grants apply (Phase 13). `authenticated` selects every column of `contact_messages` except `ip_hash`, and updates only `read_at` and `archived_at`. A `select *` therefore fails for the owner, so list the columns (`INBOX_LIST_COLUMNS`, `INBOX_MESSAGE_COLUMNS`).
 - The `(owner)/dashboard` layout redirects anonymous visitors. Both auth layers are path-based, so owner-only routes (including the editor preview) must stay under `/dashboard/`.
 
 **Site content: draft/publish.**
@@ -204,6 +205,18 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
   - The form stays mounted and turns `invisible`. Never remount, key or `reset()` it: `renderedAt` is the two-second check.
   - The acknowledgement shares the form's grid cell, so nothing shifts, and takes focus through a module-level callback ref. An inline ref would re-focus it on every re-render, including the editor preview's.
   - The form is `method="post"`, so a submit without JavaScript never puts the fields in the URL. Never give it a multipart `encType`: Next answers a multipart POST to `/` with a 404 "Server action not found".
+- **The contact inbox (Phase 13):**
+  - `/dashboard/inbox` is one route, and its URL is its state: `?view=archived`, `?message=<id>` and `?shown=<n>`. `parseInboxLocation` reads it and `buildInboxHref` writes it; nothing else touches those parameters.
+  - The server page loads the list, the unread count and the open message through the tRPC caller. `unreadCount` degrades to `null` (no count) on an error, so the dashboard never fails because of the inbox.
+  - **Show older** grows `?shown` by `INBOX_PAGE_SIZE`, up to `INBOX_MAX_SHOWN` (975). The list asks PostgREST for `shown + 1` rows, and `max_rows` (1000 in `supabase/config.toml`) silently caps every response, so the cap must stay below it; a unit test reads the config. Past 975 messages in one view the oldest can't be listed. The upgrade is keyset paging (handoff, Phase 13).
+  - **Mark read on open:** opening an unread message marks it read from `InboxMessageActions`' effect, then `router.refresh()`. Never mark it read while rendering: a prefetch or a repeated render would mark messages nobody opened. The actions stay disabled until that request settles, so a quick Mark as unread can't be overwritten by it.
+  - **After an action** (Mark as unread, Archive, Move to inbox, or Delete after `window.confirm`), the inbox goes back to the list with `router.replace(listHref)` then `router.refresh()`. `replace` drops the acted-on message from the history, and `refresh` invalidates the back/forward cache, so Back never restores a deleted or archived message.
+  - `InboxMessageActions` is keyed by the message id. A search-param navigation doesn't remount the page, so without the key one message's error or pending action would carry over to the next.
+  - **Dates** render only in the browser (`InboxDate`, `useSyncExternalStore`, empty on the server and during hydration), in the reader's time zone, so a server running in UTC never shows the owner wrong times. Never format an inbox date on the server. The month names come from `en-US` parts, because `en-GB` writes "Sept".
+  - **Focus:** `InboxFocus` moves focus to the message heading when a message opens and to the list heading when it closes, because on a phone the list and the message are separate screens (`max-md:hidden`). When Show older loads the last page, its link disappears with the focus, so focus moves to the first newly shown row.
+  - Every visible string is in `INBOX_COPY`, approved by the owner word for word (handoff, Phase 13, "Owner answers"). Change none without asking.
+  - Row links put an explicit `{" "}` between their parts. Without it the accessible name runs together ("NewSender 3Branding…") in engines that don't space blockified grid items.
+- **Owner-surface tokens (Phase 13):** the light `--ring` is `oklch(0.556 0 0)` and the light `--destructive` is `oklch(0.47 0.2 27.3)`, darker than shadcn's stock values. Focus rings reach 4.73:1 on white, and the destructive button's text 6.10:1 (4.99:1 on hover); the stock values failed WCAG 1.4.11 and 1.4.3. The public stage overrides both tokens (`PUBLIC_TOKEN_OVERRIDES`).
 - **Env:** `src/config/env.server.ts` / `env.public.ts` validate at import and fail fast. They reject legacy `eyJ…` Supabase keys.
 - **Email:** `EmailAdapter` has only a preview implementation, which writes HTML to `.local/email-previews/`. Nothing is sent.
 - **Global UI state:** `@tanstack/react-store` (`useSelector`, not the deprecated `useStore`).
@@ -243,6 +256,9 @@ pnpm db:types          # regenerate src/types/database.type.ts after a migration
   - `editor.spec.ts` finds the name field with `getByLabel("Name")`, a substring match that also counts hidden panels. No other editor label may contain "Name"; a unit test in `editor-config-panel.test.tsx` guards it.
   - The editor's other label traps (Phase 12): "Statement" labels a field in both the Let's connect and the Contact panels, "Email" matches both "Email line" and "Email address", and "Question 1" also matches "Question 10" to "Question 12". Select the entry first, then use `getByRole(…, { name, exact: true })` or the field ids.
   - Each run sends a unique `x-forwarded-for` so the contact rate limit gets a fresh bucket.
+  - Every spec that sends or inserts a contact message marks the text with a run marker (`createRunMarker` in `tests/e2e/contact-messages.ts`). It deletes its own rows afterwards and sweeps any leftovers with its prefix before it starts. Never leave test messages in the owner's inbox.
+  - Insert test rows with `defaultToNull: false` and no `undefined` keys. supabase-js lists every key in `columns`, so PostgREST writes NULL for a missing value, and a NOT NULL column like `created_at` then fails.
+- **Log details are redacted by key name.** Any key containing `message`, `email` or another `SENSITIVE_KEY_FRAGMENTS` entry is replaced, so log a message's id as `rowId`, not `messageId`.
 - **Contact anti-spam is deliberate:** a honeypot, a two-second minimum time-to-submit, and five per hour per hashed IP. Never weaken the checks to make tests faster.
 - **`#contact` must keep working;** the e2e suite navigates to it.
 - **Deliberately not added:**

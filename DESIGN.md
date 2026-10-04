@@ -182,7 +182,7 @@ The site is a dark room with a display board. The name **Criztian** is not types
 
 The world is **black throughout** and **strictly monochrome**. Hierarchy is set by how brightly something is lit (full white, three-quarter, dimmed, ghost), never by hue. Every corner is square, because signage and hardware are square. The feeling is calm, precise and premium.
 
-This file describes the public site. The owner surfaces (`/login`, `/dashboard`, the editor) are tools that use the stock shadcn neutral system with light and dark modes. Only the Square Signal Rule reaches them, because it is set at the token level.
+This file describes the public site. The owner surfaces (`/login`, `/dashboard`, the editor and the contact inbox) are tools that use the stock shadcn neutral system with light and dark modes. Only the Square Signal Rule reaches them, because it is set at the token level. The inbox (Phase 13, the owner's pick of the stock look) is a list beside the open message on desktop and one screen each on a phone; a new message is marked by a small round dot and a bold name, the one curve on the owner side.
 
 **Key Characteristics:**
 

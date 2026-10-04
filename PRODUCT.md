@@ -98,12 +98,12 @@ The owner's own summary: "I specialize in crafting custom web solutions, includi
 - Project images are referenced, not uploaded: a file committed to `public/projects/` (for example `/projects/shop.webp`) or an https URL. Anything else shows the placeholder plate.
 - Draft and published states only, with no version history.
 - The content schema is built so that making another section editable is a data change, not a rewrite.
+- The contact inbox (`/dashboard/inbox`, Phase 13): every message sent through the form, newest first, 25 at a time with "Show older". Each row shows the sender, the service, when it arrived and its first line; new messages are marked, and the dashboard's link counts them. Opening a message marks it read and shows the whole text, the email, the service, the time received and whether its notification was written, with a Reply link that opens the owner's email app ("Re: Your message"). Mark as unread, Archive (and Move to inbox) and Delete (after a confirmation) manage it. A list beside the message on desktop, one screen each on a phone. Messages are kept until the owner deletes them; the IP hash is never shown, and only the owner's session can read the table.
 
 **Not built yet** (deferred on purpose, see README):
 
 - hosted deployment
 - live email
-- reading contact messages in the dashboard
 - a blog rendering pipeline
 - editing the Services, About, Process, Testimonials and Blog copy (hard-coded in `src/data/page-sections.data.ts` for now; the CMS for them comes later)
 

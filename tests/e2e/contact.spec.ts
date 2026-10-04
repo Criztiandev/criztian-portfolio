@@ -8,6 +8,16 @@ import {
 } from "@/data/contact.data"
 import { CONTACT_SECTION } from "@/data/page-sections.data"
 
+import {
+  CONTACT_RUN_PREFIX,
+  createRunMarker,
+  deleteMessagesContaining,
+} from "./contact-messages"
+
+const RUN_MARKER = createRunMarker(CONTACT_RUN_PREFIX)
+
+const TESTER_EMAIL = "playwright.tester@example.test"
+
 const SETTLE_MARGIN_MS = 500
 
 const WAIT_BEFORE_SUBMIT_MS =
@@ -35,13 +45,15 @@ async function openContactSection(page: Page) {
 
 async function fillMessage(page: Page) {
   await page.getByLabel("Name").fill("Playwright Tester")
-  await page.getByLabel("Email").fill("playwright.tester@example.test")
+  await page.getByLabel("Email").fill(TESTER_EMAIL)
   await page
     .getByRole("radio", { name: CONTACT_SERVICE_LABELS.development })
     .check()
   await page
     .getByLabel("What can I help you with?")
-    .fill("Sent by the end-to-end suite to verify the contact pipeline.")
+    .fill(
+      `Sent by the end-to-end suite to verify the contact pipeline. ${RUN_MARKER}`
+    )
 
   await page.waitForTimeout(WAIT_BEFORE_SUBMIT_MS)
 }
@@ -67,6 +79,14 @@ async function readContactFrame(page: Page) {
     }
   }, CONTACT_SECTION.id)
 }
+
+test.beforeAll(async function removeEarlierRuns() {
+  await deleteMessagesContaining(`${CONTACT_RUN_PREFIX}-`, TESTER_EMAIL)
+})
+
+test.afterAll(async function removeSentMessages() {
+  await deleteMessagesContaining(RUN_MARKER, TESTER_EMAIL)
+})
 
 test("accepts a message sent from the public contact section", async ({
   page,

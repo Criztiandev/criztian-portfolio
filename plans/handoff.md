@@ -2,9 +2,9 @@
 
 > **For:** the next Claude Code session picking up this build.
 >
-> **Current phase:** none open. **Phase 12, the page's ending** (FAQ, Let's connect, Contact and the footer, plus the owner's breathers between sections and the slower arrival title) is done and committed on the owner's OK (2026-10-02, "ok commit everything"): see its done note. Nothing after Phase 12 is planned yet: the owner chooses the next feature (see "Start here"). The owner handles deployment; the checklist is under "Deployment (the owner's)". The owner's device checks and the recordings' sign-off are still open. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference), except How I work's centred wheel (owner, Phase 8); the renders are in `plans/mockups/`. To resume, paste the prompt under "Start here".
+> **Current phase:** **Phase 13, the contact inbox** (the owner's pick, 2026-10-02) is built, reviewed and tested in the working tree, and waits for the owner's sign-off and OK to commit: see its done note. **Phase 12, the page's ending** (FAQ, Let's connect, Contact and the footer, plus the owner's breathers between sections and the slower arrival title) is done and committed in `428c480` on the owner's OK ("ok commit everything"): see its done note. The owner handles deployment; the checklist is under "Deployment (the owner's)". The owner's device checks and the recordings' sign-off are still open. The design is locked to mockup B ("Statement", with `B-desktop-1` as the reference), except How I work's centred wheel (owner, Phase 8); the renders are in `plans/mockups/`. To resume, paste the prompt under "Start here".
 >
-> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, Phase 5 is `ca4d45c`, Phase 6 is `bb808b1`, Phase 7 is `32efb4b`, Phase 8 is `e8cbbe5`, Phase 9 is `684db97`, Phase 10 is `78f4973` and Phase 11 is `ef06f1a`, each made on the owner's OK. Nothing is pushed, and `portfolio/phase-3` is not merged to `main` yet.
+> **Branch:** `portfolio/phase-3`. The direction lock, this phase plan and the mockup renders are committed in `29e7284`, on top of Phase 3's `0f198b2`. Phase 4's DESIGN.md rewrite is `6d11e7c`, Phase 5 is `ca4d45c`, Phase 6 is `bb808b1`, Phase 7 is `32efb4b`, Phase 8 is `e8cbbe5`, Phase 9 is `684db97`, Phase 10 is `78f4973`, Phase 11 is `ef06f1a` and Phase 12 is `428c480`, each made on the owner's OK. Nothing is pushed, and `portfolio/phase-3` is not merged to `main` yet.
 >
 > **How this file works:** each phase is one conversation. It lists its scope, the owner inputs it needs and its acceptance. It ends with the prompt that starts the next conversation. When a phase ends, write its done note under it, move "Current phase" forward, and give the owner the next prompt.
 >
@@ -15,10 +15,10 @@
 Paste this into a new conversation to resume the current phase:
 
 ```text
-Continue the portfolio after Phase 12 (the page's ending, with the breathers between sections and the slower arrival title).
-Read CLAUDE.md, then plans/handoff.md (Phase 12's done note, "Open owner decisions" and "Landmines still live"), PRODUCT.md and DESIGN.md.
-First run git status and check what is listening on ports 3100 and 3201. If Phase 12 is still uncommitted, summarise the diff and ask me before committing.
-Then ask me what comes next: my real material ("Anytime: the owner's material"), dot shapes for the breathers between sections (a design on a Claude Design canvas first), or the device checks and deployment.
+Continue the portfolio after Phase 13 (the contact inbox).
+Read CLAUDE.md, then plans/handoff.md (Phase 13's done note, "Open owner decisions" and "Landmines still live"), PRODUCT.md and DESIGN.md.
+First run git status and check what is listening on ports 3000, 3100, 3102 and 3201. If Phase 13 is still uncommitted, summarise the diff and ask me before committing.
+Then ask me what comes next: my real material ("Anytime: the owner's material"), the login's open redirect, live email for deployment, dot shapes for the breathers (a design on a Claude Design canvas first), or the device checks and deployment.
 ```
 
 ## Direction (owner redirect #4, 2026-09-29)
@@ -223,11 +223,12 @@ The mockups use these, and the owner approved them all. Use them in place of the
 - **Phase 9** (`684db97`): the projects deck, one step per visible project on a sticky board, `project-k` step ids, the frame unwound and redrawn in place (`isRedrawSegment`, `uRedraw`), the keyboard rule, and the Phase 5 list as the fallback (see its done note).
 - **Phase 10** (`78f4973`): every section's text swept by the dots, the About count-up, the desktop copy drift, the scroll-spy with the nav dot, the scroll-progress hairline, the menu wipe, the contact success moment, the FAQ disclosure, the no-JS fix and the adaptive cursor (old Part 4) (see its done note).
 - **Phase 11** (`ef06f1a`): the big arriving section titles, the pause-motion toggle, the small cursor over the dots, How I work's exit, the uncached published read, the accessibility and performance passes, and the docs (see its done note).
-- **Phase 12** (committed on the owner's OK, 2026-10-02): the ending as row B (FAQ's numbered questions and the conversation, Let's connect and the handshake, the restyled form and the gather, LET'S BUILD), the FAQ, Let's connect and Contact copy in the editor, the 19 review fixes, a 75svh breather before every section after the hero, and the arrival title swept in with the scroll (see its done note).
-- **Last evidence (2026-10-01, Phase 12):**
-  - 597 unit tests pass and `pnpm check` is clean.
-  - e2e is green on a production build at :3100, with Supabase up (335 specs, one run).
-  - The hero pixel diff held: 0 pixels against Phase 11. The method is in the history and the landmines.
+- **Phase 12** (`428c480`, on the owner's OK, 2026-10-02): the ending as row B (FAQ's numbered questions and the conversation, Let's connect and the handshake, the restyled form and the gather, LET'S BUILD), the FAQ, Let's connect and Contact copy in the editor, the 19 review fixes, a 75svh breather before every section after the hero, and the arrival title swept in with the scroll (see its done note).
+- **Phase 13** (in the working tree, waiting for the owner's OK): the contact inbox at `/dashboard/inbox`, with the list, the message view, read, unread, archive and delete, the unread count on the dashboard, the owner's column grants, and darker light-mode focus and destructive tokens on the owner pages (see its done note).
+- **Last evidence (2026-10-02, Phase 13):**
+  - 653 unit tests pass and `pnpm check` is clean.
+  - e2e is green on a production build of this tree at :3102 (the full suite, one run; the numbers are in Phase 13's done note).
+  - The hero pixel diff held: 0 pixels against Phase 12. The method is in the history and the landmines.
 
 **Carried-over open items,** each assigned to a phase:
 
@@ -1398,7 +1399,8 @@ The owner handles deployment (owner, 2026-10-01). This is the checklist, for the
 
 - **Hosting** for Next.js 16 (a Node server or a platform that runs one). `/` is prerendered and refreshed by `revalidatePath("/")` on publish, so the host must support on-demand revalidation.
 - **A hosted Supabase project:**
-  - the four migrations in `supabase/migrations/`
+  - the five migrations in `supabase/migrations/` (Phase 13 added the inbox's state columns and the owner's column grants)
+  - `max_rows` of at least 1000 in the API settings: the inbox's "Show older" cap (`INBOX_MAX_SHOWN`, 975) relies on it
   - auth's `site_url` and redirect URLs (today `localhost:3000`, plus `/auth/confirm` and `/reset-password`)
   - signup disabled, and the owner's account created by hand
   - new `sb_` keys (legacy `eyJ…` keys are rejected)
@@ -1406,7 +1408,7 @@ The owner handles deployment (owner, 2026-10-01). This is the checklist, for the
   - backups
 - **Environment:** `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `OWNER_EMAIL` and `EMAIL_MODE`. `EMAIL_MODE` only accepts `preview` today.
 - **A live email adapter:** `EmailAdapter` has only the preview, which writes HTML to `.local/email-previews/` and sends nothing. A deployed disk may be read-only or wiped, so a live adapter must exist before launch (the Resend adapter waits for this).
-- **Reading contact messages:** they are stored in `contact_messages`, but the dashboard has no view of them yet.
+- **Reading contact messages:** built in Phase 13 (`/dashboard/inbox`). It reads through the owner's session, so on the hosted project check that the migration's column grants applied: the owner must not be able to select `ip_hash` (`tests/e2e/inbox.spec.ts` checks it). The inbox formats dates in the browser, so a host running in UTC is fine.
 - **The client address:** `readClientAddress` trusts the first `x-forwarded-for` entry for the rate limit. The host must overwrite that header, or the rate limit must read the host's trusted header instead.
 - **A domain, DNS and HTTPS.**
 - **Merging `portfolio/phase-3` into `main`** once the owner signs off.
@@ -1693,6 +1695,118 @@ The owner handles deployment (owner, 2026-10-01). This is the checklist, for the
   - **Gaps the agents named:** fit.spec's line scan can't include FAQ (closed answers keep zero-height rects); `editor.spec` doesn't edit the new FAQ, Let's connect or Contact panels (unit tests cover the FAQ panel); motion-fallbacks keeps the breather's 0.75 as a constant, so a retune changes both.
   - **Carried:** the device checks (the Android trace and fling test, the iPhone checklist) and the recordings' sign-off from Phases 10 and 11.
 
+### Phase 13: the contact inbox
+
+**Goal.** The owner reads every message sent through the contact form in the dashboard, newest first, and can tell new messages from handled ones. Today the form saves each message in `contact_messages`, but nothing shows them: the email notification is only a local HTML preview (`.local/email-previews/`), so new enquiries are invisible. The owner picked this feature after Phase 12 (2026-10-02).
+
+**What exists** (checked on 2026-10-02):
+
+- **The table** `public.contact_messages`: `id`, `name`, `email`, `message`, `service` (`branding`, `web_design`, `development`, `something_else`, or null for older rows), `ip_hash`, `created_at`, `notified_at` and `notify_error`. Indexes on `created_at desc`, the rate limit and pending notifications.
+- **Access:** RLS is on. Nothing is granted to `anon`, and the form inserts server-side through the admin client (`contact.service.ts`, `submitContactMessage`). `authenticated` (the owner: public signup is off) already has table-wide `select`, `update` and `delete`, with permissive policies.
+- **The dashboard** (`src/app/(owner)/dashboard/page.tsx`) is a heading, the signed-in email, sign-out and a link to the editor. The layout redirects anyone without claims to the login. The owner surfaces use the stock shadcn neutral system (DESIGN.md), squared by `--radius: 0`.
+- **tRPC:** `ownerProcedure` requires a Supabase session; routers pass `ctx.requestId` to services, which log with `logError`.
+
+**Open questions for the owner** (ask with the ask tool before building; never invent the copy):
+
+1. What the list shows for each message (name, service, date, the first line?), and what one message's page shows (the full message, the email with a reply link, the service, the time received).
+2. States: new and read (marked read when opened?), handled or archived, and delete (the database already allows it).
+3. An unread count on the dashboard (and anywhere else?).
+4. Replying: a `mailto:` link with a prefilled subject (email sending waits for deployment), or nothing.
+5. Whether to show the notification's status (`notified_at`, `notify_error`) while email is only a preview.
+6. Search or a filter by service, and roughly how many messages a month to expect (paging).
+7. Retention: keep forever, or delete after a time; `ip_hash` is never shown.
+8. The look: the stock owner UI (light and dark), or closer to the public page.
+
+**Owner answers** (2026-10-02, with the ask tool; every option below was the one the owner picked, previews included):
+
+- **The list:** each row shows the sender's name, the service, when it arrived (the time today, else the date) and the first line of the message. A new message has a dot and bold text. The list's heading carries the count ("Inbox · 2 new").
+- **One message:** the full message with its line breaks, the name, the email, the service and the exact time received, and a Reply button that opens the owner's email app addressed to the sender with the subject "Re: Your message". Real sending waits for deployment.
+- **States and actions:** all four. Opening a message marks it read, and "Mark as unread" puts it back; Archive moves a handled message to an Archived list, and it can be moved back; Delete removes a message for good after a confirmation; the dashboard's link to the inbox shows the unread count.
+- **The notification's status, on every message** (the owner overruled the recommendation to hide it): "Notified at 14:32" or "Notification failed".
+- **Volume:** under 20 a month. Newest first, 25 at a time with a "Show older" button; no search and no filter.
+- **Retention:** keep every message until the owner deletes it. The IP hash stays for the rate limit and is never shown.
+- **The look:** the stock owner UI, like the login and the editor (shadcn neutral, square, light or dark from the system). A list beside the open message on desktop, one page per message on a phone.
+- **The test messages:** all 64 stored messages were e2e test messages ("Playwright Tester", `@example.test`, "Sent by the end-to-end suite to verify the contact pipeline."), and every run added one. Delete them once the owner has seen the inbox, and make every spec delete the messages it sends.
+- **The wording, approved as listed** (the owner picked "Use them as listed"):
+  - Dashboard: "Open the inbox · 2 new".
+  - Inbox (browser tab "Inbox"): "← Dashboard"; "Inbox · 2 new" with an "Archived" switch, and "Archived" with an "Inbox" switch; "No messages yet."; "Nothing archived."; "Select a message to read it." (desktop, none open); "Show older"; "New" (read aloud on a new row).
+  - One message: "← Inbox" or "← Archived" (phone); "Branding · Fri 2 Oct 2026, 14:32" (the preview said "Thu", but 2 Oct 2026 is a Friday; the format is the approved one); "Notified at 14:32", "Notification failed", or "Not notified" when neither is recorded; "Reply" (subject "Re: Your message"); "Mark as unread", "Archive", "Delete"; "Move to inbox" on an archived message; "Delete this message for good?" (the confirmation); "This message no longer exists."
+  - Errors: "Could not update the message. Try again."; "Could not delete the message. Try again."
+  - Dates, 24-hour: "14:32" today, "1 Oct" this year, "28 Sep 2025" before.
+
+**Scope** (a draft; confirm it with the owner's answers):
+
+- **Data:** a migration for the new state (for example `read_at` and `archived_at`, or a `status`), with an index for the unread count, applied with `pnpm exec supabase migration up --local` (never `pnpm db:reset`), then `pnpm db:types`. Load the `supabase-postgres-best-practices` skill before writing it. Consider tightening the owner's table-wide `update` grant to the state columns only, so a message's text can't be edited.
+- **Server:** a feature folder (for example `src/features/inbox/`) with an owner router of `ownerProcedure` queries (a page of messages with cursor paging, one message) and mutations (mark read, archive, delete), composed in `app.router.ts`, and a service that reads as the owner through the server client, so RLS applies, rather than the admin client. Types in `src/types/`, data and copy in `src/data/`.
+- **UI:** `/dashboard/inbox` (it must stay under `/dashboard/`, where both auth layers apply), a list and a message view (a split view on desktop, a page per message on a phone), and the unread count on the dashboard.
+- **Tests:** unit tests for the rules (formatting, the unread count, paging). e2e on a production build at :3100: the logged-in specs' throwaway user (`tests/e2e/owner-account.ts`) sees a message inserted through the admin client (with a marker in its text, deleted afterwards), opens it, marks it read and archives it; an anonymous visitor to `/dashboard/inbox` is sent to the login; the anon key can't read the table.
+
+**Acceptance.**
+
+- `pnpm check`, the unit tests and e2e are green, e2e on a production build at :3100 with `draft = published` before and after.
+- The owner reads, marks and manages messages on desktop and phone; nobody else can see them.
+- The public page is unchanged: its specs pass, and the hero pixel diff is 0 against Phase 12 (`428c480`).
+- The owner signs off the inbox.
+
+**Done note (2026-10-02, one conversation; built and tested, waiting for the owner's sign-off and OK to commit).** Nothing is committed.
+
+- **Shipped** (in the working tree):
+  - **Data:** `supabase/migrations/20261002120000_contact_messages_inbox.sql` adds `read_at` and `archived_at` and a partial index for the unread count. It also revokes the owner's table-wide `select` and `update`. `authenticated` now selects every column except `ip_hash`, and updates only `read_at` and `archived_at`, so the owner can never read the IP hash or rewrite a message. It was applied with `pnpm exec supabase migration up --local`, and the types were regenerated. The grants were probed as `authenticated` and `anon` inside rolled-back transactions, and e2e checks them again.
+  - **Server:** `src/features/inbox/` holds the schema, the rules, the service and the router. The router is `inbox`, made of `ownerProcedure`s only: `list`, `message`, `unreadCount`, `setRead`, `setArchived` and `remove`. The service runs on `ctx.supabase`, the owner's own session, so RLS and the grants apply. Types are in `src/types/inbox.type.ts`, and the data and every approved string are in `src/data/inbox.data.ts`.
+  - **UI:** `/dashboard/inbox`, as the owner chose it. The list rows show the name, service, time or date and first line; a new message has a dot and bold text; the heading reads "Inbox · N new". Opening a message shows the full message, the email, the service, the full date, the notification status and Reply (subject "Re: Your message"). The actions are Mark as unread, Archive / Move to inbox and Delete with a confirmation. The archive is a view, and "Show older" loads 25 more. On desktop the list sits beside the message; on a phone each is its own screen. The dashboard link reads "Open the inbox · N new". How it works is in CLAUDE.md, "The contact inbox (Phase 13)".
+  - **Owner-surface tokens:** light `--ring` 0.708 to 0.556 and light `--destructive` to `oklch(0.47 0.2 27.3)`. Both stock values failed WCAG on the owner pages: the focus rings were 2.59:1 and the Delete text 3.99:1. The public stage overrides both, and the hero diff is 0.
+  - **Docs:** CLAUDE.md, PRODUCT.md, DESIGN.md (the owner surfaces), README (the counts, the features list and the deferred table) and `.impeccable/design.json` (by `.local/phase13/update-design-json.mjs`).
+- **Deviations from the plan:**
+  - "Show older" grows one window (`?shown`) instead of a keyset cursor. It matches "25 at a time with a Show older button", and the owner's volume makes it free. **Known ceiling:** `INBOX_MAX_SHOWN` is 975, because PostgREST's `max_rows` (1000) silently caps every response. At under 20 messages a month, a view reaches that in about four years without archiving or deleting. The upgrade is a keyset cursor plus a client-side append.
+  - The message view has a `max-w-3xl` reading width. At 1440 the text ran the whole pane, and Reply sat 1,300px from the name.
+  - Each action costs two list renders (`replace` then a refresh). The refresh invalidates the back/forward cache; keep it.
+- **Review:** a five-lens workflow (security and data, correctness, accessibility, conventions and fidelity, tests) had every finding checked by a skeptic. It found 19 findings: 17 were confirmed (13 distinct) and 2 refuted. All were fixed. A second workflow then checked the fixes adversarially and found 6 more small issues: 5 are fixed, and one (two list renders per action) is accepted and recorded above. The results are in `.local/phase13/review-result.json` and `.local/phase13/fix-verification.json`.
+  - **Fixed:**
+    - one message's error or pending action carried over to the next (now keyed);
+    - Mark as unread could be overwritten by the open-time mark-read (the actions now wait for it);
+    - Back restored a deleted or archived message (now `replace`, plus a refresh at the mutation level, so it runs even after the message closes);
+    - Show older went dead at the cap;
+    - focus fell to the body when Show older loaded the last page;
+    - the open row's quiet text was 4.34:1;
+    - the row focus outline was 1.54:1;
+    - the open row was invisible in forced colours;
+    - the log key `messageId` was redacted (now `rowId`, in contact's service too);
+    - an inline constant;
+    - inexact e2e locators;
+    - a line-break check that couldn't fail;
+    - sweeps that could delete a real message, and no sweep of an interrupted run's rows.
+  - **Refuted:** the phone message screen's missing h1; a dialog assertion said to hang.
+  - **My own e2e run found two test bugs:** the insert helper wrote NULL into `created_at`, and the time locator assumed `.000Z` where PostgREST returns `+00:00`. A probe confirmed the app's dates were right in both time zones.
+- **Evidence:**
+  - `pnpm check` is clean, and 653 unit tests pass (597 before). The new inbox tests are `inbox-rules.test.ts` and `inbox.test.tsx`. Each fix's unit test was shown to fail with the fix removed (keyed actions, the busy hold, focus after Show older, the cap, the mutation-level refresh).
+  - e2e: `tests/e2e/inbox.spec.ts` has 9 tests:
+    - an anonymous visitor goes to the login;
+    - the publishable key is refused (`42501`);
+    - the owner session can't read `ip_hash` or edit the text, but can set `read_at`;
+    - the counts on the dashboard and in the inbox;
+    - the whole lifecycle with Back;
+    - a missing message;
+    - Show older;
+    - dates in the reader's time zone (New York);
+    - the phone screens.
+  - **The full e2e suite: 344 of 344 passed in one run** (22.6 minutes, workers 1, no retries, no flakes; `.local/phase13/e2e/full-run-1.log`) on the first-round build. `draft = published` before and after, the hero name is Criztian, and no test rows were left.
+  - On the final build (the second-round fixes): the inbox, contact, dashboard and editor specs passed 18 of 18, and the inbox spec 27 of 27 over three repeats and 10 of 10 again against an empty inbox. The second round changed only inbox code, its tests and contact's log key, so the public specs from the full run stand.
+  - The hero pixel diff is 0 pixels against Phase 12 (`:3100`, PID 25208, built from `428c480`) at DPR 1 and 2, at rest and with reduced motion, on both builds (`.local/phase13/pixel/pixel-diff-1.json` and `-2.json`).
+  - **The 64 old e2e test messages are deleted** (owner, 2026-10-02: after the inbox was shown with them). They were all "Playwright Tester" rows. The backup is `.local/phase13/test-messages-backup.csv`, and the table is empty now.
+- **Where it ran** (auto mode refused to stop the servers on :3100 and :3201, so they were left alone):
+  - The tree was copied to `E:\Project\criztian-phase13-e2e` (robocopy without `node_modules`, `.next`, `.git`, `.local` or `.env.local`; a `node_modules` junction to the main install) and built with `next build --webpack`, with `.env.local` loaded into the shell.
+  - It was served on **:3102**, and the Playwright config is `.local/phase13/playwright.3102.config.ts`.
+  - At the end, :3102 still serves the final Phase 13 build (PID 19316, started by this session; the owner can sign in there with their own account). :3100 still serves the Phase 12 build (PID 25208, the pixel baseline) and :3201 Phase 11 (PID 31812). The owner's dev server on :3000 was never touched.
+  - **Cleanup when done:**
+    1. Stop :3102 by its PID after checking its command line.
+    2. Delete the junction first with `[System.IO.Directory]::Delete("E:\Project\criztian-phase13-e2e\node_modules", $false)`.
+    3. Check that no reparse points remain, then remove the folder.
+- **For the owner:** `.local/phase13/captures-final/overview.png` holds the desktop and phone views on one sheet. Every capture is beside it: desktop and phone, light and dark, the dashboard, the list, a message and the empty archive, plus forced colours.
+- **Open:**
+  - the owner's sign-off and OK to commit;
+  - the e2e run on :3100 once the owner frees that port (or accepts :3102);
+  - a pre-existing open redirect: the login form follows `?next=` unchecked, so `/login?next=https://elsewhere` leaves the site after signing in. A fix limits it to `/dashboard` paths; it is the owner's call.
+
 ### Anytime: the owner's material
 
 Use this whenever the owner sends material. It can run between any two phases.
@@ -1750,6 +1864,9 @@ These are the ones CLAUDE.md doesn't already cover:
 - **Tailwind 4's `!` utilities are `!important` inside `@layer utilities`,** so a test can't override them with an injected unlayered `!important` rule: a layered important declaration beats an unlayered one. Break them by removing the class instead.
 - **With JavaScript off in Playwright,** `page.addStyleTag` hangs and `requestAnimationFrame` from `page.evaluate` never fires. Inject a `<style>` through `evaluate`, and poll.
 - **Touch scrolls for recordings:** CDP `Input.synthesizeScrollGesture` with `gestureSourceType: "touch"` scrolls nothing in this Chromium. Drive swipes with `Input.dispatchTouchEvent`, as `.local/phase10/record.mjs` does.
+- **Auto mode may refuse to stop a server this session didn't start** (Phase 13: stopping :3100 and :3201 was denied as interfering with other work). Don't work round it. Build a sibling copy and serve it on a free port instead (the method is in Phase 13's done note, on :3102), or ask the owner to stop the old servers. A server this session started can be stopped by its PID.
+- **PostgREST caps every response at `max_rows`** (1000, `supabase/config.toml`) without an error. Any list that asks for more rows than that gets a silently short answer.
+- **A search-param navigation doesn't remount the page** in Next 16: the page segment's cache key drops the search params. Client state under a page that changes only its query (the inbox's `?message=`) survives the navigation unless it is keyed.
 
 ## Open owner decisions
 
@@ -1764,8 +1881,15 @@ These are the ones CLAUDE.md doesn't already cover:
 - **Phase 10 (for the owner):** sign off the two screen recordings in `.local/phase10/recordings/` (1440×900 and 390×844); save the cursive logo as `public/brand/logo.svg` so a session can wire it (see Phase 10's done note).
 - **Phase 11 (for the owner):** the Android trace and fling test, the iPhone checklist, and the sign-off of the Phase 10 and Phase 11 recordings (see Phase 11's done note, Open).
 - **Phase 12 (for the owner):** signed off on 2026-10-02 ("ok commit everything"). Still open: look at the sign's wide-screen cap on a big monitor; decide on dot shapes in the breathers ("we can add more dot shapes"; a canvas first); decide whether focus scrolls become instant page-wide, which fixes a pre-existing quick Tab and Shift+Tab race at the footer (see Phase 12's done note, Open).
+- **Phase 13 (for the owner):** sign off the inbox and give the OK to commit. Then:
+  - the 64 old test messages are already deleted, as decided (backup in `.local/phase13/`);
+  - say whether e2e must also run on :3100 (it needs the old servers on :3100 and :3201 stopped);
+  - decide on the login's open redirect (see Phase 13's done note).
+  - Note: the light focus-ring and destructive tokens changed on every owner page (login, dashboard, editor), not only the inbox.
 - **Material:** the belief line, the story and photo, client quotes, real projects.
 - **Decided, recorded:**
+  - Phase 13 (owner, 2026-10-02): the inbox's list, message view, actions, notification status, volume, retention, look, test data and wording, all recorded under "Phase 13: the contact inbox", "Owner answers"
+  - After Phase 12 (owner, 2026-10-02): commit everything (`428c480`); the next feature is the contact inbox (Phase 13), in a fresh conversation
   - Phase 12 build (owner, 2026-10-01): a breather between sections ("add more space … so there is like a breather, especially when you are speed scrolling", then for every section, "a huge space … so it's dramatic and the transition of the dots is not short", then "smaller a little so when I scroll down I can still see the bottom": 75svh; then "the transition of FAQ and Let's connect is too long": 25svh there, after FAQ's own band); the arrival title sweeps in with the scroll ("sync well when I'm scrolling because sudden pop out hurts my eye")
   - Phase 12 (owner, 2026-10-01): FAQ gets bigger numbered questions and a dot object, and opens downward; a new Let's connect screen with the handshake and the email line, whose dots fly to the frame round the real form; a restyled form; LET'S BUILD in the footer's dots; Let's connect, the FAQ and Contact's copy editable; design first on Claude Design ("surprise me"); direction B ("I like the b")
   - Phase 11 wrap-up (owner, 2026-10-01): commit Phase 11 as it stands, with the device checks still open; the owner handles deployment; more elements come next

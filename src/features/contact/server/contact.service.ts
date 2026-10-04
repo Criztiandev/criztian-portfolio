@@ -89,7 +89,7 @@ async function notifyOwner(
     logError({
       event: "contact.notify_failed",
       requestId,
-      details: { messageId },
+      details: { rowId: messageId },
       error,
     })
 
