@@ -8,7 +8,7 @@ Read before working:
 
 - `AGENTS.md`: this is Next.js 16.3.4, which differs from training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing Next.js code.
 - `PRODUCT.md` (audience, positioning, what must not be fabricated) and `DESIGN.md` (visual system) before any UI work.
-- `plans/handoff.md`: the redesign in progress. It covers the current phase, the owner's decisions, the fixed-canvas architecture and the DOM contract every dot scene follows.
+- The handoff through Phase 13 is archived in git: `git show cae9989:plans/handoff.md`. It covers the owner's decisions phase by phase, the fixed-canvas architecture, the DOM contract every dot scene follows, the landmines and the open owner decisions. Every mention of `plans/handoff.md` below means that copy, until a new handoff starts.
   - Rationale for the earlier hero, quote, burst and editor work is in `git show 0a3c97a:plans/handoff.md`.
   - The full Phase 1–3 notes (Parts 0–4, the reviews, and the Services thread and orbit) are in `git show 0f198b2:plans/handoff.md`.
   - Each phase ends with the prompt for the next conversation.
