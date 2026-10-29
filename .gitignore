@@ -40,3 +40,6 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# impeccable per-session hook cache
+.impeccable/hook.cache.json

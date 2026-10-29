@@ -226,4 +226,3 @@ pnpm supabase gen types --linked --schema public > src/type/database.type.ts
   build machine (Vercel builds are).
 - Resend: verify a sending domain, then change `EMAIL_FROM`.
 - Set `NEXT_PUBLIC_SITE_URL` to the production origin (Vercel sets a fallback automatically).
-# criztian-portfolio
