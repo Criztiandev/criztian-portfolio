@@ -1,0 +1,197 @@
+import { IconFileText, IconHome, IconPalette } from "@tabler/icons-react"
+
+import { FONT_OPTIONS } from "@/data/font.data"
+import { HOME_DEFAULTS } from "@/data/home.data"
+import { THEME_DEFAULTS } from "@/data/theme.data"
+import type { CmsCollection } from "@/type/cms.type"
+
+export const cmsCollections: CmsCollection[] = [
+  {
+    slug: "posts",
+    label: "Blog",
+    singular: "Post",
+    icon: IconFileText,
+    cards: [
+      { name: "Content" },
+      {
+        name: "Settings",
+        description: "When and whether this post shows on the site.",
+      },
+    ],
+    titleField: "title",
+    summaryField: "summary",
+    fields: [
+      {
+        name: "title",
+        type: "text",
+        label: "Title",
+        card: "Content",
+        required: true,
+        max: 200,
+        placeholder: "Give the post a title",
+      },
+      {
+        name: "slug",
+        type: "slug",
+        label: "Slug",
+        card: "Content",
+        placeholder: "my-first-post",
+      },
+      {
+        name: "summary",
+        type: "richtext",
+        label: "Summary",
+        card: "Content",
+        required: true,
+        max: 300,
+        compact: true,
+        helper: "Shows in lists and link previews. Keep it to one line.",
+        placeholder: "Say in a sentence what the post is about",
+      },
+      {
+        name: "body",
+        type: "richtext",
+        label: "Body",
+        card: "Content",
+        required: true,
+        max: 100_000,
+        placeholder: "Write the post here",
+      },
+      {
+        name: "publishDate",
+        type: "date",
+        label: "Publish date",
+        card: "Settings",
+        required: true,
+        helper: "Shown on the post.",
+      },
+      {
+        name: "visible",
+        type: "switch",
+        label: "Show on site",
+        card: "Settings",
+        helper: "Turn it off to hide this post without deleting it.",
+      },
+    ],
+  },
+  {
+    slug: "home",
+    label: "Home page",
+    singular: "Home page",
+    icon: IconHome,
+    single: true,
+    cards: [{ name: "Hero" }, { name: "Contact" }],
+    fields: [
+      {
+        name: "heroHeading",
+        type: "text",
+        label: "Hero heading",
+        card: "Hero",
+        required: true,
+        max: 120,
+        default: HOME_DEFAULTS.heroHeading,
+      },
+      {
+        name: "heroText",
+        type: "textarea",
+        label: "Hero text",
+        card: "Hero",
+        max: 300,
+        default: HOME_DEFAULTS.heroText,
+      },
+      {
+        name: "contactHeading",
+        type: "text",
+        label: "Contact heading",
+        card: "Contact",
+        required: true,
+        max: 80,
+        default: HOME_DEFAULTS.contactHeading,
+      },
+    ],
+  },
+  {
+    slug: "theme",
+    label: "Theme",
+    singular: "Theme",
+    icon: IconPalette,
+    single: true,
+    cards: [
+      {
+        name: "Colors",
+        description:
+          "One palette for the whole public site. The dashboard keeps its own look.",
+      },
+      {
+        name: "Fonts",
+        description:
+          "Two fonts for the whole public site. The dashboard keeps its own.",
+      },
+    ],
+    fields: [
+      {
+        name: "background",
+        type: "color",
+        label: "Background",
+        card: "Colors",
+        required: true,
+        default: THEME_DEFAULTS.background,
+        contrast: { field: "text", min: 4.5 },
+      },
+      {
+        name: "text",
+        type: "color",
+        label: "Text",
+        card: "Colors",
+        required: true,
+        default: THEME_DEFAULTS.text,
+      },
+      {
+        name: "primary",
+        type: "color",
+        label: "Primary",
+        card: "Colors",
+        required: true,
+        default: THEME_DEFAULTS.primary,
+        helper: "Buttons. Their text turns black or white to stay readable.",
+      },
+      {
+        name: "accent",
+        type: "color",
+        label: "Accent",
+        card: "Colors",
+        required: true,
+        default: THEME_DEFAULTS.accent,
+        helper: "For highlights. No section of the starter page uses it yet.",
+      },
+      {
+        name: "muted",
+        type: "color",
+        label: "Muted",
+        card: "Colors",
+        required: true,
+        default: THEME_DEFAULTS.muted,
+        helper: "Quiet surfaces, such as a button you point at.",
+        contrast: { field: "text", min: 4.5 },
+      },
+      {
+        name: "headingFont",
+        type: "select",
+        label: "Heading font",
+        card: "Fonts",
+        options: FONT_OPTIONS,
+        default: THEME_DEFAULTS.headingFont,
+        helper: "Page titles and section headings.",
+      },
+      {
+        name: "bodyFont",
+        type: "select",
+        label: "Body font",
+        card: "Fonts",
+        options: FONT_OPTIONS,
+        default: THEME_DEFAULTS.bodyFont,
+        helper: "Everything else: paragraphs, the menu and buttons.",
+      },
+    ],
+  },
+]
