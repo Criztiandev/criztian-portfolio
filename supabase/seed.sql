@@ -67,7 +67,7 @@ The site is faster, easier to read on a phone, and has a blog.
 
 ## Where to find things
 
-Use the menu at the top. The [contact form](https://example.com) is on the home page.$$,
+Use the menu at the top.$$,
       'publishDate', '2026-10-06',
       'visible', true
     ),

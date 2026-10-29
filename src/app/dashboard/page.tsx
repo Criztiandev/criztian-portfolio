@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 
 import { cmsCollections } from "@/config/cms.config"
 import { siteConfig } from "@/config/site.config"
@@ -15,5 +15,5 @@ export default async function DashboardPage() {
       redirect(`/dashboard/${collection.slug}`)
     }
   }
-  redirect("/dashboard/messages")
+  notFound()
 }

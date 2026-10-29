@@ -2,7 +2,7 @@
 
 Criztian's one-page portfolio: custom websites for small businesses. Built on Criztian's
 website template: Next.js 16 + tRPC + TanStack Query + Jotai + shadcn/ui + motion + zod +
-Supabase + Resend, with a small CMS for the home text, the theme and the blog. The public
+Supabase, with a small CMS for the home text, the theme and the blog. The public
 site keeps working when Supabase is down.
 
 Start with [CLAUDE.md](CLAUDE.md) (the design and build rules), [PRODUCT.md](PRODUCT.md) and
@@ -13,7 +13,6 @@ before changing structure, and [docs/cms-plan.md](docs/cms-plan.md) for the CMS.
 
 - Node 24 (22.18 minimum), pnpm 10 (pinned in `package.json`)
 - Docker Desktop for the local Supabase stack (or a hosted Supabase project)
-- A Resend account for the contact form email
 
 ## Setup
 
@@ -40,13 +39,10 @@ pnpm db:types
 
 Create your user in Studio at http://127.0.0.1:56323 (Authentication, Users, auto-confirm).
 Public signups are disabled on purpose; see the architecture doc. Every signed-in user is an
-editor: they read contact messages and create, edit and publish posts. Put the same
+editor: they create, edit and publish posts and the home page text. Put the same
 credentials in `.env.local` as `E2E_USER_EMAIL` and `E2E_USER_PASSWORD`; `pnpm test:e2e` runs
 its database tests only when they are set. `pnpm db:reset` deletes users too, so create the
 user again after a reset.
-
-Set `RESEND_API_KEY`, `EMAIL_FROM` and `EMAIL_TO`. While `EMAIL_FROM` uses the sandbox
-sender `onboarding@resend.dev`, `EMAIL_TO` must be the address of your Resend account.
 
 ```bash
 pnpm dev
@@ -77,10 +73,8 @@ pnpm test:e2e
 
 `pnpm check` is the fast gate: lint, typecheck and unit tests. The browser install runs once
 per machine (add `--with-deps` on Linux). `pnpm test:e2e` builds the app and serves it on
-port 3010 next to a fake Resend API on 3011 and a fake Supabase API on 3012; all three ports
-must be free. Without the E2E credentials the app is built against the fake Supabase API and
-the database tests skip; with them it uses the local stack, which must be running. Database
-runs leave contact messages behind; delete them in Studio.
+port 3010 next to a fake Supabase API on 3012; both ports must be free. Without the E2E credentials the app is built against the fake Supabase API and
+the database tests skip; with them it uses the local stack, which must be running.
 
 ## CMS
 
@@ -90,8 +84,7 @@ Show on site switch is on. A draft never reaches the site: Publish copies it to 
 version and refreshes the static pages right away. A signed-in user sees a saved draft at
 `/preview/posts/<id>`, drawn like the site with its header and colors.
 
-`/dashboard` has the sidebar, the contact messages under Inbox (a table: who wrote, the
-message, when, and a Reply link) and a list per collection: the title, the last update, the
+`/dashboard` has the sidebar and a list per collection: the title, the last update, the
 publish state and a row menu with Edit and Delete. The sample collection is called Blog
 there; its slug is `posts`. Delete asks first and takes a live post off the site right away.
 New post on the list and a click on a title open the editor at `/editor`, which fills the
@@ -115,7 +108,7 @@ selects it, and a click on a text puts the cursor in its field; Theme draws the 
 but its sections are not Theme's, so a click there does nothing. Desktop, Tablet and Phone in the top bar
 change the width the page is drawn at. Nothing is live until Publish.
 
-Home page edits the home page's text: the hero heading and text, and the contact heading.
+Home page edits the home page's text: the hero heading and text, and the stakes heading and text.
 
 Theme edits the public site's five colors: background, text, primary, accent and muted.
 Pick a color or type a hex value, Save draft, then Publish. Text that is hard to read on
@@ -149,7 +142,7 @@ and `aboutText`.
    `default: HOME_DEFAULTS.<key>`. The card is the section's row on the left of the
    editor, in the order of `cards`, and its fields show on the right.
 3. Draw the section in `src/components/home-view.tsx` from `home.aboutHeading` and
-   `home.aboutText`. The Contact section is the markup to copy. Put
+   `home.aboutText`. The Stakes section (`src/components/stakes-section.tsx`) is the markup to copy. Put
    `data-cms-card="About"` on the section and `data-cms-field="<key>"` on each text. A
    click on them in the editor then selects the section and puts the cursor in the field.
 
@@ -183,8 +176,7 @@ collection first: see the next two parts.
    page editor" below. Without that the editor still opens, with a note where the page
    would be.
 
-Two rules: a field of type `slug` must be named `slug`, and the collection slug `messages`
-is taken by the inbox. Slugs are unique among the live entries of one collection.
+One rule: a field of type `slug` must be named `slug`. Slugs are unique among the live entries of one collection.
 
 A collection with `single: true` has one entry and no list, like the Home page. It has no
 row in the dashboard sidebar: it is a page in the page editor, which Editor in the sidebar
@@ -224,5 +216,4 @@ pnpm supabase gen types --linked --schema public > src/type/database.type.ts
 - Run `pnpm supabase db push` before each deploy that adds a migration.
 - The build reads published posts, so the hosted Supabase project must be reachable from the
   build machine (Vercel builds are).
-- Resend: verify a sending domain, then change `EMAIL_FROM`.
 - Set `NEXT_PUBLIC_SITE_URL` to the production origin (Vercel sets a fallback automatically).

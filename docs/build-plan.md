@@ -77,19 +77,21 @@ Done 2026-10-29: shadcn Button restyled through its cva (sizes `large` 52, `smal
 
 ### 4. Sections (mobile-first, static, no motion)
 
-- [ ] 0 · Nav
-- [ ] 1 · Hero
-- [ ] 2 · Stakes
-- [ ] 3 · Work (desktop stage layout static on row 1; tablet / phone stacked)
-- [ ] 4 · How it works
-- [ ] 5 · About
-- [ ] 6 · Prices
-- [ ] 7 · Footer
+- [x] 0 · Nav
+- [x] 1 · Hero
+- [x] 2 · Stakes
+- [x] 3 · Work (desktop stage layout static on row 1; tablet / phone stacked)
+- [x] 4 · How it works
+- [x] 5 · About
+- [x] 6 · Prices
+- [x] 7 · Footer
 - [ ] Booking popup (Cal.com embed) with loading + error states, desktop and phone
 - [ ] 404 page
 - [ ] Privacy page
 
 Done when: each section matches Figma at 390, 768, 1440 and 1920 (centered at 1440).
+
+Done 2026-10-29 (Home, rows 0–7): sections built from Desktop `get_design_context` + Phone/Tablet `get_metadata` (Figma calls: 10). Section heights vs Figma at 390: all within 3 px; at 768: Work +16, the rest within 3 px; at 1440: Work +11, About −10, the rest within 1 px (why in docs/architecture.md, "Portfolio home"). 1 h1, 6 h2, no sideways scroll, 0 console errors at 390/768/1440/1920; at 1920 content stays centered at 1440. Nav unchanged from phase 3. Contact form + Resend removed, `contact_messages` dropped. `pnpm check` 40/40 (6 contact unit tests removed with the code); `pnpm test:e2e` 27/27 (5 contact/messages tests removed, CMS tests moved to the Stakes card).
 
 ### 5. Motion
 
@@ -124,8 +126,8 @@ Done when: a preview is deployed and its link is ready for Criztian's final OK.
 7. ✅ `src/data/theme.data.ts:3-11` — white / near-black defaults → brand: background #0A0A0A, text #F4F4F1, accent #E1251B, surface #232323, muted text #8A8A86.
 8. ✅ `src/app/globals.css:8-43` — shadcn neutral tokens and a `.dark` variant → the brand tokens from docs/brand.md; dark only.
 9. ✅ (links are `/#work` etc. so they work from /blog too) `src/data/nav-links.data.ts:2-5` — Home, Blog, Contact, Log in → Work `#work`, How it works `#how-it-works`, Prices `#prices`. "Book a call" is a button, not a nav link. No public login link.
-10. ➡️ Sections phase (Hero), with item 11. `src/data/home.data.ts:3-7` and `src/model/home.model.ts` — hero heading/text + contactHeading → the home content from docs/website-plan.md, in `src/data/*.data.ts`, in the same shape the CMS home collection saves. No `contactHeading`.
-11. ➡️ Sections phase, with the Hero: 4 CMS e2e tests are built on the form, so they get rewritten once. Add a migration dropping `contact_messages` (anon may insert). **Contact form (cut list #4):** `src/components/home-view.tsx:3` and `:30-37`, `src/components/contact-form.tsx`, `src/components/contact-message-list.tsx`, `src/app/dashboard/messages/page.tsx`, `src/router/contact.router.ts` (+ its entry in `src/router/app.router.ts`), `src/service/contact.service.ts`, `src/repository/contact-message.repository.ts`, `src/model/contact.model.ts`, `src/type/contact.type.ts`, `src/type/contact-message.type.ts`, `src/util/contact.util.ts`, `test/contact.test.ts`, and the contact references in `src/config/cms.config.ts`. Remove; keep Resend only if something else uses it.
+10. ✅ Done 2026-10-29 (Hero + Stakes in the CMS; rest static). `src/data/home.data.ts:3-7` and `src/model/home.model.ts` — hero heading/text + contactHeading → the home content from docs/website-plan.md, in `src/data/*.data.ts`, in the same shape the CMS home collection saves. No `contactHeading`.
+11. ✅ Done 2026-10-29. 4 CMS e2e tests are built on the form, so they get rewritten once. Add a migration dropping `contact_messages` (anon may insert). **Contact form (cut list #4):** `src/components/home-view.tsx:3` and `:30-37`, `src/components/contact-form.tsx`, `src/components/contact-message-list.tsx`, `src/app/dashboard/messages/page.tsx`, `src/router/contact.router.ts` (+ its entry in `src/router/app.router.ts`), `src/service/contact.service.ts`, `src/repository/contact-message.repository.ts`, `src/model/contact.model.ts`, `src/type/contact.type.ts`, `src/type/contact-message.type.ts`, `src/util/contact.util.ts`, `test/contact.test.ts`, and the contact references in `src/config/cms.config.ts`. Remove; keep Resend only if something else uses it.
 12. ✅ **Blog: keep it, live at launch (decided 2026-10-29).** Keep `src/app/(marketing)/blog/` and the CMS blog collection. The blog index and post pages are being designed in the Claude app; don’t restyle them until a later pack adds their Figma frames and phase. Remove only the public "Log in" and "Contact" nav links for now (item 9).
 13. ✅ `src/app/(marketing)/login/` — keep the route for Criztian; no public link to it.
 14. ✅ Down-mode fix ported from J&T; the full real content comes with the Sections phase. `src/app/(marketing)/page.tsx:8-19` — home content comes from Supabase (`revalidate = 3600`) with a fallback to defaults. Make sure the fallback is the full real content, so the page is complete with the database paused.

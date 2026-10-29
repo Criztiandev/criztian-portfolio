@@ -1,6 +1,6 @@
 "use client"
 
-import { IconEdit, IconExternalLink, IconMail } from "@tabler/icons-react"
+import { IconEdit, IconExternalLink } from "@tabler/icons-react"
 import type { TablerIcon } from "@tabler/icons-react"
 import Link from "next/link"
 import { useSelectedLayoutSegment } from "next/navigation"
@@ -94,14 +94,6 @@ export function CmsSidebar({ userEmail }: { userEmail: string }) {
                     icon={collection.icon}
                   />
                 ))}
-            </ul>
-          </div>
-          <div className={groupClass}>
-            <p id="cms-nav-inbox" className={groupLabelClass}>
-              Inbox
-            </p>
-            <ul aria-labelledby="cms-nav-inbox" className={groupClass}>
-              <CmsNavItem segment="messages" label="Messages" icon={IconMail} />
             </ul>
           </div>
         </nav>

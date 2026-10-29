@@ -19,20 +19,6 @@ export type Database = {
                   Relationships: [
                     
                   ]
-                },"contact_messages": {
-                  Row: {
-                    "created_at": string,"email": string,"id": number,"message": string,"name": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "created_at"?: string,"email": string,"id"?: never,"message": string,"name": string
-                  }
-                  Update: {
-                    "created_at"?: string,"email"?: string,"id"?: never,"message"?: string,"name"?: string
-                  }
-                  Relationships: [
-                    
-                  ]
                 }
           }
           Views: {

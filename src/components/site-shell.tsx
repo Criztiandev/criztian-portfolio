@@ -15,7 +15,7 @@ export function SiteShell({
     <>
       <style>{themeCss(theme)}</style>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-5xl px-4 py-12">{children}</main>
+      <main>{children}</main>
     </>
   )
 }

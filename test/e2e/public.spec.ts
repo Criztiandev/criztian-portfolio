@@ -2,21 +2,22 @@ import { expect, test } from "@playwright/test"
 
 import { FONT_OPTIONS } from "../../src/data/font.data.ts"
 
-const validMessage = {
-  name: "Ada Lovelace",
-  email: "ada@example.com",
-  message: "Hello, I would like to work with you on a project.",
-  website: "",
-}
-
-test("renders the home page with the contact form", async ({ page }) => {
+test("renders the home page sections", async ({ page }) => {
   await page.goto("/")
   await expect(page).toHaveTitle(
     "Criztian — Custom websites for small businesses."
   )
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Criztian")
-  await expect(page.getByRole("heading", { name: "Contact" })).toBeVisible()
-  await expect(page.getByRole("button", { name: "Send message" })).toBeVisible()
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Your place deserves a website as good as it is."
+  )
+  await expect(page.getByRole("heading", { level: 2 })).toHaveText([
+    "Your customers check your website before they walk in.",
+    "WORK",
+    "How it works",
+    "Hi, I'm Criztian.",
+    "PRICES",
+    "Let's talk about your place.",
+  ])
 })
 
 test("the public site stays dark on a light system", async ({ page }) => {
@@ -77,32 +78,6 @@ test.describe("on a phone", () => {
   })
 })
 
-test("the contact form validates before sending", async ({ page }) => {
-  let apiCalls = 0
-  page.on("request", (request) => {
-    if (request.url().includes("/api/trpc")) {
-      apiCalls += 1
-    }
-  })
-  await page.goto("/")
-  await page.getByRole("button", { name: "Send message" }).click()
-  await expect(page.getByText("Enter your name")).toBeVisible()
-  await expect(page.getByText("Enter a valid email address")).toBeVisible()
-  await expect(page.getByText("Write at least 10 characters")).toBeVisible()
-  expect(apiCalls).toBe(0)
-})
-
-test("the contact form sends valid input to the API", async ({ page }) => {
-  await page.route("**/api/trpc/**", (route) => route.abort())
-  await page.goto("/")
-  await page.getByLabel("Name").fill(validMessage.name)
-  await page.getByLabel("Email").fill(validMessage.email)
-  await page.getByLabel("Message").fill(validMessage.message)
-  const sent = page.waitForRequest("**/api/trpc/contact.submit**")
-  await page.getByRole("button", { name: "Send message" }).click()
-  expect((await sent).postDataJSON()).toEqual({ "0": validMessage })
-})
-
 test("the login form validates before calling Supabase", async ({ page }) => {
   let authCalls = 0
   page.on("request", (request) => {
@@ -129,7 +104,6 @@ test("the dashboard redirects anonymous visitors to the login page", async ({
     "/dashboard/posts",
     "/dashboard/home",
     "/dashboard/theme",
-    "/dashboard/messages",
     "/editor",
     "/editor/home/new",
     "/editor/posts/new",
@@ -144,26 +118,6 @@ test("the dashboard redirects anonymous visitors to the login page", async ({
   await page.goto("/dashboard")
   await expect(page).toHaveURL(/\/login$/)
   await expect(page.getByRole("heading", { name: "Log in" })).toBeVisible()
-})
-
-test("the API rejects a filled honeypot as invalid input", async ({
-  request,
-}) => {
-  const response = await request.post("/api/trpc/contact.submit", {
-    data: { ...validMessage, website: "https://spam.example" },
-  })
-  expect(response.status()).toBe(400)
-  expect(await response.json()).toMatchObject({
-    error: { message: "Invalid input", data: { code: "BAD_REQUEST" } },
-  })
-})
-
-test("the API requires a session to list messages", async ({ request }) => {
-  const response = await request.get("/api/trpc/contact.list")
-  expect(response.status()).toBe(401)
-  expect(await response.json()).toMatchObject({
-    error: { message: "Sign in to continue", data: { code: "UNAUTHORIZED" } },
-  })
 })
 
 test("the blog index is prerendered", async ({ page, request }) => {

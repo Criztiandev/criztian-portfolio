@@ -40,7 +40,7 @@ src/
   repository/   the only code that queries tables; functions take the client as `db`
   service/      business logic, one function per use case
   router/       tRPC routers: validate with a model, call a service or repository
-  lib/          adapters named after their tool: supabase/, trpc/, resend.ts, tiptap.ts,
+  lib/          adapters named after their tool: supabase/, trpc/, tiptap.ts,
                 react-markdown.ts, utils.ts
   proxy.ts      Next proxy (session refresh), must live next to app/
 public/

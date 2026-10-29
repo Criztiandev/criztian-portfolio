@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto"
 import { expect, test } from "@playwright/test"
 import type { APIRequestContext, APIResponse, Page } from "@playwright/test"
 
+import { HOME_DEFAULTS } from "../../src/data/home.data.ts"
+
 function env(name: string): string {
   const value = process.env[name]
   if (!value) {
@@ -303,7 +305,8 @@ test("keeps one entry for a single collection", async ({ page, request }) => {
   const values = {
     heroHeading: "Criztian",
     heroText: text,
-    contactHeading: "Contact",
+    stakesHeading: HOME_DEFAULTS.stakesHeading,
+    stakesText: HOME_DEFAULTS.stakesText,
   }
   const main = page.getByRole("main")
 
@@ -339,12 +342,14 @@ test("keeps one entry for a single collection", async ({ page, request }) => {
   await expect(
     main.getByRole("link", { name: "Home page", exact: true })
   ).toHaveAttribute("aria-current", "page")
-  await expect(main.getByLabel("Hero heading")).toHaveValue("Criztian")
-  const contactHeading = main.getByLabel("Contact heading")
-  await expect(contactHeading).toBeHidden()
-  await main.getByRole("button", { name: "Contact", exact: true }).click()
-  await expect(contactHeading).toBeVisible()
-  await expect(contactHeading).toHaveValue("Contact")
+  await expect(main.getByLabel("Hero heading")).toHaveValue(
+    HOME_DEFAULTS.heroHeading
+  )
+  const stakesHeading = main.getByLabel("Stakes heading")
+  await expect(stakesHeading).toBeHidden()
+  await main.getByRole("button", { name: "Stakes", exact: true }).click()
+  await expect(stakesHeading).toBeVisible()
+  await expect(stakesHeading).toHaveValue(HOME_DEFAULTS.stakesHeading)
 
   const created = await mutate(page, "create", { collection: "home", values })
   await expectOk(created)
@@ -415,7 +420,9 @@ test("draws the brand palette on the site only after Publish", async ({
   const textPicker = main.getByLabel("Text color picker")
   const save = main.getByRole("button", { name: "Save draft" })
   const frame = page.frameLocator('iframe[title="Page preview"]')
-  const frameSend = frame.locator("button", { hasText: "Send message" })
+  const frameBook = frame
+    .locator('[data-cms-card="Hero"]')
+    .getByRole("link", { name: "Book a call" })
   const frameTitle = frame.locator("h1")
   const frameText = frame.locator("[data-cms-field=heroText]")
   const headingFont = main.getByLabel("Heading font")
@@ -465,7 +472,7 @@ test("draws the brand palette on the site only after Publish", async ({
   await expect(page).toHaveURL(/\/editor\/theme\/new$/)
   await expect(html).toHaveClass(/dark/)
   await expect(frame.locator("html")).toHaveClass(/dark/)
-  await expect(frameSend).toHaveCSS("background-color", "rgb(225, 37, 27)")
+  await expect(frameBook).toHaveCSS("background-color", "rgb(225, 37, 27)")
   await expect(main.getByRole("heading", { level: 1 })).toHaveText("Theme")
   await expect(main.getByLabel("Background", { exact: true })).toHaveValue(
     values.background
@@ -500,7 +507,7 @@ test("draws the brand palette on the site only after Publish", async ({
 
   await main.getByLabel("Primary color picker").fill(blue)
   await expect(main.getByLabel("Primary", { exact: true })).toHaveValue(blue)
-  await expect(frameSend).toHaveCSS("background-color", "rgb(29, 78, 216)")
+  await expect(frameBook).toHaveCSS("background-color", "rgb(29, 78, 216)")
 
   await expect(headingFont).toBeHidden()
   await main.getByRole("button", { name: "Fonts", exact: true }).click()
@@ -526,7 +533,7 @@ test("draws the brand palette on the site only after Publish", async ({
   await save.click()
   await expect(page.getByText("Draft saved")).toBeVisible()
   await expect(page).toHaveURL(/\/editor\/theme\/\d+$/)
-  await expect(frameSend).toHaveCSS("background-color", "rgb(29, 78, 216)")
+  await expect(frameBook).toHaveCSS("background-color", "rgb(29, 78, 216)")
   await expect(frameTitle).toHaveCSS("font-family", inter)
   const id = Number(new URL(page.url()).pathname.split("/").pop())
   const saved = await homeHtml()
@@ -535,7 +542,7 @@ test("draws the brand palette on the site only after Publish", async ({
   expect(saved).not.toContain(blue)
   await page.goto("/editor")
   await expect(page).toHaveURL(/\/editor\/home\/new$/)
-  await expect(frameSend).toHaveCSS("background-color", "rgb(225, 37, 27)")
+  await expect(frameBook).toHaveCSS("background-color", "rgb(225, 37, 27)")
   await expect(frameTitle).toHaveCSS("font-family", anton)
   await page.goto(`/editor/theme/${id}`)
 
@@ -554,12 +561,14 @@ test("draws the brand palette on the site only after Publish", async ({
   await expect.poll(homeHtml).toContain(`--primary:${blue}`)
   await page.goto("/editor")
   await expect(page).toHaveURL(/\/editor\/home\/new$/)
-  await expect(frameSend).toHaveCSS("background-color", "rgb(29, 78, 216)")
+  await expect(frameBook).toHaveCSS("background-color", "rgb(29, 78, 216)")
   await expect(frameTitle).toHaveCSS("font-family", inter)
 
   await page.goto("/")
   await expect(html).toHaveClass(/dark/)
-  const send = page.getByRole("button", { name: "Send message" })
+  const send = page
+    .locator('[data-cms-card="Hero"]')
+    .getByRole("link", { name: "Book a call" })
   await expect(send).toHaveCSS("background-color", "rgb(29, 78, 216)")
   await expect(send).toHaveCSS("color", "rgb(255, 255, 255)")
   await expect(send).toHaveCSS("font-family", anton)
@@ -567,7 +576,7 @@ test("draws the brand palette on the site only after Publish", async ({
     "font-family",
     inter
   )
-  await expect(page.getByRole("heading", { level: 2 })).toHaveCSS(
+  await expect(page.getByRole("heading", { level: 2 }).first()).toHaveCSS(
     "font-family",
     inter
   )
@@ -575,7 +584,7 @@ test("draws the brand palette on the site only after Publish", async ({
   await expectOk(await mutate(page, "delete", { id }))
   await expect.poll(homeHtml).toContain("--primary:#e1251b")
 
-  await page.goto("/dashboard/messages")
+  await page.goto("/dashboard/posts")
   await expect(html).toHaveClass(/dark/)
   await page.getByRole("button", { name: "Log out" }).click()
   await expect(page).toHaveURL(/\/login$/)
@@ -590,19 +599,13 @@ test("edits the home page beside the live page", async ({ page }) => {
   const frame = page.frameLocator('iframe[title="Page preview"]')
   const heroHeading = main.getByLabel("Hero heading")
   const heroText = main.getByLabel("Hero text")
-  const contactHeading = main.getByLabel("Contact heading")
+  const stakesHeading = main.getByLabel("Stakes heading")
   const hero = main.getByRole("button", { name: "Hero", exact: true })
-  const contact = main.getByRole("button", { name: "Contact", exact: true })
+  const stakes = main.getByRole("button", { name: "Stakes", exact: true })
   const stage = main.getByRole("group", { name: "Page preview" })
   const panel = main.locator("form > div:last-child > div:last-child")
   const menu = frame.locator('button[aria-label="Open menu"]')
-  let contactCalls = 0
   let openedTabs = 0
-  page.on("request", (sent) => {
-    if (sent.url().includes("contact.submit")) {
-      contactCalls += 1
-    }
-  })
   page.context().on("page", () => {
     openedTabs += 1
   })
@@ -654,7 +657,7 @@ test("edits the home page beside the live page", async ({ page }) => {
   await page.goto("/editor")
   await expect(page).toHaveURL(/\/editor\/home\/new$/)
   await expect(main.getByRole("heading", { level: 1 })).toHaveText("Home page")
-  await expect(frame.locator("h1")).toHaveText("Criztian")
+  await expect(frame.locator("h1")).toHaveText(HOME_DEFAULTS.heroHeading)
   await expect(page.locator('iframe[title="Page preview"]')).toHaveAttribute(
     "aria-hidden",
     "true"
@@ -667,7 +670,9 @@ test("edits the home page beside the live page", async ({ page }) => {
   await page.frame({ url: canvasUrl })?.evaluate(countValues)
   await heroHeading.press("End")
   await heroHeading.pressSequentially("abcde", { delay: 40 })
-  await expect(frame.locator("h1")).toHaveText("Criztianabcde")
+  await expect(frame.locator("h1")).toHaveText(
+    `${HOME_DEFAULTS.heroHeading}abcde`
+  )
   expect(
     await page.frame({ url: canvasUrl })?.evaluate(readValues)
   ).toBeGreaterThanOrEqual(5)
@@ -675,12 +680,12 @@ test("edits the home page beside the live page", async ({ page }) => {
   await heroHeading.fill(typed)
   await expect(frame.locator("h1")).toHaveText(typed)
 
-  await contact.click()
-  await expect(contact).toHaveAttribute("aria-current", "true")
+  await stakes.click()
+  await expect(stakes).toHaveAttribute("aria-current", "true")
   await expect(hero).not.toHaveAttribute("aria-current")
-  await expect(contactHeading).toBeVisible()
+  await expect(stakesHeading).toBeVisible()
   await expect(heroHeading).toBeHidden()
-  await expect(frame.locator('[data-cms-card="Contact"]')).toHaveCSS(
+  await expect(frame.locator('[data-cms-card="Stakes"]')).toHaveCSS(
     "outline-style",
     "solid"
   )
@@ -700,8 +705,10 @@ test("edits the home page beside the live page", async ({ page }) => {
     .locator('header a[href="/#work"]')
     .first()
     .click({ button: "middle" })
-  await frame.locator("button", { hasText: "Send message" }).click()
-  await expect(contact).toHaveAttribute("aria-current", "true")
+  await frame
+    .locator('[data-cms-card="Stakes"]')
+    .click({ position: { x: 8, y: 100 } })
+  await expect(stakes).toHaveAttribute("aria-current", "true")
   await expect(heroText).toBeHidden()
   expect(await focusedTag()).toBe("BODY")
 
@@ -715,13 +722,13 @@ test("edits the home page beside the live page", async ({ page }) => {
         )
       })
   )
-  await expect(contact).toHaveAttribute("aria-current", "true")
+  await expect(stakes).toHaveAttribute("aria-current", "true")
 
   await main.getByRole("link", { name: "Theme", exact: true }).focus()
   await page.keyboard.press("Tab")
   await expect(stage).toBeFocused()
   await page.keyboard.press("Tab")
-  await expect(contactHeading).toBeFocused()
+  await expect(stakesHeading).toBeFocused()
 
   await main.getByRole("button", { name: "Phone" }).click()
   await expect.poll(frameWidth).toBe(390)
@@ -737,14 +744,14 @@ test("edits the home page beside the live page", async ({ page }) => {
   await main.getByRole("button", { name: "Desktop" }).click()
   await expect.poll(frameWidth).toBe(1280)
 
-  await contact.click()
-  await contactHeading.fill("")
+  await stakes.click()
+  await stakesHeading.fill("")
   await hero.click()
   await main.getByRole("button", { name: "Save draft" }).click()
-  await expect(contact).toHaveAttribute("aria-current", "true")
-  await expect(contactHeading).toBeFocused()
+  await expect(stakes).toHaveAttribute("aria-current", "true")
+  await expect(stakesHeading).toBeFocused()
   await expect(main.locator("form").getByRole("alert")).toHaveText(
-    "Contact heading is required"
+    "Stakes heading is required"
   )
   const listed = await page.request.get("/api/trpc/cms.list", {
     params: { input: JSON.stringify({ collection: "home" }) },
@@ -763,8 +770,6 @@ test("edits the home page beside the live page", async ({ page }) => {
   await expect(page).toHaveURL(/\/editor\/home\/new$/)
   expect(page.frame({ url: canvasUrl })).not.toBeNull()
   await expect(frame.locator("h1")).toHaveText(typed)
-  await expect(frame.getByText("Enter your name")).toHaveCount(0)
-  expect(contactCalls).toBe(0)
   expect(openedTabs).toBe(0)
 })
 
@@ -1575,7 +1580,9 @@ test("takes the home text and a color from the editor to the site", async ({
   const sidebar = page.getByRole("complementary")
   const frame = page.frameLocator('iframe[title="Page preview"]')
   const frameText = frame.locator("[data-cms-field=heroText]")
-  const frameSend = frame.locator("button", { hasText: "Send message" })
+  const frameBook = frame
+    .locator('[data-cms-card="Hero"]')
+    .getByRole("link", { name: "Book a call" })
   const publish = main.getByRole("button", { name: "Publish", exact: true })
   const confirm = dialog.getByRole("button", { name: "Publish", exact: true })
   const published = main.getByText("Published", { exact: true })
@@ -1602,9 +1609,10 @@ test("takes the home text and a color from the editor to the site", async ({
 
   await publish.click()
   await expect(dialog.getByRole("listitem")).toHaveText([
-    "Hero headingAfter: Criztian",
+    `Hero headingAfter: ${HOME_DEFAULTS.heroHeading}`,
     `Hero textAfter: ${text}`,
-    "Contact headingAfter: Contact",
+    `Stakes headingAfter: ${HOME_DEFAULTS.stakesHeading}`,
+    `Stakes textAfter: ${HOME_DEFAULTS.stakesText}`,
   ])
   expect(await homeHtml()).not.toContain(text)
   await confirm.click()
@@ -1616,7 +1624,7 @@ test("takes the home text and a color from the editor to the site", async ({
   await expect(page).toHaveURL(/\/editor\/theme\/new$/)
   await expect(frameText).toHaveText(text)
   await main.getByLabel("Primary", { exact: true }).fill(green)
-  await expect(frameSend).toHaveCSS("background-color", greenFill)
+  await expect(frameBook).toHaveCSS("background-color", greenFill)
 
   await publish.click()
   await expect(dialog.getByRole("listitem")).toHaveText([
@@ -1643,10 +1651,11 @@ test("takes the home text and a color from the editor to the site", async ({
   const site = await opened
   await expect(site).toHaveURL("/")
   await expect(site.locator("[data-cms-field=heroText]")).toHaveText(text)
-  await expect(site.getByRole("button", { name: "Send message" })).toHaveCSS(
-    "background-color",
-    greenFill
-  )
+  await expect(
+    site
+      .locator('[data-cms-card="Hero"]')
+      .getByRole("link", { name: "Book a call" })
+  ).toHaveCSS("background-color", greenFill)
 
   await clearCollection(page, "home")
   await clearCollection(page, "theme")

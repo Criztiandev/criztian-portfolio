@@ -32,7 +32,7 @@ src/
   repository/   the only code that queries tables; functions take the client as `db`
   service/      business logic, one function per use case
   router/       tRPC routers: validate with a model, call a service or repository
-  lib/          adapters named after their tool: supabase/, trpc/, resend.ts, tiptap.ts,
+  lib/          adapters named after their tool: supabase/, trpc/, tiptap.ts,
                 react-markdown.ts, utils.ts
   proxy.ts      Next proxy (session refresh), must live next to app/
 ```
@@ -1756,3 +1756,37 @@ that import the packages, and that `next start` refuses an export.
   on a real `<a>` or `Link`, never `nativeButton={false}`, which adds `role="button"`.
 - The react-hooks compiler rules are on: `useForm().watch` fails lint (use `useWatch`), and
   state updates inside effects are errors.
+
+## Portfolio home (Phase 4, 2026-10-29)
+
+- **Contact form removed** (cut list #4, realign item 11): the form, its router, service,
+  repository, model, types and util, the dashboard Messages page and Inbox group, Resend
+  (`lib/resend.ts`, `config/email.config.ts`, the mock, the env keys, the package) and
+  `EMAIL_SEND_FAILED`. Migration `20261029120000_drop_contact_messages.sql` drops the table.
+  Older sections of this doc that mention the contact form, Resend, Messages or
+  `contact_messages` describe the template and no longer apply. `/dashboard` with no list
+  collection now answers 404 instead of redirecting to Messages.
+- **Copy source:** docs/website-plan.md wins over the Figma text layers. They differ on the
+  desktop hero sub ("for business") and the desktop footer email (`criztiandev@gmail.com`);
+  the site uses the plan's text. `hello@criztian.dev` is not live until the domain is bought.
+- **CMS home shape:** cards Hero (`heroHeading` = the h1 promise, `heroText`) and Stakes
+  (`stakesHeading`, `stakesText`). Everything else is static in `src/data/home.data.ts`.
+- **Hero under the bar:** the header stays `sticky`; the hero pulls itself up with
+  `-mt-16 xl:-mt-20` (the bar heights) so blog and login keep their layout. Those pages sit
+  in `PageFrame`, the old `max-w-5xl` main frame.
+- **`cn` knows the brand font sizes** (`src/lib/utils.ts`, `createCn` from `cn/config`).
+  Without it `cn("text-body-small text-paper", "text-smoke")` dropped the size, because
+  `text-<token>` reads as a color. `components/ui` imports plain `cn` from `"cn"`, so don't
+  pass a brand size and a color through a ui component's `className`.
+- **About grid:** `xl:grid-rows-[auto_auto_1fr]` is a deliberate arbitrary value. The photo
+  spans three rows; with plain auto rows its extra height spreads over the h2 and body rows.
+  `xl:col-span-*` resets the start column, so items also repeat `xl:col-start-2`.
+- **Proportions:** desktop Work and About use `grid-cols-3` (list/photo 427 px, Figma 434);
+  the screens column is `w-3/5` (Figma 59.6%). Work runs 11 px taller on desktop and 16 px on
+  tablet, About 10 px shorter. Accepted over arbitrary widths.
+- **Static Work on desktop:** row 1 is the stage. Rows 2 and 3 show only name and meta; their
+  line, link and Book a call are `xl:hidden` until the motion phase adds row switching. The
+  row 3 dashed "your site" frames come with that motion, since they only show when row 3 is
+  active.
+- **Book a call** is a plain link to Cal.com until the booking popup row hooks the click.
+  The footer's Privacy link 404s until the Privacy row.

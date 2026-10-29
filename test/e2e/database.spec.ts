@@ -37,33 +37,7 @@ test("rejects a wrong password", async ({ page }) => {
   )
 })
 
-test("stores a contact message, emails it and lists it on the dashboard", async ({
-  page,
-  request,
-}) => {
-  const name = `E2E ${Date.now()}`
-  await page.goto("/")
-  await page.getByLabel("Name").fill(name)
-  await page.getByLabel("Email").fill("ada@example.com")
-  await page
-    .getByLabel("Message")
-    .fill("Hello from the end-to-end suite, please ignore.")
-  await page.getByRole("button", { name: "Send message" }).click()
-  await expect(page.getByRole("status")).toHaveText(
-    "Thanks, your message is on its way."
-  )
-
-  const emails = await (await request.get(env("RESEND_BASE_URL"))).json()
-  expect(emails).toContainEqual(
-    expect.objectContaining({
-      to: env("EMAIL_TO"),
-      from: env("EMAIL_FROM"),
-      subject: `New contact message from ${name}`,
-      reply_to: "ada@example.com",
-      text: expect.stringContaining("please ignore"),
-    })
-  )
-
+test("logs in to the dashboard and out again", async ({ page }) => {
   await logIn(page, env("E2E_USER_PASSWORD"))
   await expect(page).toHaveURL(/\/dashboard\/posts$/)
   const sidebar = page.getByRole("complementary")
@@ -72,30 +46,7 @@ test("stores a contact message, emails it and lists it on the dashboard", async 
     "aria-current",
     "page"
   )
-  await sidebar.getByRole("link", { name: "Messages" }).click()
-  await expect(page).toHaveURL(/\/dashboard\/messages$/)
-  await expect(
-    page.getByRole("heading", { level: 1, name: "Messages" })
-  ).toBeVisible()
-  const row = page.getByRole("row", { name })
-  const toggle = row.getByRole("button", { name: `Message from ${name}` })
-  const text = row.getByText("Hello from the end-to-end suite, please ignore.")
-  await expect(row).toContainText("ada@example.com")
-  await expect(toggle).toHaveAttribute("aria-expanded", "false")
-  await expect(text).toHaveCSS("text-overflow", "ellipsis")
-  await row
-    .getByRole("cell")
-    .nth(1)
-    .click({ position: { x: 100, y: 10 } })
-  await expect(toggle).toHaveAttribute("aria-expanded", "true")
-  await expect(text).toHaveCSS("white-space", "pre-wrap")
-  await expect(row.getByText("ada@example.com")).toHaveCSS(
-    "white-space",
-    "pre-wrap"
-  )
-  await expect(
-    row.getByRole("link", { name: `Reply to ${name}` })
-  ).toHaveAttribute("href", "mailto:ada@example.com")
+  await expect(sidebar.getByRole("link", { name: "Messages" })).toHaveCount(0)
   const unknown = await page.request.get("/dashboard/unknown")
   expect(unknown.status()).toBe(404)
 
@@ -103,33 +54,6 @@ test("stores a contact message, emails it and lists it on the dashboard", async 
   await expect(page).toHaveURL(/\/login$/)
   await page.goto("/dashboard")
   await expect(page).toHaveURL(/\/login$/)
-})
-
-test("shows the empty and error states of the messages", async ({ page }) => {
-  test.slow()
-  const list = "**/api/trpc/contact.list*"
-  const main = page.getByRole("main")
-  const alert = main.getByRole("alert")
-  await logIn(page, env("E2E_USER_PASSWORD"))
-  await expect(page).toHaveURL(/\/dashboard\/posts$/)
-
-  await page.route(list, (route) =>
-    route.fulfill({ json: [{ result: { data: [] } }] })
-  )
-  await page.goto("/dashboard/messages")
-  await expect(main.getByText("No messages yet.")).toBeVisible()
-  await page.unroute(list)
-
-  await page.route(list, (route) => route.abort())
-  await page.reload()
-  await expect(alert).toContainText("Could not load the messages.", {
-    timeout: 20_000,
-  })
-  await page.unroute(list)
-  await alert.getByRole("button", { name: "Try again" }).click()
-  await expect(
-    main.getByRole("table").or(main.getByText("No messages yet."))
-  ).toBeVisible()
 })
 
 test("keeps public signups closed", async ({ request }) => {
