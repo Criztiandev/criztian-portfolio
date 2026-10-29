@@ -818,6 +818,120 @@
     }
 }
 
+@keyframes prices-open {
+    from {
+        clip-path: inset(0 0 100% 0);
+    }
+    to {
+        clip-path: inset(0 0 0 0);
+    }
+}
+
+@utility prices-timeline {
+    view-timeline-name: --prices;
+}
+
+@utility prices-rise {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-mask-rise, hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --prices;
+        }
+    }
+}
+
+@utility prices-sub {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-copy-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --prices;
+            animation-range: cover 300px cover 500px;
+        }
+    }
+}
+
+@utility prices-card {
+    --prices-timeline: --prices-card;
+    --prices-from: 300px;
+    --prices-open: 240px;
+    view-timeline-name: --prices-card;
+    @media (width >= 80rem) {
+        --prices-timeline: --prices;
+        --prices-open: 360px;
+        &[data-card="1"] {
+            --prices-from: 560px;
+        }
+        &[data-card="2"] {
+            --prices-from: 660px;
+        }
+        &[data-card="3"] {
+            --prices-from: 760px;
+        }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: prices-open;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: var(--prices-timeline);
+            animation-range: cover var(--prices-from) cover calc(var(--prices-from) + var(--prices-open));
+        }
+    }
+}
+
+@utility prices-light {
+    @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: var(--prices-timeline);
+        }
+    }
+}
+
+@utility prices-price {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-mask-rise, hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: var(--prices-timeline);
+        }
+    }
+}
+
+@utility prices-tail-timeline {
+    view-timeline-name: --prices-tail;
+}
+
+@utility prices-note {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-copy-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --prices-tail;
+        }
+    }
+}
+
+@utility prices-call {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: blog-link-rise, hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --prices-tail;
+            animation-range: cover 400px cover 550px;
+        }
+    }
+}
+
 @theme inline {
     --font-heading: var(--font-display, var(--font-sans));
     --font-sans: var(--font-sans);

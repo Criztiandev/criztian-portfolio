@@ -161,7 +161,7 @@ Criztian directs this phase himself (2026-10-29) with `/wmotion`, one section pe
 - [x] 4 · How it works (small, Criztian picked concept 2 "Stairs" of 3, 2026-10-30): the 3 steps climb in at different heights like stairs, each step's number, title and body close up as it lands and lights, then its line draws in Smoke. Under 1280 (touch included): stacked, each step on its own timeline, one moving at a time.
 - [x] 5 · About (small, Criztian picked concept 1 "Echo" of 3, 2026-10-30): the hero load replayed by the scroll. "Hi, I'm" rises word by word and "Criztian." letter by letter, lighting as they land; the photo rises from below its frame and lights; the body rises; the 3 red numbers rise from their masks one by one, each label after its number. Touch and under 1280: the photo stays still, the text moves one block at a time.
 - [x] 5b · Blog (small, Criztian picked concept 3 "Write" of 3, 2026-10-30): each title is written letter by letter, like the hero and About names, then its date and summary rise; "Blog" rises letter by letter and "All posts" rises last; rows lift 1.01 on hover. Touch: the titles rise word by word.
-- [ ] 6 · Prices (small): the cards open top-down one after another, each price rises last.
+- [x] 6 · Prices (small, Criztian picked concept 1 "Open" of 3, 2026-10-30): the cards open top-down one after another, the light follows the edge down each card, and each price rises from its mask last; "PRICES" rises letter by letter, the notes rise and Book a call rises last. Touch: each card opens on its own timeline and its price rises; nothing else inside moves.
 - [ ] 7 · Footer (story): the headline inks word by word, then Book a call rises last.
 - [ ] Other pages (small): case study, blog, 404 and Privacy use the vocabulary, no holds; Criztian directs them.
 - [ ] Reduced motion: stills, stacked Work.
@@ -260,6 +260,18 @@ Ramp probe on the dev server with the 3 local test posts, computed values every 
 JS unchanged (server component, no client code). Phone frames not profiled: no pinned, canvas or 3D move.
 
 Scripts: `pnpm check` 43/43. e2e not run: no route, form, auth or proxy change (the lab route was added and deleted in the same run).
+
+Done 2026-10-30 (Prices, concept 1 "Open" of 3 on a `/motion-lab` page, deleted after the pick): "PRICES" rises letter by letter and lights; the sub rises 24 px; each card is uncovered top-down by a clip, one after another, and its name, summary and include rows light as the edge passes them; the price rises from its mask last, "From" lighting with it; the notes rise, then Book a call rises from its clip. Not picked: 2 "Tiers" (whole cards rise from deeper the higher the price, 200 / 280 / 360 px, and land flat) and 3 "Across" (cards still, read like a comparison: names and prices written letter by letter left to right, then the rows light in a wave). CSS scroll-driven animation, zero JS, still a server component (why in docs/architecture.md, "Prices open"). The lab showed a geometry limit first: at 1440×900 a card is 635 px tall and the row is fully on screen for only 265 px of scroll, so the open starts once a card's top is well on screen.
+
+Ramp probe on the dev server, computed values every 10 px, cover counted from the section's top entering:
+- 1440×900, mouse: heading letters 120 px (10–90) each, 200–520; sub 160 (330–490); cards open 290 each (600–890, 700–990, 800–1090), card tops at y 628 / 528 / 428 when they start; lights 120 each; prices 120 (880–1000, 980–1100, 1080–1200, landing at y 350 / 250 / 150); notes 160 each, 1150–1510; Book a call 120 (1450–1570). 37 moving parts, 47 animations, 0 pops, all lit at the end. Same numbers as the lab.
+- 390×844, touch: each card on its own timeline, open 190 px (10–90) then its price 120, one card at a time (630–940, 1090–1400, 1580–1890); the lights stay still (27 animations); no pop.
+- 0 console errors at both. Reduced motion at 1440: 0 animations, everything lit and in place (only the static `hero-mask` clips remain).
+- Layout at 390 / 768 / 1440 / 1920: section heights, heading, cards and prices identical to before; Book a call keeps its size and x, its top reads +78 px at scroll 0 only because it waits at `translate: 150%`.
+
+JS unchanged (server component, no client code). Phone frames not profiled: no pinned, canvas or 3D move.
+
+Scripts: `pnpm check` 43/43 (typecheck first failed on `.next/dev/types/routes.d.ts` and `validator.ts`: the dev server's copies, left with text past their end after the lab route was deleted while `next typegen` ran; the two generated files were deleted and typecheck passed). e2e not run: no route, form, auth or proxy change.
 
 ### 6. Review and launch
 

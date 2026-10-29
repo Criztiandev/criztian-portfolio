@@ -2015,6 +2015,20 @@ that import the packages, and that `next start` refuses an export.
 - The row lift is `scale: 1.01` on the `li` with the Work spring (`linear()`, 400 ms), only with hover, a fine pointer and no reduced motion.
 - Reduced motion and Firefox get the still: everything lit and in place.
 
+### Prices open (Phase 5)
+
+- Criztian picked concept 1 of 3 ("Open", the DESIGN.md beat) on the lab, 2026-10-30. The lab page was deleted after the pick. Not picked: 2 "Tiers" (whole cards rise from deeper the higher the price, then land flat) and 3 "Across" (cards still; names and prices written letter by letter left to right, then the rows light in a wave).
+- How it moves: "PRICES" rises letter by letter and lights (150 px each, 40 px apart, from 180 px), the sub rises 24 px (300–500 px). Each card is uncovered top-down by `clip-path: inset(0 0 100% 0)` → `inset(0)`. Its name, summary and include rows light from 20% as the edge passes them, and the price rises from its mask last with "From" lighting beside it. The notes rise 100 px apart, then Book a call rises from its clip.
+- CSS scroll-driven animation, no JS, so `PricesSection` stays a server component. Linear, longhands only, guarded by `prefers-reduced-motion: no-preference` and `@supports (animation-timeline: view())`. It reuses `hero-mask-rise`, `hero-light-up`, `hero-copy-up` and `blog-link-rise`.
+- Why the open starts late: a card enters from below, so a top-down uncover that starts as the card enters only repeats what the scroll already does, and its edge leaves the screen within about 50 px. At 1440×900 a card is 635 px tall and the row is fully on screen for only 265 px of scroll. So on the 3-column row the cards open over 360 px starting 560 / 660 / 760 px after the section's top enters (card tops at y 628 / 528 / 428), and the edge travels down the card about 0.8 px per px of scroll while you watch. Column 3 waits dark the longest; Criztian saw that in the lab and picked it.
+- Two timelines, picked by width, like How it works: 1280 px and wider, every card runs on the section's timeline (`--prices`) with its own start from `data-card`. Under 1280 the cards stack, so each `li` names its own timeline (`--prices-card`) and opens over 240 px from 300 px after its top enters: phone cards are 446–580 px tall, and a 360 px open on them barely moves the edge. `prices-card` sets `--prices-timeline`, `--prices-from` and `--prices-open`; the inner ranges are shares of the open (`afterOpen` in `prices-section.tsx`), so the light keeps following the edge at both lengths.
+- The card animates on the timeline it names itself; its own clip never moves its box, so the timeline stays put.
+- Touch gets the light version: the inner lights (`prices-light`) run only with hover and a fine pointer. On a touch screen each card opens and its price rises, one card at a time; everything else inside shows lit as it is uncovered.
+- The price's mask wrapper carries the price's font classes, so its line box (and the card height) match the unsplit price.
+- Book a call sits in a padded `overflow: clip` wrapper like "All posts" (4 px, so the focus ring isn't cut) and rises 150% for the same reason. The wrapper is the flex item now, so the link is `w-full xl:w-auto`: it was full width up to 1280 before (the column stretched it), and it still is.
+- The cards don't answer the pointer: they can't be clicked (DESIGN.md "Hover").
+- Reduced motion and Firefox get the still: everything lit and in place.
+
 ### Booking popup
 
 - Every "Book a call" stays a real link to `BOOK_CALL.href`. `BookingDialog`, mounted once in
