@@ -1973,6 +1973,21 @@ that import the packages, and that `next start` refuses an export.
 - Reduced motion and Firefox get the stacked still, everything lit.
 - Known: the CMS canvas frame draws the Home page at desktop width, so the hold also runs inside it, following the frame's own scroll. Turn it off there if it gets in the way, as with the hero entrance.
 
+### How it works stairs (Phase 5)
+
+- Criztian picked concept 2 of 3 ("Stairs") on the lab, 2026-10-30. The lab page was deleted after the pick. Not picked: 1 "Fuse" (the line draws first and lights each step) and 3 "Count" (each number ticks up one digit like an odometer, then lights its step).
+- How it moves: the heading words rise from their masks and light (150 px each, 40 px apart, from 180 px). Each step's number, title and body rise from below the step's own clip, from 160, 200 and 240 px down, so the parts close up as they climb and land together; the step lights in the last 150 px of its 300 px rise. Its line draws 60 px before it lands and finishes 90 px after.
+- CSS scroll-driven animation, no JS, so `StepsSection` stays a server component. Linear, longhands only, guarded by `prefers-reduced-motion: no-preference` and `@supports (animation-timeline: view())`, like Stakes. It reuses the hero's `hero-mask-rise` and `hero-light-up` keyframes (emitted because the hero's `--animate-*` utilities use them).
+- Two timelines, picked by width, so touch gets one move per scene without a separate build:
+  - 1280 px and wider, the 3-column row: every step runs on the section's timeline (`--steps`) and starts 120 px after the one before it (300 / 420 / 540 px after the section's top enters). While they climb, the three steps sit at different heights, like stairs.
+  - Under 1280, stacked: each `li` names its own timeline (`--step`) and starts at 0, so only the step coming on screen moves.
+  - `steps-step` sets `--steps-timeline` and `--steps-from` per width and per `data-step`, and the children read them (`animation-timeline: var(--steps-timeline)`). Checked in Chrome: it resolves to `--steps` at 1440 and `--step` at 390.
+- The line is its own element, Smoke, over the `li`'s Graphite border, which stays as the track. A border can't be clipped on its own, and a Graphite line drawing on black (about 1.3:1) can't be seen. So the finished lines are Smoke, not Figma's Graphite. Criztian saw this in the lab and picked it.
+- `steps-draw` has an explicit `to { inset(0) }`. With only a `from` keyframe, the base value is `none`, and `inset()` to `none` doesn't interpolate: the line jumped from undrawn to drawn halfway through its range (caught in the lab by reading the computed `clip-path`).
+- The parts' drops are spacing tokens (`steps-number`, `steps-title`, `steps-body`: 40, 50, 60). The scroll ranges are px in the utilities, so a ramp is the same scroll distance on every screen.
+- The clip is `overflow: clip` on the wrapper inside each `li`, not `hidden`, so it never becomes the timeline's scroller.
+- Reduced motion and Firefox get the still: everything lit, lines drawn.
+
 ### Booking popup
 
 - Every "Book a call" stays a real link to `BOOK_CALL.href`. `BookingDialog`, mounted once in

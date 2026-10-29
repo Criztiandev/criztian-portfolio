@@ -158,7 +158,7 @@ Criztian directs this phase himself (2026-10-29) with `/wmotion`, one section pe
 - [x] 1 · Hero exit (story, Criztian picked concept 1 "Layers" of 3, 2026-10-29): no hold; the name slides behind the sinking portrait and the copy rises out; touch keeps the load only. Motion library removed.
 - [x] Stakes word reveal (Criztian, 2026-10-29: inked by the scroll, both ways, not once).
 - [x] 3 · Work (story, Criztian picked concept 3 "Long road" of 3, 2026-10-29): desktop hold with a mouse or trackpad, 1 screen of scroll per row; the screens ride one column that never stops, each set lights at its place and its row lights and opens; rows follow the scroll both ways; screens lift 1.02 on hover. Touch: stacked, each screen rises from its clip.
-- [ ] 4 · How it works (small): each step's hairline draws, then the step lights.
+- [x] 4 · How it works (small, Criztian picked concept 2 "Stairs" of 3, 2026-10-30): the 3 steps climb in at different heights like stairs, each step's number, title and body close up as it lands and lights, then its line draws in Smoke. Under 1280 (touch included): stacked, each step on its own timeline, one moving at a time.
 - [ ] 5 · About (small): the photo rises and lights, the 3 numbers rise. Touch: numbers only.
 - [ ] 5b · Blog (small): the 3 rows light top to bottom, titles rise; rows lift 1.01 on hover.
 - [ ] 6 · Prices (small): the cards open top-down one after another, each price rises last.
@@ -224,6 +224,18 @@ Phone profile on webpack production builds, HEAD worktree vs after (Pixel 7, 4×
 Scripts: `pnpm check` 43/43; e2e `public.spec` "renders the home page sections" and `cms.spec` "edits the home page beside the live page" 2/2.
 
 No real mid-range phone tested.
+
+Done 2026-10-30 (How it works, concept 2 "Stairs" of 3 on a `/motion-lab` page, deleted after the pick): the heading words rise from their masks and light; the 3 steps climb in at different heights and land in order, each step's number, title and body rising from 160 / 200 / 240 px below its clip so they close up as they land; each step lights over the last 150 px of its 300 px rise; its line draws in Smoke over the Graphite track as it lands. Not picked: 1 "Fuse" (the line draws first and lights each step) and 3 "Count" (each number ticks up one digit, then lights its step). CSS scroll-driven animation, zero JS, still a server component (why in docs/architecture.md, "How it works stairs"). Fixed in the lab: the line jumped to drawn at 50% (`inset()` → `none` doesn't interpolate), so `steps-draw` has an explicit end keyframe.
+
+Ramp probe on the dev server, computed values every 10 px:
+- 1440×900, section timeline: words 120 px (10–90), from 200 to 400; steps rise 240 px each, starting 120 px apart (330–570, 450–690, 570–810), lights 120, lines 120 (560–920); max 7% change per 10 px; step 3 lands with its number at y 368. Same numbers as the lab.
+- 390×844 touch, per-step timelines: words as desktop; each step rises 240 px and lights 120 once it comes on screen (230–470, 510–750, 790–1030, no overlap), each landing with its number at about y 568; lines 120.
+- 15 animations, 0 console errors at both.
+- Reduced motion at 390: 0 animations, all 15 elements still and lit.
+
+JS unchanged (server component, no client code). Phone frames not profiled: no pinned, canvas or 3D move.
+
+Scripts: `pnpm check` 43/43 (the first typecheck tripped on `.next/dev/types`, which the dev server had rewritten with a leftover tail of the deleted lab route; deleting the 2 generated files fixed it). e2e `public.spec` "renders the home page sections" passed; `cms.spec` "edits the home page beside the live page" failed once at line 703 (focus went to BODY after a header link click inside the CMS frame, not to the textarea), then passed 2/2 on a rerun of the same build.
 
 ### 6. Review and launch
 
