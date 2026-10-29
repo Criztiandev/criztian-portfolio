@@ -3,6 +3,8 @@ import type { FooterLink } from "@/type/home.type"
 
 export const ALL_POSTS_LINK: FooterLink = { href: "/blog", label: "All posts" }
 
+export const LATEST_POST_COUNT = 3
+
 export const BLOG = {
   title: "Blog",
   intro:
@@ -13,6 +15,6 @@ export const BLOG = {
   byline: "By Criztian",
   authorNote:
     "Written by Criztian. I design and build websites for small businesses, and I write here about what works.",
-  authorPhotoSrc: ABOUT.photo.src,
+  authorPhotoSrc: ABOUT.photos.desk.src,
   readNextPost: "Read the next post",
 }

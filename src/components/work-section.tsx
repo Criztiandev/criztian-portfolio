@@ -1,4 +1,5 @@
 import Link from "next/link"
+import type { ReactNode } from "react"
 
 import { BookCallLink } from "@/components/book-call-link"
 import { IconArrowUpRight } from "@/components/icons"
@@ -8,15 +9,54 @@ import { WORK } from "@/data/home.data"
 import { cn } from "@/lib/utils"
 import type { WorkRow, WorkScreens } from "@/type/home.type"
 
+function WorkLink({
+  href,
+  className,
+  duplicate,
+  children,
+}: {
+  href: string
+  className: string
+  duplicate?: boolean
+  children: ReactNode
+}) {
+  let duplicateProps = {}
+  if (duplicate === true) {
+    duplicateProps = { tabIndex: -1, "aria-hidden": true }
+  }
+  if (href.startsWith("http")) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={className}
+        {...duplicateProps}
+      >
+        {children}
+        <span className="sr-only"> (opens in a new tab)</span>
+      </a>
+    )
+  }
+  return (
+    <Link href={href} className={className} {...duplicateProps}>
+      {children}
+    </Link>
+  )
+}
+
 function Screens({
   screens,
+  href,
   className,
 }: {
   screens: WorkScreens
+  href?: string
   className: string
 }) {
-  return (
-    <div className={cn("flex-col gap-4 md:flex-row", className)}>
+  const rootClassName = cn("flex-col gap-4 md:flex-row", className)
+  const shots = (
+    <>
       <div className="flex flex-col gap-4 md:w-3/5">
         <Shot
           image={screens.desktop}
@@ -41,7 +81,16 @@ function Screens({
           className="aspect-6/13 md:hidden"
         />
       </div>
-    </div>
+    </>
+  )
+
+  if (href === undefined) {
+    return <div className={rootClassName}>{shots}</div>
+  }
+  return (
+    <WorkLink href={href} duplicate className={rootClassName}>
+      {shots}
+    </WorkLink>
   )
 }
 
@@ -51,6 +100,23 @@ function Row({ row, active }: { row: WorkRow; active: boolean }) {
   if (!active) {
     nameClassName = "text-paper xl:text-smoke"
     detailClassName = "xl:hidden"
+  }
+
+  let href: string | undefined
+  if (row.link !== undefined) {
+    href = row.link.href
+  }
+
+  let name: ReactNode = row.name
+  if (href !== undefined) {
+    name = (
+      <WorkLink
+        href={href}
+        className="outline-none hover:underline focus-visible:ring-2 focus-visible:ring-paper"
+      >
+        {row.name}
+      </WorkLink>
+    )
   }
 
   let tag = null
@@ -64,36 +130,34 @@ function Row({ row, active }: { row: WorkRow; active: boolean }) {
 
   let link = null
   if (row.link !== undefined) {
-    const linkClassName = cn(
-      buttonVariants({ variant: "link", size: "link" }),
-      "self-start",
-      detailClassName
-    )
+    let icon = null
     if (row.link.href.startsWith("http")) {
-      link = (
-        <a
-          href={row.link.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={linkClassName}
-        >
-          {row.link.label}
-          <span className="sr-only"> (opens in a new tab)</span>
-          <IconArrowUpRight />
-        </a>
-      )
-    } else {
-      link = (
-        <Link href={row.link.href} className={linkClassName}>
-          {row.link.label}
-        </Link>
-      )
+      icon = <IconArrowUpRight />
     }
+    link = (
+      <WorkLink
+        href={row.link.href}
+        className={cn(
+          buttonVariants({ variant: "link", size: "link" }),
+          "self-start",
+          detailClassName
+        )}
+      >
+        {row.link.label}
+        {icon}
+      </WorkLink>
+    )
   }
 
   let screens = null
   if (row.screens !== undefined) {
-    screens = <Screens screens={row.screens} className="mt-6 flex xl:hidden" />
+    screens = (
+      <Screens
+        screens={row.screens}
+        href={href}
+        className="mt-6 flex xl:hidden"
+      />
+    )
   }
 
   let bookCall = null
@@ -107,7 +171,7 @@ function Row({ row, active }: { row: WorkRow; active: boolean }) {
     <article className="border-t border-graphite pt-8 xl:py-6">
       <div className="flex flex-col gap-3">
         <h3 className={cn("font-heading text-heading-h2", nameClassName)}>
-          {row.name}
+          {name}
         </h3>
         <p className="text-label text-smoke uppercase">{row.meta}</p>
         <p className={cn("text-body-base text-paper", detailClassName)}>
@@ -141,6 +205,7 @@ export function WorkSection() {
         </div>
         <Screens
           screens={WORK.stage}
+          href={WORK.stageHref}
           className="hidden xl:col-span-2 xl:flex"
         />
       </div>

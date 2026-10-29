@@ -11,18 +11,18 @@ export function HeroSection({ home }: { home: Home }) {
   return (
     <section
       data-cms-card="Hero"
-      className="-mt-16 overflow-hidden bg-black xl:-mt-20"
+      className="-mt-16 min-h-svh overflow-hidden bg-black xl:-mt-20"
     >
-      <div className="relative mx-auto max-w-page xl:h-225">
+      <div className="relative mx-auto max-w-page xl:h-svh xl:min-h-225">
         <div className="relative h-130 overflow-hidden md:h-190 xl:absolute xl:inset-0 xl:h-auto">
           <p
             aria-hidden="true"
-            className="absolute inset-x-0 top-20 text-center font-heading text-display-giant-phone text-paper md:top-70 md:text-display-giant-tablet xl:top-auto xl:bottom-73.25 xl:text-display-giant-desktop"
+            className="absolute inset-x-0 top-20 text-center font-heading text-display-giant-phone text-paper md:top-70 md:text-display-giant-tablet xl:top-1/2 xl:-mt-6 xl:-translate-y-1/2 xl:text-display-giant-desktop"
           >
             <span className="block md:inline">{HERO.nameStart}</span>
             <span className="block md:inline">{HERO.nameEnd}</span>
           </p>
-          <div className="absolute top-57.5 left-1/2 h-112.5 w-75 -translate-x-1/2 md:top-25 md:h-165 md:w-110 xl:top-0 xl:h-225 xl:w-150">
+          <div className="absolute top-57.5 left-1/2 h-112.5 w-75 -translate-x-1/2 md:top-25 md:h-165 md:w-110 xl:top-0 xl:aspect-2/3 xl:h-full xl:w-auto">
             <Image
               src={HERO.portrait.src}
               alt={HERO.portrait.alt}
@@ -33,7 +33,7 @@ export function HeroSection({ home }: { home: Home }) {
               className="object-cover"
             />
           </div>
-          <div className="absolute bottom-0 left-1/2 h-15 w-75 -translate-x-1/2 bg-linear-to-b from-black/0 to-black md:h-44.5 md:w-110 xl:h-60 xl:w-150" />
+          <div className="absolute bottom-0 left-1/2 h-15 w-75 -translate-x-1/2 bg-linear-to-b from-black/0 to-black md:h-44.5 md:w-110 xl:aspect-5/2 xl:h-4/15 xl:w-auto" />
         </div>
         <div className="flex flex-col gap-4 px-4 pt-8 pb-12 md:flex-row md:gap-8 md:px-8 xl:absolute xl:inset-x-0 xl:bottom-10 xl:items-end xl:justify-between xl:px-10 xl:py-0">
           <h1
@@ -42,7 +42,7 @@ export function HeroSection({ home }: { home: Home }) {
           >
             {home.heroHeading}
           </h1>
-          <div className="flex flex-col gap-6 md:flex-1 xl:max-w-120 xl:flex-none ">
+          <div className="flex flex-col gap-6 md:flex-1 xl:max-w-120 xl:flex-none">
             <p data-cms-field="heroText" className="text-body-base text-smoke">
               {home.heroText}
             </p>

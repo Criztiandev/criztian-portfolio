@@ -47,8 +47,11 @@ const ROUDON_SMITH_SCREENS: WorkScreens = {
   },
 }
 
+const ROUDON_SMITH_CASE_STUDY = "/work/roudon-smith"
+
 export const WORK = {
   stage: ROUDON_SMITH_SCREENS,
+  stageHref: ROUDON_SMITH_CASE_STUDY,
   heading: "WORK",
   label:
     "Concept redesigns: what I'd build for real businesses. Not paid projects yet.",
@@ -58,7 +61,7 @@ export const WORK = {
       meta: "Concept redesign · Winery · Saratoga, CA",
       line: "A quiet, classic site built around one action: join the wine club. The online shop stays where it already works.",
       tag: "Design only",
-      link: { href: "/work/roudon-smith", label: "Read the case study" },
+      link: { href: ROUDON_SMITH_CASE_STUDY, label: "Read the case study" },
       screens: ROUDON_SMITH_SCREENS,
     },
     {
@@ -121,10 +124,16 @@ export const STEPS = {
 export const ABOUT = {
   heading: "Hi, I'm Criztian.",
   body: "I'm a full-stack developer. I've built for the web for 4+ years, including 2+ years of websites and apps for healthcare and finance teams. Now I bring that same engineering to small businesses: I design your site, build it myself, and look after it once it's live. You talk to one person the whole way.",
-  photo: {
-    src: "/images/about/criztian-about.png",
-    alt: "Criztian working at a laptop",
-  } satisfies HomeImage,
+  photos: {
+    desk: {
+      src: "/images/about/criztian-about.png",
+      alt: "Criztian working at a laptop",
+    },
+    client: {
+      src: "/images/placeholder.svg",
+      alt: "Placeholder: Criztian talking with a client",
+    },
+  } satisfies Record<string, HomeImage>,
   stats: [
     { value: "4+", label: "years building for the web" },
     { value: "24h", label: "the longest you'll wait for my reply" },
@@ -139,13 +148,13 @@ export const PRICES = {
   packages: [
     {
       name: "Starter",
-      price: "$1,500",
+      price: "XXXXX",
       summary: "A small, sharp site for one location, built for phones first.",
       includes: ["Up to 3 pages", "2 rounds of changes", "You own every file"],
     },
     {
       name: "Standard",
-      price: "$2,500",
+      price: "XXXXX",
       summary: "A fuller site you can update yourself.",
       includes: [
         "Up to 5 pages",
@@ -155,7 +164,7 @@ export const PRICES = {
     },
     {
       name: "Premium",
-      price: "$4,000",
+      price: "XXXXX",
       summary: "Your full site plus a brand refresh.",
       includes: [
         "Up to 7 pages, deeper design and motion",
@@ -169,7 +178,7 @@ export const PRICES = {
   note: "Every package: built for phones first, you own every file, and hosting and domain are in your name.",
   smallNotes: [
     "Extra changes after your rounds are billed at a rate we agree upfront.",
-    "Care plan: from $150/month, optional.",
+    "Care plan: from XXXXX/month, optional.",
   ],
 }
 

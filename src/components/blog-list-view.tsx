@@ -55,15 +55,22 @@ function FeaturedPost({ post }: { post: Post }) {
   )
 }
 
-function PostRow({ post }: { post: Post }) {
+export function PostRow({
+  post,
+  titleTag,
+}: {
+  post: Post
+  titleTag: "h2" | "h3"
+}) {
+  const Title = titleTag
   return (
     <li className="group relative flex flex-col gap-4 border-t border-graphite py-10 xl:flex-row xl:justify-between">
       <div className="flex flex-col gap-3 xl:w-190">
-        <h2 className="font-heading text-heading-h2 text-balance">
+        <Title className="font-heading text-heading-h2 text-balance">
           <Link href={`/blog/${post.slug}`} className={postLinkClassName}>
             {post.title}
           </Link>
-        </h2>
+        </Title>
         <PostMeta post={post} />
       </div>
       <div className="text-body-base xl:w-85">
@@ -87,7 +94,7 @@ function PostList({ posts }: { posts: Post[] }) {
         if (index === 0) {
           return <FeaturedPost key={post.slug} post={post} />
         }
-        return <PostRow key={post.slug} post={post} />
+        return <PostRow key={post.slug} post={post} titleTag="h2" />
       })}
     </ul>
   )

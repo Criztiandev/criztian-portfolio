@@ -17,7 +17,7 @@ function liveValues(site: CmsSiteValues, slug: string): CmsValues {
 function drawHomePage(home: CmsValues, theme: CmsValues) {
   return (
     <SiteShell theme={themeSchema.parse(theme)}>
-      <HomeView home={homeSchema.parse(home)} />
+      <HomeView home={homeSchema.parse(home)} posts={[]} />
     </SiteShell>
   )
 }

@@ -10,7 +10,9 @@ test("renders the home page sections", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Your place deserves a website as good as it is."
   )
-  await expect(page.getByRole("heading", { level: 2 })).toHaveText([
+  await expect(
+    page.getByRole("heading", { level: 2 }).filter({ hasNotText: /^Blog$/ })
+  ).toHaveText([
     "Your customers check your website before they walk in.",
     "WORK",
     "How it works",

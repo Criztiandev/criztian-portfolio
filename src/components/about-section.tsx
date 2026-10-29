@@ -9,13 +9,20 @@ export function AboutSection() {
         <h2 className="font-heading text-heading-h1 text-paper md:col-start-2 md:row-start-1 md:text-display-l xl:col-span-2 xl:col-start-2">
           {ABOUT.heading}
         </h2>
-        <div className="relative aspect-4/5 md:col-start-1 md:row-span-2 md:row-start-1 md:self-start xl:row-span-3 xl:row-start-1">
+        <div className="group relative aspect-4/5 md:col-start-1 md:row-span-2 md:row-start-1 md:self-start xl:row-span-3 xl:row-start-1">
           <Image
-            src={ABOUT.photo.src}
-            alt={ABOUT.photo.alt}
+            src={ABOUT.photos.desk.src}
+            alt={ABOUT.photos.desk.alt}
             fill
             sizes="(min-width: 1280px) 434px, (min-width: 768px) 50vw, 100vw"
             className="object-cover"
+          />
+          <Image
+            src={ABOUT.photos.client.src}
+            alt={ABOUT.photos.client.alt}
+            fill
+            sizes="(min-width: 1280px) 434px, (min-width: 768px) 50vw, 100vw"
+            className="object-cover opacity-0 transition-opacity duration-(--motion-slow) ease-out group-hover:opacity-100 motion-reduce:transition-none"
           />
         </div>
         <p className="text-body-large text-paper md:col-start-2 md:row-start-2 md:mt-6 xl:col-span-2 xl:col-start-2 xl:mt-8 xl:w-160">

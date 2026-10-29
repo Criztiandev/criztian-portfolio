@@ -2,6 +2,8 @@
 
 **Last pack:** 2026-10-29, third pack (case study + blog + privacy), on commit `0c62aa3`. Earlier: second pack (pricing) before the fresh repo; first pack on template commit `fcec601`. Fresh repo first commit: `30e5a37`.
 
+**Fourth pack (2026-10-29):** page max 1440 → 1920 (content 1840, Large frames drawn), nav = Work · Prices · Blog, a Home blog section (latest 3). See the 3 new Phase 4 boxes and "Large 1920 frames".
+
 **Changes since Phase 4 started (third pack):** the Home footer bottom bar gets a **Blog** link before Privacy; the Roudon-Smith Work row gets a **Read the case study** link; new pages below (case study, blog list, blog post); new Privacy copy. Build them as the new Phase 4 boxes. After the design review (round 1, 2026-10-29): no back link above the page titles ("All work" and "All posts" sit next to the Next links at the bottom); the club screenshot now shows the full size row; the case study AFTER is now 3 paired rows (the "Why" section is gone); blog quotes are a big Anton line; the contact email everywhere is criztiandev@gmail.com (update the Home footer and the booking error text if they say hello@criztian.dev); links have no inside inset (the text sits on the gutter line) and a tap area at least 44 px tall on touch screens.
 
 Build one phase per run, in order. Plan first, wait for Criztian's OK, then build. Tick the boxes as you go.
@@ -10,7 +12,7 @@ Build one phase per run, in order. Plan first, wait for Criztian's OK, then buil
 
 - File key: `SBq7maOIwqSa2V8MRCVSXz` (https://www.figma.com/design/SBq7maOIwqSa2V8MRCVSXz)
 - Page **Design** `39:2` holds the frames below. Tokens, text styles and components live on page **Brand** `1:3`.
-- Page max 1440: there are no Large 1920 frames. At 1536 and up, content stays centered at 1440 and the black bands stay full-bleed.
+- Page max 1920 (fourth pack): Large 1920 frames exist; see "Large 1920 frames" below.
 
 ### Frames and section node IDs
 
@@ -48,6 +50,19 @@ Build one phase per run, in order. Plan first, wait for Criztian's OK, then buil
 | 1 · Header / 2 · Article / 3 · Next post                          | `96:995` / `96:998` / `96:1059` | `96:605` / `96:608` / `96:669` | `93:452` / `93:459` / `93:520` |
 
 Footers and navs in these frames are copies of Home's. Privacy (`45:220`) has new copy (5 sections). Home changes: Roudon-Smith Work row link "Read the case study" (`97:558` desktop, `97:563` tablet, `97:568` phone) and a "Blog" link before "Privacy" in every footer bottom bar.
+
+### Large 1920 frames (fourth pack, 2026-10-29)
+
+Page max 1920, content max 1840. Big parts stretch, reading text max 720. Text styles: `Display/Giant — Large` (576, clamp 456 at 1536 → 576 at 1920+) and `Display/XL — Large` (208, clamp 160 → 208).
+
+| Frame                     | Large 1920 | Sections                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Home                      | `110:572`  | Hero `110:573` (1920 × 1080: name centered, portrait 720 × 1080 centered, promise bottom-left, sub + actions bottom-right) · Stakes `110:586` · Work `110:589` (stage: shots 588 wide, phone 380, list left, screens right) · How it works `110:612` · About `110:627` (photo 588 × 735) · Blog `110:643` · Prices `110:664` · Footer `110:718` · Nav `110:733` |
+| Case study · Roudon-Smith | `110:965`  | Header `110:966` · Business `110:973` · Before `110:978` · After `110:999` · Measure `110:1019` · Next `110:1030` · Footer `110:1035`                                                                                                                                                                                                                           |
+| Blog list                 | `110:1199` | Header `110:1200` · Posts `110:1203` · Footer `110:1220`                                                                                                                                                                                                                                                                                                        |
+| Blog post                 | `110:1331` | Header `110:1332` · Article `110:1334` (rail + 720 body stay left-aligned) · Next `110:1395` · Footer `110:1400`                                                                                                                                                                                                                                                |
+
+Home blog section (new, all sizes): Desktop `109:564` · Tablet `109:589` · Phone `109:614` · Large `110:643`. 404 and Privacy have no Large frame: they are text pages, so keep their content at 720 and center nothing new.
 
 ### Components (page Brand `1:3`)
 
@@ -113,7 +128,13 @@ Done 2026-10-29: shadcn Button restyled through its cva (sizes `large` 52, `smal
 - [x] Blog list restyle (third pack)
 - [x] Blog post restyle, every rich-text element (third pack)
 
-Done when: each section matches Figma at 390, 768, 1440 and 1920 (centered at 1440).
+- [x] Fourth pack: nav = Work · Prices · Blog (desktop nav + phone/tablet menus)
+- [x] Fourth pack: Home blog section (latest 3, hidden until 3 posts)
+- [ ] Fourth pack: Large 1920 on every page (`max-w-page` 1920, content 1840, `Display/Giant — Large` and `Display/XL — Large` clamps, reading text max 720, hero 1920 × 1080 layout, Work stage sizes)
+
+Done when: each section matches Figma at 390, 768, 1440 and 1920 (Large frames).
+
+Done 2026-10-29 (fourth pack run 1: nav + Home blog + Criztian's revisions): nav = Work · Prices · Blog from `nav-links.data.ts` (desktop + menu). Home blog section between About and Prices reuses the `/blog` row (`PostRow`, h3 here), shown only with 3+ visible posts; the CMS canvas draws Home without posts. Revisions (in docs/handoff.md, not in Figma): hero fills the screen (desktop never shorter than 900); Work title + screens open the row's link (Roudon-Smith case study, J&T live site in a new tab; screens are a duplicate link, `tabIndex -1` + `aria-hidden`); About second photo fades in on hover (placeholder until Criztian's photo); every price figure "XXXXX". Giant desktop clamp left as is: it already reaches 575 at 1920 (Large 576). Figma calls: 6. Browser on `/`: hero 900 at 1440×900 and 1080 at 1920×1080 with Stakes at the fold; at 1920×1080 portrait 720×1080 at x 600, fade y 792, name y 272 (Figma 600 / 792 / 271); at 1440×900 name y 245 (Figma 246). Blog section padding, header (172 / 171 / 91), gaps (40 / 40 / 64) and row padding same as Figma at 390 / 768 / 1440. About hover opacity 0 → 1; title and stage clicks land on `/work/roudon-smith`; 4 "XXXXX"; 1 h1, no sideways scroll, 0 console errors at 390/768/1440/1920. `pnpm check` 43/43; `pnpm test:e2e` public.spec.ts 13/13 (home headings test now ignores the optional Blog heading, since local posts decide it).
 
 Done 2026-10-29 (Blog list + post): `/blog` draws the newest post big and the rest as rows (whole post is one link); `/blog/[slug]` has the meta rail (date · N min read · By Criztian), the summary as lead, every rich-text element (h2, h3–h6, ul, ol, quote, table, link, code, hr), the author block and the Next post band, then the footer. Empty list: "No posts yet." (not drawn in Figma). Figma calls: 7. Checked with the Figma sample post seeded locally, then deleted. List at 390/768/1440: header 311/376/304 and h1 y 96/120/160, same as Figma; featured post 8 px shorter (link inset, why in docs/architecture.md, "Blog"). Post at 1440: header 422, article 1828, h2/table/ol/quote/ul y 627/717/1227/1359/1777, all same as Figma; article 2539 at 390 and 1856 at 768, same as Figma. 1 h1, 5 h2, no sideways scroll, 0 console errors at all 4 widths. Known: at 1920 content is not centered at 1440 (`--container-page`, open since `0c62aa3`). `pnpm check` 43/43 (3 new); `pnpm test:e2e` blog + publish specs 4/4.
 
@@ -140,9 +161,10 @@ Transform and opacity only, no layout shift, content visible without JavaScript,
 
 ### 6. Review and launch
 
-- [ ] Every section at 390, 768, 1440, 1920 plus the edges 360 and 1279.
+- [ ] Every section at 390, 768, 1440, 1920 plus the edges 360, 1279 and 1536.
 - [ ] Lighthouse performance, accessibility and SEO scores pasted here.
 - [ ] No console errors, no unlabeled placeholders, every button goes somewhere real.
+- [ ] Real prices replace "XXXXX" and Criztian's 2 About photos replace the placeholder (docs/handoff.md, open questions).
 - [ ] The public home renders full content with the database paused (limit in PRODUCT.md).
 - [ ] Title, description, social image and favicon set.
 - [ ] Kit page removed.
