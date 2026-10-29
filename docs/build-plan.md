@@ -53,12 +53,14 @@ Done 2026-10-29: `pnpm check` 46/46 unit tests, lint and typecheck clean; `pnpm 
 
 ### 2. Tokens
 
-- [ ] Figma variables (Primitives, Color, Layout) and the 12 text styles in the theme (Tailwind v4 `@theme` in `src/app/globals.css`) with the same numbers. See docs/brand.md.
-- [ ] `max-w-page` = 1440 px; gutters 16 / 32 / 40; radius 0 everywhere on the site.
-- [ ] Giant name sizes as `clamp()` between the min and max in docs/brand.md.
-- [ ] Dark only: no light theme, no theme toggle on the public site.
+- [x] Figma variables (Primitives, Color, Layout) and the 12 text styles in the theme (Tailwind v4 `@theme` in `src/app/globals.css`) with the same numbers. See docs/brand.md.
+- [x] `max-w-page` = 1440 px; gutters 16 / 32 / 40; radius 0 everywhere on the site.
+- [x] Giant name sizes as `clamp()` between the min and max in docs/brand.md.
+- [x] Dark only: no light theme, no theme toggle on the public site.
 
 Done when: every Figma token has a matching theme value.
+
+Done 2026-10-29: Figma `get_variable_defs` on `20:2` and `39:3` matched docs/brand.md, no new difference. `@theme` holds the 6 primitives, 6 semantic colors, 12 text styles (3 giant `clamp()`s: 222 px at 390, 220 at 768, 425 at 1440), `max-w-page` 90rem, `--radius: 0`, overlay shadow, ease and durations. `THEME_DEFAULTS` is the brand; forced dark on every path; `.dark` block gone. `pnpm check` 46/46, lint and typecheck clean; `pnpm test:e2e` 32/32 (theme tests rewritten to the brand palette). Browser run skipped: no layout changed and e2e asserts the page colors.
 
 ### 3. Components
 
@@ -117,8 +119,8 @@ Done when: a preview is deployed and its link is ready for Criztian's final OK.
 4. ✅ `src/config/site.config.ts:12-13` — name "Website Template" / template description → `Criztian` / `Custom websites for small businesses.` (page title: "Criztian — Custom websites for small businesses.").
 5. ✅ `src/config/font.config.ts` (whole file) — Geist, Inter, Manrope, Space Grotesk, Lora, Playfair Display → Anton + Inter only.
 6. ✅ `src/data/font.data.ts:1-10` — 6 font options, default Geist → Anton (headings) and Inter (body) only.
-7. ➡️ Tokens phase. `src/data/theme.data.ts:3-11` — white / near-black defaults → brand: background #0A0A0A, text #F4F4F1, accent #E1251B, surface #232323, muted text #8A8A86.
-8. ➡️ Tokens phase. `src/app/globals.css:8-43` — shadcn neutral tokens and a `.dark` variant → the brand tokens from docs/brand.md; dark only.
+7. ✅ `src/data/theme.data.ts:3-11` — white / near-black defaults → brand: background #0A0A0A, text #F4F4F1, accent #E1251B, surface #232323, muted text #8A8A86.
+8. ✅ `src/app/globals.css:8-43` — shadcn neutral tokens and a `.dark` variant → the brand tokens from docs/brand.md; dark only.
 9. ✅ (links are `/#work` etc. so they work from /blog too) `src/data/nav-links.data.ts:2-5` — Home, Blog, Contact, Log in → Work `#work`, How it works `#how-it-works`, Prices `#prices`. "Book a call" is a button, not a nav link. No public login link.
 10. ➡️ Sections phase (Hero), with item 11. `src/data/home.data.ts:3-7` and `src/model/home.model.ts` — hero heading/text + contactHeading → the home content from docs/website-plan.md, in `src/data/*.data.ts`, in the same shape the CMS home collection saves. No `contactHeading`.
 11. ➡️ Sections phase, with the Hero: 4 CMS e2e tests are built on the form, so they get rewritten once. Add a migration dropping `contact_messages` (anon may insert). **Contact form (cut list #4):** `src/components/home-view.tsx:3` and `:30-37`, `src/components/contact-form.tsx`, `src/components/contact-message-list.tsx`, `src/app/dashboard/messages/page.tsx`, `src/router/contact.router.ts` (+ its entry in `src/router/app.router.ts`), `src/service/contact.service.ts`, `src/repository/contact-message.repository.ts`, `src/model/contact.model.ts`, `src/type/contact.type.ts`, `src/type/contact-message.type.ts`, `src/util/contact.util.ts`, `test/contact.test.ts`, and the contact references in `src/config/cms.config.ts`. Remove; keep Resend only if something else uses it.

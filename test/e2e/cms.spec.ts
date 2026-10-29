@@ -395,11 +395,11 @@ test("draws the brand palette on the site only after Publish", async ({
   test.slow()
   const blue = "#1d4ed8"
   const values = {
-    background: "#ffffff",
-    text: "#0a0a0a",
-    primary: "#171717",
-    accent: "#171717",
-    muted: "#f5f5f5",
+    background: "#0a0a0a",
+    text: "#f4f4f1",
+    primary: "#e1251b",
+    accent: "#e1251b",
+    muted: "#232323",
     headingFont: "anton",
     bodyFont: "inter",
   }
@@ -438,16 +438,16 @@ test("draws the brand palette on the site only after Publish", async ({
     )
   }
 
-  await page.emulateMedia({ colorScheme: "dark" })
+  await page.emulateMedia({ colorScheme: "light" })
   await logIn(page)
   await expect(html).toHaveClass(/dark/)
   await clearCollection(page, "theme")
-  await expect.poll(homeHtml).toContain("--primary:#171717")
+  await expect.poll(homeHtml).toContain("--primary:#e1251b")
 
   await expectError(
     await mutate(page, "create", {
       collection: "theme",
-      values: { ...values, text: "#cccccc" },
+      values: { ...values, text: "#222222" },
     }),
     400,
     "BAD_REQUEST"
@@ -464,8 +464,8 @@ test("draws the brand palette on the site only after Publish", async ({
   await page.goto("/editor/theme")
   await expect(page).toHaveURL(/\/editor\/theme\/new$/)
   await expect(html).toHaveClass(/dark/)
-  await expect(frame.locator("html")).not.toHaveClass(/dark/)
-  await expect(frameSend).toHaveCSS("background-color", "rgb(23, 23, 23)")
+  await expect(frame.locator("html")).toHaveClass(/dark/)
+  await expect(frameSend).toHaveCSS("background-color", "rgb(225, 37, 27)")
   await expect(main.getByRole("heading", { level: 1 })).toHaveText("Theme")
   await expect(main.getByLabel("Background", { exact: true })).toHaveValue(
     values.background
@@ -476,10 +476,10 @@ test("draws the brand palette on the site only after Publish", async ({
   await expect(textField).toHaveValue(values.text)
   await expect(textPicker).toHaveValue(values.text)
 
-  await textField.fill("#ccc")
+  await textField.fill("#222")
   await expect(textPicker).toHaveValue(values.text)
-  await textField.fill("#CCCCCC")
-  await expect(textPicker).toHaveValue("#cccccc")
+  await textField.fill("#222222")
+  await expect(textPicker).toHaveValue("#222222")
   await save.click()
   await expect(form.getByRole("alert")).toHaveText([hardToRead, hardToRead])
   await expect(main.getByLabel("Background", { exact: true })).toBeFocused()
@@ -530,22 +530,22 @@ test("draws the brand palette on the site only after Publish", async ({
   await expect(frameTitle).toHaveCSS("font-family", inter)
   const id = Number(new URL(page.url()).pathname.split("/").pop())
   const saved = await homeHtml()
-  expect(saved).toContain("--primary:#171717")
+  expect(saved).toContain("--primary:#e1251b")
   expect(saved).toContain("--font-display:var(--font-anton)")
   expect(saved).not.toContain(blue)
   await page.goto("/editor")
   await expect(page).toHaveURL(/\/editor\/home\/new$/)
-  await expect(frameSend).toHaveCSS("background-color", "rgb(23, 23, 23)")
+  await expect(frameSend).toHaveCSS("background-color", "rgb(225, 37, 27)")
   await expect(frameTitle).toHaveCSS("font-family", anton)
   await page.goto(`/editor/theme/${id}`)
 
   await main.getByRole("button", { name: "Publish", exact: true }).click()
   await expect(dialog.getByRole("listitem")).toHaveText([
-    "BackgroundAfter: #ffffff",
-    "TextAfter: #0a0a0a",
+    "BackgroundAfter: #0a0a0a",
+    "TextAfter: #f4f4f1",
     `PrimaryAfter: ${blue}`,
-    "AccentAfter: #171717",
-    "MutedAfter: #f5f5f5",
+    "AccentAfter: #e1251b",
+    "MutedAfter: #232323",
     "Heading fontAfter: Inter",
     "Body fontAfter: Anton",
   ])
@@ -558,7 +558,7 @@ test("draws the brand palette on the site only after Publish", async ({
   await expect(frameTitle).toHaveCSS("font-family", inter)
 
   await page.goto("/")
-  await expect(html).not.toHaveClass(/dark/)
+  await expect(html).toHaveClass(/dark/)
   const send = page.getByRole("button", { name: "Send message" })
   await expect(send).toHaveCSS("background-color", "rgb(29, 78, 216)")
   await expect(send).toHaveCSS("color", "rgb(255, 255, 255)")
@@ -573,13 +573,13 @@ test("draws the brand palette on the site only after Publish", async ({
   )
 
   await expectOk(await mutate(page, "delete", { id }))
-  await expect.poll(homeHtml).toContain("--primary:#171717")
+  await expect.poll(homeHtml).toContain("--primary:#e1251b")
 
   await page.goto("/dashboard/messages")
   await expect(html).toHaveClass(/dark/)
   await page.getByRole("button", { name: "Log out" }).click()
   await expect(page).toHaveURL(/\/login$/)
-  await expect(html).not.toHaveClass(/dark/)
+  await expect(html).toHaveClass(/dark/)
 })
 
 test("edits the home page beside the live page", async ({ page }) => {
@@ -1588,7 +1588,7 @@ test("takes the home text and a color from the editor to the site", async ({
   await logIn(page)
   await clearCollection(page, "home")
   await clearCollection(page, "theme")
-  await expect.poll(homeHtml).toContain("--primary:#171717")
+  await expect.poll(homeHtml).toContain("--primary:#e1251b")
 
   await sidebar.getByRole("link", { name: "Editor", exact: true }).click()
   await expect(page).toHaveURL(/\/editor\/home\/new$/)
@@ -1620,16 +1620,16 @@ test("takes the home text and a color from the editor to the site", async ({
 
   await publish.click()
   await expect(dialog.getByRole("listitem")).toHaveText([
-    "BackgroundAfter: #ffffff",
-    "TextAfter: #0a0a0a",
+    "BackgroundAfter: #0a0a0a",
+    "TextAfter: #f4f4f1",
     `PrimaryAfter: ${green}`,
-    "AccentAfter: #171717",
-    "MutedAfter: #f5f5f5",
+    "AccentAfter: #e1251b",
+    "MutedAfter: #232323",
     "Heading fontAfter: Anton",
     "Body fontAfter: Inter",
   ])
   await expect(page).toHaveURL(/\/editor\/theme\/new$/)
-  expect(await homeHtml()).toContain("--primary:#171717")
+  expect(await homeHtml()).toContain("--primary:#e1251b")
   await confirm.click()
   await expect(dialog).toBeHidden()
   await expect(page).toHaveURL(/\/editor\/theme\/\d+$/)
@@ -1651,5 +1651,5 @@ test("takes the home text and a color from the editor to the site", async ({
   await clearCollection(page, "home")
   await clearCollection(page, "theme")
   await expect.poll(homeHtml).not.toContain(text)
-  await expect.poll(homeHtml).toContain("--primary:#171717")
+  await expect.poll(homeHtml).toContain("--primary:#e1251b")
 })

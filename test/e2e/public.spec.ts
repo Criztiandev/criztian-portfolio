@@ -19,30 +19,30 @@ test("renders the home page with the contact form", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Send message" })).toBeVisible()
 })
 
-test("the public site keeps its palette on a dark system", async ({ page }) => {
+test("the public site stays dark on a light system", async ({ page }) => {
   const body = page.locator("body")
-  await page.emulateMedia({ colorScheme: "dark" })
+  await page.emulateMedia({ colorScheme: "light" })
   await page.goto("/")
-  await expect(page.locator("html")).not.toHaveClass(/dark/)
+  await expect(page.locator("html")).toHaveClass(/dark/)
   expect(
     await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue(
         "--background"
       )
     )
-  ).toBe("#ffffff")
-  await expect(body).toHaveCSS("background-color", "rgb(255, 255, 255)")
-  await expect(body).toHaveCSS("color", "rgb(10, 10, 10)")
+  ).toBe("#0a0a0a")
+  await expect(body).toHaveCSS("background-color", "rgb(10, 10, 10)")
+  await expect(body).toHaveCSS("color", "rgb(244, 244, 241)")
 
   await page.goto("/blog/does-not-exist")
   await expect(page.getByText("This page could not be found.")).toBeVisible()
-  await expect(body).toHaveCSS("background-color", "rgb(255, 255, 255)")
+  await expect(body).toHaveCSS("background-color", "rgb(10, 10, 10)")
 
   await page.goto("/no-such-page")
   await expect(page.getByText("This page could not be found.")).toBeVisible()
-  await expect(page.locator("html")).not.toHaveClass(/dark/)
-  await expect(body).toHaveCSS("background-color", "lab(100 0 0)")
-  await expect(body).not.toHaveCSS("color", "rgb(255, 255, 255)")
+  await expect(page.locator("html")).toHaveClass(/dark/)
+  await expect(body).toHaveCSS("background-color", "rgb(10, 10, 10)")
+  await expect(body).toHaveCSS("color", "rgb(244, 244, 241)")
 })
 
 test("every listed font has its variable, and Inter is the body default", async ({

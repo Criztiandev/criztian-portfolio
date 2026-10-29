@@ -127,12 +127,11 @@ prerendered blog index (its `x-nextjs-cache` header),
 404s for unknown and malformed slugs, that every `cms` procedure needs a session, and that
 public pages ship no editor code. Public runs build `/blog` against the mock, so it is empty,
 and `/` draws its code defaults and the default palette for the same reason.
-One test sets a dark system: `html` gets no `dark` class and `--background` is `#ffffff`,
-the palette's own rule and not the `oklch` default it overrides. It then opens both kinds
-of 404. A missing post renders inside the marketing layout, so its `body` is the palette's
-white. A URL that matches no route gets Next's default page with no palette rule: Chromium
-reports its background as `lab(100 0 0)`, the default token. With the `:root body` rule
-deleted in the browser it was `rgb(0, 0, 0)` on 2026-10-11 (see "CMS theme").
+One test sets a light system: `html` still gets the `dark` class and `--background` is
+`#0a0a0a`, the palette's own rule. It then opens both kinds of 404. A missing post renders
+inside the marketing layout, so its `body` is the palette's black. A URL that matches no
+route gets Next's default page with no palette rule, so its `body` takes the brand values
+in `globals.css` `:root`: `rgb(10, 10, 10)` on `rgb(244, 244, 241)`.
 The mock answers `[]` for any table, and both blog readers take arrays, so it needed no
 change for `cms_entries`.
 
@@ -179,18 +178,18 @@ heading in a developer's local database fails the home test in `public.spec.ts`;
 entry, or run `pnpm db:reset` and clear `.next/cache/fetch-cache`.
 
 The theme test covers the brand palette and clicks the color field. It runs with a dark
-system setting from start to end. After the login the dashboard has its `dark` class.
-`cms.create` with a text color of `#cccccc` answers 400. `/editor/theme` lands on
-`/editor/theme/new` with the five defaults; the editor has the `dark` class and the frame
-does not. `#ccc` typed into Text leaves the picker on the old color, and
-`#CCCCCC` moves it. Save draft then shows the contrast error on Background and on Muted,
+system setting from start to end, to prove the theme is forced dark. After the login the
+dashboard has its `dark` class. `cms.create` with a text color of `#222222` answers 400.
+`/editor/theme` lands on `/editor/theme/new` with the five defaults; the editor and the
+frame both have the `dark` class. `#222` typed into Text leaves the picker on the old
+color, and `#222222` moves it. Save draft then shows the contrast error on Background and on Muted,
 focuses Background and creates nothing; fixing Text clears both errors with no second save,
 which fails without the `deps`. A half-typed `#12` reaches the check on blur and shows the
 format error on Text. Primary set through the picker turns the frame's Send button blue
 before any save, and again after the save, when the frame has loaded a second time; `/`
-stays on `--primary:#171717`. The publish check lists the five colors, and after Publish `/` prints
-the new primary, has no `dark` class and draws the Send button in it with white text.
-Deleting the row brings the default back, and Log out lands on a `/login` without the
+stays on `--primary:#e1251b`. The publish check lists the five colors, and after Publish `/` prints
+the new primary, has the `dark` class and draws the Send button in it with white text.
+Deleting the row brings the default back, and Log out lands on a `/login` with the
 `dark` class. Like the single test it first deletes every `theme` row. Of the five colors
 it changes Primary only, because `public.spec.ts` reads `--background` beside it.
 
@@ -373,7 +372,7 @@ chip, and `/` does not have the text. Publish opens the check with the three fie
 its frame draws the hero text that was just published. A hex value typed into Primary
 turns the frame's Send button green. The test types it because Playwright cannot drive the
 system's color dialog. Publish, with no Save draft before it, lists the seven fields while
-`/` still prints `--primary:#171717`. The three reads of `/` before a publish are answered
+`/` still prints `--primary:#e1251b`. The three reads of `/` before a publish are answered
 from the cache, so what they show is that Save draft and opening the check do not purge
 it; that anon cannot read a draft is the data tests' proof. After the confirm, Back to Dashboard returns to the
 Blog list, and View site opens `/` in a new tab with the text and the green button. It is
@@ -1121,13 +1120,27 @@ The owner picks five colors in the `theme` collection, a single: background, tex
 primary, accent and muted. The public site draws them after Publish. docs/cms-plan.md,
 Theme on the public site, has the token table.
 
-- One palette, and the public site no longer follows the visitor's dark mode (Criztian's
-  call on 2026-10-11): two palettes would double the fields and the contrast checks.
-  `providers.tsx` passes `forcedTheme="light"` to next-themes unless the path starts with
-  `/dashboard` or `/editor`, so no `dark:` class fires on the site and the dashboard and
-  the editor keep both looks.
-  It reads the path with `usePathname`. The hook's docs warn about prerendered pages behind
-  a rewrite; the proxy here only redirects.
+- One palette, dark only (docs/brand.md; Tokens phase 2026-10-29). `providers.tsx` passes
+  `forcedTheme="dark"` to next-themes on every path, so `html` always has the `dark` class,
+  shadcn's `dark:` styles fire everywhere and next-themes sets `color-scheme: dark` (native
+  scrollbars and controls match the black page). `globals.css` has no `.dark` block: its
+  `:root` holds the dark values, the same ones `themeCss(THEME_DEFAULTS)` prints, so pages
+  outside the marketing layout (dashboard, Next's 404) match the site.
+- Brand tokens (Tokens phase 2026-10-29). The `@theme` block carries the Figma variables
+  under their Figma code names: primitives (`--color-black`, `graphite`, `paper`, `smoke`,
+  `red`, `white`) and the semantic `--color-bg-page`, `bg-surface`, `text-primary`,
+  `text-muted`, `text-on-accent`, `border-subtle`. The semantic ones point at the primitives,
+  not at the shadcn tokens, because `themeCss` computes muted text (`#969695`) and borders
+  (`#212121`) where Figma has smoke `#8a8a86` and graphite `#232323`. So the CMS Theme editor
+  steers the shadcn layer only. `--color-accent` is the one shared name: shadcn's
+  `var(--accent)`, whose default is the brand red, so shadcn's menu-item focus fill is red
+  until the components phase restyles it. `--color-black` replaces Tailwind's `#000`.
+  The twelve text styles are `--text-*` with their line height, tracking and weight; the
+  three giant-name sizes are `clamp()` in px, since they must fit the viewport, not follow
+  the root font size. `--radius: 0` turns every shadcn `rounded-*` into a hard edge.
+  Spacing and gutters need no tokens: space/N is Tailwind's scale. `--ease-out` is the brand
+  easing (a judgment in docs/brand.md) and `--motion-fast/base/slow` the durations, used as
+  `duration-(--motion-base)`.
 - `themeCss` in `util/theme.util.ts` turns the five colors into 18 shadcn tokens and
   returns one string, because React prints an empty style tag when a `style` element has
   two children. `SiteShell` prints it above the header. The selector is `:root:root`,
@@ -1279,8 +1292,7 @@ Routes and shell:
 - `/dashboard/<slug>` is the list of a list collection and forwards a single to
   `/editor/<slug>`. The list's New, Edit and title links point at `/editor/<slug>/new`
   and `/editor/<slug>/<id>`.
-- `"/editor"` is a protected prefix, and `providers.tsx` leaves the theme unforced there,
-  so the chrome follows dark mode like the dashboard.
+- `"/editor"` is a protected prefix; the theme is forced dark there like everywhere.
 - `CmsEntryForm` keeps the form, the two saves, the leave warning and the publish check.
   `canvas` is a boolean: whether the collection has a page view. `cms-entry-canvas.tsx` is
   the shell and
@@ -1322,7 +1334,7 @@ The frame:
   `:root:root` rule that would repaint the editor, and the page's breakpoints must answer
   to the frame's width, not the window's.
 - The frame is `/preview/[collection]/canvas`: already behind the `/preview` guard, forced
-  light, and the static segment wins over `[id]`. The page checks the claims and answers
+  dark, and the static segment wins over `[id]`. The page checks the claims and answers
   404 without a view. It reads no draft. The values arrive in messages, and the server
   only adds `site`, the live values of every single collection (`listSingleValues`), so
   the home view draws the published palette and the theme view the published text.
@@ -1539,9 +1551,6 @@ Each shortcut is deliberate and names its upgrade trigger.
 - `single` is written when the row is created. A row made by the seed or in Studio without
   it, and the rows of a list collection that becomes a single later, are outside the
   unique index. Set the flag in a migration when that happens.
-- The public site is `color-scheme: light`, which next-themes sets with the forced theme,
-  so native controls and scrollbars stay light on a dark palette. Set the scheme from the
-  background's lightness when a client picks a dark palette.
 - Contrast is checked for text on the background and on muted only. Fill text is black or
   white by rule, and nothing compares primary with the background, so a white button on a
   white page can be saved. Add a `contrast` key to `primary` when an owner does that.
