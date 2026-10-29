@@ -423,11 +423,11 @@ reach `app/error.tsx`, which shows the digest Next prints in the server log.
 
 ## Env contract
 
-| Variable | Read | Required |
-| --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | at import, in `site.config.ts` | production (Vercel has a fallback) |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | lazily, first use | fullstack, the blog, the home page's editable text and the brand palette |
-| `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_TO` | lazily, first send | when email is sent |
+| Variable                                                           | Read                           | Required                                                                 |
+| ------------------------------------------------------------------ | ------------------------------ | ------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SITE_URL`                                             | at import, in `site.config.ts` | production (Vercel has a fallback)                                       |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | lazily, first use              | fullstack, the blog, the home page's editable text and the brand palette |
+| `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_TO`                         | lazily, first send             | when email is sent                                                       |
 
 Lazy readers let a marketing-only clone build with no env at all; the blog pages, the
 home page and the marketing layout check `hasSupabaseEnv()`. Without it the blog renders
@@ -439,6 +439,7 @@ throwing because `next build` always runs with `NODE_ENV=production`.
 With the env set but Supabase unreachable (Docker off, or the hosted project paused), those
 pages fall back the same way. Ported from the J&T site on 2026-10-29; that is the site's rule:
 it works without Docker or Supabase.
+
 - `fromPostgrestError` maps a request that got no response (postgrest-js returns `code: ""`
   and `status: 0`) to `UNAVAILABLE` (tRPC `SERVICE_UNAVAILABLE`).
 - `listLiveEntriesIfReachable` and `getLiveEntryBySlugIfReachable` in `cms.service.ts` return
@@ -824,7 +825,7 @@ part. The dashboard `main` is `px-10 py-8`, the Figma gutter.
   The frame is `relative`, because the `sr-only` Actions heading is absolutely positioned
   and would otherwise escape the scroll container and make the page scroll.
 - Updated is formatted in the browser's time zone with `Intl.DateTimeFormat("en-US",
-  { dateStyle: "medium" })`. Rows render only after the client query answers, so the server
+{ dateStyle: "medium" })`. Rows render only after the client query answers, so the server
   and the client never disagree.
 - The list is a client query on `cms.list`, like the messages. Delete invalidates it. The
   editor does the same after create, save and publish, because `staleTime` is 30 seconds.
@@ -968,7 +969,7 @@ answer 404 with no redirect, because nothing was deployed with them.
   saved", reset the form to the saved values and invalidate `cms.list`. Neither touches the
   site: only `cms.publish` and a delete of a live entry call `revalidatePath`.
 - `CONFLICT` becomes an error on the Slug field with focus (`slug` is the reserved field
-    name); its section is selected first. Any other failure shows in a row of its own above
+  name); its section is selected first. Any other failure shows in a row of its own above
   the scrolling fields, so it is in view however far the panel is scrolled (it was the
   first child of the scroller until the review of 2026-10-12).
 - Each field error has an id, and the failed control names it in `aria-describedby` beside
@@ -1240,7 +1241,7 @@ a body font, each a dropdown over a list of six in code.
   to the browser's default font.
 - `themeCss` adds `--font-sans:var(--font-<body>)` and `--font-display:var(--font-<heading>)`
   to its one `:root:root` rule. `--font-heading` is `var(--font-display,
-  var(--font-sans))`, and a base rule gives it to `h1` to `h6`, rich text headings
+var(--font-sans))`, and a base rule gives it to `h1` to `h6`, rich text headings
   included. The dashboard and the editor print no palette rule, so `--font-display` is
   unset there and everything stays Geist.
 - The read schema is `z.enum(keys).catch("geist")`, so the key `themeCss` prints is one of
@@ -1498,7 +1499,6 @@ fix is a CodeBlock extension of about 12 lines); lists that start at 0 renumber;
 `a.` and `b.` lines become a lettered list; issues #8445, #8446 and #8404 are open; a
 Markdown image written in Studio becomes its alt text the next time the body is edited in the
 app, because there is no Image extension.
-
 
 ## Abuse protection
 
@@ -1769,7 +1769,7 @@ that import the packages, and that `next start` refuses an export.
   collection now answers 404 instead of redirecting to Messages.
 - **Copy source:** docs/website-plan.md wins over the Figma text layers. They differ on the
   desktop hero sub ("for business") and the desktop footer email (`criztiandev@gmail.com`);
-  the site uses the plan's text. `hello@criztian.dev` is not live until the domain is bought.
+  the site uses the plan's text. The contact email is `criztiandev@gmail.com` (decided 2026-10-29).
 - **CMS home shape:** cards Hero (`heroHeading` = the h1 promise, `heroText`) and Stakes
   (`stakesHeading`, `stakesText`). Everything else is static in `src/data/home.data.ts`.
 - **Hero under the bar:** the header stays `sticky`; the hero pulls itself up with
@@ -1821,3 +1821,28 @@ that import the packages, and that `next start` refuses an export.
   header", so this arbitrary value stays.
 - The footer bottom bar (`SiteFooterBar`) is shared by the home footer and Privacy, so the
   third-pack "Blog" link lands on both at once.
+
+### Case study (`/work/[slug]`)
+
+- One template, `CaseStudyView`, filled from `CASE_STUDIES` in `src/data/case-study.data.ts`.
+  The route prerenders every slug there; a slug without data (`/work/jnt-express` until its
+  copy exists) calls `notFound()` and answers 404. Not `dynamicParams = false`: `next start`
+  then logs an `Internal: NoFallbackError` stack for every unknown slug (seen 2026-10-29).
+- Screens keep their ratio and crop in the data (`aspectRatio`, `objectPosition`), applied as
+  inline styles by the shared `Shot`. Each screen has its own ratio (16:10, 9:4, 4:3, 4:5,
+  13:12) and the phone crops start at different heights (`50% 20%` for the one-button home),
+  so a class per screen would mean arbitrary values.
+- AFTER shows a phone crop below `md` and the desktop screen from `md` up, as two `Shot`s.
+  The desktop shots' text is too small to read at 358 px.
+- The Next band always shows "All work". Its heading and "Read the case study" render only
+  when the study has `next`, which stays unset until the J&T page is live.
+- The `link` button size has no padding (the text sits on the gutter line) and grows to 44 px
+  tall on coarse pointers (`pointer-coarse:min-h-11`), from design review round 1. Figma's
+  Link component still draws the old 4 px inset.
+- A Work row link starting with `http` opens in a new tab with the arrow icon; any other
+  href is an internal `next/link` with no icon.
+- The two AFTER phone crops are 4:5 portrait, as docs/website-plan.md says, not the 358 × 286
+  frames in Figma (`101:601`, `101:611`, named "phone 4:5"): Figma stretches the screenshot
+  into a landscape frame, so its text is squashed to about two-thirds height. "Starting 20%
+  down" is `object-position: 50% 47%` (20% of the scaled 776 px image is 155 px, out of 328
+  px of overflow). The phone AFTER is about 320 px taller than Figma because of this.

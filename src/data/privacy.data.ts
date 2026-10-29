@@ -25,7 +25,7 @@ export const PRIVACY = {
     },
     {
       heading: "Questions",
-      body: "Email me at hello@criztian.dev with any question about your data.",
+      body: "Email me at criztiandev@gmail.com with any question about your data.",
     },
   ] satisfies PrivacySection[],
 }

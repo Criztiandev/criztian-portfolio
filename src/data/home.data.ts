@@ -58,6 +58,7 @@ export const WORK = {
       meta: "Concept redesign · Winery · Saratoga, CA",
       line: "A quiet, classic site built around one action: join the wine club. The online shop stays where it already works.",
       tag: "Design only",
+      link: { href: "/work/roudon-smith", label: "Read the case study" },
       screens: ROUDON_SMITH_SCREENS,
     },
     {
@@ -175,7 +176,7 @@ export const PRICES = {
 export const FOOTER = {
   heading: "Let's talk about your place.",
   emailLead: "Or email",
-  email: "hello@criztian.dev",
+  email: "criztiandev@gmail.com",
   socials: [
     {
       href: "https://www.linkedin.com/in/criztian-jade-tuplano-036b85258/",

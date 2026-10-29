@@ -2,7 +2,7 @@
 
 **Last pack:** 2026-10-29, third pack (case study + blog + privacy), on commit `0c62aa3`. Earlier: second pack (pricing) before the fresh repo; first pack on template commit `fcec601`. Fresh repo first commit: `30e5a37`.
 
-**Changes since Phase 4 started (third pack):** the Home footer bottom bar gets a **Blog** link before Privacy; the Roudon-Smith Work row gets a **Read the case study** link; new pages below (case study, blog list, blog post); new Privacy copy. Build them as the new Phase 4 boxes. After the design review (round 1, 2026-10-29): no back link above the page titles ("All work" and "All posts" sit next to the Next links at the bottom); the club screenshot now shows the full size row; links have no inside inset (the text sits on the gutter line) and a tap area at least 44 px tall on touch screens.
+**Changes since Phase 4 started (third pack):** the Home footer bottom bar gets a **Blog** link before Privacy; the Roudon-Smith Work row gets a **Read the case study** link; new pages below (case study, blog list, blog post); new Privacy copy. Build them as the new Phase 4 boxes. After the design review (round 1, 2026-10-29): no back link above the page titles ("All work" and "All posts" sit next to the Next links at the bottom); the club screenshot now shows the full size row; the case study AFTER is now 3 paired rows (the "Why" section is gone); blog quotes are a big Anton line; the contact email everywhere is criztiandev@gmail.com (update the Home footer and the booking error text if they say hello@criztian.dev); links have no inside inset (the text sits on the gutter line) and a tap area at least 44 px tall on touch screens.
 
 Build one phase per run, in order. Plan first, wait for Criztian's OK, then build. Tick the boxes as you go.
 
@@ -33,20 +33,19 @@ Build one phase per run, in order. Plan first, wait for Criztian's OK, then buil
 
 ### New pages (third pack, 2026-10-29)
 
-| Page                                     | Phone 390                       | Tablet 768                     | Desktop 1440                   |
-| ---------------------------------------- | ------------------------------- | ------------------------------ | ------------------------------ |
-| Case study · Roudon-Smith (frame)        | `91:594`                        | `91:346`                       | `90:315`                       |
-| 1 · Header                               | `91:595`                        | `91:347`                       | `90:316`                       |
-| 2 · The business                         | `91:603`                        | `91:355`                       | `90:328`                       |
-| 3 · Before (paper band)                  | `91:608`                        | `91:360`                       | `90:333`                       |
-| 4 · After                                | `91:629`                        | `91:381`                       | `90:354`                       |
-| 5 · Why                                  | `91:638`                        | `91:390`                       | `90:363`                       |
-| 6 · What I'd measure                     | `91:650`                        | `91:402`                       | `90:375`                       |
-| 7 · Next case study                      | `91:661`                        | `91:413`                       | `90:386`                       |
-| Blog list (frame)                        | `96:848`                        | `96:458`                       | `93:398`                       |
-| 1 · Header / 2 · Posts                   | `96:849` / `96:852`             | `96:459` / `96:462`            | `93:399` / `93:402`            |
-| Blog post (frame)                        | `96:994`                        | `96:604`                       | `93:451`                       |
-| 1 · Header / 2 · Article / 3 · Next post | `96:995` / `96:998` / `96:1059` | `96:605` / `96:608` / `96:669` | `93:452` / `93:459` / `93:520` |
+| Page                                                              | Phone 390                       | Tablet 768                     | Desktop 1440                   |
+| ----------------------------------------------------------------- | ------------------------------- | ------------------------------ | ------------------------------ |
+| Case study · Roudon-Smith (frame)                                 | `91:594`                        | `91:346`                       | `90:315`                       |
+| 1 · Header                                                        | `91:595`                        | `91:347`                       | `90:316`                       |
+| 2 · The business                                                  | `91:603`                        | `91:355`                       | `90:328`                       |
+| 3 · Before (paper band)                                           | `91:608`                        | `91:360`                       | `90:333`                       |
+| 4 · After (3 change rows: list `101:596` / `101:580` / `101:564`) | `91:629`                        | `91:381`                       | `90:354`                       |
+| 5 · What I'd measure                                              | `91:650`                        | `91:402`                       | `90:375`                       |
+| 6 · Next case study                                               | `91:661`                        | `91:413`                       | `90:386`                       |
+| Blog list (frame)                                                 | `96:848`                        | `96:458`                       | `93:398`                       |
+| 1 · Header / 2 · Posts                                            | `96:849` / `96:852`             | `96:459` / `96:462`            | `93:399` / `93:402`            |
+| Blog post (frame)                                                 | `96:994`                        | `96:604`                       | `93:451`                       |
+| 1 · Header / 2 · Article / 3 · Next post                          | `96:995` / `96:998` / `96:1059` | `96:605` / `96:608` / `96:669` | `93:452` / `93:459` / `93:520` |
 
 Footers and navs in these frames are copies of Home's. Privacy (`45:220`) has new copy (5 sections). Home changes: Roudon-Smith Work row link "Read the case study" (`97:558` desktop, `97:563` tablet, `97:568` phone) and a "Blog" link before "Privacy" in every footer bottom bar.
 
@@ -109,12 +108,14 @@ Done 2026-10-29: shadcn Button restyled through its cva (sizes `large` 52, `smal
 - [x] Booking popup (Cal.com embed) with loading + error states, desktop and phone
 - [x] 404 page
 - [x] Privacy page (copy updated in the third pack: 5 sections, cookies included)
-- [ ] Home: Roudon-Smith row link "Read the case study" + footer "Blog" link (third pack). Footer Blog link done 2026-10-29 with Privacy (shared bar); row link still open.
-- [ ] Case study template `/work/[slug]`, filled for Roudon-Smith (third pack)
+- [x] Home: Roudon-Smith row link "Read the case study" + footer "Blog" link (third pack). Footer Blog link done 2026-10-29 with Privacy (shared bar); row link still open.
+- [x] Case study template `/work/[slug]`, filled for Roudon-Smith (third pack)
 - [ ] Blog list restyle (third pack)
 - [ ] Blog post restyle, every rich-text element (third pack)
 
 Done when: each section matches Figma at 390, 768, 1440 and 1920 (centered at 1440).
+
+Done 2026-10-29 (Home row link + case study): `/work/roudon-smith` prerendered from `src/data/case-study.data.ts`; `/work/jnt-express` 404. Row link is an internal link with no arrow. Link size: no inset, 44 px tall on touch (measured 156.7 × 44 at 390 with touch; 16 px tall on desktop, x 16 / 32 / 40 on the gutter). Contact email → criztiandev@gmail.com (footer, booking error, Privacy). Figma calls: 10. Section heights vs Figma at 1440: header 1442 / business 432 / Before 1178 / After 2292 / Measure 513, all within 1 px; at 768: 1107 / 472 / 1961 / 2446 / 621, within 1 px; at 390: all within 1 px except After +323 (4:5 phone crops, why in docs/architecture.md, "Case study"). Next band shows only "All work" (177 tall) until J&T is live. 1 h1, 5 h2, no sideways scroll, 0 console errors, every visible image loads at 390 and 1440. Known: at 1920 content is not centered at 1440, because `--container-page` is 120rem since `0c62aa3` (open question in the report). `pnpm check` 40/40; `pnpm test:e2e` public.spec.ts 13/13 (1 new).
 
 Done 2026-10-29 (Booking popup): plain Cal.com iframe in a base-ui Dialog, opened from every Book a call link (links stay links). Figma calls: 4. Panel 390×844 full screen at 390; 720×800 centered at 768/1440/1920 (Figma 560 tall, why in docs/architecture.md, "Booking popup"); title Anton 40/42; loading, error (15 s) and live calendar shown at all 4 widths, 0 console errors. `pnpm check` 40/40; `pnpm test:e2e` 29/29 (2 new: desktop open/Escape/focus return, phone menu → full-screen popup).
 

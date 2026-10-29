@@ -1,38 +1,12 @@
-import Image from "next/image"
+import Link from "next/link"
 
 import { BookCallLink } from "@/components/book-call-link"
 import { IconArrowUpRight } from "@/components/icons"
+import { Shot } from "@/components/shot"
 import { buttonVariants } from "@/components/ui/button"
 import { WORK } from "@/data/home.data"
 import { cn } from "@/lib/utils"
-import type { HomeImage, WorkRow, WorkScreens } from "@/type/home.type"
-
-function Shot({
-  image,
-  sizes,
-  className,
-}: {
-  image: HomeImage
-  sizes: string
-  className: string
-}) {
-  return (
-    <div
-      className={cn(
-        "relative overflow-hidden border border-graphite",
-        className
-      )}
-    >
-      <Image
-        src={image.src}
-        alt={image.alt}
-        fill
-        sizes={sizes}
-        className="object-cover object-top"
-      />
-    </div>
-  )
-}
+import type { WorkRow, WorkScreens } from "@/type/home.type"
 
 function Screens({
   screens,
@@ -90,22 +64,31 @@ function Row({ row, active }: { row: WorkRow; active: boolean }) {
 
   let link = null
   if (row.link !== undefined) {
-    link = (
-      <a
-        href={row.link.href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={cn(
-          buttonVariants({ variant: "link", size: "link" }),
-          "self-start",
-          detailClassName
-        )}
-      >
-        {row.link.label}
-        <span className="sr-only"> (opens in a new tab)</span>
-        <IconArrowUpRight />
-      </a>
+    const linkClassName = cn(
+      buttonVariants({ variant: "link", size: "link" }),
+      "self-start",
+      detailClassName
     )
+    if (row.link.href.startsWith("http")) {
+      link = (
+        <a
+          href={row.link.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={linkClassName}
+        >
+          {row.link.label}
+          <span className="sr-only"> (opens in a new tab)</span>
+          <IconArrowUpRight />
+        </a>
+      )
+    } else {
+      link = (
+        <Link href={row.link.href} className={linkClassName}>
+          {row.link.label}
+        </Link>
+      )
+    }
   }
 
   let screens = null

@@ -40,12 +40,16 @@ Brand, website plan and Figma design are done and approved by Criztian. The desi
 | Blog reached from a footer link; the top nav stays at 3 links                                                                                                                                                                                                            | Claude (judgment); Criztian can veto                  |
 | Roudon-Smith Work row gets "Read the case study"                                                                                                                                                                                                                         | Claude (judgment); Criztian can veto                  |
 | Motion for the new pages: Criztian directs it himself in Claude Code                                                                                                                                                                                                     | Criztian (2026-10-29)                                 |
+| Contact email everywhere = criztiandev@gmail.com (replaces hello@criztian.dev)                                                                                                                                                                                           | Criztian (2026-10-29)                                 |
+| Case study AFTER = 3 rows, each answering one BEFORE note with one screen; the separate "Why" section folded in and removed                                                                                                                                              | Criztian (review fix, 2026-10-29)                     |
+| Blog quotes = a big Anton line, no side bar                                                                                                                                                                                                                              | Criztian (review fix, 2026-10-29)                     |
+| Design review of the new pages: round 1 = 6.65, round 2 = 7.2 (pass, no instant fails); round-2 fixes applied (3rd note reworded, clean club crops, phone quote, "All work" always shown). "Most members pick this." kept: it's their own site's claim                   | Fresh reviewer (judgment) + Claude (data)             |
 
 ## Open questions
 
 | Question                                                                                           | Who answers                             | Blocks                |
 | -------------------------------------------------------------------------------------------------- | --------------------------------------- | --------------------- |
-| Buy criztian.dev and set up hello@criztian.dev                                                     | Criztian                                | launch                |
+| Buy criztian.dev (the site's domain); the contact email stays criztiandev@gmail.com                | Criztian                                | launch                |
 | Analytics tool (named on the Privacy page)                                                         | Claude Code proposes, Criztian approves | launch                |
 | Cal.com event still set to 40 minutes; change to 20 + new description (see his Cal setup notes)    | Criztian                                | launch                |
 | Instagram and Facebook URLs assumed `criztiandev`; open each to confirm                            | Claude Code checks, Criztian confirms   | launch                |
@@ -74,25 +78,27 @@ Brand, website plan and Figma design are done and approved by Criztian. The desi
 
 ## Assets
 
-| File                                               | Source                                                     | Notes                                                      |
-| -------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------- |
-| `public/brand/criztian-wordmark.svg`               | Figma Brand `20:11`, SVG export, text outlined             | Paper White                                                |
-| `public/brand/criztian-wordmark-black.svg`         | same, recolored #0A0A0A                                    | one-color version                                          |
-| `public/brand/criztian-mark.svg`                   | Figma component Logo/Mark `34:76`                          | "C." with red period                                       |
-| `public/brand/criztian-icon.svg`                   | Figma Brand "Icon 64" `20:23`                              | favicon / app icon source                                  |
-| `public/images/hero/criztian-portrait.png`         | original in Figma `39:6`                                   | 1024 × 1536, transparent cut-out (AI restyle of his photo) |
-| `public/images/about/criztian-about.png`           | original in Figma `40:47`                                  | 1092 × 1440 (AI restyle of his photo)                      |
-| `public/images/work/roudon-smith-home-desktop.jpg` | RS Figma `30:3`, 1×                                        | 1440 × 900                                                 |
-| `public/images/work/roudon-smith-wine-detail.png`  | RS Figma `30:3` crop (RSW Cuvée block), 1×                 | 1080 × 810, 4:3                                            |
-| `public/images/work/roudon-smith-home-phone.png`   | RS Figma `98:539` top screen, 1×                           | 390 × 845                                                  |
-| `public/images/work/roudon-smith-wine-phone.png`   | RS Figma `98:565` crop, 1×                                 | 390 × 846                                                  |
-| `public/images/work/jnt-home-desktop.png`          | live J&T site, Playwright 2×                               | 2880 × 1800                                                |
-| `public/images/work/jnt-home-phone.png`            | live J&T site, Playwright 3×                               | 1170 × 2532                                                |
-| `public/images/work/jnt-help-detail.png`           | live J&T site help hero, 2× crop                           | 1320 × 990, 4:3                                            |
-| `public/images/work/jnt-help-phone.png`            | live J&T site help section, 3×                             | 1170 × 2538                                                |
-| `public/images/placeholder.svg`                    | drawn for the pack                                         | Graphite with a dashed Smoke border; for any empty slot    |
-| `public/images/work/roudon-smith-before-home.png`  | their live site roudonsmith.com, Playwright 2×, 2026-10-29 | 2880 × 1800                                                |
-| `public/images/work/roudon-smith-before-club.png`  | their live club page, Playwright 2×, 2026-10-29            | 2880 × 1800                                                |
-| `public/images/work/roudon-smith-club-desktop.png` | RS Figma club page `86:171`, top crop, 1×                  | 1440 × 900                                                 |
+| File                                                    | Source                                                           | Notes                                                      |
+| ------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------- |
+| `public/brand/criztian-wordmark.svg`                    | Figma Brand `20:11`, SVG export, text outlined                   | Paper White                                                |
+| `public/brand/criztian-wordmark-black.svg`              | same, recolored #0A0A0A                                          | one-color version                                          |
+| `public/brand/criztian-mark.svg`                        | Figma component Logo/Mark `34:76`                                | "C." with red period                                       |
+| `public/brand/criztian-icon.svg`                        | Figma Brand "Icon 64" `20:23`                                    | favicon / app icon source                                  |
+| `public/images/hero/criztian-portrait.png`              | original in Figma `39:6`                                         | 1024 × 1536, transparent cut-out (AI restyle of his photo) |
+| `public/images/about/criztian-about.png`                | original in Figma `40:47`                                        | 1092 × 1440 (AI restyle of his photo)                      |
+| `public/images/work/roudon-smith-home-desktop.jpg`      | RS Figma `30:3`, 1×                                              | 1440 × 900                                                 |
+| `public/images/work/roudon-smith-wine-detail.png`       | RS Figma `30:3` crop (RSW Cuvée block), 1×                       | 1080 × 810, 4:3                                            |
+| `public/images/work/roudon-smith-home-phone.png`        | RS Figma `98:539` top screen, 1×                                 | 390 × 845                                                  |
+| `public/images/work/roudon-smith-wine-phone.png`        | RS Figma `98:565` crop, 1×                                       | 390 × 846                                                  |
+| `public/images/work/jnt-home-desktop.png`               | live J&T site, Playwright 2×                                     | 2880 × 1800                                                |
+| `public/images/work/jnt-home-phone.png`                 | live J&T site, Playwright 3×                                     | 1170 × 2532                                                |
+| `public/images/work/jnt-help-detail.png`                | live J&T site help hero, 2× crop                                 | 1320 × 990, 4:3                                            |
+| `public/images/work/jnt-help-phone.png`                 | live J&T site help section, 3×                                   | 1170 × 2538                                                |
+| `public/images/placeholder.svg`                         | drawn for the pack                                               | Graphite with a dashed Smoke border; for any empty slot    |
+| `public/images/work/roudon-smith-before-home.png`       | their live site roudonsmith.com, Playwright 2×, 2026-10-29       | 2880 × 1800                                                |
+| `public/images/work/roudon-smith-before-club.png`       | their live club page, Playwright 2×, 2026-10-29                  | 2880 × 1800                                                |
+| `public/images/work/roudon-smith-club-desktop.png`      | RS Figma club page `86:171`, crop y 290–1190 (full size row), 1× | 1440 × 900                                                 |
+| `public/images/work/roudon-smith-after-one-button.png`  | RS Figma home `30:3`, crop x 240–1200, y 300–900, 1×             | 960 × 600                                                  |
+| `public/images/work/roudon-smith-after-sizes-phone.png` | RS Figma club phone `101:676`, crop y 950–1438, 1×               | 390 × 488                                                  |
 
 The Roudon-Smith images are 1×: fine for now, re-exported at 2× after launch.

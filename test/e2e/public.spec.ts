@@ -198,6 +198,21 @@ test("unknown or malformed blog slugs return 404", async ({ request }) => {
   }
 })
 
+test("the Roudon-Smith case study opens from its work row", async ({
+  page,
+  request,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto("/")
+  await page.getByRole("link", { name: "Read the case study" }).click()
+  await expect(page).toHaveURL(/\/work\/roudon-smith$/)
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Roudon-Smith Winery: the wine club first."
+  )
+  const unknown = await request.get("/work/jnt-express")
+  expect(unknown.status()).toBe(404)
+})
+
 test("the API requires a session for every cms procedure", async ({
   request,
 }) => {

@@ -34,7 +34,7 @@ const buttonVariants = cva(
         large: "h-13 gap-2 border-0 px-6 text-base leading-none font-semibold",
         small: "h-11 gap-2 border-0 px-4 text-base leading-none font-semibold",
         "icon-large": "size-11 border-0 [&_svg:not([class*='size-'])]:size-6",
-        link: "h-auto gap-2 border-0 p-1 text-base leading-none font-semibold [&_svg:not([class*='size-'])]:size-5",
+        link: "h-auto gap-2 border-0 p-0 text-base leading-none font-semibold pointer-coarse:min-h-11 [&_svg:not([class*='size-'])]:size-5",
       },
     },
     defaultVariants: {
