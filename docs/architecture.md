@@ -1905,6 +1905,17 @@ that import the packages, and that `next start` refuses an export.
   there. A wheel glide runs on for up to 2 s after the last wheel step; that is the feel
   Criztian picked.
 
+### Stakes ink (Phase 5)
+
+- CSS scroll-driven animation, no JS, so `StakesSection` stays a server component. The section names a view timeline (`stakes-timeline`, `view-timeline-name: --stakes`); each headline word (`stakes-ink`) and the body (`stakes-rise`) run on it. They reuse the hero's `hero-light-up` (from 20%) and `hero-copy-up` keyframes, which are emitted because the hero's `--animate-*` utilities use them. If the hero stops using them, Stakes shows the lit still.
+- Ranges are scroll px after the band's top enters the screen (`cover`), set inline per word from the constants in `stakes-section.tsx` (`animationRange`, like the hero's inline `animationDelay`). Px, not %, so a ramp is the same scroll distance on every screen. The wave always ends at 660 px whatever the heading's word count (the step shrinks), so a longer CMS heading still finishes mid-screen.
+- Linear, not the ease-out token: with ease-out, 80% of a word's change happened within 50–55 px of scroll, a pop by Criztian's 100 px rule; linear spreads it over 120–125 px. Lenis's glide is the easing.
+- Longhands (`animation-name`, …), not the `animation` shorthand: the shorthand resets `animation-timeline`, so the longhands keep the timeline whatever the declaration order.
+- Guards: `prefers-reduced-motion: no-preference` and `@supports (animation-timeline: view())`. Firefox doesn't run scroll-driven animations by default yet ([caniuse](https://caniuse.com/mdn-css_properties_animation-timeline_view), checked 2026-10-29), so it gets the lit still, as does reduced motion.
+- An ancestor with `overflow: hidden` or `auto` becomes the timeline's scroller and freezes the reveal; `overflow: clip` is safe. No ancestor has one today.
+- The 20% start is below AA contrast on purpose, only along the ramp; every word ends at full black, and reduced motion never dims.
+- Known: in the CMS frame the reveal follows the frame's own scroll, so a short frame can show the heading part-lit while editing. Turn it off inside the canvas frame if that gets in the way, like the hero entrance.
+
 ### Booking popup
 
 - Every "Book a call" stays a real link to `BOOK_CALL.href`. `BookingDialog`, mounted once in
