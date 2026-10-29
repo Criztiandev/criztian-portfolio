@@ -85,11 +85,13 @@ Done 2026-10-29: shadcn Button restyled through its cva (sizes `large` 52, `smal
 - [x] 5 · About
 - [x] 6 · Prices
 - [x] 7 · Footer
-- [ ] Booking popup (Cal.com embed) with loading + error states, desktop and phone
+- [x] Booking popup (Cal.com embed) with loading + error states, desktop and phone
 - [ ] 404 page
 - [ ] Privacy page
 
 Done when: each section matches Figma at 390, 768, 1440 and 1920 (centered at 1440).
+
+Done 2026-10-29 (Booking popup): plain Cal.com iframe in a base-ui Dialog, opened from every Book a call link (links stay links). Figma calls: 4. Panel 390×844 full screen at 390; 720×800 centered at 768/1440/1920 (Figma 560 tall, why in docs/architecture.md, "Booking popup"); title Anton 40/42; loading, error (15 s) and live calendar shown at all 4 widths, 0 console errors. `pnpm check` 40/40; `pnpm test:e2e` 29/29 (2 new: desktop open/Escape/focus return, phone menu → full-screen popup).
 
 Done 2026-10-29 (Home, rows 0–7): sections built from Desktop `get_design_context` + Phone/Tablet `get_metadata` (Figma calls: 10). Section heights vs Figma at 390: all within 3 px; at 768: Work +16, the rest within 3 px; at 1440: Work +11, About −10, the rest within 1 px (why in docs/architecture.md, "Portfolio home"). 1 h1, 6 h2, no sideways scroll, 0 console errors at 390/768/1440/1920; at 1920 content stays centered at 1440. Nav unchanged from phase 3. Contact form + Resend removed, `contact_messages` dropped. `pnpm check` 40/40 (6 contact unit tests removed with the code); `pnpm test:e2e` 27/27 (5 contact/messages tests removed, CMS tests moved to the Stakes card).
 

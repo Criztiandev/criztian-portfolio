@@ -117,6 +117,7 @@ export function SiteHeader() {
               </nav>
               <a
                 href={BOOK_CALL.href}
+                onClick={closeNav}
                 className={cn(buttonVariants({ size: "large" }), "w-full")}
               >
                 {BOOK_CALL.label}

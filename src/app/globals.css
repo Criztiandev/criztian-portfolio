@@ -23,7 +23,7 @@
     --text-display-giant-phone--line-height: 0.85;
     --text-display-giant-tablet: clamp(220px, 31.115vw - 18.96px, 379px);
     --text-display-giant-tablet--line-height: 0.85;
-    --text-display-giant-desktop: clamp(375px, 31.25vw - 25px, 425px);
+    --text-display-giant-desktop: clamp(375px, 31.25vw - 25px, 575px);
     --text-display-giant-desktop--line-height: 0.85;
     --text-display-xl: 10rem;
     --text-display-xl--line-height: 0.9;
@@ -48,7 +48,7 @@
     --text-button--line-height: 1;
     --text-button--font-weight: 600;
 
-    --container-page: 90rem;
+    --container-page: 120rem;
     --container-content: 85rem;
 
     --shadow-overlay: 0 24px 64px rgb(0 0 0 / 0.5);

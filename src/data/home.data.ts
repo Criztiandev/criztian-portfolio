@@ -11,7 +11,7 @@ import type {
 export const HOME_DEFAULTS = {
   heroHeading: "Your place deserves a website as good as it is.",
   heroText:
-    "I design and build custom websites for restaurants, cafés, wineries, shops and salons, so more people book, call or walk in.",
+    "I design and build custom websites for your business, so more people book, call or walk in.",
   stakesHeading: "Your customers check your website before they walk in.",
   stakesText:
     "If it looks like a template, so does your place. A custom site shows them what makes you different, and makes it easy to book.",

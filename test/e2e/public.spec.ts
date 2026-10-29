@@ -61,8 +61,47 @@ test("every listed font has its variable, and Inter is the body default", async 
   }
 })
 
+test("Book a call opens the booking popup and Escape returns focus", async ({
+  page,
+}) => {
+  await page.route("https://cal.com/**", (route) => route.abort())
+  await page.goto("/")
+  const book = page
+    .locator('[data-cms-card="Hero"]')
+    .getByRole("link", { name: "Book a call" })
+  const popup = page.getByRole("dialog", { name: "Book a call" })
+  await book.click()
+  await expect(popup).toBeVisible()
+  await expect(popup.getByText("Loading times…")).toBeVisible()
+  const box = await popup.boundingBox()
+  expect(box?.width).toBe(720)
+  await page.keyboard.press("Escape")
+  await expect(popup).toBeHidden()
+  await expect(book).toBeFocused()
+})
+
 test.describe("on a phone", () => {
   test.use({ viewport: { width: 390, height: 844 } })
+
+  test("the menu's Book a call swaps the menu for a full-screen popup", async ({
+    page,
+  }) => {
+    await page.route("https://cal.com/**", (route) => route.abort())
+    await page.goto("/")
+    await page.getByRole("button", { name: "Open menu" }).click()
+    const menu = page.getByRole("dialog", { name: "Menu" })
+    await menu.getByRole("link", { name: "Book a call" }).click()
+    const popup = page.getByRole("dialog", { name: "Book a call" })
+    await expect(popup).toBeVisible()
+    await expect(menu).toBeHidden()
+    await expect(popup.getByRole("button", { name: "Close" })).toBeFocused()
+    expect(await popup.boundingBox()).toEqual({
+      x: 0,
+      y: 0,
+      width: 390,
+      height: 844,
+    })
+  })
 
   test("the menu toggles and closes after navigating", async ({ page }) => {
     await page.goto("/")

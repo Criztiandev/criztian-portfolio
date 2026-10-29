@@ -1520,8 +1520,9 @@ after EMAIL_SEND_FAILED therefore creates a duplicate row; accepted.
 
 Each shortcut is deliberate and names its upgrade trigger.
 
-- "Book a call" is a plain link to `https://cal.com/criztian/discovery` (`BOOK_CALL` in
-  `src/data/nav-links.data.ts`). The Sections phase swaps it for the booking popup.
+- The booking popup calls the calendar failed when Cal.com sends no `navigatedToBooker`
+  message within 15 s (`BOOKING.timeoutMs`). A slow network past 15 s sees the error and the
+  email link even though Cal.com might still load. Raise the limit if real visitors hit it.
 - The nav shows Top / Scrolled only. Hide on scroll down, show on scroll up waits for the
   Motion phase.
 - The menu's hash links close the Sheet, whose scroll lock restores the old scroll position.
@@ -1788,5 +1789,21 @@ that import the packages, and that `next start` refuses an export.
   line, link and Book a call are `xl:hidden` until the motion phase adds row switching. The
   row 3 dashed "your site" frames come with that motion, since they only show when row 3 is
   active.
-- **Book a call** is a plain link to Cal.com until the booking popup row hooks the click.
-  The footer's Privacy link 404s until the Privacy row.
+- The footer's Privacy link 404s until the Privacy row.
+
+### Booking popup
+
+- Every "Book a call" stays a real link to `BOOK_CALL.href`. `BookingDialog`, mounted once in
+  `SiteShell`, catches plain clicks on any link with that exact href and opens the popup
+  instead. Callers need no change, the link works without JavaScript, and Ctrl/Cmd or
+  middle click still opens Cal.com in a tab. The phone menu's link also closes the menu.
+- Cal.com is a plain iframe of `?embed=true&theme=dark`, not `@calcom/embed-react`. Cal.com
+  sends no frame-blocking headers, and the embed page posts `navigatedToBooker` from
+  `https://cal.com` when the booker shows (checked 2026-10-29), which ends the loading state.
+- Panel size deviates from Figma `45:123` (720 × 560): 720 wide from `md` up, as tall as the
+  viewport allows minus 40 px top and bottom, capped at 800 (`inset-y-10 m-auto max-h-200`).
+  560 left about 467 px for the calendar. Below `md` it is full screen (`67:309`).
+- The popup uses base-ui's `Dialog.Popup` and `Dialog.Title` directly, with the shadcn
+  Dialog root, portal, overlay and close. `ui/dialog.tsx` merges classes with the plain `cn`
+  package, which reads `text-heading-h2` as a color and drops it, and its content wrapper
+  hard-codes a 10% overlay where Figma wants black 80%.
