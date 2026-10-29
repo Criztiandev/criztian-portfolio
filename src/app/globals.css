@@ -133,6 +133,81 @@
     }
 }
 
+@keyframes hero-slide-out {
+    to {
+        transform: translateX(-400px);
+    }
+}
+
+@keyframes hero-sink {
+    to {
+        transform: translateY(300px);
+    }
+}
+
+@keyframes hero-rise-out {
+    to {
+        transform: translateY(-140%);
+    }
+}
+
+@keyframes hero-copy-out {
+    to {
+        opacity: 0;
+        transform: translateY(calc(var(--spacing) * -6));
+    }
+}
+
+@utility hero-timeline {
+    view-timeline-name: --hero;
+}
+
+@utility hero-exit-slide {
+    @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-slide-out;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --hero;
+            animation-range: exit 0px exit 1000px;
+        }
+    }
+}
+
+@utility hero-exit-sink {
+    @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-sink;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --hero;
+            animation-range: exit 0px exit 1000px;
+        }
+    }
+}
+
+@utility hero-exit-rise {
+    @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-rise-out;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --hero;
+        }
+    }
+}
+
+@utility hero-exit-copy {
+    @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-copy-out;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --hero;
+        }
+    }
+}
+
 @theme inline {
     --font-heading: var(--font-display, var(--font-sans));
     --font-sans: var(--font-sans);

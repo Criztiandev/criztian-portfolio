@@ -1802,11 +1802,12 @@ that import the packages, and that `next start` refuses an export.
   component and ships no JavaScript. The timings are the constants at the top of
   `hero-section.tsx`; change them there. `HERO_TEXT_START_MS` (`config/motion.config.ts`)
   is shared with the header, because the nav waits for the hero text on Home.
-- The portrait's wrapper rises from fully below its clip (`translateY(100%)`, the same move
-  as the letters), so frame 1 is all background. A `brightness(0)` start was tried and
-  dropped: pure black shows as a silhouette on `--color-black` (#0a0a0a). It uses
-  `transform`, not `translate`, because its centering `-translate-x-1/2` is the `translate`
-  property, which a keyframe would overwrite. LCP stays the portrait (1524 ms median).
+- The portrait rises from fully below its clip (`translateY(100%)`, the same move as the
+  letters), so frame 1 is all background. A `brightness(0)` start was tried and dropped: pure
+  black shows as a silhouette on `--color-black` (#0a0a0a). The load runs on an inner
+  `absolute inset-0` div; the outer div holds the position, the centering
+  `-translate-x-1/2` (the `translate` property) and the exit sink (see "Hero exit"). LCP stays
+  the portrait (1524 ms median).
 - The portrait's wrapper lights from `brightness(0.3)` with the name. Brightness, not
   opacity: an opacity fade shows its body as a grey box over the name, and a dim image still
   paints, so LCP stays the image's load time (1492 ms without the light, 1496 ms with it).
@@ -1915,6 +1916,17 @@ that import the packages, and that `next start` refuses an export.
 - An ancestor with `overflow: hidden` or `auto` becomes the timeline's scroller and freezes the reveal; `overflow: clip` is safe. No ancestor has one today.
 - The 20% start is below AA contrast on purpose, only along the ramp; every word ends at full black, and reduced motion never dims.
 - Known: in the CMS frame the reveal follows the frame's own scroll, so a short frame can show the heading part-lit while editing. Turn it off inside the canvas frame if that gets in the way, like the hero entrance.
+
+### Hero exit (Phase 5)
+
+- Criztian picked concept 1 of 3 ("Layers") on the lab, 2026-10-29. It is dennissnellenberg.com's hero exit, read from his code (docs/website-plan.md, "Reference motion: dennissnellenberg.com"). As the hero scrolls away, the name slides left 0.4 px per px of scroll and the portrait sinks 0.3 px per px, so the name passes behind it. The headline words rise out of their masks in reading order, then the sub, the buttons and the note rise out. Nothing dims: the thesis keeps passed things lit.
+- CSS scroll-driven animation, no JS, so `HeroSection` stays a server component. The section names a view timeline (`hero-timeline`, `--hero`); the `hero-exit-*` utilities in `globals.css` run on it.
+- Ranges are px from the start of the hero's `exit` range, which is scroll 0 when the hero is one screen tall. So hero px and Stakes px share an origin: the headline is out by 420 px and the copy by 460 px, while the Stakes ink runs 250–660. The word and copy ranges are inline from the constants in `hero-section.tsx`, like Stakes. The name and portrait ranges (0–1000 px) sit in their utilities, next to their distances (−400 px, +300 px), so each ratio lives in one place.
+- Every exit move sits on its own wrapper element. The load animations and the letter hover already own `transform`, `translate`, `opacity` and `filter` on their elements, and a scroll animation (fill `both`) on the same element would override them all the time.
+- The words rise to `translateY(-140%)`: `hero-mask` leaves 0.3em above each word for Anton's tops, so the word must travel past that for its descenders to clear (crop at scroll 420: all black).
+- Linear (Lenis's glide is the easing), longhands only, guarded by `prefers-reduced-motion: no-preference`, `(hover: hover) and (pointer: fine)` and `@supports (animation-timeline: view())`. Touch screens get the load only (thesis touch line); reduced motion and Firefox get the still.
+- The 2 other concepts were "Lights out" (concept 1 plus the name and portrait dim while Stakes inks) and "Rewind" (a 1-screen hold that plays the load backwards). See docs/build-plan.md phase 5.
+- The Motion library (`motion`) is gone: only `MotionConfig` in `providers.tsx` used it, and no component animated with it.
 
 ### Booking popup
 

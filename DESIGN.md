@@ -261,7 +261,7 @@ Story sections are beats in the scroll story and get 3 concepts at their `/wmoti
 | #   | Section                        | Type              | Beat                                                                                                                                                                                                                                           |
 | --- | ------------------------------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0   | Nav                            | small, shipped    | Drops in after the hero lights up. Hides on the way down, returns on the way up.                                                                                                                                                               |
-| 1   | Hero                           | story             | Load shipped: lights up from black. Open: the exit, the name slides behind the portrait as the visitor leaves (Figma plan, dennissnellenberg.com). Hold or no hold is one of the 3 concepts.                                                   |
+| 1   | Hero                           | story, shipped    | Load: lights up from black. Exit ("Layers", no hold): as the visitor leaves, the name slides behind the sinking portrait and the copy rises out, dennissnellenberg.com's layers. Nothing dims.                                               |
 | 2   | Stakes                         | story, shipped    | The page turns Paper White; the headline inks word by word.                                                                                                                                                                                    |
 | 3   | Work                           | story, the peak   | Desktop with a mouse or trackpad: the stage holds for 1 screen of scroll per row. The lit row opens and its screens rise into the light; "Your place" lights last, its frames empty. Rows follow the scroll both ways, not Figma's timed swap. |
 | 4   | How it works                   | small             | Each step's hairline draws left to right; the step lights as its line finishes.                                                                                                                                                                |
@@ -284,7 +284,8 @@ Every section title rises from its mask and lights as it enters; each section ad
 | Small rise | Body text                                         | 24 px up, opacity 0 → 100%, over 200 px                                                     | shipped: Stakes body                                             |
 | Draw       | A hairline draws left to right                    | `clip-path: inset(0 100% 0 0)` → `inset(0)`                                                 | Lurais's line draw                                               |
 | Open       | A card is uncovered top-down; nothing stretches   | `clip-path: inset(0 0 100% 0)` → `inset(0)`                                                 | rule: clip, never scaleY                                         |
-| Slide      | The hero name moves sideways as the hero leaves   | 25% of its width (340 px at 1440)                                                           | Figma plan; dennissnellenberg.com's numbers read at the hero run |
+| Slide      | The hero name moves sideways as the hero leaves; the portrait sinks behind it | Name 0.4 px left per px of scroll, portrait 0.3 px down per px (−400 / +300 px over 1000 px) | shipped: `hero-exit-slide`, `hero-exit-sink`; dennissnellenberg.com's code |
+| Rise out   | Leaving text rises out instead of fading          | Words to −140% inside their mask, 150 px each, 30 px apart; body 24 px up while it fades, 200 px each, 100 px apart | shipped: `hero-exit-rise`, `hero-exit-copy`                      |
 | Spotlight  | One row lit Paper White, the rest Smoke           | Work rows, desktop                                                                          | Figma plan                                                       |
 
 **Scroll rules** (every reveal below the hero):
@@ -302,7 +303,7 @@ Every section title rises from its mask and lights as it enters; each section ad
 - Load: entrances 1000–1400 ms, lights 900 ms, all done by about 3.2 s.
 - Feedback: buttons 150 ms, dims and the nav 300 ms, photo color 600 ms, relight 900 ms ease-in-out. Leaving is faster than arriving.
 
-**Triggers:** page load (hero and nav only) · scroll, both ways (every reveal below the hero) · hold (Work on desktop; the hero only if picked at its run) · hover and keyboard focus (devices with hover and a fine pointer). Never "plays once when it comes into view".
+**Triggers:** page load (hero and nav only) · scroll, both ways (every reveal below the hero) · hold (Work on desktop only; the hero exit has none) · hover and keyboard focus (devices with hover and a fine pointer). Never "plays once when it comes into view".
 
 **Hover:**
 
@@ -344,9 +345,9 @@ Every section title rises from its mask and lights as it enters; each section ad
 
 - CSS runs every move: scroll timelines for the reveals, `position: sticky` for the Work hold, transitions for hover. New JavaScript planned: 0 KB; any JavaScript goes to Criztian with its size first.
 - Lenis stays, the only motion JavaScript (2 s glide, mouse and trackpad only).
-- The Motion library goes at the hero run: only `MotionConfig` in `providers.tsx` uses it, and the root layout loads it on every page. That run reports the KB saved.
+- The Motion library is gone (hero run, 2026-10-29). Only `MotionConfig` in `providers.tsx` used it; removing it saved 0.5 KB decoded (809.5 → 809.0 KB), and transferred stayed flat (237.5 → 237.7 KB), because tree-shaking had already dropped the rest.
 - No GSAP and no 3D. If the Work hold can't be built in CSS, GSAP comes back to Criztian with its size.
-- JS on `/` stays at or under 237.9 KB (transferred, phone 390, after Lenis). LCP and CLS can't get worse (last: 1524 ms and 0.050 on the phone profile). Every run reports JS before and after.
+- JS on `/` stays at or under 237.9 KB (transferred, phone 390, after Lenis). LCP and CLS can't get worse (last, hero exit run: 1136 ms and 0.031 median on the phone profile, JS 237.7 KB). Every run reports JS before and after.
 - Support (MDN browser-compat-data, read 2026-10-29): `animation-timeline` in Chrome 115, Safari and iOS 26, Firefox 159; `linear()` easing in Chrome 113, Safari 17.2, Firefox 112.
 
 ## Do's and Don'ts
