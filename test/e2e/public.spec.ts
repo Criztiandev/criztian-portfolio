@@ -65,12 +65,12 @@ test.describe("on a phone", () => {
 
   test("the menu toggles and closes after navigating", async ({ page }) => {
     await page.goto("/")
-    const toggle = page.getByRole("button", { name: "Toggle menu" })
-    const menu = page.locator("#mobile-nav")
+    const toggle = page.getByRole("button", { name: "Open menu" })
+    const menu = page.getByRole("dialog", { name: "Menu" })
     await expect(toggle).toHaveAttribute("aria-expanded", "false")
     await expect(menu).toBeHidden()
     await toggle.click()
-    await expect(toggle).toHaveAttribute("aria-expanded", "true")
+    await expect(menu).toBeVisible()
     await menu.getByRole("link", { name: "Prices" }).click()
     await expect(page).toHaveURL(/\/#prices$/)
     await expect(menu).toBeHidden()

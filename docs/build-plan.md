@@ -64,14 +64,16 @@ Done 2026-10-29: Figma `get_variable_defs` on `20:2` and `39:3` matched docs/bra
 
 ### 3. Components
 
-- [ ] Button (Large, Small; Default / Hover / Focus).
-- [ ] Link (with optional arrow icon; Default / Hover / Focus).
-- [ ] Icon button (44 px).
-- [ ] Nav (Desktop / Compact × Top / Scrolled) + the phone / tablet menu.
-- [ ] Icons as SVG components (arrow down, arrow up-right, menu, close) and the logo mark.
-- [ ] Temporary kit page showing all of them.
+- [x] Button (Large, Small; Default / Hover / Focus).
+- [x] Link (with optional arrow icon; Default / Hover / Focus).
+- [x] Icon button (44 px).
+- [x] Nav (Desktop / Compact × Top / Scrolled) + the phone / tablet menu.
+- [x] Icons as SVG components (arrow down, arrow up-right, menu, close) and the logo mark.
+- [x] Temporary kit page showing all of them.
 
 Done when: the kit page matches Figma at all sizes.
+
+Done 2026-10-29: shadcn Button restyled through its cva (sizes `large` 52, `small` 44, `icon-large` 44, `link`; Paper invert on hover; 2 px inset Paper focus ring); menu on shadcn Sheet (base-ui Dialog); icons + LogoMark in `src/components/icons.tsx`; header rebuilt; kit at `/kit` (noindex, delete at review). Figma calls: 7. `pnpm check` 46/46; `pnpm test:e2e` 32/32 (menu + CMS canvas tests moved to the new labels). Browser at 390/768/1440/1920: nav 64/64/80/80, gutters 16/32/40, links gap 40, buttons 52/44, icon button 44, no sideways scroll, 0 console errors; menus match `44:38`/`44:62`; Escape returns focus to the trigger; scrolled bar black + graphite hairline at 80 px.
 
 ### 4. Sections (mobile-first, static, no motion)
 

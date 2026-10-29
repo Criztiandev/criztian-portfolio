@@ -595,7 +595,7 @@ test("edits the home page beside the live page", async ({ page }) => {
   const contact = main.getByRole("button", { name: "Contact", exact: true })
   const stage = main.getByRole("group", { name: "Page preview" })
   const panel = main.locator("form > div:last-child > div:last-child")
-  const menu = frame.locator('button[aria-label="Toggle menu"]')
+  const menu = frame.locator('button[aria-label="Open menu"]')
   let contactCalls = 0
   let openedTabs = 0
   page.on("request", (sent) => {

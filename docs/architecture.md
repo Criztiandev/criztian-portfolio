@@ -1520,6 +1520,12 @@ after EMAIL_SEND_FAILED therefore creates a duplicate row; accepted.
 
 Each shortcut is deliberate and names its upgrade trigger.
 
+- "Book a call" is a plain link to `https://cal.com/criztian/discovery` (`BOOK_CALL` in
+  `src/data/nav-links.data.ts`). The Sections phase swaps it for the booking popup.
+- The nav shows Top / Scrolled only. Hide on scroll down, show on scroll up waits for the
+  Motion phase.
+- The menu's hash links close the Sheet, whose scroll lock restores the old scroll position.
+  Check that `/#work` still lands on Work once the sections carry those ids.
 - `contact.list` returns at most 100 rows, no pagination. Add keyset pagination past 100.
 - Two atoms, the mobile nav and the CMS unsaved flag, each private
   to its hook file. A `store/` folder appears when two hooks share an atom.
@@ -1740,5 +1746,13 @@ that import the packages, and that `next start` refuses an export.
   for `db:start`; without it, link a hosted project (see the README). The local stack uses
   ports 56320 to 56329 so it runs next to projects on the default 543xx ports.
 - Add shadcn items with the pinned CLI: `pnpm exec shadcn add <item>`.
+- `cn` reads the brand text tokens (`text-button`, `text-heading-h1`, ...) as colors, so
+  `cn("text-paper", "text-heading-h1")` drops `text-paper`. Inside `cn` and cva, write the
+  type as stock utilities (`text-base leading-none font-semibold` is the Button style); plain
+  `className` strings can use the tokens.
+- Brand buttons are the shadcn Button: sizes `large` (52), `small` (44), `icon-large` (44) and
+  `link`. Their `border-0` lets the fill reach the edge like Figma; focus is a 2 px inset Paper
+  ring for every Button, the CMS included. Links styled as buttons use `cn(buttonVariants())`
+  on a real `<a>` or `Link`, never `nativeButton={false}`, which adds `role="button"`.
 - The react-hooks compiler rules are on: `useForm().watch` fails lint (use `useWatch`), and
   state updates inside effects are errors.
