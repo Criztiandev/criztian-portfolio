@@ -45,7 +45,7 @@ Criztian's own portfolio site, brand name **Criztian**. He is a solo designer-de
 
 ## Capabilities and Constraints
 
-- Page max 1440 px, centered. Background bands stay full-bleed. Breakpoints: phone 390 (works 360–767), tablet 768 (768–1279), desktop 1440 (1280 and up).
+- Page max **1920**, content max **1840** (40 px gutters), centered above 1920; black bands stay full-bleed. The big parts stretch to 1840 (the hero name, giant section words, screenshots, grids); reading text stays at most 720 px wide. Breakpoints: phone 390 (works 360–767), tablet 768 (768–1279), desktop 1440 (1280 and up).
 - Experience: scroll-driven on the hero and the Work section only (desktop; tablet and phone have no pin), light motion everywhere else, reduced motion respected.
 - Speed beats motion: if motion slows the phone page, the motion goes.
 - **The public site must keep working when the database is down.** Supabase free projects pause after 7 days with no activity.

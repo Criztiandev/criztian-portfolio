@@ -4,16 +4,16 @@ Copy below was pulled from the Figma text layers (file `SBq7maOIwqSa2V8MRCVSXz`,
 
 ## Setup
 
-| Question        | Answer                                                                                                                                   |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Experience type | **Mix:** scroll-driven on the hero and Work only (desktop; tablet and phone have no pin), light motion everywhere else                   |
-| Page max        | 1440 px, centered. Black bands and lines stay full-bleed above that. Drawn frames: Phone 390, Tablet 768, Desktop 1440 (no Large frames) |
-| Live or demo    | Live, for real prospects                                                                                                                 |
-| Main action     | "Book a call" opens Cal.com over the page: https://cal.com/criztian/discovery (free, 20 minutes, Cal Video). No contact form             |
-| Proof           | Concept redesigns only. No testimonials until a real client gives one                                                                    |
-| Prices          | "From" price per package: Starter $1,500 · Standard $2,500 · Premium $4,000 (pricing step, 2026-10-29)                                   |
-| Roudon-Smith    | Screens on the site, labeled concept, no live link                                                                                       |
-| Page title      | Criztian — Custom websites for small businesses.                                                                                         |
+| Question        | Answer                                                                                                                                                                                                                                                                                                                              |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Experience type | **Mix:** scroll-driven on the hero and Work only (desktop; tablet and phone have no pin), light motion everywhere else                                                                                                                                                                                                              |
+| Page max        | Page max **1920**, content max **1840** (40 px gutters), centered above 1920; black bands stay full-bleed. The big parts stretch to 1840 (the hero name, giant section words, screenshots, grids); reading text stays at most 720 px wide. Drawn frames: Phone 390, Tablet 768, Desktop 1440, Large 1920 (fourth pack, 2026-10-29). |
+| Live or demo    | Live, for real prospects                                                                                                                                                                                                                                                                                                            |
+| Main action     | "Book a call" opens Cal.com over the page: https://cal.com/criztian/discovery (free, 20 minutes, Cal Video). No contact form                                                                                                                                                                                                        |
+| Proof           | Concept redesigns only. No testimonials until a real client gives one                                                                                                                                                                                                                                                               |
+| Prices          | "From" price per package: Starter $1,500 · Standard $2,500 · Premium $4,000 (pricing step, 2026-10-29)                                                                                                                                                                                                                              |
+| Roudon-Smith    | Screens on the site, labeled concept, no live link                                                                                                                                                                                                                                                                                  |
+| Page title      | Criztian — Custom websites for small businesses.                                                                                                                                                                                                                                                                                    |
 
 Pages: Home, case studies (`/work/[slug]`), Blog (`/blog`, `/blog/[slug]`), 404, Privacy. Nav anchors: `#work`, `#how-it-works`, `#prices`.
 
@@ -22,7 +22,7 @@ Pages: Home, case studies (`/work/[slug]`), Blog (`/blog`, `/blog/[slug]`), 404,
 ### 0 · Nav (sticky)
 
 - Left: short mark **C.** (red period) → top of page.
-- Middle: **Work** · **How it works** · **Prices**.
+- Middle: **Work** · **Prices** → `/#prices` · **Blog** → `/blog` (fourth pack: 3 links, "How it works" stays on the page but leaves the nav). The phone and tablet menus list the same 3.
 - Right: small red button **Book a call**.
 - Tablet / phone: **C.** + **Book a call** + menu button (44 px). The menu is full-screen black with Work, How it works, Prices and a red **Book a call**, plus a close button.
 
@@ -76,6 +76,13 @@ Pages: Home, case studies (`/work/[slug]`), Blog (`/blog`, `/blog/[slug]`), 404,
 - h2: **Hi, I'm Criztian.**
 - Body: I'm a full-stack developer. I've built for the web for 4+ years, including 2+ years of websites and apps for healthcare and finance teams. Now I bring that same engineering to small businesses: I design your site, build it myself, and look after it once it's live. You talk to one person the whole way.
 - Numbers (Signal Red): **4+** years building for the web · **24h** the longest you'll wait for my reply · **1** person you talk to.
+
+### 5b · Blog (latest 3, fourth pack)
+
+- h2: **Blog** (Display/L desktop + tablet, H1 phone) + intro: Straight answers about your website: what it costs, what it should show, and how to keep it yours.
+- The 3 newest posts from the CMS as rows (same row as the blog list: title H2 + date · reading time, summary on the right on desktop, stacked on tablet + phone; hairline above each; whole row is one link).
+- Link **All posts** → `/blog`.
+- Rule: the section is hidden until at least 3 real posts are published.
 
 ### 6 · Prices (`#prices`)
 

@@ -204,7 +204,7 @@ Near-monochrome: black and paper, with one red that means "act" or "count".
 
 ## Layout
 
-Mobile-first with three drawn sizes: Phone 390 (works 360–767), Tablet 768 (768–1279), Desktop 1440 (1280 and up). The page stops at 1440 px and centers; black bands and lines stay full-bleed above that. Side gutters: 16 / 32 / 40 px. Content max inside the gutters: 1360 px.
+Mobile-first with three drawn sizes: Phone 390 (works 360–767), Tablet 768 (768–1279), Desktop 1440 (1280 and up). Large 1920 is drawn too (1536 and up). Page max **1920**, content max **1840** (40 px gutters), centered above 1920; black bands stay full-bleed. The big parts stretch to 1840 (the hero name, giant section words, screenshots, grids); reading text stays at most 720 px wide.
 
 Spacing follows the Tailwind 4 px scale (tokens 1–40 = 4–160 px). Sections breathe: 120 px top and bottom on desktop, 96 on tablet, 80 on phone. Desktop right-hand copy columns start on one line (x 1060 in the 1440 frame).
 

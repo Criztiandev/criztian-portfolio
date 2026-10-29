@@ -48,20 +48,22 @@ Anton = the name, headlines and big numbers. Inter = everything people read. Nev
 
 ## Text styles (from Figma)
 
-| Style                   | Font      | Size | Line height | Tracking | Notes                                                |
-| ----------------------- | --------- | ---- | ----------- | -------- | ---------------------------------------------------- |
-| Display/Giant — Desktop | Anton 400 | 425  | 85%         | 0        | hero name; scale 375 at 1280 → 425 at 1440+          |
-| Display/Giant — Tablet  | Anton 400 | 220  | 85%         | 0        | hero name; scale 220 at 768 → 379 at 1279            |
-| Display/Giant — Phone   | Anton 400 | 222  | 85%         | 0        | CRIZ / TIAN stacked; scale 203 at 360 → 456 at 767   |
-| Display/XL              | Anton 400 | 160  | 90%         | 0        | WORK, PRICES (desktop)                               |
-| Display/L               | Anton 400 | 96   | 95%         | 0        | other section titles (desktop); WORK, PRICES (phone) |
-| Heading/H1              | Anton 400 | 64   | 100%        | 0        | Stakes, footer, About numbers (tablet/phone), prices |
-| Heading/H2              | Anton 400 | 40   | 105%        | 0.5%     | hero promise, row names, package names               |
-| Body/Large              | Inter 400 | 20   | 150%        | 0        | About intro                                          |
-| Body/Base               | Inter 400 | 18   | 28 px       | 0        | all reading text and trust lines                     |
-| Body/Small              | Inter 400 | 14   | 150%        | 0        | footer bottom bar only                               |
-| Label                   | Inter 600 | 12   | 130%        | 8%       | uppercase; Work row meta line                        |
-| Button                  | Inter 600 | 16   | 100%        | 0        | buttons and links                                    |
+| Style                   | Font      | Size | Line height | Tracking | Notes                                                                        |
+| ----------------------- | --------- | ---- | ----------- | -------- | ---------------------------------------------------------------------------- |
+| Display/Giant — Desktop | Anton 400 | 425  | 85%         | 0        | hero name; scale 375 at 1280 → 425 at 1440                                   |
+| Display/Giant — Large   | Anton 400 | 576  | 85%         | 0        | hero name; scale 456 at 1536 → 576 at 1920+                                  |
+| Display/XL — Large      | Anton 400 | 208  | 90%         | 0        | WORK, PRICES, BEFORE, AFTER, BLOG at 1536+; scale 160 at 1536 → 208 at 1920+ |
+| Display/Giant — Tablet  | Anton 400 | 220  | 85%         | 0        | hero name; scale 220 at 768 → 379 at 1279                                    |
+| Display/Giant — Phone   | Anton 400 | 222  | 85%         | 0        | CRIZ / TIAN stacked; scale 203 at 360 → 456 at 767                           |
+| Display/XL              | Anton 400 | 160  | 90%         | 0        | WORK, PRICES (desktop)                                                       |
+| Display/L               | Anton 400 | 96   | 95%         | 0        | other section titles (desktop); WORK, PRICES (phone)                         |
+| Heading/H1              | Anton 400 | 64   | 100%        | 0        | Stakes, footer, About numbers (tablet/phone), prices                         |
+| Heading/H2              | Anton 400 | 40   | 105%        | 0.5%     | hero promise, row names, package names                                       |
+| Body/Large              | Inter 400 | 20   | 150%        | 0        | About intro                                                                  |
+| Body/Base               | Inter 400 | 18   | 28 px       | 0        | all reading text and trust lines                                             |
+| Body/Small              | Inter 400 | 14   | 150%        | 0        | footer bottom bar only                                                       |
+| Label                   | Inter 600 | 12   | 130%        | 8%       | uppercase; Work row meta line                                                |
+| Button                  | Inter 600 | 16   | 100%        | 0        | buttons and links                                                            |
 
 Giant type is sized so the longest real word fits the narrowest width of its range (CRIZTIAN at 1280 and 768; CRIZ / TIAN at 360). Scale between the min and max with `clamp()`.
 
@@ -69,7 +71,7 @@ Giant type is sized so the longest real word fits the narrowest width of its ran
 
 - Spacing: `space/1 2 3 4 6 8 10 12 16 20 24 30 40` = 4 8 12 16 24 32 40 48 64 80 96 120 160 px (same numbers as Tailwind).
 - Gutters: `layout/gutter-phone` 16 · `layout/gutter-tablet` 32 · `layout/gutter` 40.
-- `layout/page-max` 1440 · `layout/content-max` 1360.
+- `layout/page-max` 1920 · `layout/content-max` 1840 (changed from 1440 / 1360 in the fourth pack, 2026-10-29). Reading text max 720 px.
 - Radius: `radius/none` 0 (the site uses only this) · sm 8 · md 24 · lg 40 · pill 9999 (exist in Figma, unused).
 - Motion: `motion/fast` 150 ms · `motion/base` 300 ms · `motion/slow` 600 ms. Easing (judgment): ease-out `cubic-bezier(0.22, 1, 0.36, 1)`.
 

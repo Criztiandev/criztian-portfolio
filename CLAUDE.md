@@ -6,9 +6,9 @@ Criztian's own one-page portfolio. Read in this order: `PRODUCT.md` (who it's fo
 
 ## Design rules
 
-- Every section: the outer element holds the full-width background; inside it, one container `mx-auto max-w-page px-4 md:px-8 xl:px-10`. Here `max-w-page` = **1440 px** (the page max set in the project home), not the 1920 default.
+- Every section: the outer element holds the full-width background; inside it, one container `mx-auto max-w-page px-4 md:px-8 xl:px-10`. Here `max-w-page` = **1920 px** (content max 1840 inside the 40 px gutters), set in the fourth pack (2026-10-29). Reading text (Body, Body/Large) is capped at 720 px (`max-w-[720px]` or a `max-w-prose`-style token); the big parts stretch.
 - Breakpoints: base = phone, `md` = tablet (768), `xl` = desktop (1280), `2xl` = large (1536). Don't use `sm` or `lg`.
-- Build each section mobile-first: Phone frame to base classes, Tablet to `md:`, Desktop to `xl:`, then check Large at `2xl:` (content stays centered at 1440).
+- Build each section mobile-first: Phone frame to base classes, Tablet to `md:`, Desktop to `xl:`, then Large at `2xl:` from the Large 1920 frames (the giant name and giant words scale with `clamp()`, see docs/brand.md).
 - Every value comes from the spacing scale or a token. No arbitrary values like `rounded-[20px]` unless the reason is written in docs. The giant hero name uses the `clamp()` sizes in docs/brand.md.
 - Content (text, prices, links, image paths) lives in `src/data/*.data.ts`, never inside components, so the CMS can save the same shape.
 - Images: the files in `public/`; empty slots use `public/images/placeholder.svg`. No outside placeholder services.
