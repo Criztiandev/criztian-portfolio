@@ -271,7 +271,8 @@ Story sections are beats in the scroll story and get 3 concepts at their `/wmoti
 | 7   | Footer                         | story, the ending, shipped | "Sign-off": the hero name's move one last time. The heading is written letter by letter, each letter rising and lighting; the email and socials rise; Book a call rises dim and lights last, the last light on the page. The bar stays still. Touch: the heading rises word by word, then Book a call. |
 | —   | Case study                     | small, shipped    | "Open": the page draws itself like a browser loading. The header loads (title words rise and light, the screen opens top-down); then every screen opens top-down and the text beside it lights as the edge passes, paragraphs open line by line, the notes open one after another. Touch: the screens and notes open, headings rise; paragraphs stay still. |
 | —   | Blog pages                     | small, shipped    | "Open": the case study's page loading carried to `/blog` and posts. The header and the newest post load (BLOG letter by letter, the post opens top-down, its text lighting with the edge); each row opens as you reach it; in a post the article opens top-down, then every paragraph, list line and table cell opens, h2s rise word by word, the quote opens slowly. Touch: the rows and the quote open, the h2s rise; paragraphs stay still. |
-| —   | 404, Privacy                   | small             | The vocabulary only, no holds. Criztian directs them later.                                                                                                                                                                                    |
+| —   | 404                            | small, shipped    | "Stairs": How it works' stairs on load, the one screen with no scroll. The 3 digits climb in from different depths, land in order and light as they land; the message words climb from growing depths and close up as they land; Book a call climbs dim and lights last. Touch: the digits and Book a call. |
+| —   | Privacy                        | small             | The vocabulary only, no holds. Criztian directs it later.                                                                                                                                                                                      |
 
 Every section title rises from its mask and lights as it enters; each section adds its own beat on top. The footer was planned to share the Stakes ink (the problem and the answer); Criztian took the hero name's letter rise instead (2026-10-30), so the page closes the way it opened.
 
@@ -285,7 +286,7 @@ Every section title rises from its mask and lights as it enters; each section ad
 | Photo rise | A photo rises from below its clip while it lights | TranslateY 100% → 0, with Light                                                             | shipped: hero portrait                                           |
 | Small rise | Body text                                         | 24 px up, opacity 0 → 100%, over 200 px                                                     | shipped: Stakes body                                             |
 | Draw       | A hairline draws left to right                    | `clip-path: inset(0 100% 0 0)` → `inset(0)`, both keyframes written; Smoke over a Graphite track | Lurais's line draw; shipped: `steps-line`                        |
-| Stair      | Parts of an item rise from below its clip at growing depths and land together | Number, title, body from 160 / 200 / 240 px over 300 px; items 120 px apart | shipped: `steps-rise` (How it works)                             |
+| Stair      | Parts of an item rise from below its clip at growing depths and land together | Number, title, body from 160 / 200 / 240 px over 300 px; items 120 px apart. Timed on the 404: digits from 110 / 140 / 170% of their height over 1.6 s, 120 ms apart | shipped: `steps-rise` (How it works), `not-found-digit` (404)    |
 | Open       | A card is uncovered top-down; nothing stretches   | `clip-path: inset(0 0 100% 0)` → `inset(0)`, both keyframes written; start once the card's top is well on screen (Prices: 360 px open, cards 100 px apart) | rule: clip, never scaleY; shipped: `prices-open` (Prices)        |
 | Slide      | The hero name moves sideways as the hero leaves; the portrait sinks behind it | Name 0.4 px left per px of scroll, portrait 0.3 px down per px (−400 / +300 px over 1000 px) | shipped: `hero-exit-slide`, `hero-exit-sink`; dennissnellenberg.com's code |
 | Rise out   | Leaving text rises out instead of fading          | Words to −140% inside their mask, 150 px each, 30 px apart; body 24 px up while it fades, 200 px each, 100 px apart | shipped: `hero-exit-rise`, `hero-exit-copy`                      |
@@ -303,10 +304,10 @@ Every section title rises from its mask and lights as it enters; each section ad
 **Timed rules** (load and hover only):
 
 - Ease-out `cubic-bezier(0.22, 1, 0.36, 1)` (`--ease-out`).
-- Load: entrances 1000–1400 ms, lights 900 ms, all done by about 3.2 s. The case study screen opens over 2 s: its on-screen part on the ease-out over 1.4 s, the rest linear below the fold.
+- Load: entrances 1000–1400 ms, lights 900 ms, all done by about 3.2 s. The case study screen opens over 2 s: its on-screen part on the ease-out over 1.4 s, the rest linear below the fold. The 404 digits climb over 1.6 s, the deepest from 170% of its height.
 - Feedback: buttons 150 ms, dims and the nav 300 ms, photo color 600 ms, relight 900 ms ease-in-out. Leaving is faster than arriving.
 
-**Triggers:** page load (hero, nav, the case study header and the blog pages' first screen only) · scroll, both ways (every reveal below the hero) · hold (Work on desktop only; the hero exit has none) · hover and keyboard focus (devices with hover and a fine pointer). Never "plays once when it comes into view".
+**Triggers:** page load (hero, nav, the case study header, the blog pages' first screen and the 404 only) · scroll, both ways (every reveal below the hero) · hold (Work on desktop only; the hero exit has none) · hover and keyboard focus (devices with hover and a fine pointer). Never "plays once when it comes into view".
 
 **Hover:**
 
@@ -321,7 +322,7 @@ Every section title rises from its mask and lights as it enters; each section ad
 
 - The same light scroll moves as desktop, one moving on screen at a time. The Stakes ink proved the cost: 2, 0 and 0 frames over 34 ms in about 424, against 1, 1 and 1 with it off.
 - No holds and no hover moves; a tap goes straight to the link.
-- Hero: the load only, no slide. Work: rows stacked, each row's screens rise as the visitor reaches them, no spotlight. About: the numbers rise, the photo stays still (brightening a big photo can cost phone frames). The rest: as desktop, stacked.
+- Hero: the load only, no slide. Work: rows stacked, each row's screens rise as the visitor reaches them, no spotlight. About: the numbers rise, the photo stays still (brightening a big photo can cost phone frames). 404: the digits climb and Book a call lights last; the message and Back to home stay still. The rest: as desktop, stacked.
 - Every move is measured on the phone profile; a move that drops frames is cut.
 
 **Reduced motion, and browsers without scroll timelines:**

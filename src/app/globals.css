@@ -1273,6 +1273,48 @@
     }
 }
 
+@utility not-found-depth {
+    &[data-step="1"] {
+        --steps-drop: 110%;
+    }
+    &[data-step="2"] {
+        --steps-drop: 140%;
+    }
+    &[data-step="3"] {
+        --steps-drop: 170%;
+    }
+    &[data-step="4"] {
+        --steps-drop: 200%;
+    }
+}
+
+@utility not-found-digit {
+    @media (prefers-reduced-motion: no-preference) {
+        animation-name: steps-stair, hero-light-up;
+        animation-duration: 1600ms, 900ms;
+        animation-timing-function: var(--ease-out);
+        animation-fill-mode: backwards;
+    }
+}
+
+@utility not-found-call {
+    @media (prefers-reduced-motion: no-preference) {
+        animation-name: steps-stair, hero-light-up;
+        animation-duration: 1400ms, 900ms;
+        animation-timing-function: var(--ease-out);
+        animation-fill-mode: backwards;
+    }
+}
+
+@utility not-found-word {
+    @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        animation-name: steps-stair, hero-light-up;
+        animation-duration: 1400ms, 900ms;
+        animation-timing-function: var(--ease-out);
+        animation-fill-mode: backwards;
+    }
+}
+
 @theme inline {
     --font-heading: var(--font-display, var(--font-sans));
     --font-sans: var(--font-sans);

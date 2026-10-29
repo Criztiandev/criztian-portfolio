@@ -2069,6 +2069,18 @@ that import the packages, and that `next start` refuses an export.
 - The Next band follows the case study's: links in padded `flex` clip wrappers rise 150% after the last title word.
 - Reduced motion and Firefox get the still: everything lit and in place. Without scroll timelines the load still plays.
 
+### 404 stairs (Phase 5)
+
+- Criztian picked concept 3 of 3 ("Stairs") on the lab, 2026-10-30. The lab pages were deleted after the pick. Not picked: 1 "Echo" (the hero load on the 404: the digits rise one by one, light from the center out and dim under the cursor) and 2 "Open" (one top-down edge over the 404 and the message row, each part lighting as the edge reaches it).
+- How it moves: How it works' stairs, timed. The 3 digits rise from below the `hero-mask` clip from growing depths, starting 120 ms apart, so mid-way they sit at different heights and they land in order, each lighting as it lands. The message words rise together from growing depths and close up as they land. Back to home rises, and Book a call rises dim and lights last.
+- Why timed: the 404 is one screen with no scroll and no footer (the page is 900 px tall at 1440×900), so page load is the only trigger. The utilities are plain CSS animations (`--ease-out`, `backwards` fill) without `@supports (animation-timeline: view())`, so Firefox gets the motion too. `NotFoundView` stays a server component.
+- The digits run 1.6 s, past DESIGN.md's 1000–1400 ms load range, as built in the lab and picked: the deepest digit starts 170% of its height down (about 614 px at 1440).
+- The depths reuse How it works' `steps-stair` keyframe (`translate: 0 var(--steps-drop)`). `not-found-depth` sets `--steps-drop` per `data-step` (110 / 140 / 170 / 200%), a share of the element's own height, so the stairs scale with the giant type at every width.
+- Touch gets the light version: `not-found-word` (the message words and Back to home) runs only with hover and a fine pointer; `not-found-digit` and `not-found-call` run everywhere. Width doesn't gate it, because the move doesn't depend on the layout.
+- The "404" digits are `aria-hidden` with an `sr-only` copy, so screen readers don't spell "4 0 4". The h1 splits into words with the spaces kept, so its name stays "This page doesn't exist." (public.spec reads it).
+- Book a call and Back to home sit in padded `overflow: clip` wrappers (4 px, net zero with `-m-1`) like the footer's, so their focus rings aren't cut.
+- Reduced motion gets the still: everything lit and in place.
+
 ### Booking popup
 
 - Every "Book a call" stays a real link to `BOOK_CALL.href`. `BookingDialog`, mounted once in
