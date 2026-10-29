@@ -145,6 +145,8 @@ Data: the CMS post collection (title, slug, summary, body, publishDate, visible)
 
 Claude Code builds motion from these notes (Figma prototype interactions can't be read by code).
 
+The motion thesis in DESIGN.md "Motion" (approved 2026-10-29) wins wherever this table differs. Each row is updated to what shipped when its section's run is done.
+
 | Moment                      | Trigger                               | What moves                                                                                                                                                                                                                                                                              | Duration · easing                                                       | Board frames                    |
 | --------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------- |
 | Load                        | page load                             | Frame 1 is all black. The portrait rises from below its clip, dim (30%), and CRIZTIAN rises letter by letter, dim (20%); both light up from 1.1 s, the name from the center out. From 1.4 s the headline words rise, then the nav drops in and the sub, buttons and note rise.          | letters 1.2 s · light 0.9 s · portrait 1.4 s · words 1.1 s · copy 1.0 s | `59:285` → `59:311`             |

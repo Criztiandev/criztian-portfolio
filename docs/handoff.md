@@ -55,6 +55,7 @@ Brand, website plan and Figma design are done and approved by Criztian. The desi
 | Hero name letters dim under the cursor and relight when it leaves (devices with hover). Not in Figma                                                                                                                                                                     | Criztian (revision, 2026-10-29)                       |
 | Nav drops in on load: on Home after the hero lights up, on other pages at once (Figma: nav there from frame 1). Not in Figma                                                                                                                                             | Criztian (revision, 2026-10-29)                       |
 | Smooth scroll with lurais.framer.website's feel (Lenis, 2 s glide; phones keep their touch scroll). The nav hides on scroll down and comes back on scroll up at every size, not desktop only. Not in Figma                                                               | Criztian (2026-10-29)                                 |
+| Motion thesis "Lights up" (DESIGN.md "Motion"): every reveal follows the scroll both ways, built in CSS; the only hold is Work on a desktop with a mouse or trackpad, none on touch; no ambient loops; the Motion library goes, no GSAP or 3D                            | Criztian (approved part by part, 2026-10-29)          |
 
 ## Open questions
 

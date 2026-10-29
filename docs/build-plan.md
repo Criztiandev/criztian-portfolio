@@ -150,18 +150,23 @@ Done 2026-10-29 (Home, rows 0–7): sections built from Desktop `get_design_cont
 
 ### 5. Motion
 
-Criztian directs this phase himself (2026-10-29). Build from his instructions; the motion notes in docs/website-plan.md are the default.
+Criztian directs this phase himself (2026-10-29) with `/wmotion`, one section per run, in page order. The motion thesis in DESIGN.md "Motion" (approved 2026-10-29) is the default: story sections get 3 concepts on a lab page, small sections 1 proposal (3 on request). His instructions override it.
 
 - [x] Load (Criztian's version: name rises dim and lights up, portrait lights with it, headline and copy rise; photo color on hover).
 - [x] Smooth scroll (Criztian, 2026-10-29): Lenis with lurais.framer.website's 2 s glide; phones keep their touch scroll.
 - [x] Nav hides on scroll down, comes back on scroll up, every size (Criztian, 2026-10-29).
-- [ ] Hero pin + name slide (desktop + tablet).
+- [ ] 1 · Hero exit (story): the name slides behind the portrait as the hero leaves; hold or no hold is one of the 3 concepts; touch keeps the load only. Also removes the Motion library (`MotionConfig`) and reports the KB saved.
 - [x] Stakes word reveal (Criztian, 2026-10-29: inked by the scroll, both ways, not once).
-- [ ] Work pin with row switching (desktop only).
-- [ ] Fade-ups, hover.
+- [ ] 3 · Work (story): desktop hold with a mouse or trackpad, 1 screen of scroll per row; the lit row opens and its screens rise; rows follow the scroll both ways; screens lift 1.02 on hover. Touch: stacked, each row's screens rise.
+- [ ] 4 · How it works (small): each step's hairline draws, then the step lights.
+- [ ] 5 · About (small): the photo rises and lights, the 3 numbers rise. Touch: numbers only.
+- [ ] 5b · Blog (small): the 3 rows light top to bottom, titles rise; rows lift 1.01 on hover.
+- [ ] 6 · Prices (small): the cards open top-down one after another, each price rises last.
+- [ ] 7 · Footer (story): the headline inks word by word, then Book a call rises last.
+- [ ] Other pages (small): case study, blog, 404 and Privacy use the vocabulary, no holds; Criztian directs them.
 - [ ] Reduced motion: stills, stacked Work.
 
-Transform and opacity only, no layout shift, content visible without JavaScript, still under reduced motion, no hover-only effects on touch screens. Done when: every effect runs at 60 fps on a mid-range phone (or is cut), and the JavaScript bundle size before and after is reported.
+Transform, opacity and clip-path (filter only on a photo's own wrapper), no layout shift, content visible without JavaScript, still under reduced motion, no hover-only effects on touch screens. Done when: every effect runs at 60 fps on a mid-range phone (or is cut), and the JavaScript bundle size before and after is reported.
 
 Done 2026-10-29 (Load): option 1 of the hero lab (letter-by-letter mask rise) with Criztian's revisions: the portrait starts dim (30%) and lights with the name, the name rises dim (20%) and lights from the center out, headline words and copy rise after, the photo is black and white with its color on hover. Later the same day: frame 1 is all black, the portrait rises from below its clip while dim, name letters dim under the cursor and relight, the headline, copy and nav come in from 1.4 s as the name lights (nav on Home from 1.6 s, other pages 200 ms; `site-header.tsx`, `config/motion.config.ts`), all done by about 3.2 s. Final numbers, same setup: LCP median 1524 ms (portrait), CLS 0.050, JS 226.3 KB, frames over 34 ms 7–8 of about 124; filmstrip 36 animations at 1440, 33 at 390, frame 1 all `#0a0a0a`, 0 console errors; `pnpm check` 43/43; public.spec 13/13. CSS only, so the hero is a server component again; the other lab moves and `/hero-lab` are deleted. The portrait uses `filter: brightness` on top of transform and opacity (why in docs/architecture.md, "Hero load"). Measured on webpack production builds, phone 390 × 844, 4× CPU, 1.6 Mbps, 150 ms RTT, 5 runs each, the new photo in both: LCP median 1176 → 1496 ms (the LCP element moved from the CRIZ text to the portrait, whose load time did not change; both under 2.5 s); CLS 0.014 → 0.050 (a font-swap wrap at 0.276 was fixed with `whitespace-nowrap`); JS 225.6 → 226.1 KB; HTML 14.3 → 15.0 KB; CSS 18.9 → 19.2 KB; frames over 34 ms in the first 3.5 s: 4–7 → 7–8 of about 120. No real mid-range phone tested. Reduced motion: 0 hero animations, the still. Paused-animation filmstrip at 1440 and 390, hover gives `grayscale(0)`, 0 console errors. `pnpm check` 43/43; `pnpm test:e2e` public.spec + the 4 CMS tests that draw the hero frame 17/17 (run before the portrait light, hover and nowrap, which no test covers). Hero pin + name slide stays open: Criztian picked load only. Responsive fix (Criztian, same day): the tablet and desktop hero is one screen tall, so headline, Book a call and note fit the first screen at 768×830, 1010×830, 1024×768, 1280×720, 1366×650 and 1440×790 (before: the note 70–210 px below the fold); 1440×900 and 1920×1080 unchanged (portrait 600×900 at x 420 / 720×1080 at x 600, name 425 / 575, fade y 792 at 1920); 768×1024 portrait 429×644 (Figma 440×660, whose tablet hero is 1040 tall); phone unchanged. `pnpm check` 43/43; public.spec 13/13.
 

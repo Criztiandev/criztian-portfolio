@@ -147,7 +147,7 @@ components:
 
 A giant CRIZTIAN in Anton sits behind a black-and-white portrait on a black page, the way a poster puts the star in front of the title. The look is bold; the words are calm. Everything else stays out of the way so one red button can do its job: "Book a call".
 
-Density is low and contrast is high. Sections are full-bleed bands with hard edges, separated by changes in scale, not by boxes. Exactly one section breaks the pattern on purpose: the Paper White Stakes band. Motion is one big move per scroll section (the name slides, the screens rise), never decoration.
+Density is low and contrast is high. Sections are full-bleed bands with hard edges, separated by changes in scale, not by boxes. Exactly one section breaks the pattern on purpose: the Paper White Stakes band. Motion follows one idea, "Lights up": each thing waits dim and lights as the scroll reaches it, never decoration (see Motion).
 
 The Figma file `SBq7maOIwqSa2V8MRCVSXz` is the single source of truth. This file mirrors it; docs/brand.md holds the full token table.
 
@@ -245,6 +245,109 @@ Hard edges everywhere: radius 0 on buttons, cards, images and popups. Price card
 ### Work stage (signature component)
 
 - Desktop: a pinned stage. Left, the list of 3 rows (active row Paper White with its line and link; others Smoke). Right, the active project's 3 screens: desktop 16:10, detail 4:3, phone 9:19.5. Tablet and phone: rows stacked, no pin.
+
+## Motion
+
+**Thesis: "Lights up."** The page opens in the dark. The scroll lights things up one at a time, in reading order: each thing waits dim and lights as the visitor reaches it, and dims again on the way back up. The last light on the page is Book a call. Approved by Criztian part by part on 2026-10-29.
+
+Why this idea: the moves already shipped speak it (the hero lights up from black, the Stakes headline inks with the scroll, the name letters dim under the cursor), and on a black page light is the natural material. Every section uses light but does something different with it, so the page never reads as one reveal repeated.
+
+**Focal moment:** the hero load (shipped). It is the only timed sequence on the page; everything after it follows the scroll.
+
+### Scroll story
+
+Story sections are beats in the scroll story and get 3 concepts at their `/wmotion` run. Small sections use the vocabulary and get 1 proposal (3 on request).
+
+| #   | Section                        | Type              | Beat                                                                                                                                                                                                                                           |
+| --- | ------------------------------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0   | Nav                            | small, shipped    | Drops in after the hero lights up. Hides on the way down, returns on the way up.                                                                                                                                                               |
+| 1   | Hero                           | story             | Load shipped: lights up from black. Open: the exit, the name slides behind the portrait as the visitor leaves (Figma plan, dennissnellenberg.com). Hold or no hold is one of the 3 concepts.                                                   |
+| 2   | Stakes                         | story, shipped    | The page turns Paper White; the headline inks word by word.                                                                                                                                                                                    |
+| 3   | Work                           | story, the peak   | Desktop with a mouse or trackpad: the stage holds for 1 screen of scroll per row. The lit row opens and its screens rise into the light; "Your place" lights last, its frames empty. Rows follow the scroll both ways, not Figma's timed swap. |
+| 4   | How it works                   | small             | Each step's hairline draws left to right; the step lights as its line finishes.                                                                                                                                                                |
+| 5   | About                          | small             | The photo rises from its clip and lights, an echo of the hero portrait. The 3 red numbers rise one by one.                                                                                                                                     |
+| 5b  | Blog                           | small             | The 3 rows light top to bottom, each title rising from its mask.                                                                                                                                                                               |
+| 6   | Prices                         | small             | The 3 cards open top-down, one after another; each price rises last.                                                                                                                                                                           |
+| 7   | Footer                         | story, the ending | The headline inks word by word, like Stakes. Then Book a call rises: the last light on the page.                                                                                                                                               |
+| —   | Case study, blog, 404, Privacy | small             | The vocabulary only, no holds. Criztian directs them later.                                                                                                                                                                                    |
+
+Every section title rises from its mask and lights as it enters; each section adds its own beat on top. Stakes and the footer share the ink on purpose: the problem and the answer.
+
+### Vocabulary
+
+| Move       | What it does                                      | Numbers                                                                                     | Source                                                           |
+| ---------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Light      | Waits dim, then lights                            | Text opacity 20% → 100%; photos brightness 0.3 → 1                                          | shipped: `hero-light-up`, `hero-portrait-light`                  |
+| Ink        | Light, word by word in reading order              | 150 px of scroll per word, about 30 px apart (Stakes: 32.5 px for its 9 words)              | shipped: Stakes                                                  |
+| Mask rise  | Rises from below its own clip                     | Translate 110% → 0. Titles go word by word; WORK and PRICES letter by letter, like the name | shipped: `hero-mask-rise`                                        |
+| Photo rise | A photo rises from below its clip while it lights | TranslateY 100% → 0, with Light                                                             | shipped: hero portrait                                           |
+| Small rise | Body text                                         | 24 px up, opacity 0 → 100%, over 200 px                                                     | shipped: Stakes body                                             |
+| Draw       | A hairline draws left to right                    | `clip-path: inset(0 100% 0 0)` → `inset(0)`                                                 | Lurais's line draw                                               |
+| Open       | A card is uncovered top-down; nothing stretches   | `clip-path: inset(0 0 100% 0)` → `inset(0)`                                                 | rule: clip, never scaleY                                         |
+| Slide      | The hero name moves sideways as the hero leaves   | 25% of its width (340 px at 1440)                                                           | Figma plan; dennissnellenberg.com's numbers read at the hero run |
+| Spotlight  | One row lit Paper White, the rest Smoke           | Work rows, desktop                                                                          | Figma plan                                                       |
+
+**Scroll rules** (every reveal below the hero):
+
+- Linear. Lenis's glide does the easing; ease-out on a 150 px scrub put 80% of the change in 50–55 px.
+- At least 150 px of scroll per item, so 10–90% takes 120 px or more. Under 100 px is a pop. Ramp-probe every move before showing it.
+- Words and letters start 30–50 px apart. List items (steps, numbers, cards, rows) start at least 100 px apart, so a group never moves at once.
+- Ranges count from when the section's top enters the screen (`animation-range: cover …`, like Stakes) and end before the page's last scroll position, so the footer always finishes lit.
+- Both ways: scrolling back up dims things again.
+- Holds: Work only, on a desktop width with a mouse or trackpad, 1 screen of scroll per row.
+
+**Timed rules** (load and hover only):
+
+- Ease-out `cubic-bezier(0.22, 1, 0.36, 1)` (`--ease-out`).
+- Load: entrances 1000–1400 ms, lights 900 ms, all done by about 3.2 s.
+- Feedback: buttons 150 ms, dims and the nav 300 ms, photo color 600 ms, relight 900 ms ease-in-out. Leaving is faster than arriving.
+
+**Triggers:** page load (hero and nav only) · scroll, both ways (every reveal below the hero) · hold (Work on desktop; the hero only if picked at its run) · hover and keyboard focus (devices with hover and a fine pointer). Never "plays once when it comes into view".
+
+**Hover:**
+
+- Shipped: the name letters dim and relight; the portrait shows its color; buttons turn Paper White; links underline and their arrow moves 4 px.
+- Clickable images and rows lift: Work screens to 1.02, blog rows to 1.01. They settle with Lurais's spring (0.4 s, bounce 0.2) built as a CSS `linear()` curve, starting within 100 ms; older browsers get `--ease-out`.
+- Things that can't be clicked never answer the pointer (price cards, numbers): a hover there promises a click that never comes.
+- No ambient loops. The voice stays calm, and a loop over 5 s next to content needs a pause control (WCAG 2.2.2). The page stays alive through the scroll and the pointer.
+
+### Touch, reduced motion, old browsers
+
+**Touch screens** (phones and tablets, any width):
+
+- The same light scroll moves as desktop, one moving on screen at a time. The Stakes ink proved the cost: 2, 0 and 0 frames over 34 ms in about 424, against 1, 1 and 1 with it off.
+- No holds and no hover moves; a tap goes straight to the link.
+- Hero: the load only, no slide. Work: rows stacked, each row's screens rise as the visitor reaches them, no spotlight. About: the numbers rise, the photo stays still (brightening a big photo can cost phone frames). The rest: as desktop, stacked.
+- Every move is measured on the phone profile; a move that drops frames is cut.
+
+**Reduced motion, and browsers without scroll timelines:**
+
+- Nothing moves: everything shows fully lit and in place. Desktop Work shows the stacked layout.
+- No scroll glide (a wheel step settles in 117 ms); links jump.
+- Hover color changes stay, instantly; no lift and no letter dim.
+
+### Banned moves
+
+1. Plain fade-ins and fade-ups, or one reveal copied onto every section.
+2. Anything that plays once when it comes into view.
+3. Pops (done in under 100 px of scroll) and eased timing on scroll moves.
+4. Fighting the scroll: speed limits, snapping, holds on touch, a hold where nothing moves, taking over touch scrolling.
+5. Stretching or squashing a card (`scaleX`, `scaleY`), growing from `scale(0)`, bouncy entrances. Bounce lives only in the hover settle.
+6. Eye pain: flashes, flicker, a bright line sweeping over text, strong grain.
+7. Off-brand: glow, gradients, blurred text, glass, color shifts (except the hero photo on hover), red that moves for show.
+8. Gimmicks: cursor blobs, sparkles, confetti, particles, 3D or WebGL, loops without a pause control, a loader, a scroll progress bar.
+9. Hidden or jumping content: text that needs JavaScript to show, layout shift, animating `width`, `height`, `top` or `left`.
+10. Two sections' text fighting for the screen on a fast scroll.
+11. Moving one element and calling the section done.
+
+### Budget
+
+- CSS runs every move: scroll timelines for the reveals, `position: sticky` for the Work hold, transitions for hover. New JavaScript planned: 0 KB; any JavaScript goes to Criztian with its size first.
+- Lenis stays, the only motion JavaScript (2 s glide, mouse and trackpad only).
+- The Motion library goes at the hero run: only `MotionConfig` in `providers.tsx` uses it, and the root layout loads it on every page. That run reports the KB saved.
+- No GSAP and no 3D. If the Work hold can't be built in CSS, GSAP comes back to Criztian with its size.
+- JS on `/` stays at or under 237.9 KB (transferred, phone 390, after Lenis). LCP and CLS can't get worse (last: 1524 ms and 0.050 on the phone profile). Every run reports JS before and after.
+- Support (MDN browser-compat-data, read 2026-10-29): `animation-timeline` in Chrome 115, Safari and iOS 26, Firefox 159; `linear()` easing in Chrome 113, Safari 17.2, Firefox 112.
 
 ## Do's and Don'ts
 
