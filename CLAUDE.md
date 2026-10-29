@@ -12,6 +12,7 @@ Criztian's own one-page portfolio. Read in this order: `PRODUCT.md` (who it's fo
 - Every value comes from the spacing scale or a token. No arbitrary values like `rounded-[20px]` unless the reason is written in docs. The giant hero name uses the `clamp()` sizes in docs/brand.md.
 - Content (text, prices, links, image paths) lives in `src/data/*.data.ts`, never inside components, so the CMS can save the same shape.
 - Images: the files in `public/`; empty slots use `public/images/placeholder.svg`. No outside placeholder services.
+- Headings use `text-wrap: balance`, so no last word sits alone on its line.
 
 ## Build rules
 

@@ -185,5 +185,8 @@ export const FOOTER = {
     { href: "https://www.facebook.com/criztiandev", label: "Facebook" },
   ] satisfies FooterLink[],
   copyright: "© 2026 Criztian.",
-  privacy: { href: "/privacy", label: "Privacy" } satisfies FooterLink,
+  legalLinks: [
+    { href: "/blog", label: "Blog" },
+    { href: "/privacy", label: "Privacy" },
+  ] satisfies FooterLink[],
 }

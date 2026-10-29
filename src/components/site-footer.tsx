@@ -1,7 +1,6 @@
-import Link from "next/link"
-
 import { BookCallLink } from "@/components/book-call-link"
 import { IconArrowUpRight } from "@/components/icons"
+import { SiteFooterBar } from "@/components/site-footer-bar"
 import { buttonVariants } from "@/components/ui/button"
 import { FOOTER } from "@/data/home.data"
 import { cn } from "@/lib/utils"
@@ -46,12 +45,7 @@ export function SiteFooter() {
             ))}
           </ul>
         </div>
-        <div className="mt-12 flex justify-between border-t border-graphite pt-6 text-body-small text-smoke md:mt-20 xl:mt-24">
-          <p>{FOOTER.copyright}</p>
-          <Link href={FOOTER.privacy.href} className={quietLinkClassName}>
-            {FOOTER.privacy.label}
-          </Link>
-        </div>
+        <SiteFooterBar className="mt-12 md:mt-20 xl:mt-24" />
       </div>
     </footer>
   )

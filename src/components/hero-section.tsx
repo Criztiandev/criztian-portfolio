@@ -17,7 +17,7 @@ export function HeroSection({ home }: { home: Home }) {
         <div className="relative h-130 overflow-hidden md:h-190 xl:absolute xl:inset-0 xl:h-auto">
           <p
             aria-hidden="true"
-            className="absolute inset-x-0 top-20 text-center font-heading text-display-giant-phone text-paper md:top-70 md:text-display-giant-tablet xl:top-61.5 xl:text-display-giant-desktop"
+            className="absolute inset-x-0 top-20 text-center font-heading text-display-giant-phone text-paper md:top-70 md:text-display-giant-tablet xl:top-auto xl:bottom-73.25 xl:text-display-giant-desktop"
           >
             <span className="block md:inline">{HERO.nameStart}</span>
             <span className="block md:inline">{HERO.nameEnd}</span>
@@ -42,7 +42,7 @@ export function HeroSection({ home }: { home: Home }) {
           >
             {home.heroHeading}
           </h1>
-          <div className="flex flex-col gap-6 md:flex-1 xl:w-85 xl:flex-none">
+          <div className="flex flex-col gap-6 md:flex-1 xl:max-w-120 xl:flex-none ">
             <p data-cms-field="heroText" className="text-body-base text-smoke">
               {home.heroText}
             </p>

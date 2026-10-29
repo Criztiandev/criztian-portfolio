@@ -37,7 +37,7 @@ Criztian's own portfolio site, brand name **Criztian**. He is a solo designer-de
 
 ## Operating Context
 
-- One page (home) plus a 404 page and a Privacy page.
+- Home plus case-study pages (`/work/[slug]`), a blog (`/blog`), a 404 page and a Privacy page (with a cookies section).
 - **Main action:** "Book a call" opens the Cal.com booking over the page: https://cal.com/criztian/discovery, a free 20-minute video call (Cal Video). There is no contact form.
 - **Prices (from):** Starter $1,500 (up to 3 pages, 2 rounds) · Standard $2,500 (up to 5 pages, 3 rounds, editor) · Premium $4,000 (up to 7 pages, 4 rounds, editor, blog, brand refresh) · care plan $150/month, optional.
 - **Backup actions:** see the work (J&T live link, Roudon-Smith screens), check prices, email hello@criztian.dev (after the domain is bought).

@@ -1807,3 +1807,17 @@ that import the packages, and that `next start` refuses an export.
   Dialog root, portal, overlay and close. `ui/dialog.tsx` merges classes with the plain `cn`
   package, which reads `text-heading-h2` as a color and drops it, and its content wrapper
   hard-codes a 10% overlay where Figma wants black 80%.
+
+### 404 and Privacy
+
+- Figma has these two pages at Desktop 1440 only (`45:191`, `45:220`). Phone and tablet reuse
+  the same tokens: the giant phone / tablet / desktop sizes for "404", H1 then Display L for
+  "Privacy".
+- `app/not-found.tsx` sits at the root, because only the root one catches unmatched URLs. The
+  root one renders inside the root layout alone, so it wraps itself in `MarketingLayout`
+  (theme CSS, header, booking popup) instead of copying the theme loader.
+- The 404 fills the screen under the sticky header: `min-h-[calc(100svh-4rem)]`, and
+  `xl:min-h-[calc(100svh-5rem)]` (header 64 / 80). No spacing token says "viewport minus
+  header", so this arbitrary value stays.
+- The footer bottom bar (`SiteFooterBar`) is shared by the home footer and Privacy, so the
+  third-pack "Blog" link lands on both at once.

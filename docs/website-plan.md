@@ -15,7 +15,7 @@ Copy below was pulled from the Figma text layers (file `SBq7maOIwqSa2V8MRCVSXz`,
 | Roudon-Smith    | Screens on the site, labeled concept, no live link                                                                                       |
 | Page title      | Criztian — Custom websites for small businesses.                                                                                         |
 
-Pages: Home (one page), 404, Privacy. Nav anchors: `#work`, `#how-it-works`, `#prices`.
+Pages: Home, case studies (`/work/[slug]`), Blog (`/blog`, `/blog/[slug]`), 404, Privacy. Nav anchors: `#work`, `#how-it-works`, `#prices`.
 
 ## Sections, in page order
 
@@ -49,6 +49,7 @@ Pages: Home (one page), 404, Privacy. Nav anchors: `#work`, `#how-it-works`, `#p
   - Meta: Concept redesign · Winery · Saratoga, CA
   - Line: A quiet, classic site built around one action: join the wine club. The online shop stays where it already works.
   - Tag: Design only
+  - Link: **Read the case study** → `/work/roudon-smith` (added 2026-10-29, third pack)
   - Screens: `work/roudon-smith-home-desktop.jpg` (16:10) · `work/roudon-smith-wine-detail.png` (4:3) · `work/roudon-smith-home-phone.png` (9:19.5). Phone frame detail: `work/roudon-smith-wine-phone.png`.
 - **Row 2 — J&T Express**
   - Meta: Concept redesign · Parcel delivery
@@ -93,7 +94,30 @@ Pages: Home (one page), 404, Privacy. Nav anchors: `#work`, `#how-it-works`, `#p
 - h2: **Let's talk about your place.**
 - Button (red): **Book a call** · Or email hello@criztian.dev (live once the domain is bought).
 - Socials (Smoke, arrow up-right, new tab): **LinkedIn** → https://www.linkedin.com/in/criztian-jade-tuplano-036b85258/ · **Instagram** → https://www.instagram.com/criztiandev · **Facebook** → https://www.facebook.com/criztiandev
-- Bottom bar: © 2026 Criztian. · **Privacy** → `/privacy`
+- Bottom bar: © 2026 Criztian. · **Blog** → `/blog` · **Privacy** → `/privacy`
+
+## Case study pages (`/work/[slug]`)
+
+Figma: see docs/build-plan.md, "New pages (third pack)". One template, filled per project from `src/data/*.data.ts`. Roudon-Smith first (`/work/roudon-smith`). J&T (`/work/jnt-express`) gets the same template once Criztian writes its copy. Tone: respectful, "what I'd change and why", never trashing the business.
+
+1. **Header** — h1: **Roudon-Smith Winery: the wine club first.** Sub (Body/Large): A concept redesign of a Saratoga winery's website, built around one action: joining the wine club. Not a paid project, and not affiliated with Roudon-Smith Winery. Meta (Label, Smoke): Concept redesign · Winery · Saratoga, CA · Design only. Image: `work/roudon-smith-home-desktop.jpg` (16:10).
+2. **The business** — h2: The business. Body: Roudon-Smith has poured wine in Saratoga, California, since 1972. Two Silicon Valley engineer families started it. Today it's a small winery with a tasting room on Big Basin Way, an online shop, and a wine club that releases wine three times a year. / The goal I set: get more Bay Area locals to join the club. The current site doesn't make that easy.
+3. **Before** (the page's one Paper White band, black text) — h2: **BEFORE** (Display/XL on desktop + tablet, Display/L on phone). Intro: Their site has served them for years. Here's what I'd change. Screens (their live site, captured 2026-10-29): `work/roudon-smith-before-home.png` "Their home page today." · `work/roudon-smith-before-club.png` "Their wine club page today." (16:10, side by side on desktop, stacked on tablet + phone). 3 notes (H2 + Body, hairline above each): **Nothing leads.** Three links share the first screen: events, wholesale and the club. · **The club has no price.** The club page lists the perks but no price. It also asks for a comment and an address, even if you pick up. · **Old wines first.** The wine list goes back to 2013 and uses shop codes, so it's hard to tell what you can buy today.
+4. **After** — h2: **AFTER** (same sizes as BEFORE). Intro: One action per screen, real numbers, and a look built from their own label. Screens: `work/roudon-smith-club-desktop.png` (16:10) and `work/roudon-smith-wine-detail.png` (4:3) stacked on the left, `work/roudon-smith-home-phone.png` (9:19.5) on the right, same total height. Tablet: same, phone screen 262 px wide. Phone: only the 2 phone screens, each full width (`work/roudon-smith-home-phone.png`, then `work/roudon-smith-wine-phone.png`); the 2 desktop shots are hidden on phone because their text is too small to read there.
+5. **Why it's designed this way** — h2 (Display/L desktop + tablet, H1 phone). 3 decisions (H2 + Body, hairline above each, no numbers): **One action per screen.** The first screen has one button, "Join the wine club", plus the tasting room hours. The menu went from 8 links to 3. · **Real numbers.** "Pick 2, 6 or 12 bottles, three times a year. Change the wines anytime. Pick up or we ship." Wines are $25 to $35, and members pay $20 to $28. I didn't invent a club price, because they don't publish one. · **Built from what they own.** Their label sets the look: paper white, the gold amphora, label-style capitals. Their real bottle, rebuilt in 3D from their shop photos, carries the big moments. "Since 1972" is told as dated facts, not as "the oldest".
+6. **What I'd measure** — h2: What I'd measure. Intro: It's a concept, so there are no results yet. If it went live, I'd track these 3 things. Items (H2 size, hairline above each): Club sign-ups a month · Taps on directions and hours · Clicks through to their shop.
+7. **Next case study** — h2: **Next: J&T Express, tracking first.** + Links **Read the case study** · **All work** → `/#work`. Show this band only when the next case study exists (hidden until the J&T page is live).
+8. **Footer** — same as Home.
+
+Alt text: "Roudon-Smith Winery's current home page", "Roudon-Smith Winery's current wine club page", "Redesigned wine club page", "Redesigned wine slider", "Redesigned home page on a phone".
+
+## Blog (`/blog`, `/blog/[slug]`)
+
+Data: the CMS post collection (title, slug, summary, body, publishDate, visible). Reading time is worked out from the body (about 200 words a minute). Posts have no images (the collection has no image field). The Figma copy is a sample: real posts come from the CMS. The 3 titles in Figma are working titles (planner drafts): "What a small business website really costs", "How to keep your website if your designer disappears", "What your website should show on the first screen".
+
+- **Blog list** — h1: **BLOG** (Display/XL desktop + tablet, Display/L phone) + intro: Straight answers about your website: what it costs, what it should show, and how to keep it yours. The newest post is big: title Display/L (H1 on phone), summary Body/Large, meta "Nov 16, 2026 · 4 min read" (Body, Smoke), Link **Read the post**. Older posts are rows: title H2 with the meta under it, summary on the right (desktop), stacked on tablet + phone. Hairline above each post. Whole post is one link. No pagination, categories, tags or search until there are 10+ posts.
+- **Blog post** — h1: the title (Display/L, H1 on phone). Meta (Smoke): date · N min read · By Criztian, as a left rail on desktop, one line on tablet + phone. Body column max 720 px: summary as the lead (Body/Large); p = Body/Base; h2 = Heading/H2 with 24 px extra space above; h3 and smaller = Body/Large, Semi Bold (not drawn); ul = 6 px Paper White squares; ol = numbers; blockquote = Body/Large with a 2 px Paper White line on the left; table = hairline rows, header row in Label (Smoke); on phone each table row stacks (cells one under another) and the header row hides; links underlined. End of post: hairline, the About photo (80 × 100) and "Written by Criztian. I design and build websites for small businesses, and I write here about what works." Then a **Next post** band (h2 title + Links **Read the next post** · **All posts** → `/blog`), then the footer. No extra call-to-action band (the footer is the call to action).
+- Headings everywhere use `text-wrap: balance`, so no last word sits alone on its line.
 
 ## States and other pages (Figma States board `44:33`)
 
@@ -105,7 +129,7 @@ Pages: Home (one page), 404, Privacy. Nav anchors: `#work`, `#how-it-works`, `#p
   - Error: **The calendar didn't load.** Email me at hello@criztian.dev and I'll reply within 24 hours. · Link: **Email hello@criztian.dev**
   - The Cal.com screens themselves are not drawn.
 - **404** (`45:191`): **404** · This page doesn't exist. · Buttons: **Book a call** · **Back to home**
-- **Privacy** (`45:220`): Privacy · Last updated: [launch date] · **What I collect** — When you book a call, the booking tool asks for your name, your email and any notes you add. I use them only to hold the call and reply to you. I don't sell your data. · **Visit counts** — This site counts visits with [analytics tool, named before launch]. [What it collects, filled in once the tool is picked.] · **Questions** — Email me at hello@criztian.dev with any question about your data.
+- **Privacy** (`45:220`, updated 2026-10-29): Privacy · Last updated: [launch date]. If this page changes, this date changes too. If something big changes, I'll also say so at the top of this page. · **What I collect** — When you book a call, the booking tool asks for your name, your email and any notes you add. I use them only to hold the call and reply to you. I don't sell your data. · **Who else sees it** — Cal.com runs the booking, so it keeps your booking details under its own privacy policy. The company that hosts this site keeps basic server logs, like any website. If you email me, your message stays in my inbox. No one else gets your details. · **Visit counts and cookies** — This site counts visits with [analytics tool, named before launch], which doesn't use cookies. There are no ad or tracking cookies, and nothing here follows you to other sites, so a "Do Not Track" setting changes nothing. The booking popup comes from Cal.com, which may set its own cookies so booking works. · **Your choices** — Email me to see, fix or delete the details I have about you. I'll reply within 24 hours. · **Questions** — Email me at hello@criztian.dev with any question about your data. Rule: the analytics tool must not use cookies, or this page is wrong.
 - Not drawn, on purpose: form states (no form), empty states (nothing can be empty), Terms (sells nothing directly), age check.
 
 ## Motion (from the Motion states board `58:221`)
@@ -127,6 +151,8 @@ Easing (judgment): ease-out = `cubic-bezier(0.22, 1, 0.36, 1)`.
 Rule (value #1): if the motion slows the phone page, the motion goes, not the speed.
 Keyboard: the pinned Work section must never trap focus.
 
+Motion for the case study and blog pages: Criztian directs it himself in Claude Code (2026-10-29). Until he says otherwise, the "Everything else" fade-up rule applies.
+
 ## Awwwards references (Figma Moodboard page, board `29:2`)
 
 | Site                  | Award                           | Adopt                                                                     | Improve                                              | Skip                                            |
@@ -139,7 +165,7 @@ Tried and dropped: raviklaassens.com (long loader). Lesson: no loader.
 
 ## Cut list (don't build these)
 
-1. ~~Blog~~ back in, live at launch (2026-10-29), with 3 posts Criztian writes; being designed in the Claude app. 2. ~~Case-study pages~~ back in (2026-10-29): one template for both projects, being designed in the Claude app. 3. Testimonials (none real yet). 4. Contact form (booking link only). 5. FAQ (How it works + Prices answer the worries). 6. "Why me" section (merged into How it works). 7. About page (one section). 8. Closing CTA section (the footer is the CTA). 9. Terms page. 10. Giant name in the footer. 11. Loader / intro screen. 12. Location badge (the Philippines is kept quiet). 13. The "43 sites" stat (NDA). 14. A "Let's connect" section (socials are a footer row). 15. Work "Skip to How it works" link (the nav already jumps there).
+1. ~~Blog~~ back in, live at launch (2026-10-29), with 3 posts Criztian writes; being designed in the Claude app. 2. ~~Case-study pages~~ back in (2026-10-29): one template for both projects, being designed in the Claude app. 3. Testimonials (none real yet). 4. Contact form (booking link only). 5. FAQ (How it works + Prices answer the worries). 6. "Why me" section (merged into How it works). 7. About page (one section). 8. Closing CTA section (the footer is the CTA). 9. Terms page (terms and refunds live in the client contract; cookies are a section inside Privacy, decided 2026-10-29). 10. Giant name in the footer. 11. Loader / intro screen. 12. Location badge (the Philippines is kept quiet). 13. The "43 sites" stat (NDA). 14. A "Let's connect" section (socials are a footer row). 15. Work "Skip to How it works" link (the nav already jumps there).
 
 ## Giant type check
 

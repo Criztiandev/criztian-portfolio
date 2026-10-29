@@ -36,11 +36,15 @@ test("the public site stays dark on a light system", async ({ page }) => {
   await expect(body).toHaveCSS("color", "rgb(244, 244, 241)")
 
   await page.goto("/blog/does-not-exist")
-  await expect(page.getByText("This page could not be found.")).toBeVisible()
+  await expect(
+    page.getByRole("heading", { level: 1, name: "This page doesn't exist." })
+  ).toBeVisible()
   await expect(body).toHaveCSS("background-color", "rgb(10, 10, 10)")
 
   await page.goto("/no-such-page")
-  await expect(page.getByText("This page could not be found.")).toBeVisible()
+  await expect(
+    page.getByRole("heading", { level: 1, name: "This page doesn't exist." })
+  ).toBeVisible()
   await expect(page.locator("html")).toHaveClass(/dark/)
   await expect(body).toHaveCSS("background-color", "rgb(10, 10, 10)")
   await expect(body).toHaveCSS("color", "rgb(244, 244, 241)")

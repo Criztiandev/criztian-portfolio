@@ -1,6 +1,8 @@
 # Build plan — Criztian portfolio
 
-**Last pack:** 2026-10-29, second pack (pricing: docs/website-plan.md, docs/handoff.md, PRODUCT.md). No git repo existed at pack time (Phase 1 fresh init in progress); the first pack was on template commit `fcec601`. Fresh repo first commit: `30e5a37` (Phase 1, 2026-10-29).
+**Last pack:** 2026-10-29, third pack (case study + blog + privacy), on commit `0c62aa3`. Earlier: second pack (pricing) before the fresh repo; first pack on template commit `fcec601`. Fresh repo first commit: `30e5a37`.
+
+**Changes since Phase 4 started (third pack):** the Home footer bottom bar gets a **Blog** link before Privacy; the Roudon-Smith Work row gets a **Read the case study** link; new pages below (case study, blog list, blog post); new Privacy copy. Build them as the new Phase 4 boxes. After the design review (round 1, 2026-10-29): no back link above the page titles ("All work" and "All posts" sit next to the Next links at the bottom); the club screenshot now shows the full size row; links have no inside inset (the text sits on the gutter line) and a tap area at least 44 px tall on touch screens.
 
 Build one phase per run, in order. Plan first, wait for Criztian's OK, then build. Tick the boxes as you go.
 
@@ -28,6 +30,25 @@ Build one phase per run, in order. Plan first, wait for Criztian's OK, then buil
 - **States board** `44:33`: menus phone `44:38` / tablet `44:62` · nav states `44:84` · hover + focus `44:165` · booking popup `45:123` (desktop loading `45:126`, error `45:153`; phone loading `67:309`, error `67:322`) · 404 `45:191` · Privacy `45:220`.
 - **Motion states board** `58:221`: Load + hero `58:292` (`59:285`, `59:311`, `59:337`) · Stakes reveal `58:306` (`58:296`, `58:299`) · Work pin `58:408` (`58:310`, `58:333`, `58:356`) · Reduced motion `58:458` (`58:412`).
 - **Shots board** `47:174`: the framed J&T screenshots.
+
+### New pages (third pack, 2026-10-29)
+
+| Page                                     | Phone 390                       | Tablet 768                     | Desktop 1440                   |
+| ---------------------------------------- | ------------------------------- | ------------------------------ | ------------------------------ |
+| Case study · Roudon-Smith (frame)        | `91:594`                        | `91:346`                       | `90:315`                       |
+| 1 · Header                               | `91:595`                        | `91:347`                       | `90:316`                       |
+| 2 · The business                         | `91:603`                        | `91:355`                       | `90:328`                       |
+| 3 · Before (paper band)                  | `91:608`                        | `91:360`                       | `90:333`                       |
+| 4 · After                                | `91:629`                        | `91:381`                       | `90:354`                       |
+| 5 · Why                                  | `91:638`                        | `91:390`                       | `90:363`                       |
+| 6 · What I'd measure                     | `91:650`                        | `91:402`                       | `90:375`                       |
+| 7 · Next case study                      | `91:661`                        | `91:413`                       | `90:386`                       |
+| Blog list (frame)                        | `96:848`                        | `96:458`                       | `93:398`                       |
+| 1 · Header / 2 · Posts                   | `96:849` / `96:852`             | `96:459` / `96:462`            | `93:399` / `93:402`            |
+| Blog post (frame)                        | `96:994`                        | `96:604`                       | `93:451`                       |
+| 1 · Header / 2 · Article / 3 · Next post | `96:995` / `96:998` / `96:1059` | `96:605` / `96:608` / `96:669` | `93:452` / `93:459` / `93:520` |
+
+Footers and navs in these frames are copies of Home's. Privacy (`45:220`) has new copy (5 sections). Home changes: Roudon-Smith Work row link "Read the case study" (`97:558` desktop, `97:563` tablet, `97:568` phone) and a "Blog" link before "Privacy" in every footer bottom bar.
 
 ### Components (page Brand `1:3`)
 
@@ -86,16 +107,24 @@ Done 2026-10-29: shadcn Button restyled through its cva (sizes `large` 52, `smal
 - [x] 6 · Prices
 - [x] 7 · Footer
 - [x] Booking popup (Cal.com embed) with loading + error states, desktop and phone
-- [ ] 404 page
-- [ ] Privacy page
+- [x] 404 page
+- [x] Privacy page (copy updated in the third pack: 5 sections, cookies included)
+- [ ] Home: Roudon-Smith row link "Read the case study" + footer "Blog" link (third pack). Footer Blog link done 2026-10-29 with Privacy (shared bar); row link still open.
+- [ ] Case study template `/work/[slug]`, filled for Roudon-Smith (third pack)
+- [ ] Blog list restyle (third pack)
+- [ ] Blog post restyle, every rich-text element (third pack)
 
 Done when: each section matches Figma at 390, 768, 1440 and 1920 (centered at 1440).
 
 Done 2026-10-29 (Booking popup): plain Cal.com iframe in a base-ui Dialog, opened from every Book a call link (links stay links). Figma calls: 4. Panel 390×844 full screen at 390; 720×800 centered at 768/1440/1920 (Figma 560 tall, why in docs/architecture.md, "Booking popup"); title Anton 40/42; loading, error (15 s) and live calendar shown at all 4 widths, 0 console errors. `pnpm check` 40/40; `pnpm test:e2e` 29/29 (2 new: desktop open/Escape/focus return, phone menu → full-screen popup).
 
+Done 2026-10-29 (404 + Privacy): Figma has Desktop only (`45:191`, `45:220`); phone and tablet built from the same tokens. Root `app/not-found.tsx` wraps `MarketingLayout` (one header, booking popup works); `/nope` and `/blog/does-not-exist` return 404. Shared `SiteFooterBar` (© · Blog · Privacy) on Home and Privacy. Figma calls: 5. Browser at 390/768/1440/1920: 1 h1 each, Privacy 5 h2, no sideways scroll, 0 console errors besides the 404 status itself; 1440 matches Figma (Privacy title y 200 / 96 px, sections y 424, column 720; 404 at y 395 / 425 px, message y 796 / 64 px, actions x 1124 / 1287 vs 1123 / 1286). Known: Privacy section 1 wraps to 3 lines (browser Inter slightly wider than Figma's). `pnpm check` 40/40; `pnpm test:e2e` 27/29, then the 2 failures re-run 2/2 (404 text assertion updated; editor-code `networkidle` was a load flake).
+
 Done 2026-10-29 (Home, rows 0–7): sections built from Desktop `get_design_context` + Phone/Tablet `get_metadata` (Figma calls: 10). Section heights vs Figma at 390: all within 3 px; at 768: Work +16, the rest within 3 px; at 1440: Work +11, About −10, the rest within 1 px (why in docs/architecture.md, "Portfolio home"). 1 h1, 6 h2, no sideways scroll, 0 console errors at 390/768/1440/1920; at 1920 content stays centered at 1440. Nav unchanged from phase 3. Contact form + Resend removed, `contact_messages` dropped. `pnpm check` 40/40 (6 contact unit tests removed with the code); `pnpm test:e2e` 27/27 (5 contact/messages tests removed, CMS tests moved to the Stakes card).
 
 ### 5. Motion
+
+Criztian directs this phase himself (2026-10-29). Build from his instructions; the motion notes in docs/website-plan.md are the default.
 
 - [ ] Load (name rise + portrait fade).
 - [ ] Hero pin + name slide (desktop + tablet).
@@ -130,10 +159,10 @@ Done when: a preview is deployed and its link is ready for Criztian's final OK.
 9. ✅ (links are `/#work` etc. so they work from /blog too) `src/data/nav-links.data.ts:2-5` — Home, Blog, Contact, Log in → Work `#work`, How it works `#how-it-works`, Prices `#prices`. "Book a call" is a button, not a nav link. No public login link.
 10. ✅ Done 2026-10-29 (Hero + Stakes in the CMS; rest static). `src/data/home.data.ts:3-7` and `src/model/home.model.ts` — hero heading/text + contactHeading → the home content from docs/website-plan.md, in `src/data/*.data.ts`, in the same shape the CMS home collection saves. No `contactHeading`.
 11. ✅ Done 2026-10-29. 4 CMS e2e tests are built on the form, so they get rewritten once. Add a migration dropping `contact_messages` (anon may insert). **Contact form (cut list #4):** `src/components/home-view.tsx:3` and `:30-37`, `src/components/contact-form.tsx`, `src/components/contact-message-list.tsx`, `src/app/dashboard/messages/page.tsx`, `src/router/contact.router.ts` (+ its entry in `src/router/app.router.ts`), `src/service/contact.service.ts`, `src/repository/contact-message.repository.ts`, `src/model/contact.model.ts`, `src/type/contact.type.ts`, `src/type/contact-message.type.ts`, `src/util/contact.util.ts`, `test/contact.test.ts`, and the contact references in `src/config/cms.config.ts`. Remove; keep Resend only if something else uses it.
-12. ✅ **Blog: keep it, live at launch (decided 2026-10-29).** Keep `src/app/(marketing)/blog/` and the CMS blog collection. The blog index and post pages are being designed in the Claude app; don’t restyle them until a later pack adds their Figma frames and phase. Remove only the public "Log in" and "Contact" nav links for now (item 9).
+12. ✅ **Blog: keep it, live at launch (decided 2026-10-29).** Keep `src/app/(marketing)/blog/` and the CMS blog collection. The blog index and post pages are being designed in the Claude app; don’t restyle them until a later pack adds their Figma frames and phase. Remove only the public "Log in" and "Contact" nav links for now (item 9). **Third pack: the blog list and post frames are in (see "New pages"); build them in Phase 4.**
 13. ✅ `src/app/(marketing)/login/` — keep the route for Criztian; no public link to it.
 14. ✅ Down-mode fix ported from J&T; the full real content comes with the Sections phase. `src/app/(marketing)/page.tsx:8-19` — home content comes from Supabase (`revalidate = 3600`) with a fallback to defaults. Make sure the fallback is the full real content, so the page is complete with the database paused.
 15. ✅ (icon.svg, favicon.ico 16+32, apple-icon.png 180 in src/app) `src/app/favicon.ico` — the template icon → build from `public/brand/criztian-icon.svg` (32 + 16 px), plus an apple-touch icon.
 16. ✅ `README.md` — the template readme → a short portfolio readme.
-17. **Case-study pages are being designed in the Claude app** (`/work/[slug]` for Roudon-Smith and J&T, one template). Both projects get one at launch; Roudon-Smith first. Don’t build them yet; a later pack adds the Figma frames and the phase.
+17. **Case-study pages are being designed in the Claude app** (`/work/[slug]` for Roudon-Smith and J&T, one template). Both projects get one at launch; Roudon-Smith first. Don’t build them yet; a later pack adds the Figma frames and the phase. **Third pack: the template and Roudon-Smith frames are in (see "New pages"); J&T's copy is still to come.**
 18. ➡️ Sections phase (rows 84-86). New routes needed: `/privacy`, a custom 404 (`not-found.tsx`), the Cal.com booking popup.
