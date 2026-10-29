@@ -724,6 +724,100 @@
     }
 }
 
+@keyframes blog-link-rise {
+    from {
+        translate: 0 150%;
+    }
+}
+
+@utility blog-timeline {
+    view-timeline-name: --blog;
+}
+
+@utility blog-rise {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-mask-rise, hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --blog;
+        }
+    }
+}
+
+@utility blog-intro {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-copy-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --blog;
+            animation-range: cover 300px cover 500px;
+        }
+    }
+}
+
+@utility blog-row {
+    view-timeline-name: --blog-row;
+    @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        transition-property: scale;
+        transition-duration: 400ms;
+        transition-timing-function: linear(0, 0.109, 0.324, 0.543, 0.723, 0.851, 0.934, 0.981, 1.005, 1.014, 1.015, 1.013, 1.009, 1.006, 1.004, 1.002, 1);
+        &:hover {
+            scale: 1.01;
+        }
+    }
+}
+
+@utility blog-letter {
+    @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-mask-rise, hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --blog-row;
+        }
+    }
+}
+
+@utility blog-word {
+    @media (prefers-reduced-motion: no-preference) and (hover: none), (prefers-reduced-motion: no-preference) and (pointer: coarse) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-mask-rise, hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --blog-row;
+        }
+    }
+}
+
+@utility blog-copy {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-copy-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --blog-row;
+        }
+    }
+}
+
+@utility blog-link-timeline {
+    view-timeline-name: --blog-link;
+}
+
+@utility blog-link {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: blog-link-rise, hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --blog-link;
+            animation-range: cover 120px cover 270px;
+        }
+    }
+}
+
 @theme inline {
     --font-heading: var(--font-display, var(--font-sans));
     --font-sans: var(--font-sans);

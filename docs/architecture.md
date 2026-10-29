@@ -2002,6 +2002,19 @@ that import the packages, and that `next start` refuses an export.
 - The photo frame has `overflow: clip` (not `hidden`), so it never becomes a scroll container.
 - Reduced motion and Firefox get the still: everything lit and in place.
 
+### Blog write (Phase 5)
+
+- Criztian picked concept 3 of 3 ("Write") on the lab, 2026-10-30. The lab page was deleted after the pick. Not picked: 1 "Ruled" (each row's line draws in Smoke, then the title rises word by word onto it) and 2 "Stack" (each row rises whole from below its own clip and lights).
+- How it moves: "Blog" rises letter by letter and lights (150 px each, 40 px apart, from 180 px), the intro rises 24 px (300–500 px). Each title is written letter by letter: every letter rises from its word's mask and lights, 150 px each, 6 px apart, from 120 px after the row's top enters. The date starts when the last letter starts, the summary 60 px later, 200 px each. "All posts" rises from its own clip and lights (120–270 px after its top enters).
+- CSS scroll-driven animation, no JS, so `HomeBlogSection` stays a server component. Linear, longhands only, guarded by `prefers-reduced-motion: no-preference` and `@supports (animation-timeline: view())`. It reuses `hero-mask-rise`, `hero-light-up` and `hero-copy-up`.
+- Three timelines: `--blog` (the section) for the heading and intro, `--blog-row` (each `li`) for the title, date and summary, and `--blog-link` for "All posts". Rows stack at every width, so each row moves only when it comes on screen, one after another, about 160 px apart on desktop.
+- Touch gets the titles word by word, not letter by letter: `blog-letter` runs only with hover and a fine pointer, `blog-word` only without (hover none or a coarse pointer). A title has about 45 letters, so 3 rows put about 135 moving letters on a phone; words cut that to about 26. Not profiled on the phone; it is the light version DESIGN.md "Touch" asks for.
+- The Home row is its own component (`HomePostRow`), not `PostRow` with a flag: the split title and the motion would otherwise reach `/blog`, whose motion Criztian directs later. It reuses `PostMeta` and the link classes from `blog-list-view.tsx`.
+- The split title: Chrome would name the link "W e l c o m e …", so the link holds an `sr-only` copy of the title and the letters are `aria-hidden`. `group-hover:underline` sits on each letter too, because an underline doesn't reach into `inline-block` children; the spaces between words are the link's own text, so the line runs on unbroken.
+- "All posts" rises 150% (its own `blog-link-rise`), not the 110% of `hero-mask-rise`: its clip wrapper has 4 px of padding so the underline isn't cut, and at 110% the top of the 16 px link would show at the first frame.
+- The row lift is `scale: 1.01` on the `li` with the Work spring (`linear()`, 400 ms), only with hover, a fine pointer and no reduced motion.
+- Reduced motion and Firefox get the still: everything lit and in place.
+
 ### Booking popup
 
 - Every "Book a call" stays a real link to `BOOK_CALL.href`. `BookingDialog`, mounted once in

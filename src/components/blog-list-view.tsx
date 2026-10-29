@@ -11,10 +11,10 @@ import { formatPostDate, readingMinutes } from "@/util/post.util"
 
 const containerClassName = "mx-auto max-w-page px-4 md:px-8 xl:px-10"
 
-const postLinkClassName =
+export const postLinkClassName =
   "outline-none group-hover:underline after:absolute after:inset-0 focus-visible:after:ring-2 focus-visible:after:ring-paper"
 
-function PostMeta({ post }: { post: Post }) {
+export function PostMeta({ post }: { post: Post }) {
   return (
     <p className="text-body-base text-smoke">
       <time dateTime={post.publishDate}>

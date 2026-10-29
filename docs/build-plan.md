@@ -160,7 +160,7 @@ Criztian directs this phase himself (2026-10-29) with `/wmotion`, one section pe
 - [x] 3 · Work (story, Criztian picked concept 3 "Long road" of 3, 2026-10-29): desktop hold with a mouse or trackpad, 1 screen of scroll per row; the screens ride one column that never stops, each set lights at its place and its row lights and opens; rows follow the scroll both ways; screens lift 1.02 on hover. Touch: stacked, each screen rises from its clip.
 - [x] 4 · How it works (small, Criztian picked concept 2 "Stairs" of 3, 2026-10-30): the 3 steps climb in at different heights like stairs, each step's number, title and body close up as it lands and lights, then its line draws in Smoke. Under 1280 (touch included): stacked, each step on its own timeline, one moving at a time.
 - [x] 5 · About (small, Criztian picked concept 1 "Echo" of 3, 2026-10-30): the hero load replayed by the scroll. "Hi, I'm" rises word by word and "Criztian." letter by letter, lighting as they land; the photo rises from below its frame and lights; the body rises; the 3 red numbers rise from their masks one by one, each label after its number. Touch and under 1280: the photo stays still, the text moves one block at a time.
-- [ ] 5b · Blog (small): the 3 rows light top to bottom, titles rise; rows lift 1.01 on hover.
+- [x] 5b · Blog (small, Criztian picked concept 3 "Write" of 3, 2026-10-30): each title is written letter by letter, like the hero and About names, then its date and summary rise; "Blog" rises letter by letter and "All posts" rises last; rows lift 1.01 on hover. Touch: the titles rise word by word.
 - [ ] 6 · Prices (small): the cards open top-down one after another, each price rises last.
 - [ ] 7 · Footer (story): the headline inks word by word, then Book a call rises last.
 - [ ] Other pages (small): case study, blog, 404 and Privacy use the vocabulary, no holds; Criztian directs them.
@@ -248,6 +248,18 @@ Ramp probe on the dev server, computed values every 10 px:
 JS unchanged (server component, no client code). Phone frames not profiled: no pinned, canvas or 3D move.
 
 Scripts: `pnpm check` 43/43, then lint and typecheck again after the `aria-label` fix. e2e not run: no route, form, auth or proxy change; the home heading test reads `textContent`, which is unchanged ("Hi, I'm Criztian.", read in the browser).
+
+Done 2026-10-30 (Blog, concept 3 "Write" of 3 on a `/motion-lab` page, deleted after the pick): "Blog" rises letter by letter and lights; the intro rises 24 px; each row's title is written letter by letter (each letter rises from its word's mask and lights, 6 px apart), then the date and the summary rise; "All posts" rises last; rows lift 1.01 on hover with the Work spring. Not picked: 1 "Ruled" (each row's line draws in Smoke, then the title rises word by word onto it) and 2 "Stack" (each row rises whole from below its own clip and lights). CSS scroll-driven animation, zero JS, still a server component (why in docs/architecture.md, "Blog write"). Command to pick: about 10 min.
+
+Ramp probe on the dev server with the 3 local test posts, computed values every 10 px:
+- 1440×900, mouse: heading letters 120 px (10–90) each, 190–460; intro 160 (310–510); per row, from its own top entering: first letter 120 (about 125–275), last letter 120, date and summary 160 each, ending 450–540; "All posts" 120 (126–276). Same numbers as the lab.
+- 390×844, touch: words instead of letters (26 word animations, 0 letter animations), each 120 px; date and summary 160; no pop.
+- 0 console errors at both. Reduced motion at 1440: 0 animations, every element lit, no hover lift.
+- Hover at 1440: row scale 1.01, the title underlines across the letters. Accessibility tree: heading "Blog", each h3 and its link named by the full title (an `sr-only` copy; the letters are `aria-hidden`).
+
+JS unchanged (server component, no client code). Phone frames not profiled: no pinned, canvas or 3D move.
+
+Scripts: `pnpm check` 43/43. e2e not run: no route, form, auth or proxy change (the lab route was added and deleted in the same run).
 
 ### 6. Review and launch
 
