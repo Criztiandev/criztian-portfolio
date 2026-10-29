@@ -50,9 +50,8 @@ const ROUDON_SMITH_SCREENS: WorkScreens = {
 const ROUDON_SMITH_CASE_STUDY = "/work/roudon-smith"
 
 export const WORK = {
-  stage: ROUDON_SMITH_SCREENS,
-  stageHref: ROUDON_SMITH_CASE_STUDY,
   heading: "WORK",
+  yourSite: "your site",
   label:
     "Concept redesigns: what I'd build for real businesses. Not paid projects yet.",
   rows: [

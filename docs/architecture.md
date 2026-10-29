@@ -1790,10 +1790,9 @@ that import the packages, and that `next start` refuses an export.
 - **Display/XL is one clamp token:** `--text-display-xl` = `clamp(10rem, 12.5vw - 2rem, 13rem)`,
   160 up to 1536 and 208 at 1920+. It covers both Figma styles (Display/XL and Display/XL — Large)
   because the floor is the desktop size, so every `md:text-display-xl` stays 160 below 1536.
-- **Static Work on desktop:** row 1 is the stage. Rows 2 and 3 show only name and meta; their
-  line, link and Book a call are `xl:hidden` until the motion phase adds row switching. The
-  row 3 dashed "your site" frames come with that motion, since they only show when row 3 is
-  active.
+- **Work on desktop:** the stage only exists with the Work hold (see "Work hold"). Every other
+  desktop (reduced motion, no scroll timelines, touch, a window under 720 px tall) gets the
+  stacked tablet layout, as the motion thesis says.
 - The footer's Privacy link 404s until the Privacy row.
 
 ### Hero load (Phase 5)
@@ -1927,6 +1926,52 @@ that import the packages, and that `next start` refuses an export.
 - Linear (Lenis's glide is the easing), longhands only, guarded by `prefers-reduced-motion: no-preference`, `(hover: hover) and (pointer: fine)` and `@supports (animation-timeline: view())`. Touch screens get the load only (thesis touch line); reduced motion and Firefox get the still.
 - The 2 other concepts were "Lights out" (concept 1 plus the name and portrait dim while Stakes inks) and "Rewind" (a 1-screen hold that plays the load backwards). See docs/build-plan.md phase 5.
 - The Motion library (`motion`) is gone: only `MotionConfig` in `providers.tsx` used it, and no component animated with it.
+
+### Work hold (Phase 5)
+
+- Criztian picked concept 3 of 3 ("Long road") on the lab, 2026-10-29. The lab page was deleted after the pick. The concepts not picked were:
+  - "Spotlight": the screens swap in place, with the old set rising out of its frames and the new one rising in.
+  - "Grow": lamalama.com's Flip, scrubbed, with each row's screens growing out of that row.
+- How it moves:
+  - The section holds for 2 screens. The row 1 beat plays while the section scrolls in, so the story is 3 screens, 1 per row.
+  - The 3 screen sets ride one column that climbs at a constant rate and never stops. Each set is exactly in its Figma place at 34%, 62% and 90% of the story.
+  - Each shot lights from `brightness(0.3)` to 1 as its set nears its place, and dims as it leaves. The order is desktop, phone, detail, 4% of the story apart.
+  - The phone column moves at 0.9× (dennissnellenberg.com's layers). Desktop and detail share one speed: a speed difference between two shots stacked in one column closes their 16 px gap (21 px overlap in the lab).
+  - "Your place"'s dashed frames draw left to right from 66% of the story, as they come on screen, so the lower stage is never empty.
+  - Book a call rises last with lamalama.com's clip reveal: `inset(0 0 80% 0)`, y 80%, scale 0.98 (docs/website-plan.md, "Reference motion: lamalama.com").
+- Rows open without animating height (banned move 9; it would also count as layout shift):
+  - Each detail is `position: absolute` under its row and opens with a clip-path.
+  - The rows below slide by one fixed gap, `--work-detail`, the tallest detail plus its 12 px gap: 152 px, or 124 px at 1536 px and wider, measured at 1280, 1440 and 1920.
+  - The rows' list reserves that gap at its bottom.
+  - A shorter detail leaves a little extra space under it (56 px for J&T at 1440).
+  - If the Work copy changes, re-measure `--work-detail`. If a detail grows past it, it overlaps the next row.
+- One timeline, CSS only, no JavaScript. The section names `--work`, the frame inside is `position: sticky`, and every move runs on the story range `cover 0 → cover var(--work-story)` (300svh).
+  - The row timings are keyframe percentages of that range (`work-row1-name`, …).
+  - Phone and detail shots reuse their set's keyframes with the range shifted by `--work-shot-shift` (4% and 8% of the story).
+  - The choreography is authored for exactly 3 rows: a 4th row needs new keyframes, set offsets and a longer story.
+- When the hold runs: the `work-hold` variant in `globals.css` requires all of these:
+  - 1280 px or wider and 720 px or taller;
+  - a mouse or trackpad (`hover: hover` and `pointer: fine`);
+  - no reduced motion;
+  - `@supports (animation-timeline: view())`.
+- Short screens: `work-hold-short`, 720–895 px tall, uses 40 px frame padding, a 96 px WORK heading and 16 px row padding, so the frame fits one screen down to 720. Below 720 the hold turns off and the stacked layout shows.
+- Stage geometry. These are deliberate arbitrary values, taken from the Figma pin frames `58:310`–`58:356` and the Large frame `110:607`:
+  - the stage is `aspect-ratio: 886 / 742`, sized `min(100cqw, 100cqh × 886/742)` inside a size container;
+  - shots are absolutely placed at Figma's percentages;
+  - at 1536 px and wider the columns are `minmax(0, 1fr) 61.5rem`, so the stage is 984 × 824, as in Figma Large.
+- `overflow-y: clip` on the section in hold mode stops the sets parked below the stage from growing the page's scroll height. `clip` does not make a scroll container, so `sticky` and the timeline keep working.
+- Nav: in hold mode `#work` has `scroll-margin-top: 0`, so the nav link lands at the start of the hold, with row 1 lit and its set in place.
+- Keyboard:
+  - Tabbing to a link in a closed row lights that row and shows its detail (`:focus-within` with `!important`, which beats the animation). Focus never sits on an invisible link.
+  - The screens don't follow the keyboard (that would need JavaScript), and an opened detail can overlap the row below until you scroll.
+  - Tab leaves Work after Book a call, so the hold never traps focus.
+- Hover: each stage shot inside a link lifts to 1.02 with a `linear()` spring. The curve is judgment: a damped spring with ratio 0.8 settling in 400 ms, peak 1.015, standing in for Lurais's spring 0.4 s with bounce 0.2. "Your place"'s frames have no link, so they never lift (DESIGN.md: things that can't be clicked never answer the pointer).
+- Touch and every no-hold case with motion:
+  - WORK rises letter by letter and the label rises.
+  - Each stacked screen rises from below its own clip (`translateY(100%)` → 0, `hero-portrait-rise`) over the first 250 px after the screen is fully on screen. It has no brightness change, because brightening big photos can cost phone frames.
+  - Each screen names its own view timeline on a `overflow: clip` wrapper (`--work-rise`); `Shot`'s own `overflow: hidden` would freeze an anonymous `view()`.
+- Reduced motion and Firefox get the stacked still, everything lit.
+- Known: the CMS canvas frame draws the Home page at desktop width, so the hold also runs inside it, following the frame's own scroll. Turn it off there if it gets in the way, as with the hero entrance.
 
 ### Booking popup
 

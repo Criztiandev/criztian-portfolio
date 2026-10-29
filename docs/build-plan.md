@@ -157,7 +157,7 @@ Criztian directs this phase himself (2026-10-29) with `/wmotion`, one section pe
 - [x] Nav hides on scroll down, comes back on scroll up, every size (Criztian, 2026-10-29).
 - [x] 1 · Hero exit (story, Criztian picked concept 1 "Layers" of 3, 2026-10-29): no hold; the name slides behind the sinking portrait and the copy rises out; touch keeps the load only. Motion library removed.
 - [x] Stakes word reveal (Criztian, 2026-10-29: inked by the scroll, both ways, not once).
-- [ ] 3 · Work (story): desktop hold with a mouse or trackpad, 1 screen of scroll per row; the lit row opens and its screens rise; rows follow the scroll both ways; screens lift 1.02 on hover. Touch: stacked, each row's screens rise.
+- [x] 3 · Work (story, Criztian picked concept 3 "Long road" of 3, 2026-10-29): desktop hold with a mouse or trackpad, 1 screen of scroll per row; the screens ride one column that never stops, each set lights at its place and its row lights and opens; rows follow the scroll both ways; screens lift 1.02 on hover. Touch: stacked, each screen rises from its clip.
 - [ ] 4 · How it works (small): each step's hairline draws, then the step lights.
 - [ ] 5 · About (small): the photo rises and lights, the 3 numbers rise. Touch: numbers only.
 - [ ] 5b · Blog (small): the 3 rows light top to bottom, titles rise; rows lift 1.01 on hover.
@@ -175,6 +175,55 @@ Done 2026-10-29 (Smooth scroll + nav hide, Criztian's direction): Lenis 1.3.27 a
 Done 2026-10-29 (Stakes ink, Criztian's direction): the headline inks word by word as the band scrolls in (20% → full black, reading order) and the body rises after; it follows the scroll both ways instead of playing once. Lurais's motion was read from its bundle first (docs/website-plan.md, "Reference motion"). CSS scroll-driven animation, zero JS (why in docs/architecture.md, "Stakes ink"). Production build at 390×844, 768×1024, 1440×900 and 1920×1080: every word ramps over 145–150 px of scroll (10–90% in 120–125 px), the body over 195 px (160); the last word is lit at 660 px with the heading at y 264–648 / 460–825 / 360–634 / 540–814; 10 animations and 0 console errors at all 4. Ease-out was tried first: 10–90% in 50–55 px, a pop, so the scrub is linear. Reduced motion: 0 animations, all lit. Firefox (Playwright): no `animation-timeline`, 0 animations, all lit, 0 errors. WebKit not run (Playwright's WebKit would not launch on this machine). Touch drags of 2,925 px at 390 with 4× CPU, 3 runs: 2/0/0 of about 424 frames over 34 ms; the same build with only the Stakes animations off: 1/1/1. JS unchanged (server component, no client code); `/` HTML 126,053 bytes, the Stakes section 1,372. `pnpm check` 43/43; e2e `public.spec` "renders the home page sections" and `cms.spec` "edits the home page beside the live page" 2/2.
 
 Done 2026-10-29 (Hero exit, concept 1 "Layers" of 3 on a `/motion-lab` page, deleted after the pick): dennissnellenberg.com's exit, read from his code first (docs/website-plan.md, "Reference motion: dennissnellenberg.com"). As the hero scrolls away, the name slides left (−400 px over 1000 px of scroll, his 0.4 px per px), the portrait sinks (+300 px over 1000 px, his 0.3), the 10 headline words rise out of their masks (150 px each, 30 px apart, 0–420 px), then the sub, buttons and note rise out (200 px each, 100 px apart, 60–460 px). Nothing dims. Not picked: 2 "Lights out" (concept 1 plus the name dims from the edges in and the portrait to 0.3 while Stakes inks) and 3 "Rewind" (a 1-screen hold that plays the load backwards; it moved the Stakes ink from 260 to 1160 px). CSS scroll-driven animation, zero JS, the hero is still a server component (why in docs/architecture.md, "Hero exit"). Webpack production builds, ramp probe at 1440×900 and 1920×1080, identical: name and portrait 10–1000 px (10–90% in 800), each word 120 px (first 10–150, last 280–420), sub 70–260, buttons 170–360, note 270–460 (150 each), Stakes' first word still 260–400; 15 hero scroll animations, 0 console errors. Touch 390×844 and reduced motion: 0 hero animations, the still at scroll 400. Firefox (Playwright): the still, 0 errors. Phone profile, HEAD worktree vs after (390×844, 4× CPU, 1.6 Mbps, 150 ms RTT, 5 runs each): LCP median 1192 → 1136 ms (H1 in 4 of 5 runs on both sides, the portrait in 1, so the element follows image timing, not this change); CLS 0.029 → 0.031; `/_next/static` JS 237.5 → 237.7 KB transferred, 809.5 → 809.0 KB decoded, 19 files both. Removing `motion` saved 0.5 KB decoded: tree-shaking had already dropped everything but `MotionConfig`. Phone frames not re-run: touch gets no new motion. `pnpm check` 43/43; `pnpm test:e2e` 31/32, the 1 failure is the known `cms.spec.ts:1156` ("saves a draft in the editor"), open since the blog restyle.
+
+Done 2026-10-29 (Work hold, concept 3 "Long road" of 3 on a `/motion-lab` page, deleted after the pick)
+
+Reference: lamalama.com's work list, read from its code first (docs/website-plan.md, "Reference motion: lamalama.com"). It is click-to-open with a GSAP Flip, with no pin or scrub. Its sticky button's clip reveal became Book a call's rise.
+
+The concepts:
+- Not picked: 1 "Spotlight" (the screens swap in place) and 2 "Grow" (lamalama's Flip, scrubbed). Both were stopped once Criztian picked.
+- Long road was built and then checked by an independent verifier. It found no blockers.
+- Fixed before showing:
+  - the detail screen slid 21 px over the desktop screen (the speed difference now sits on the phone column only);
+  - an empty lower stage at 72–76% ("your site" draws from 66%).
+
+How it's built: CSS scroll-driven animation plus `position: sticky`, zero JavaScript; `WorkSection` is still a server component (why in docs/architecture.md, "Work hold").
+
+Ramp probe, dev server, the same numbers as the lab:
+- 1440×900, story 2700 px:
+  - letters 160 and label 160 (10–90);
+  - row names, details and shifts 170–190;
+  - set lights 150 each, 108 px apart;
+  - frame draws 170–180;
+  - Book a call 220;
+  - the road 0–2700.
+- 1280×720, short layout:
+  - every ramp 120 or more;
+  - the frame fits (list 640 of 640).
+- 1920×1080:
+  - stage 984×824 (Figma 984×824.5);
+  - ramps 180–260.
+- 390×844 touch, no hold:
+  - letters and label 160;
+  - each screen rises 200 (10–90) once it is fully on screen.
+- 0 console errors at every size.
+
+Fallbacks and input:
+- Reduced motion and Firefox (Playwright): 0 Work animations, the stacked still, all lit, 0 errors.
+- Touch at 1440: 11 light moves, no hold.
+- Keyboard: Tab goes Roudon-Smith → case study → J&T → live site → Book a call, then leaves Work. Each focused row lights with its detail shown.
+- Hover: a project shot reaches 1.014 by 100 ms and settles at 1.02. "Your site" frames don't move.
+
+Phone profile on webpack production builds, HEAD worktree vs after (Pixel 7, 4× CPU, 1.6 Mbps, 150 ms RTT, 5 load runs):
+- LCP median 2232 → 2328 ms. It is the hero portrait in 9 of 10 runs; the spread is 1960–2764 before and 1992–4096 after (one run picked a paragraph). Work sits below the fold, so this is run noise.
+- CLS 0.055 → 0.054.
+- `/_next/static` JS 239.1 → 239.5 KB transferred, 19 files both. No client file changed, and every chunk is renamed because the baseline builds in another folder.
+- This method measures HEAD at 239.1 KB, so the 237.9 KB budget line from the earlier runs is not comparable.
+- Touch drags of 2,850 px through Work, 3 runs, frames over 34 ms: 1/0/2 of about 423 → 0/0/0.
+
+Scripts: `pnpm check` 43/43; e2e `public.spec` "renders the home page sections" and `cms.spec` "edits the home page beside the live page" 2/2.
+
+No real mid-range phone tested.
 
 ### 6. Review and launch
 

@@ -7,7 +7,11 @@ import { Shot } from "@/components/shot"
 import { buttonVariants } from "@/components/ui/button"
 import { WORK } from "@/data/home.data"
 import { cn } from "@/lib/utils"
-import type { WorkRow, WorkScreens } from "@/type/home.type"
+import type { HomeImage, WorkRow, WorkScreens } from "@/type/home.type"
+
+const LETTER_FROM_PX = 120
+const LETTER_STEP_PX = 40
+const LETTER_PX = 200
 
 function WorkLink({
   href,
@@ -45,37 +49,52 @@ function WorkLink({
   )
 }
 
+function RiseShot({
+  image,
+  sizes,
+  className,
+}: {
+  image: HomeImage
+  sizes: string
+  className: string
+}) {
+  return (
+    <div className={cn("overflow-clip work-rise", className)}>
+      <Shot image={image} sizes={sizes} className="size-full work-rise-shot" />
+    </div>
+  )
+}
+
 function Screens({
   screens,
   href,
-  className,
 }: {
   screens: WorkScreens
   href?: string
-  className: string
 }) {
-  const rootClassName = cn("flex-col gap-4 md:flex-row", className)
+  const className =
+    "mt-6 flex flex-col gap-4 md:flex-row work-hold:hidden"
   const shots = (
     <>
-      <div className="flex flex-col gap-4 md:w-3/5 2xl:w-147">
-        <Shot
+      <div className="flex flex-col gap-4 md:w-3/5">
+        <RiseShot
           image={screens.desktop}
-          sizes="(min-width: 1536px) 588px, (min-width: 1280px) 536px, (min-width: 768px) 60vw, 100vw"
+          sizes="(min-width: 768px) 60vw, 100vw"
           className="aspect-16/10"
         />
-        <Shot
+        <RiseShot
           image={screens.detail}
-          sizes="(min-width: 1536px) 588px, (min-width: 1280px) 536px, 60vw"
+          sizes="60vw"
           className="hidden aspect-4/3 md:block"
         />
       </div>
       <div className="grid grid-cols-2 gap-4 md:flex md:flex-1">
-        <Shot
+        <RiseShot
           image={screens.phone}
-          sizes="(min-width: 1536px) 380px, (min-width: 1280px) 342px, (min-width: 768px) 40vw, 50vw"
+          sizes="(min-width: 768px) 40vw, 50vw"
           className="aspect-6/13 md:aspect-auto md:flex-1"
         />
-        <Shot
+        <RiseShot
           image={screens.phoneDetail}
           sizes="50vw"
           className="aspect-6/13 md:hidden"
@@ -85,23 +104,104 @@ function Screens({
   )
 
   if (href === undefined) {
-    return <div className={rootClassName}>{shots}</div>
+    return <div className={className}>{shots}</div>
   }
   return (
-    <WorkLink href={href} duplicate className={rootClassName}>
+    <WorkLink href={href} duplicate className={className}>
       {shots}
     </WorkLink>
   )
 }
 
-function Row({ row, active }: { row: WorkRow; active: boolean }) {
-  let nameClassName = "text-paper"
-  let detailClassName = ""
-  if (!active) {
-    nameClassName = "text-paper xl:text-smoke"
-    detailClassName = "xl:hidden"
+function StageShot({
+  shot,
+  children,
+}: {
+  shot: "desktop" | "detail" | "phone"
+  children: ReactNode
+}) {
+  return (
+    <div data-shot={shot} className="absolute overflow-clip work-shot">
+      <div className="absolute inset-0 work-shot-inner">{children}</div>
+    </div>
+  )
+}
+
+function YourSiteFrame() {
+  return (
+    <div className="flex size-full items-center justify-center border border-dashed border-smoke work-draw">
+      <p className="text-body-small text-smoke">{WORK.yourSite}</p>
+    </div>
+  )
+}
+
+function StageSet({ row, set }: { row: WorkRow; set: number }) {
+  if (row.screens === undefined) {
+    return (
+      <div
+        data-set={set}
+        aria-hidden="true"
+        className="absolute inset-0 work-set"
+      >
+        <StageShot shot="desktop">
+          <YourSiteFrame />
+        </StageShot>
+        <StageShot shot="detail">
+          <YourSiteFrame />
+        </StageShot>
+        <StageShot shot="phone">
+          <YourSiteFrame />
+        </StageShot>
+      </div>
+    )
   }
 
+  const shots = (
+    <>
+      <StageShot shot="desktop">
+        <Shot
+          image={row.screens.desktop}
+          sizes="(min-width: 1536px) 588px, 536px"
+          className="size-full"
+        />
+      </StageShot>
+      <StageShot shot="detail">
+        <Shot
+          image={row.screens.detail}
+          sizes="(min-width: 1536px) 588px, 536px"
+          className="size-full"
+        />
+      </StageShot>
+      <StageShot shot="phone">
+        <Shot
+          image={row.screens.phone}
+          sizes="(min-width: 1536px) 380px, 342px"
+          className="size-full"
+        />
+      </StageShot>
+    </>
+  )
+
+  let body = shots
+  if (row.link !== undefined) {
+    body = (
+      <WorkLink
+        href={row.link.href}
+        duplicate
+        className="absolute inset-0 block"
+      >
+        {shots}
+      </WorkLink>
+    )
+  }
+  return (
+    <div data-set={set} className="absolute inset-0 work-set">
+      {body}
+    </div>
+  )
+}
+
+function Row({ row, index }: { row: WorkRow; index: number }) {
   let href: string | undefined
   if (row.link !== undefined) {
     href = row.link.href
@@ -121,11 +221,7 @@ function Row({ row, active }: { row: WorkRow; active: boolean }) {
 
   let tag = null
   if (row.tag !== undefined) {
-    tag = (
-      <p className={cn("text-label text-smoke uppercase", detailClassName)}>
-        {row.tag}
-      </p>
-    )
+    tag = <p className="text-label text-smoke uppercase">{row.tag}</p>
   }
 
   let link = null
@@ -139,8 +235,7 @@ function Row({ row, active }: { row: WorkRow; active: boolean }) {
         href={row.link.href}
         className={cn(
           buttonVariants({ variant: "link", size: "link" }),
-          "self-start",
-          detailClassName
+          "self-start"
         )}
       >
         {row.link.label}
@@ -151,65 +246,88 @@ function Row({ row, active }: { row: WorkRow; active: boolean }) {
 
   let screens = null
   if (row.screens !== undefined) {
-    screens = (
-      <Screens
-        screens={row.screens}
-        href={href}
-        className="mt-6 flex xl:hidden"
-      />
-    )
+    screens = <Screens screens={row.screens} href={href} />
   }
 
   let bookCall = null
   if (row.bookCall === true) {
     bookCall = (
-      <BookCallLink className={cn("mt-6 w-full md:w-auto", detailClassName)} />
+      <div className="mt-3 work-call">
+        <BookCallLink className="w-full md:w-auto" />
+      </div>
     )
   }
 
   return (
-    <article className="border-t border-graphite pt-8 xl:py-6">
+    <article
+      data-row={index + 1}
+      className="border-t border-graphite pt-8 work-row work-hold:relative work-hold:py-(--work-row-pad)"
+    >
       <div className="flex flex-col gap-3">
-        <h3 className={cn("font-heading text-heading-h2", nameClassName)}>
+        <h3 className="font-heading text-heading-h2 text-paper work-row-name">
           {name}
         </h3>
         <p className="text-label text-smoke uppercase">{row.meta}</p>
-        <p
-          className={cn("max-w-180 text-body-base text-paper", detailClassName)}
-        >
-          {row.line}
-        </p>
+      </div>
+      <div className="mt-3 flex flex-col gap-3 work-row-detail work-hold:absolute work-hold:inset-x-0 work-hold:mt-0">
+        <p className="max-w-180 text-body-base text-paper">{row.line}</p>
         {tag}
         {link}
+        {bookCall}
       </div>
       {screens}
-      {bookCall}
     </article>
   )
 }
 
+function headingLetters(heading: string) {
+  return Array.from(heading).map((letter, index) => {
+    const start = LETTER_FROM_PX + index * LETTER_STEP_PX
+    return (
+      <span
+        key={index}
+        className="inline-block work-letter"
+        style={{
+          animationRange: `entry ${start}px entry ${start + LETTER_PX}px`,
+        }}
+      >
+        {letter}
+      </span>
+    )
+  })
+}
+
 export function WorkSection() {
   return (
-    <section id="work" className="scroll-mt-16 bg-black xl:scroll-mt-20">
-      <div className="mx-auto max-w-page px-4 py-20 md:px-8 md:py-24 xl:grid xl:grid-cols-3 xl:gap-10 xl:px-10 xl:py-20 2xl:flex 2xl:gap-0">
-        <div className="flex flex-col gap-16 xl:justify-between xl:gap-10 2xl:flex-1">
+    <section
+      id="work"
+      className="scroll-mt-16 bg-black work-track xl:scroll-mt-20 work-hold:scroll-mt-0"
+    >
+      <div className="mx-auto max-w-page px-4 py-20 md:px-8 md:py-24 xl:px-10 work-hold:sticky work-hold:top-0 work-hold:grid work-hold:h-svh work-hold:grid-cols-3 work-hold:gap-x-10 work-hold:py-20 work-hold:2xl:grid-cols-[minmax(0,1fr)_61.5rem] work-hold:2xl:gap-x-0 work-hold-short:py-10">
+        <div className="flex flex-col gap-16 work-hold:min-h-0 work-hold:justify-between work-hold:gap-0">
           <div className="flex flex-col gap-6">
-            <h2 className="font-heading text-display-l text-paper md:text-display-xl">
-              {WORK.heading}
+            <h2 className="font-heading text-display-l text-paper md:text-display-xl work-hold-short:text-display-l">
+              <span className="hero-mask inline-block">
+                {headingLetters(WORK.heading)}
+              </span>
             </h2>
-            <p className="max-w-180 text-body-base text-smoke">{WORK.label}</p>
+            <p className="max-w-180 text-body-base text-smoke work-label">
+              {WORK.label}
+            </p>
           </div>
-          <div className="flex flex-col gap-16 xl:gap-0">
+          <div className="flex flex-col gap-16 work-hold:gap-0 work-hold:pb-(--work-detail)">
             {WORK.rows.map((row, index) => (
-              <Row key={row.name} row={row} active={index === 0} />
+              <Row key={row.name} row={row} index={index} />
             ))}
           </div>
         </div>
-        <Screens
-          screens={WORK.stage}
-          href={WORK.stageHref}
-          className="hidden xl:col-span-2 xl:flex 2xl:w-246"
-        />
+        <div className="hidden work-stage-area work-hold:col-span-2 work-hold:flex work-hold:min-h-0 work-hold:items-start work-hold:justify-end work-hold:2xl:col-span-1">
+          <div className="relative work-stage">
+            {WORK.rows.map((row, index) => (
+              <StageSet key={row.name} row={row} set={index + 1} />
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   )
