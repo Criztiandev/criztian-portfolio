@@ -1988,6 +1988,20 @@ that import the packages, and that `next start` refuses an export.
 - The clip is `overflow: clip` on the wrapper inside each `li`, not `hidden`, so it never becomes the timeline's scroller.
 - Reduced motion and Firefox get the still: everything lit, lines drawn.
 
+### About echo (Phase 5)
+
+- Criztian picked concept 1 of 3 ("Echo") on the lab, 2026-10-30. The lab page was deleted after the pick. Not picked: 2 "Out from behind" (the photo lifts back up and the heading slides out from behind its edge, the hero exit in reverse) and 3 "Shutter" (the photo opens from a center line, the body and each stat open top-down by clip).
+- How it moves: the section replays the hero load with the scroll. "Hi," and "I'm" rise from their masks and light (150 px each, 40 px apart, from 180 px). "Criztian." rises letter by letter like the hero name (30 px apart). The photo rises from below its frame (300–700 px) and lights from brightness 0.3 (450–700). The body rises 24 px. Each red number rises from its mask and lights, and its label rises 80 px later.
+- CSS scroll-driven animation, no JS, so `AboutSection` stays a server component. Linear, longhands only, guarded by `prefers-reduced-motion: no-preference` and `@supports (animation-timeline: view())`. It reuses the hero's keyframes (`hero-mask-rise`, `hero-light-up`, `hero-portrait-rise`, `hero-portrait-light`, `hero-copy-up`).
+- Three timelines, so every width gets the right timing without a separate build:
+  - `--about` (the section): the heading at every width (it is at the top of the section on every layout) and the photo.
+  - `--about-body` (a wrapper `div` around the body): the body starts 180 px after its own top enters. On desktop that matches the lab (section 420 px); on the phone, where the body sits under the photo, it moves only when it comes on screen. The timeline is on the wrapper, not on the moving `p`, so the 24 px rise never moves its own timeline.
+  - `--about-stat` (each `li`): the number and label run on their own `li`. From 768 px up the stats sit in a row, so `data-stat` 2 and 3 start 120 / 240 px later. On the phone they stack, so each starts at 0 and moves as it comes on screen, about 110 px apart.
+- The photo moves only at 1280 px and wider with a mouse or trackpad. Touch screens and narrower windows keep it still, lit, in place (DESIGN.md "Touch": brightening a big photo can cost phone frames). The text moves everywhere, one block at a time.
+- The heading's letters are `inline-block` spans, and Chrome then names the heading "Hi, I'm C r i z t i a n .". So the `h2` carries `aria-label` with the heading text and its animated spans are `aria-hidden`; its `textContent` stays the same, so the e2e heading check still reads it. WORK has the same split ("W O R K" in the accessibility tree) and is not fixed yet.
+- The photo frame has `overflow: clip` (not `hidden`), so it never becomes a scroll container.
+- Reduced motion and Firefox get the still: everything lit and in place.
+
 ### Booking popup
 
 - Every "Book a call" stays a real link to `BOOK_CALL.href`. `BookingDialog`, mounted once in

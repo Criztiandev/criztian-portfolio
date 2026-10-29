@@ -159,7 +159,7 @@ Criztian directs this phase himself (2026-10-29) with `/wmotion`, one section pe
 - [x] Stakes word reveal (Criztian, 2026-10-29: inked by the scroll, both ways, not once).
 - [x] 3 · Work (story, Criztian picked concept 3 "Long road" of 3, 2026-10-29): desktop hold with a mouse or trackpad, 1 screen of scroll per row; the screens ride one column that never stops, each set lights at its place and its row lights and opens; rows follow the scroll both ways; screens lift 1.02 on hover. Touch: stacked, each screen rises from its clip.
 - [x] 4 · How it works (small, Criztian picked concept 2 "Stairs" of 3, 2026-10-30): the 3 steps climb in at different heights like stairs, each step's number, title and body close up as it lands and lights, then its line draws in Smoke. Under 1280 (touch included): stacked, each step on its own timeline, one moving at a time.
-- [ ] 5 · About (small): the photo rises and lights, the 3 numbers rise. Touch: numbers only.
+- [x] 5 · About (small, Criztian picked concept 1 "Echo" of 3, 2026-10-30): the hero load replayed by the scroll. "Hi, I'm" rises word by word and "Criztian." letter by letter, lighting as they land; the photo rises from below its frame and lights; the body rises; the 3 red numbers rise from their masks one by one, each label after its number. Touch and under 1280: the photo stays still, the text moves one block at a time.
 - [ ] 5b · Blog (small): the 3 rows light top to bottom, titles rise; rows lift 1.01 on hover.
 - [ ] 6 · Prices (small): the cards open top-down one after another, each price rises last.
 - [ ] 7 · Footer (story): the headline inks word by word, then Book a call rises last.
@@ -236,6 +236,18 @@ Ramp probe on the dev server, computed values every 10 px:
 JS unchanged (server component, no client code). Phone frames not profiled: no pinned, canvas or 3D move.
 
 Scripts: `pnpm check` 43/43 (the first typecheck tripped on `.next/dev/types`, which the dev server had rewritten with a leftover tail of the deleted lab route; deleting the 2 generated files fixed it). e2e `public.spec` "renders the home page sections" passed; `cms.spec` "edits the home page beside the live page" failed once at line 703 (focus went to BODY after a header link click inside the CMS frame, not to the textarea), then passed 2/2 on a rerun of the same build.
+
+Done 2026-10-30 (About, concept 1 "Echo" of 3 on a `/motion-lab` page, deleted after the pick): the heading words rise from their masks and light, "Criztian." letter by letter like the hero name; the photo rises from below its frame and lights from 0.3; the body rises 24 px; each number rises from its mask and lights, its label 80 px later. Not picked: 2 "Out from behind" (the heading slides out from behind the photo) and 3 "Shutter" (the photo opens from a center line, the rest opens by clip). CSS scroll-driven animation, zero JS, still a server component (why in docs/architecture.md, "About echo").
+
+Ramp probe on the dev server, computed values every 10 px:
+- 1440×900: words and letters 120 px (10–90) each, 190–650; photo rise 320 (300–700), light 200 (460–700); body 160 (430–630); numbers 160 and light 120, starting 600 / 720 / 840; labels 160 (680–1120). Same numbers as the lab, within 10 px.
+- 390×844 touch: heading as desktop; photo still (no animation); body 160 once on screen (940–1140); numbers 1160 / 1270 / 1370, labels after, no pop.
+- 0 console errors at both. Reduced motion at 1440: 0 animations, all 19 elements still and lit.
+- Accessibility: the letter split named the heading "Hi, I'm C r i z t i a n ."; fixed with `aria-label` (now "Hi, I'm Criztian."). Found while checking: WORK reads "W O R K", open.
+
+JS unchanged (server component, no client code). Phone frames not profiled: no pinned, canvas or 3D move.
+
+Scripts: `pnpm check` 43/43, then lint and typecheck again after the `aria-label` fix. e2e not run: no route, form, auth or proxy change; the home heading test reads `textContent`, which is unchanged ("Hi, I'm Criztian.", read in the browser).
 
 ### 6. Review and launch
 
