@@ -67,6 +67,8 @@ Anton = the name, headlines and big numbers. Inter = everything people read. Nev
 
 Giant type is sized so the longest real word fits the narrowest width of its range (CRIZTIAN at 1280 and 768; CRIZ / TIAN at 360). Scale between the min and max with `clamp()`.
 
+In code, Display/XL and Display/XL — Large are one token: `--text-display-xl` = `clamp(10rem, 12.5vw - 2rem, 13rem)` (160 up to 1536, 208 at 1920+).
+
 ## Layout tokens (collection "Layout")
 
 - Spacing: `space/1 2 3 4 6 8 10 12 16 20 24 30 40` = 4 8 12 16 24 32 40 48 64 80 96 120 160 px (same numbers as Tailwind).

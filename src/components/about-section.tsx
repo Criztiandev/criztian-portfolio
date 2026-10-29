@@ -14,14 +14,14 @@ export function AboutSection() {
             src={ABOUT.photos.desk.src}
             alt={ABOUT.photos.desk.alt}
             fill
-            sizes="(min-width: 1280px) 434px, (min-width: 768px) 50vw, 100vw"
+            sizes="(min-width: 1536px) 588px, (min-width: 1280px) 434px, (min-width: 768px) 50vw, 100vw"
             className="object-cover"
           />
           <Image
             src={ABOUT.photos.client.src}
             alt={ABOUT.photos.client.alt}
             fill
-            sizes="(min-width: 1280px) 434px, (min-width: 768px) 50vw, 100vw"
+            sizes="(min-width: 1536px) 588px, (min-width: 1280px) 434px, (min-width: 768px) 50vw, 100vw"
             className="object-cover opacity-0 transition-opacity duration-(--motion-slow) ease-out group-hover:opacity-100 motion-reduce:transition-none"
           />
         </div>

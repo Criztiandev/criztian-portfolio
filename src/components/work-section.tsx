@@ -57,22 +57,22 @@ function Screens({
   const rootClassName = cn("flex-col gap-4 md:flex-row", className)
   const shots = (
     <>
-      <div className="flex flex-col gap-4 md:w-3/5">
+      <div className="flex flex-col gap-4 md:w-3/5 2xl:w-147">
         <Shot
           image={screens.desktop}
-          sizes="(min-width: 1280px) 536px, (min-width: 768px) 60vw, 100vw"
+          sizes="(min-width: 1536px) 588px, (min-width: 1280px) 536px, (min-width: 768px) 60vw, 100vw"
           className="aspect-16/10"
         />
         <Shot
           image={screens.detail}
-          sizes="(min-width: 1280px) 536px, 60vw"
+          sizes="(min-width: 1536px) 588px, (min-width: 1280px) 536px, 60vw"
           className="hidden aspect-4/3 md:block"
         />
       </div>
       <div className="grid grid-cols-2 gap-4 md:flex md:flex-1">
         <Shot
           image={screens.phone}
-          sizes="(min-width: 1280px) 342px, (min-width: 768px) 40vw, 50vw"
+          sizes="(min-width: 1536px) 380px, (min-width: 1280px) 342px, (min-width: 768px) 40vw, 50vw"
           className="aspect-6/13 md:aspect-auto md:flex-1"
         />
         <Shot
@@ -174,7 +174,9 @@ function Row({ row, active }: { row: WorkRow; active: boolean }) {
           {name}
         </h3>
         <p className="text-label text-smoke uppercase">{row.meta}</p>
-        <p className={cn("text-body-base text-paper", detailClassName)}>
+        <p
+          className={cn("max-w-180 text-body-base text-paper", detailClassName)}
+        >
           {row.line}
         </p>
         {tag}
@@ -189,13 +191,13 @@ function Row({ row, active }: { row: WorkRow; active: boolean }) {
 export function WorkSection() {
   return (
     <section id="work" className="scroll-mt-16 bg-black xl:scroll-mt-20">
-      <div className="mx-auto max-w-page px-4 py-20 md:px-8 md:py-24 xl:grid xl:grid-cols-3 xl:gap-10 xl:px-10 xl:py-20">
-        <div className="flex flex-col gap-16 xl:justify-between xl:gap-10">
+      <div className="mx-auto max-w-page px-4 py-20 md:px-8 md:py-24 xl:grid xl:grid-cols-3 xl:gap-10 xl:px-10 xl:py-20 2xl:flex 2xl:gap-0">
+        <div className="flex flex-col gap-16 xl:justify-between xl:gap-10 2xl:flex-1">
           <div className="flex flex-col gap-6">
             <h2 className="font-heading text-display-l text-paper md:text-display-xl">
               {WORK.heading}
             </h2>
-            <p className="text-body-base text-smoke">{WORK.label}</p>
+            <p className="max-w-180 text-body-base text-smoke">{WORK.label}</p>
           </div>
           <div className="flex flex-col gap-16 xl:gap-0">
             {WORK.rows.map((row, index) => (
@@ -206,7 +208,7 @@ export function WorkSection() {
         <Screens
           screens={WORK.stage}
           href={WORK.stageHref}
-          className="hidden xl:col-span-2 xl:flex"
+          className="hidden xl:col-span-2 xl:flex 2xl:w-246"
         />
       </div>
     </section>

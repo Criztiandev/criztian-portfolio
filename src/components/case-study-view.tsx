@@ -38,7 +38,7 @@ function Change({ change }: { change: CaseStudyChange }) {
       <Shot image={change.phoneScreen} sizes="100vw" className="md:hidden" />
       <Shot
         image={change.screen}
-        sizes="(min-width: 1440px) 880px, (min-width: 1280px) 62vw, 100vw"
+        sizes="(min-width: 1920px) 1360px, (min-width: 1280px) 62vw, 100vw"
         className="hidden md:block xl:min-w-0 xl:flex-1"
       />
     </article>
@@ -106,7 +106,7 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
           </div>
           <Shot
             image={study.image}
-            sizes="(min-width: 1440px) 1360px, 100vw"
+            sizes="(min-width: 1920px) 1840px, 100vw"
             className="mt-20"
           />
         </div>
@@ -149,9 +149,9 @@ export function CaseStudyView({ study }: { study: CaseStudy }) {
               >
                 <Shot
                   image={shot.image}
-                  sizes="(min-width: 1440px) 660px, (min-width: 1280px) 46vw, 100vw"
+                  sizes="(min-width: 1920px) 900px, (min-width: 1280px) 46vw, 100vw"
                 />
-                <figcaption className="text-body-base">
+                <figcaption className="max-w-180 text-body-base">
                   {shot.caption}
                 </figcaption>
               </figure>

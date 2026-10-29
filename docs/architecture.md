@@ -1785,6 +1785,15 @@ that import the packages, and that `next start` refuses an export.
 - **Proportions:** desktop Work and About use `grid-cols-3` (list/photo 427 px, Figma 434);
   the screens column is `w-3/5` (Figma 59.6%). Work runs 11 px taller on desktop and 16 px on
   tablet, About 10 px shorter. Accepted over arbitrary widths.
+- **Large (2xl, fourth pack):** the Work stage leaves the 3-column grid for fixed sizes from
+  the Large frame (`110:607`): shots `w-147` (588), phone fills the rest of `w-246` (984 → 380),
+  list `flex-1` with no gap (Figma list 856 ends where the screens start). At 1536 the list is
+  472, still wider than the 427 at 1440. About keeps the grid: the photo is 587 × 733 at 1920,
+  Figma 588 × 735 (Figma's own 3-column Steps are 586.67 there); an exact 588 would need an
+  arbitrary column template for 1.3 px.
+- **Display/XL is one clamp token:** `--text-display-xl` = `clamp(10rem, 12.5vw - 2rem, 13rem)`,
+  160 up to 1536 and 208 at 1920+. It covers both Figma styles (Display/XL and Display/XL — Large)
+  because the floor is the desktop size, so every `md:text-display-xl` stays 160 below 1536.
 - **Static Work on desktop:** row 1 is the stage. Rows 2 and 3 show only name and meta; their
   line, link and Book a call are `xl:hidden` until the motion phase adds row switching. The
   row 3 dashed "your site" frames come with that motion, since they only show when row 3 is
