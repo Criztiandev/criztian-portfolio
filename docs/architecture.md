@@ -2042,6 +2042,18 @@ that import the packages, and that `next start` refuses an export.
 - The footer is shared, so the same motion runs on `/blog`, `/blog/[slug]` and `/work/[slug]`. Every range is counted from the footer's own parts, so it lands lit at the end on every page (checked on `/blog` and the case study). On a page too short to hide the footer at load, it shows partly dim until the visitor scrolls.
 - Reduced motion and Firefox get the still: everything lit and in place.
 
+### Case study open (Phase 5)
+
+- Criztian picked concept 2 of 3 ("Open") on the lab, 2026-10-30. The lab pages were deleted after the pick. Not picked: 1 "Echo" (the hero load replayed: the title written letter by letter, screens rising from their frames and lighting) and 3 "Spotlight" (each note, change and measure item lit at the reading line, then back to 60% once past the top third).
+- How it moves: the Prices open, carried to the screens, so the page draws itself like a browser loading. Every screen is uncovered top-down by `clip-path: inset(0 0 100% 0)` → `inset(0)` (`prices-open`), and the text beside or below it lights as the edge passes. Paragraphs open the same way, so their lines appear top to bottom.
+- The header is the first screen, so the scroll can't reveal it: it gets a timed load like the hero (title words, then sub and meta, then the screen). The screen open (`case-shot-open`) splits its time: only about 45% of the 850 px screen is on screen at 1440×900, and a plain ease-out opened that part in about 150 ms. So the first 45% runs on `--ease-out` over 70% of the 2 s and the rest is linear and off screen.
+- CSS only, no JS, so `CaseStudyView` stays a server component. Scroll moves are linear, longhands only, guarded by `prefers-reduced-motion: no-preference` and `@supports (animation-timeline: view())`. They reuse `hero-mask-rise`, `hero-light-up`, `prices-open` and `blog-link-rise`, and the `hero-mask` clip.
+- One timeline name, `--case`, set on many elements; each animation binds to its nearest one. Headings and measure items run on their section; screens, paragraphs and notes name their own timeline, so they work the same stacked and side by side (their own clip never moves their box). On the 2-column BEFORE row and the 3-column notes row, `data-shot` / `data-note` add a `--case-delay` of 120 / 100 px per item at 1280 and up, so items side by side open one after another; stacked, each starts from its own entry.
+- Touch and under 1280 get the light version, like the footer: `case-rise-desktop`, `case-light-desktop` and `case-body` run only at 1280 and up with hover and a fine pointer; `case-rise-touch` runs on everything else (the exact opposite). There the screens and notes open (240 px instead of 360: the phone screens are 224–447 px tall), BEFORE and AFTER rise as whole words, and paragraphs, captions and change titles stay still.
+- BEFORE and AFTER are named by `aria-label` and their letters are `aria-hidden`, like "PRICES".
+- The links in the Next band sit in padded `overflow: clip` wrappers (4 px, so the focus ring isn't cut) and rise 150%. The wrappers are `flex`: an `inline-block` wrapper added a line box and made the band 8 px taller.
+- Reduced motion and Firefox get the still: everything lit and in place. Without scroll timelines the load still plays, like the hero.
+
 ### Booking popup
 
 - Every "Book a call" stays a real link to `BOOK_CALL.href`. `BookingDialog`, mounted once in
