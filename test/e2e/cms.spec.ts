@@ -844,7 +844,9 @@ test("shows a post on the site only after Publish", async ({
   await expect(
     post.getByRole("heading", { level: 2, name: "Heading" })
   ).toBeVisible()
-  await expect(post.locator("strong")).toHaveText("bold text")
+  await expect(
+    post.locator("strong").filter({ hasText: "bold text" })
+  ).toHaveCount(1)
   await expect(post.locator("th br")).toHaveCount(1)
 
   await expectOk(await saveDraft(page, id, { ...first, title: draftTitle }))

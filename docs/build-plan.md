@@ -110,10 +110,12 @@ Done 2026-10-29: shadcn Button restyled through its cva (sizes `large` 52, `smal
 - [x] Privacy page (copy updated in the third pack: 5 sections, cookies included)
 - [x] Home: Roudon-Smith row link "Read the case study" + footer "Blog" link (third pack). Footer Blog link done 2026-10-29 with Privacy (shared bar); row link still open.
 - [x] Case study template `/work/[slug]`, filled for Roudon-Smith (third pack)
-- [ ] Blog list restyle (third pack)
-- [ ] Blog post restyle, every rich-text element (third pack)
+- [x] Blog list restyle (third pack)
+- [x] Blog post restyle, every rich-text element (third pack)
 
 Done when: each section matches Figma at 390, 768, 1440 and 1920 (centered at 1440).
+
+Done 2026-10-29 (Blog list + post): `/blog` draws the newest post big and the rest as rows (whole post is one link); `/blog/[slug]` has the meta rail (date · N min read · By Criztian), the summary as lead, every rich-text element (h2, h3–h6, ul, ol, quote, table, link, code, hr), the author block and the Next post band, then the footer. Empty list: "No posts yet." (not drawn in Figma). Figma calls: 7. Checked with the Figma sample post seeded locally, then deleted. List at 390/768/1440: header 311/376/304 and h1 y 96/120/160, same as Figma; featured post 8 px shorter (link inset, why in docs/architecture.md, "Blog"). Post at 1440: header 422, article 1828, h2/table/ol/quote/ul y 627/717/1227/1359/1777, all same as Figma; article 2539 at 390 and 1856 at 768, same as Figma. 1 h1, 5 h2, no sideways scroll, 0 console errors at all 4 widths. Known: at 1920 content is not centered at 1440 (`--container-page`, open since `0c62aa3`). `pnpm check` 43/43 (3 new); `pnpm test:e2e` blog + publish specs 4/4.
 
 Done 2026-10-29 (Home row link + case study): `/work/roudon-smith` prerendered from `src/data/case-study.data.ts`; `/work/jnt-express` 404. Row link is an internal link with no arrow. Link size: no inset, 44 px tall on touch (measured 156.7 × 44 at 390 with touch; 16 px tall on desktop, x 16 / 32 / 40 on the gutter). Contact email → criztiandev@gmail.com (footer, booking error, Privacy). Figma calls: 10. Section heights vs Figma at 1440: header 1442 / business 432 / Before 1178 / After 2292 / Measure 513, all within 1 px; at 768: 1107 / 472 / 1961 / 2446 / 621, within 1 px; at 390: all within 1 px except After +323 (4:5 phone crops, why in docs/architecture.md, "Case study"). Next band shows only "All work" (177 tall) until J&T is live. 1 h1, 5 h2, no sideways scroll, 0 console errors, every visible image loads at 390 and 1440. Known: at 1920 content is not centered at 1440, because `--container-page` is 120rem since `0c62aa3` (open question in the report). `pnpm check` 40/40; `pnpm test:e2e` public.spec.ts 13/13 (1 new).
 

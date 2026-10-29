@@ -1846,3 +1846,35 @@ that import the packages, and that `next start` refuses an export.
   into a landscape frame, so its text is squashed to about two-thirds height. "Starting 20%
   down" is `object-position: 50% 47%` (20% of the scaled 776 px image is 155 px, out of 328
   px of overflow). The phone AFTER is about 320 px taller than Figma because of this.
+
+### Blog (`/blog`, `/blog/[slug]`)
+
+- `BlogListView` and `PostView` draw the pages; the routes only load posts. `listVisiblePosts`
+  (`src/service/post.service.ts`) is the one list query, used by the index and by the post
+  page to find the next older post (`findNextPost`). Reading time and dates come from
+  `src/util/post.util.ts`: words of the plain text at 200 a minute, rounded up, at least 1;
+  dates print as "Nov 16, 2026" in UTC so the server's time zone can't shift the day.
+- The nav sits in the page flow, so each header's top padding is Figma's minus the nav
+  (96 − 64, 120 − 64, 160 − 80), as on Privacy.
+- The newest post is the first `li`, drawn big; the rest are rows. Each title link stretches
+  over its whole `li` with an `::after` box (the focus ring is drawn on that box), so the
+  whole post is one link without nesting the summary's own links inside an `<a>`. "Read the
+  post" is a styled `aria-hidden` span; links inside a summary sit under the box and don't
+  take clicks.
+- Rich text styles live in `postBodyComponents` (`src/components/post-body.tsx`), not in
+  `markdownOptions`: the text-only helpers and the tests share those options and need no
+  classes. The wrapper sets Body/Base, so paragraphs need no component and a quote's
+  paragraphs take the quote's Anton size. A Markdown `#` renders as an h2, so a post never
+  adds a second h1. `ul` markers are 6 px Paper White squares drawn with `::before`; `ol`
+  keeps native numbers (the `start` attribute and nested lists keep working), so a number
+  sits about 8 px right of Figma's.
+- Tables stay real tables from `md` up (fixed, equal columns). Below `md` every row and cell
+  is a block, the header row hides, and each row stacks its cells, as docs/website-plan.md
+  says.
+- The Next post band always shows "All posts". Its heading and "Read the next post" render
+  only when there is an older post, the same rule as the case study's Next band.
+- The featured post and the Next band's links are 8 px shorter than Figma: the `link` size
+  has no inset since design review round 1 (Case study, above).
+- A stale data cache can hide a newly published post from a fresh `pnpm build`: fetch results
+  persist in `.next/cache` across builds. Wipe `.next` before a browser check that needs new
+  rows (seen 2026-10-29).
