@@ -162,7 +162,7 @@ Criztian directs this phase himself (2026-10-29) with `/wmotion`, one section pe
 - [x] 5 · About (small, Criztian picked concept 1 "Echo" of 3, 2026-10-30): the hero load replayed by the scroll. "Hi, I'm" rises word by word and "Criztian." letter by letter, lighting as they land; the photo rises from below its frame and lights; the body rises; the 3 red numbers rise from their masks one by one, each label after its number. Touch and under 1280: the photo stays still, the text moves one block at a time.
 - [x] 5b · Blog (small, Criztian picked concept 3 "Write" of 3, 2026-10-30): each title is written letter by letter, like the hero and About names, then its date and summary rise; "Blog" rises letter by letter and "All posts" rises last; rows lift 1.01 on hover. Touch: the titles rise word by word.
 - [x] 6 · Prices (small, Criztian picked concept 1 "Open" of 3, 2026-10-30): the cards open top-down one after another, the light follows the edge down each card, and each price rises from its mask last; "PRICES" rises letter by letter, the notes rise and Book a call rises last. Touch: each card opens on its own timeline and its price rises; nothing else inside moves.
-- [ ] 7 · Footer (story): the headline inks word by word, then Book a call rises last.
+- [x] 7 · Footer (story, Criztian picked concept 2 "Sign-off" of 3, 2026-10-30): the hero name's move one last time. "Let's talk about your place." is written letter by letter, each letter rising from its word's mask and lighting; "Or email" rises word by word, the email and the socials rise from their clips, and Book a call rises dim and lights last, the last light on the page. The bottom bar stays still. Touch and under 1280: the heading rises word by word, then Book a call rises and lights; nothing else moves.
 - [ ] Other pages (small): case study, blog, 404 and Privacy use the vocabulary, no holds; Criztian directs them.
 - [ ] Reduced motion: stills, stacked Work.
 
@@ -272,6 +272,19 @@ Ramp probe on the dev server, computed values every 10 px, cover counted from th
 JS unchanged (server component, no client code). Phone frames not profiled: no pinned, canvas or 3D move.
 
 Scripts: `pnpm check` 43/43 (typecheck first failed on `.next/dev/types/routes.d.ts` and `validator.ts`: the dev server's copies, left with text past their end after the lab route was deleted while `next typegen` ran; the two generated files were deleted and typecheck passed). e2e not run: no route, form, auth or proxy change.
+
+Done 2026-10-30 (Footer, concept 2 "Sign-off" of 3 on a `/motion-lab` page, deleted after the pick): the heading is written letter by letter like the hero, About and Blog names, each letter rising from its word's mask and lighting from 20%; "Or email" rises word by word, the email and the 3 socials rise 150% from padded clips; Book a call rises from its clip at 20% and lights last. The bottom bar never moves. Not picked: 1 "Answer" (the DESIGN.md beat: the heading inks word by word like Stakes, no movement; the email and socials rise 24 px; Book a call lights last) and 3 "Landing" (Stairs: the heading words climb from 160–280 px below and land together, then the email, socials and Book a call climb from 160–260 px and land on the bar at the page's end). CSS scroll-driven animation, zero JS, still a server component (why in docs/architecture.md, "Footer sign-off"). The geometry decided the shape first: the footer is the page's end, so the whole story has only its own height of scroll (794 px at 1440×900), and the bar is fully on screen for only the last 40 px.
+
+Ramp probe on a production build (`next build`, served on :3110), computed values every 10 px, counted from the footer's top entering:
+- 1440×900, mouse: 24 letters, each 120 px (10–90), done 450–680; Book a call rises 520–670 and lights 630–780 of 794, the last to finish; "Or email" done 690 / 710; email and socials done 730–770. 56 animations, no pop.
+- 1920×1080, mouse (3-line heading): letters done 440–900; Book a call lit at 1050 of 1067, last.
+- 390×844 and 768×1024, touch: 5 words, each 120 px (10–90), done 400–520 / 420–680; Book a call lit at 570 of 730 / 860 of 894, last; 12 animations (no letters, no email or socials).
+- Every run: everything lit and in place at the last scroll position, 0 console errors, 1 h1. Reduced motion at 1440 and 390: 0 footer animations, the still. `/blog` and `/work/roudon-smith` (same footer): lit at the end at 1440, and at 390 touch for the case study.
+- Layout: footer 794 / 1068 tall at 1440 / 1920 and 670 / 874 at 390 / 768 without touch, same as before (730 / 894 with touch is the existing 44 px tap height on the socials).
+
+JS unchanged (server component, no client code). Phone frames not profiled: no pinned, canvas or 3D move.
+
+Scripts: `pnpm check` 43/43 (typecheck first failed on `.next/dev/types/routes.d.ts` and `validator.ts` again, the dev server's copies left with text past their end after the lab routes were deleted; the two generated files were removed and the check passed). `pnpm exec playwright test public.spec.ts -g "renders the home page sections"` 1/1 (it reads the footer h2's text).
 
 ### 6. Review and launch
 

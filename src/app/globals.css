@@ -932,6 +932,75 @@
     }
 }
 
+@utility footer-head-timeline {
+    view-timeline-name: --footer-head;
+}
+
+@utility footer-letter {
+    @media (width >= 80rem) and (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-mask-rise, hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --footer-head;
+        }
+    }
+}
+
+@utility footer-word {
+    @media (prefers-reduced-motion: no-preference) {
+        @media (width < 80rem), (hover: none), (pointer: coarse), (pointer: none) {
+            @supports (animation-timeline: view()) {
+                animation-name: hero-mask-rise, hero-light-up;
+                animation-timing-function: linear;
+                animation-fill-mode: both;
+                animation-timeline: --footer-head;
+            }
+        }
+    }
+}
+
+@utility footer-tail-timeline {
+    view-timeline-name: --footer-tail;
+}
+
+@utility footer-call {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: blog-link-rise, hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --footer-tail;
+            animation-range: cover 10px cover 160px, cover 100px cover 250px;
+            @media (width >= 80rem) and (hover: hover) and (pointer: fine) {
+                animation-range: cover 10px cover 160px, cover 120px cover 270px;
+            }
+        }
+    }
+}
+
+@utility footer-lead {
+    @media (width >= 80rem) and (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-mask-rise;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --footer-tail;
+        }
+    }
+}
+
+@utility footer-link {
+    @media (width >= 80rem) and (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        @supports (animation-timeline: view()) {
+            animation-name: blog-link-rise;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --footer-tail;
+        }
+    }
+}
+
 @theme inline {
     --font-heading: var(--font-display, var(--font-sans));
     --font-sans: var(--font-sans);

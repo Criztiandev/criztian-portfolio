@@ -268,10 +268,10 @@ Story sections are beats in the scroll story and get 3 concepts at their `/wmoti
 | 5   | About                          | small, shipped    | "Echo": the hero load, replayed by the scroll. "Criztian." rises letter by letter like the hero name, the photo rises from its clip and lights, the 3 red numbers rise one by one. Touch: the photo stays still.                                 |
 | 5b  | Blog                           | small, shipped    | "Write": each title is written letter by letter, like the hero and About names, then its date and summary rise. Touch: the titles rise word by word.                                                                                          |
 | 6   | Prices                         | small, shipped    | "Open": the 3 cards open top-down, one after another, and the light follows the edge down each card; each price rises last. Touch: each card opens and its price rises, nothing else inside moves.                                              |
-| 7   | Footer                         | story, the ending | The headline inks word by word, like Stakes. Then Book a call rises: the last light on the page.                                                                                                                                               |
+| 7   | Footer                         | story, the ending, shipped | "Sign-off": the hero name's move one last time. The heading is written letter by letter, each letter rising and lighting; the email and socials rise; Book a call rises dim and lights last, the last light on the page. The bar stays still. Touch: the heading rises word by word, then Book a call. |
 | —   | Case study, blog, 404, Privacy | small             | The vocabulary only, no holds. Criztian directs them later.                                                                                                                                                                                    |
 
-Every section title rises from its mask and lights as it enters; each section adds its own beat on top. Stakes and the footer share the ink on purpose: the problem and the answer.
+Every section title rises from its mask and lights as it enters; each section adds its own beat on top. The footer was planned to share the Stakes ink (the problem and the answer); Criztian took the hero name's letter rise instead (2026-10-30), so the page closes the way it opened.
 
 ### Vocabulary
 

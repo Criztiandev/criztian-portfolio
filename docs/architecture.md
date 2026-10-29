@@ -2029,6 +2029,19 @@ that import the packages, and that `next start` refuses an export.
 - The cards don't answer the pointer: they can't be clicked (DESIGN.md "Hover").
 - Reduced motion and Firefox get the still: everything lit and in place.
 
+### Footer sign-off (Phase 5)
+
+- Criztian picked concept 2 of 3 ("Sign-off") on the lab, 2026-10-30. The lab page was deleted after the pick. Not picked: 1 "Answer" (the DESIGN.md beat: the heading inks word by word like Stakes, no movement) and 3 "Landing" (the heading words and then the lower block climb from growing depths and land together at the page's end, like Stairs).
+- How it moves: "Let's talk about your place." is written letter by letter, each letter rising from its word's mask and lighting from 20% (150 px each). "Or email" rises word by word from masks, the email link and the 3 socials rise 150% from padded clips, and Book a call rises from its clip at 20% and lights last. The bar (© · Blog · Privacy) never moves.
+- CSS scroll-driven animation, no JS, so `SiteFooter` stays a server component. Linear, longhands only, guarded by `prefers-reduced-motion: no-preference` and `@supports (animation-timeline: view())`. It reuses `hero-mask-rise`, `hero-light-up` and `blog-link-rise`, and the `hero-mask` clip.
+- Why the bar stays still: the footer is the end of the page, so the whole story gets only the footer's own height of scroll (794 px at 1440×900, 670 on a phone), and the bar is fully on screen only for the last 40 px. Any move there would be a pop. Everything else ends by 270 px after the Book a call row's top enters (290 px of room at 1280 and up, 266 at 768–1279), so the footer always finishes lit.
+- Two timelines, because the heading grows: at 1920 it wraps to 3 lines and everything below it moves down 274 px. The letters run on the heading's own timeline (`--footer-head`) with starts as `entry calc(N% + 170px)`, a share of the heading's height, so the wave stretches with the heading at every width (10 px apart at 1440, 20 at 1920) and a letter on a lower line never lights before it is on screen. The Book a call row, email and socials run on `--footer-tail`, set on their wrapper, whose room is the same at every desktop width.
+- Touch and under 1280 get the light version, like Blog: `footer-letter`, `footer-lead` and `footer-link` run only at 1280 and up with hover and a fine pointer; `footer-word` runs on everything else (`(width < 80rem), (hover: none), (pointer: coarse), (pointer: none)`, the exact opposite). There the heading rises word by word and Book a call rises and lights over 100–250 px, inside the 266 px of room at 768–1279.
+- The heading is named by `aria-label` and its letters are `aria-hidden`, like "PRICES", so screen readers don't spell it.
+- The email link and each social `li` are padded `overflow: clip` wrappers (4 px, net zero with `-m-1`), so focus rings aren't cut, and they rise 150% so the padding never shows a sliver. The footer itself is `overflow: clip`, so a rising element never adds scroll height at the page's end.
+- The footer is shared, so the same motion runs on `/blog`, `/blog/[slug]` and `/work/[slug]`. Every range is counted from the footer's own parts, so it lands lit at the end on every page (checked on `/blog` and the case study). On a page too short to hide the footer at load, it shows partly dim until the visitor scrolls.
+- Reduced motion and Firefox get the still: everything lit and in place.
+
 ### Booking popup
 
 - Every "Book a call" stays a real link to `BOOK_CALL.href`. `BookingDialog`, mounted once in
