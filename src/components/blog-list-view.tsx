@@ -11,8 +11,30 @@ import { formatPostDate, readingMinutes } from "@/util/post.util"
 
 const containerClassName = "mx-auto max-w-page px-4 md:px-8 xl:px-10"
 
+const TITLE_FROM_MS = 200
+const TITLE_STEP_MS = 90
+const INTRO_MS = 900
+const FEATURED_OPEN_MS = 500
+const FEATURED_TITLE_LIGHT_MS = 500
+const FEATURED_SUMMARY_LIGHT_MS = 750
+const FEATURED_META_LIGHT_MS = 800
+const FEATURED_LINK_LIGHT_MS = 1000
+
+const RISE_PX = 150
+const ROW_TITLE_LIGHT_PX = 160
+const ROW_SUMMARY_LIGHT_PX = 180
+const ROW_META_LIGHT_PX = 240
+
 export const postLinkClassName =
   "outline-none group-hover:underline after:absolute after:inset-0 focus-visible:after:ring-2 focus-visible:after:ring-paper"
+
+function loadDelay(delayMs: number): React.CSSProperties {
+  return { animationDelay: `${delayMs}ms` }
+}
+
+function rowLightRange(startPx: number): React.CSSProperties {
+  return { animationRange: `cover ${startPx}px cover ${startPx + RISE_PX}px` }
+}
 
 export function PostMeta({ post }: { post: Post }) {
   return (
@@ -28,17 +50,29 @@ export function PostMeta({ post }: { post: Post }) {
 
 function FeaturedPost({ post }: { post: Post }) {
   return (
-    <li className="group relative flex flex-col gap-6 border-t border-graphite pt-10 pb-16">
-      <h2 className="font-heading text-heading-h1 text-balance md:text-display-l xl:w-275">
+    <li
+      className="group relative flex blog-row flex-col gap-6 border-t border-graphite pt-10 pb-16 motion-safe:animate-blog-open"
+      style={loadDelay(FEATURED_OPEN_MS)}
+    >
+      <h2
+        className="font-heading text-heading-h1 text-balance motion-safe:animate-blog-light md:text-display-l xl:w-275"
+        style={loadDelay(FEATURED_TITLE_LIGHT_MS)}
+      >
         <Link href={`/blog/${post.slug}`} className={postLinkClassName}>
           {post.title}
         </Link>
       </h2>
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-        <div className="text-body-large xl:w-160">
+        <div
+          className="text-body-large motion-safe:animate-blog-light xl:w-160"
+          style={loadDelay(FEATURED_SUMMARY_LIGHT_MS)}
+        >
           <PostSummary summary={post.summary} />
         </div>
-        <div className="xl:w-85">
+        <div
+          className="motion-safe:animate-blog-light xl:w-85"
+          style={loadDelay(FEATURED_META_LIGHT_MS)}
+        >
           <PostMeta post={post} />
         </div>
       </div>
@@ -46,8 +80,9 @@ function FeaturedPost({ post }: { post: Post }) {
         aria-hidden="true"
         className={cn(
           buttonVariants({ variant: "link", size: "link" }),
-          "self-start group-hover:underline"
+          "self-start group-hover:underline motion-safe:animate-blog-light"
         )}
+        style={loadDelay(FEATURED_LINK_LIGHT_MS)}
       >
         {BLOG.readPost}
       </span>
@@ -64,16 +99,27 @@ export function PostRow({
 }) {
   const Title = titleTag
   return (
-    <li className="group relative flex flex-col gap-4 border-t border-graphite py-10 xl:flex-row xl:justify-between">
+    <li className="group relative flex blog-row flex-col gap-4 border-t border-graphite py-10 blog-list-open xl:flex-row xl:justify-between">
       <div className="flex flex-col gap-3 xl:w-190">
-        <Title className="font-heading text-heading-h2 text-balance">
+        <Title
+          className="font-heading text-heading-h2 text-balance blog-list-light"
+          style={rowLightRange(ROW_TITLE_LIGHT_PX)}
+        >
           <Link href={`/blog/${post.slug}`} className={postLinkClassName}>
             {post.title}
           </Link>
         </Title>
-        <PostMeta post={post} />
+        <div
+          className="blog-list-light"
+          style={rowLightRange(ROW_META_LIGHT_PX)}
+        >
+          <PostMeta post={post} />
+        </div>
       </div>
-      <div className="text-body-base xl:w-85">
+      <div
+        className="text-body-base blog-list-light xl:w-85"
+        style={rowLightRange(ROW_SUMMARY_LIGHT_PX)}
+      >
         <PostSummary summary={post.summary} />
       </div>
     </li>
@@ -100,6 +146,18 @@ function PostList({ posts }: { posts: Post[] }) {
   )
 }
 
+function titleLetters(title: string) {
+  return Array.from(title).map((letter, index) => (
+    <span
+      key={index}
+      className="inline-block motion-safe:animate-case-title-word"
+      style={loadDelay(TITLE_FROM_MS + index * TITLE_STEP_MS)}
+    >
+      {letter}
+    </span>
+  ))
+}
+
 export function BlogListView({ posts }: { posts: Post[] }) {
   return (
     <>
@@ -110,10 +168,20 @@ export function BlogListView({ posts }: { posts: Post[] }) {
             "flex flex-col gap-6 pt-8 pb-20 md:pt-14 md:pb-24 xl:flex-row xl:items-end xl:justify-between xl:pt-20 xl:pb-20"
           )}
         >
-          <h1 className="font-heading text-display-l uppercase md:text-display-xl">
-            {BLOG.title}
+          <h1
+            aria-label={BLOG.title}
+            className="font-heading text-display-l uppercase md:text-display-xl"
+          >
+            <span aria-hidden="true" className="inline-block hero-mask">
+              {titleLetters(BLOG.title)}
+            </span>
           </h1>
-          <p className="text-body-base xl:w-85">{BLOG.intro}</p>
+          <p
+            className="text-body-base motion-safe:animate-hero-copy-up xl:w-85"
+            style={loadDelay(INTRO_MS)}
+          >
+            {BLOG.intro}
+          </p>
         </header>
         <div className={cn(containerClassName, "pt-4 pb-20 md:pb-24 xl:pb-30")}>
           <PostList posts={posts} />

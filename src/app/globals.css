@@ -65,6 +65,9 @@
     --animate-hero-copy-up: hero-copy-up 1000ms var(--ease-out) backwards;
     --animate-case-title-word: hero-mask-rise 1100ms var(--ease-out) backwards, hero-light-up 900ms var(--ease-out) backwards;
     --animate-case-shot: case-shot-open 2000ms linear 500ms backwards;
+    --animate-blog-open: blog-open 1400ms var(--ease-out) backwards;
+    --animate-blog-light: hero-light-up 900ms var(--ease-out) backwards;
+    --animate-post-column: post-column-open 2000ms linear backwards;
 
     @keyframes hero-mask-rise {
         from {
@@ -116,6 +119,29 @@
         100% {
             clip-path: inset(0 0 0 0);
         }
+    }
+
+    @keyframes post-column-open {
+        0% {
+            clip-path: inset(0 0 100% 0);
+            animation-timing-function: var(--ease-out);
+        }
+        70% {
+            clip-path: inset(0 0 calc(100% - 50svh) 0);
+            animation-timing-function: linear;
+        }
+        100% {
+            clip-path: inset(-0.5rem);
+        }
+    }
+}
+
+@keyframes blog-open {
+    from {
+        clip-path: inset(0 0 100% 0);
+    }
+    to {
+        clip-path: inset(-0.5rem);
     }
 }
 
@@ -1135,6 +1161,114 @@
             animation-timing-function: linear;
             animation-fill-mode: both;
             animation-timeline: --case;
+        }
+    }
+}
+
+@utility blog-list-open {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: blog-open;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --blog-row;
+            animation-range: cover 120px cover 360px;
+        }
+    }
+}
+
+@utility blog-list-light {
+    @media (width >= 80rem) and (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --blog-row;
+        }
+    }
+}
+
+@utility post-timeline {
+    view-timeline-name: --post;
+}
+
+@utility post-rise {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-mask-rise, hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --post;
+        }
+    }
+}
+
+@utility post-blocks {
+    & > :is(p, h3, h4, h5, h6, pre, blockquote),
+    & > :is(ul, ol) > li,
+    & > table :is(th, td) {
+        view-timeline-name: --post;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            & > blockquote {
+                animation-name: blog-open;
+                animation-timing-function: linear;
+                animation-fill-mode: both;
+                animation-timeline: --post;
+                animation-range: cover 0px cover 360px;
+            }
+        }
+    }
+    @media (width >= 80rem) and (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        @supports (animation-timeline: view()) {
+            & > :is(p, h3, h4, h5, h6, pre),
+            & > :is(ul, ol) > li,
+            & > table :is(th, td) {
+                animation-name: blog-open;
+                animation-timing-function: linear;
+                animation-fill-mode: both;
+                animation-timeline: --post;
+                animation-range: cover 0px cover 200px;
+            }
+            & > :is(ul, ol) > li,
+            & > table :is(th, td) {
+                animation-range: cover 0px cover 150px;
+            }
+        }
+    }
+}
+
+@utility post-photo {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: blog-open;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --post;
+            animation-range: cover 40px cover 280px;
+        }
+    }
+}
+
+@utility post-light {
+    @media (width >= 80rem) and (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+        @supports (animation-timeline: view()) {
+            animation-name: hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --post;
+        }
+    }
+}
+
+@utility post-link {
+    @media (prefers-reduced-motion: no-preference) {
+        @supports (animation-timeline: view()) {
+            animation-name: blog-link-rise, hero-light-up;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --post;
         }
     }
 }

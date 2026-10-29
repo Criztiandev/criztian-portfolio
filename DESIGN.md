@@ -270,7 +270,8 @@ Story sections are beats in the scroll story and get 3 concepts at their `/wmoti
 | 6   | Prices                         | small, shipped    | "Open": the 3 cards open top-down, one after another, and the light follows the edge down each card; each price rises last. Touch: each card opens and its price rises, nothing else inside moves.                                              |
 | 7   | Footer                         | story, the ending, shipped | "Sign-off": the hero name's move one last time. The heading is written letter by letter, each letter rising and lighting; the email and socials rise; Book a call rises dim and lights last, the last light on the page. The bar stays still. Touch: the heading rises word by word, then Book a call. |
 | —   | Case study                     | small, shipped    | "Open": the page draws itself like a browser loading. The header loads (title words rise and light, the screen opens top-down); then every screen opens top-down and the text beside it lights as the edge passes, paragraphs open line by line, the notes open one after another. Touch: the screens and notes open, headings rise; paragraphs stay still. |
-| —   | Blog, 404, Privacy             | small             | The vocabulary only, no holds. Criztian directs them later.                                                                                                                                                                                    |
+| —   | Blog pages                     | small, shipped    | "Open": the case study's page loading carried to `/blog` and posts. The header and the newest post load (BLOG letter by letter, the post opens top-down, its text lighting with the edge); each row opens as you reach it; in a post the article opens top-down, then every paragraph, list line and table cell opens, h2s rise word by word, the quote opens slowly. Touch: the rows and the quote open, the h2s rise; paragraphs stay still. |
+| —   | 404, Privacy                   | small             | The vocabulary only, no holds. Criztian directs them later.                                                                                                                                                                                    |
 
 Every section title rises from its mask and lights as it enters; each section adds its own beat on top. The footer was planned to share the Stakes ink (the problem and the answer); Criztian took the hero name's letter rise instead (2026-10-30), so the page closes the way it opened.
 
@@ -305,7 +306,7 @@ Every section title rises from its mask and lights as it enters; each section ad
 - Load: entrances 1000–1400 ms, lights 900 ms, all done by about 3.2 s. The case study screen opens over 2 s: its on-screen part on the ease-out over 1.4 s, the rest linear below the fold.
 - Feedback: buttons 150 ms, dims and the nav 300 ms, photo color 600 ms, relight 900 ms ease-in-out. Leaving is faster than arriving.
 
-**Triggers:** page load (hero, nav and the case study header only) · scroll, both ways (every reveal below the hero) · hold (Work on desktop only; the hero exit has none) · hover and keyboard focus (devices with hover and a fine pointer). Never "plays once when it comes into view".
+**Triggers:** page load (hero, nav, the case study header and the blog pages' first screen only) · scroll, both ways (every reveal below the hero) · hold (Work on desktop only; the hero exit has none) · hover and keyboard focus (devices with hover and a fine pointer). Never "plays once when it comes into view".
 
 **Hover:**
 

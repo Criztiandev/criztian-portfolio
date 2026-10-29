@@ -1,4 +1,4 @@
-import { memo } from "react"
+import { Fragment, memo } from "react"
 import type { ComponentProps } from "react"
 import Markdown from "react-markdown"
 import type { Components } from "react-markdown"
@@ -8,10 +8,34 @@ import { cn } from "@/lib/utils"
 
 const cellClassName = "align-top md:py-4 md:pr-6 md:last:pr-0"
 
+const RISE_PX = 150
+const HEADING_STEP_PX = 25
+
 function SectionHeading({ children }: ComponentProps<"h2">) {
+  let content = children
+  if (typeof children === "string") {
+    content = children.split(" ").map((word, index) => {
+      const startPx = index * HEADING_STEP_PX
+      return (
+        <Fragment key={index}>
+          {" "}
+          <span className="inline-block hero-mask">
+            <span
+              className="inline-block post-rise"
+              style={{
+                animationRange: `cover ${startPx}px cover ${startPx + RISE_PX}px`,
+              }}
+            >
+              {word}
+            </span>
+          </span>
+        </Fragment>
+      )
+    })
+  }
   return (
-    <h2 className="pt-6 font-heading text-heading-h2 text-balance">
-      {children}
+    <h2 className="pt-6 font-heading text-heading-h2 text-balance post-timeline">
+      {content}
     </h2>
   )
 }
