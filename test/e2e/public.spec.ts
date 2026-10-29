@@ -86,6 +86,48 @@ test("Book a call opens the booking popup and Escape returns focus", async ({
   await expect(book).toBeFocused()
 })
 
+test("the wheel leaves the page still behind the booking popup", async ({
+  page,
+}) => {
+  await page.route("https://cal.com/**", (route) => route.abort())
+  await page.goto("/")
+  await page
+    .locator('[data-cms-card="Hero"]')
+    .getByRole("link", { name: "Book a call" })
+    .click()
+  await expect(page.getByRole("dialog", { name: "Book a call" })).toBeVisible()
+  const before = await page.evaluate(() => window.scrollY)
+  await page.mouse.move(20, 360)
+  await page.mouse.wheel(0, 600)
+  await page.mouse.move(640, 80)
+  await page.mouse.wheel(0, 600)
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => resolve())
+        })
+      })
+  )
+  expect(await page.evaluate(() => window.scrollY)).toBe(before)
+})
+
+test("the nav hides on scroll down and returns on scroll up", async ({
+  page,
+}) => {
+  await page.goto("/")
+  const nav = page.getByRole("banner")
+
+  async function navTop(): Promise<number> {
+    return nav.evaluate((element) => element.getBoundingClientRect().top)
+  }
+
+  await page.evaluate(() => window.scrollTo(0, 800))
+  await expect.poll(navTop).toBe(-80)
+  await page.evaluate(() => window.scrollTo(0, 500))
+  await expect.poll(navTop).toBe(0)
+})
+
 test.describe("on a phone", () => {
   test.use({ viewport: { width: 390, height: 844 } })
 

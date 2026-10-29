@@ -1523,10 +1523,6 @@ Each shortcut is deliberate and names its upgrade trigger.
 - The booking popup calls the calendar failed when Cal.com sends no `navigatedToBooker`
   message within 15 s (`BOOKING.timeoutMs`). A slow network past 15 s sees the error and the
   email link even though Cal.com might still load. Raise the limit if real visitors hit it.
-- The nav shows Top / Scrolled only. Hide on scroll down, show on scroll up waits for the
-  Motion phase.
-- The menu's hash links close the Sheet, whose scroll lock restores the old scroll position.
-  Check that `/#work` still lands on Work once the sections carry those ids.
 - `contact.list` returns at most 100 rows, no pagination. Add keyset pagination past 100.
 - Two atoms, the mobile nav and the CMS unsaved flag, each private
   to its hook file. A `store/` folder appears when two hooks share an atom.
@@ -1862,6 +1858,52 @@ that import the packages, and that `next start` refuses an export.
 - Known: the CMS editor frame plays the entrance when it loads, and a word typed into the
   headline shows after its entrance delay (up to about 2 s). Turn animations off inside the
   canvas frame if that gets in the way.
+
+### Smooth scroll and nav hide (Phase 5)
+
+- Lenis (`lenis`, 1.3.27 when added), mounted once as `<ReactLenis root>` in
+  `app/(marketing)/layout.tsx`, so every public page and the 404 (which wraps that layout)
+  glide. Not in `SiteShell`: the CMS canvas draws `SiteShell` too, and its frame keeps native
+  scroll for `scrollToCard`.
+- The feel is lurais.framer.website's, Criztian's reference (2026-10-29). Its Framer "Smooth
+  Scroll" component runs `new Lenis({ duration: intensity / 10 })` at intensity 20: a 2 s
+  glide on Lenis's default ease-out-expo. `SMOOTH_SCROLL` in `config/motion.config.ts` is the
+  one knob.
+- Only the wheel and trackpad glide. Touch keeps the phone's own scroll (`syncTouch` stays
+  off: if the motion slows the phone page, the motion goes). Keyboard, scrollbar drag and
+  find-in-page stay native, and Lenis moves the real window scroll, so `position: sticky`,
+  `IntersectionObserver` and CSS scroll timelines keep working.
+- Reduced motion: Lenis honors it by default (`respectReducedMotion`). A link jump is
+  immediate (1 frame); a wheel step settles in about 0.1 s (189 of 300 px in the first
+  frame), close to the browser's own wheel step. Fully native would mean skipping
+  `ReactLenis` under `prefers-reduced-motion`, which needs a client wrapper; add it if a
+  visitor asks.
+- `anchors: true` glides same-page hash links (`/#work` on `/`). Next's `<Link>` still
+  updates the URL and calls `scrollIntoView()` after its render. Lenis has already started
+  its glide inside the click, and while it glides it ignores scroll it did not make, so the
+  glide wins and nothing flashes. `scroll-mt-16 xl:scroll-mt-20` still decides where it
+  stops. A hash link from another page is Next's normal jump. The menu's hash links land on
+  their section too, gliding behind the closing Sheet (Work top 64 px at 390 and 1024, with
+  and without reduced motion).
+- `stopInertiaOnNavigate: true`: a click on a link to another page stops a running glide, so
+  the next page starts at its top.
+- Overlays carry `data-lenis-prevent`: the booking popup, its backdrop, and the menu Sheet
+  (full screen, so its own backdrop is never under the pointer). base-ui locks `<body>` while
+  a dialog is open, because `<html>` is not a scroll container here, and Lenis's `autoToggle`
+  only watches `<html>`. A script can still scroll a locked page, so without the attribute
+  one 600 px wheel step over the open popup moved the page behind it 124 px. Any new
+  overlay needs it.
+- Nav hide (`hooks/use-nav-hidden.ts`) reads the native `scroll` event, so it works with
+  Lenis, under reduced motion and in the CMS frame. Past 80 px (the desktop header height) it
+  hides while the page moves down and comes back on any move up; near the top it always
+  shows. It slides with `--motion-base` and the ease-out token; under reduced motion it
+  switches without sliding. Keyboard focus brings it back (`has-focus-visible`), so a
+  keyboard user never tabs into a hidden bar. Not `focus-within`: a mouse click leaves focus
+  on the clicked nav link, which kept the bar open after every nav click. Every size, not
+  desktop only as first planned (Criztian, 2026-10-29).
+- Known: Safari's bounce at the end of a page counts as a move up, so the nav comes back
+  there. A wheel glide runs on for up to 2 s after the last wheel step; that is the feel
+  Criztian picked.
 
 ### Booking popup
 

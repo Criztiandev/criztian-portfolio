@@ -1,5 +1,9 @@
+import "lenis/dist/lenis.css"
+import { ReactLenis } from "lenis/react"
+
 import { SiteShell } from "@/components/site-shell"
 import { hasSupabaseEnv } from "@/config/env.config"
+import { SMOOTH_SCROLL } from "@/config/motion.config"
 import { createPublicSupabase } from "@/lib/supabase/public"
 import { themeSchema } from "@/model/theme.model"
 import { listLiveEntriesIfReachable } from "@/service/cms.service"
@@ -29,5 +33,10 @@ export default async function MarketingLayout({
   children: React.ReactNode
 }) {
   const theme = await loadTheme()
-  return <SiteShell theme={theme}>{children}</SiteShell>
+  return (
+    <>
+      <ReactLenis root options={SMOOTH_SCROLL} />
+      <SiteShell theme={theme}>{children}</SiteShell>
+    </>
+  )
 }

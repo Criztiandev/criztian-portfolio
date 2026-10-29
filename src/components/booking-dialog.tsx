@@ -94,8 +94,12 @@ export function BookingDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogPortal>
-        <DialogOverlay className="bg-black/80 supports-backdrop-filter:backdrop-blur-none motion-reduce:animate-none" />
+        <DialogOverlay
+          data-lenis-prevent
+          className="bg-black/80 supports-backdrop-filter:backdrop-blur-none motion-reduce:animate-none"
+        />
         <DialogPrimitive.Popup
+          data-lenis-prevent
           finalFocus={linkRef}
           className="fixed inset-0 z-50 flex flex-col bg-graphite shadow-overlay outline-none md:inset-x-0 md:inset-y-10 md:m-auto md:max-h-200 md:w-180"
         >

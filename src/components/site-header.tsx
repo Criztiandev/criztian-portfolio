@@ -16,6 +16,7 @@ import {
 import { HERO_TEXT_START_MS } from "@/config/motion.config"
 import { BOOK_CALL, NAV_LINKS } from "@/data/nav-links.data"
 import { useMobileNav } from "@/hooks/use-mobile-nav"
+import { useNavHidden } from "@/hooks/use-nav-hidden"
 import { useScrolled } from "@/hooks/use-scrolled"
 import { cn } from "@/lib/utils"
 
@@ -39,6 +40,7 @@ function HomeMark({ onClick }: Pick<ComponentProps<typeof Link>, "onClick">) {
 export function SiteHeader() {
   const [open, setOpen] = useMobileNav()
   const scrolled = useScrolled()
+  const hidden = useNavHidden()
   const pathname = usePathname()
 
   let navStartMs = NAV_START_MS
@@ -59,9 +61,18 @@ export function SiteHeader() {
     barClassName = "border-graphite bg-black"
   }
 
+  let slideClassName = ""
+  if (hidden) {
+    slideClassName = "-translate-y-full has-focus-visible:translate-y-0"
+  }
+
   return (
     <header
-      className={cn("sticky top-0 z-40 h-16 border-b xl:h-20", barClassName)}
+      className={cn(
+        "sticky top-0 z-40 h-16 border-b transition-transform duration-(--motion-base) ease-out motion-reduce:transition-none xl:h-20",
+        barClassName,
+        slideClassName
+      )}
     >
       <div className="mx-auto flex h-full max-w-page items-center justify-between px-4 md:px-8 xl:px-10">
         <div className="motion-safe:animate-nav-drop" style={navDelay(0)}>
@@ -106,6 +117,7 @@ export function SiteHeader() {
               <IconMenu />
             </SheetTrigger>
             <SheetContent
+              data-lenis-prevent
               side="top"
               showCloseButton={false}
               className="justify-between gap-0 bg-black px-4 pt-4 pb-8 data-[side=top]:h-dvh data-[side=top]:border-b-0 motion-reduce:transition-none md:px-8 xl:hidden"

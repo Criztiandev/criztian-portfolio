@@ -54,6 +54,7 @@ Brand, website plan and Figma design are done and approved by Criztian. The desi
 | Hero photo shows black and white (CSS grayscale) and its real color on hover. An exception to brand.md's black-and-white photo rule. Not in Figma                                                                                                                        | Criztian (revision, 2026-10-29)                       |
 | Hero name letters dim under the cursor and relight when it leaves (devices with hover). Not in Figma                                                                                                                                                                     | Criztian (revision, 2026-10-29)                       |
 | Nav drops in on load: on Home after the hero lights up, on other pages at once (Figma: nav there from frame 1). Not in Figma                                                                                                                                             | Criztian (revision, 2026-10-29)                       |
+| Smooth scroll with lurais.framer.website's feel (Lenis, 2 s glide; phones keep their touch scroll). The nav hides on scroll down and comes back on scroll up at every size, not desktop only. Not in Figma                                                               | Criztian (2026-10-29)                                 |
 
 ## Open questions
 
