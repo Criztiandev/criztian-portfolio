@@ -2081,6 +2081,17 @@ that import the packages, and that `next start` refuses an export.
 - Book a call and Back to home sit in padded `overflow: clip` wrappers (4 px, net zero with `-m-1`) like the footer's, so their focus rings aren't cut.
 - Reduced motion gets the still: everything lit and in place.
 
+### Privacy open (Phase 5)
+
+- Criztian picked concept 1 of 3 ("Open") on the lab, 2026-10-30. The lab pages were deleted after the pick. Not picked: 2 "Stairs" (the title letters climb from growing depths; each section's heading and body climb from 160 / 200 px and land together while its Smoke line draws) and 3 "Write" (the title loads like the hero name; each heading is written letter by letter and the body rises after it).
+- How it moves: the blog post's open on a short reading page. The load reuses the post's parts: title letters `animate-case-title-word` (like "BLOG"), the date `animate-hero-copy-up`, and the sections column `animate-post-column` (its first 50svh on `--ease-out`, the rest linear and off screen). On scroll each section is uncovered by `blog-open` on its own `--privacy` timeline; its h2 words rise from their masks and its body lights as the edge passes.
+- Why the ranges are short: the page scrolls only 713 px at 1440×900 (533 at 1920×1080), and the last section's top is 293 px from the page's end at every width. Every range ends by 240 px after its section's top enters, so the last section lands lit before the end (measured: done at 650 of 713). Sections 1 and 2 sit on the first screen (section 2's top is 245 px past entry at load), so they finish at load and arrive with the column; section 3 starts at the fold.
+- Heading words start 20 px apart, under DESIGN.md's 30–50 px, so a 4-word heading still ends by 240 px. Each word keeps its 150 px.
+- Touch and under 1280 get the light version, like the blog pages: `privacy-word` and `privacy-light` run only at 1280 and up with hover and a fine pointer; `privacy-section` (the open) runs everywhere. At 390 the last section lands at 860 of 925.
+- "Privacy" is named by `aria-label` and its letters are `aria-hidden`, like "BLOG". The h2s split into words with the spaces kept, so their names read normally.
+- `blog-open` ends at `inset(-0.5rem)`, so the email link's focus ring isn't cut once a section has opened.
+- Reduced motion and Firefox get the still: everything lit and in place. Without scroll timelines the load still plays. `PrivacyView` stays a server component, no JS.
+
 ### Booking popup
 
 - Every "Book a call" stays a real link to `BOOK_CALL.href`. `BookingDialog`, mounted once in

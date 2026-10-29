@@ -272,7 +272,7 @@ Story sections are beats in the scroll story and get 3 concepts at their `/wmoti
 | —   | Case study                     | small, shipped    | "Open": the page draws itself like a browser loading. The header loads (title words rise and light, the screen opens top-down); then every screen opens top-down and the text beside it lights as the edge passes, paragraphs open line by line, the notes open one after another. Touch: the screens and notes open, headings rise; paragraphs stay still. |
 | —   | Blog pages                     | small, shipped    | "Open": the case study's page loading carried to `/blog` and posts. The header and the newest post load (BLOG letter by letter, the post opens top-down, its text lighting with the edge); each row opens as you reach it; in a post the article opens top-down, then every paragraph, list line and table cell opens, h2s rise word by word, the quote opens slowly. Touch: the rows and the quote open, the h2s rise; paragraphs stay still. |
 | —   | 404                            | small, shipped    | "Stairs": How it works' stairs on load, the one screen with no scroll. The 3 digits climb in from different depths, land in order and light as they land; the message words climb from growing depths and close up as they land; Book a call climbs dim and lights last. Touch: the digits and Book a call. |
-| —   | Privacy                        | small             | The vocabulary only, no holds. Criztian directs it later.                                                                                                                                                                                      |
+| —   | Privacy                        | small, shipped    | "Open": the blog pages' open on a short reading page. "Privacy" rises letter by letter and lights, the date rises, the sections column opens top-down on load; each section below the first screen opens top-down as you reach it, its heading rises word by word and its body lights as the edge passes. The footer bar stays still. Touch: the load and the section opens. |
 
 Every section title rises from its mask and lights as it enters; each section adds its own beat on top. The footer was planned to share the Stakes ink (the problem and the answer); Criztian took the hero name's letter rise instead (2026-10-30), so the page closes the way it opened.
 
@@ -307,7 +307,7 @@ Every section title rises from its mask and lights as it enters; each section ad
 - Load: entrances 1000–1400 ms, lights 900 ms, all done by about 3.2 s. The case study screen opens over 2 s: its on-screen part on the ease-out over 1.4 s, the rest linear below the fold. The 404 digits climb over 1.6 s, the deepest from 170% of its height.
 - Feedback: buttons 150 ms, dims and the nav 300 ms, photo color 600 ms, relight 900 ms ease-in-out. Leaving is faster than arriving.
 
-**Triggers:** page load (hero, nav, the case study header, the blog pages' first screen and the 404 only) · scroll, both ways (every reveal below the hero) · hold (Work on desktop only; the hero exit has none) · hover and keyboard focus (devices with hover and a fine pointer). Never "plays once when it comes into view".
+**Triggers:** page load (hero, nav, the case study header, the blog pages' and Privacy's first screen, and the 404 only) · scroll, both ways (every reveal below the hero) · hold (Work on desktop only; the hero exit has none) · hover and keyboard focus (devices with hover and a fine pointer). Never "plays once when it comes into view".
 
 **Hover:**
 
@@ -322,7 +322,7 @@ Every section title rises from its mask and lights as it enters; each section ad
 
 - The same light scroll moves as desktop, one moving on screen at a time. The Stakes ink proved the cost: 2, 0 and 0 frames over 34 ms in about 424, against 1, 1 and 1 with it off.
 - No holds and no hover moves; a tap goes straight to the link.
-- Hero: the load only, no slide. Work: rows stacked, each row's screens rise as the visitor reaches them, no spotlight. About: the numbers rise, the photo stays still (brightening a big photo can cost phone frames). 404: the digits climb and Book a call lights last; the message and Back to home stay still. The rest: as desktop, stacked.
+- Hero: the load only, no slide. Work: rows stacked, each row's screens rise as the visitor reaches them, no spotlight. About: the numbers rise, the photo stays still (brightening a big photo can cost phone frames). 404: the digits climb and Book a call lights last; the message and Back to home stay still. Privacy: the load and the section opens; headings and bodies stay still. The rest: as desktop, stacked.
 - Every move is measured on the phone profile; a move that drops frames is cut.
 
 **Reduced motion, and browsers without scroll timelines:**
