@@ -1,6 +1,6 @@
 # Build plan — Criztian portfolio
 
-**Last pack:** 2026-10-29, second pack (pricing: docs/website-plan.md, docs/handoff.md, PRODUCT.md). No git repo existed at pack time (Phase 1 fresh init in progress); the first pack was on template commit `fcec601`. After the fresh `git init`, write the new first commit hash here.
+**Last pack:** 2026-10-29, second pack (pricing: docs/website-plan.md, docs/handoff.md, PRODUCT.md). No git repo existed at pack time (Phase 1 fresh init in progress); the first pack was on template commit `fcec601`. Fresh repo first commit: `30e5a37` (Phase 1, 2026-10-29).
 
 Build one phase per run, in order. Plan first, wait for Criztian's OK, then build. Tick the boxes as you go.
 
