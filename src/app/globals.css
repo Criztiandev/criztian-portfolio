@@ -23,7 +23,7 @@
     --text-display-giant-phone--line-height: 0.85;
     --text-display-giant-tablet: clamp(220px, 31.115vw - 18.96px, 379px);
     --text-display-giant-tablet--line-height: 0.85;
-    --text-display-giant-desktop: clamp(375px, 31.25vw - 25px, 575px);
+    --text-display-giant-desktop: min(clamp(375px, 31.25vw - 25px, 575px), 117.65svh - 499px);
     --text-display-giant-desktop--line-height: 0.85;
     --text-display-xl: clamp(10rem, 12.5vw - 2rem, 13rem);
     --text-display-xl--line-height: 0.9;
@@ -57,6 +57,54 @@
     --motion-fast: 150ms;
     --motion-base: 300ms;
     --motion-slow: 600ms;
+
+    --animate-hero-name-letter: hero-mask-rise 1200ms var(--ease-out) backwards, hero-light-up 900ms var(--ease-out) backwards;
+    --animate-hero-portrait: hero-portrait-rise 1400ms var(--ease-out) backwards, hero-portrait-light 1200ms var(--ease-out) backwards;
+    --animate-nav-drop: nav-drop 1000ms var(--ease-out) backwards;
+    --animate-hero-word-rise: hero-mask-rise 1100ms var(--ease-out) backwards;
+    --animate-hero-copy-up: hero-copy-up 1000ms var(--ease-out) backwards;
+
+    @keyframes hero-mask-rise {
+        from {
+            translate: 0 110%;
+        }
+    }
+
+    @keyframes hero-light-up {
+        from {
+            opacity: 0.2;
+        }
+    }
+
+    @keyframes hero-portrait-rise {
+        from {
+            transform: translateY(100%);
+        }
+    }
+
+    @keyframes nav-drop {
+        from {
+            opacity: 0;
+            translate: 0 calc(var(--spacing) * -6);
+        }
+    }
+
+    @keyframes hero-portrait-light {
+        from {
+            filter: brightness(0.3);
+        }
+    }
+
+    @keyframes hero-copy-up {
+        from {
+            opacity: 0;
+            translate: 0 calc(var(--spacing) * 6);
+        }
+    }
+}
+
+@utility hero-mask {
+    clip-path: inset(-0.3em -0.2em -0.05em -0.2em);
 }
 
 @theme inline {

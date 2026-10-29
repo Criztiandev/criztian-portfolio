@@ -1800,6 +1800,69 @@ that import the packages, and that `next start` refuses an export.
   active.
 - The footer's Privacy link 404s until the Privacy row.
 
+### Hero load (Phase 5)
+
+- CSS keyframes only (`--animate-hero-*` in `globals.css`), so the hero stays a server
+  component and ships no JavaScript. The timings are the constants at the top of
+  `hero-section.tsx`; change them there. `HERO_TEXT_START_MS` (`config/motion.config.ts`)
+  is shared with the header, because the nav waits for the hero text on Home.
+- The portrait's wrapper rises from fully below its clip (`translateY(100%)`, the same move
+  as the letters), so frame 1 is all background. A `brightness(0)` start was tried and
+  dropped: pure black shows as a silhouette on `--color-black` (#0a0a0a). It uses
+  `transform`, not `translate`, because its centering `-translate-x-1/2` is the `translate`
+  property, which a keyframe would overwrite. LCP stays the portrait (1524 ms median).
+- The portrait's wrapper lights from `brightness(0.3)` with the name. Brightness, not
+  opacity: an opacity fade shows its body as a grey box over the name, and a dim image still
+  paints, so LCP stays the image's load time (1492 ms without the light, 1496 ms with it).
+  The animation sits on the wrapper and `grayscale` with its hover on the `img`, so they
+  never fight over one `filter`. The shade is `pointer-events-none` so the hover reaches the
+  photo under it.
+- The photo is black and white through CSS, not in the file, because the source keeps its
+  color for the hover (Criztian's exception to the brand's black-and-white rule).
+- `whitespace-nowrap` on the name: inline-block letters add break points, and before Anton
+  loads the wider fallback wrapped Z onto its own line and pushed TIAN down (CLS 0.276 on a
+  throttled phone). What is left (0.05) is the letters moving sideways at the font swap.
+- Replacing an image under the same file name keeps showing the old one: Next 16 caches
+  optimized images for 4 hours by URL (`minimumCacheTTL`). Delete `.next/dev/cache/images`
+  in dev, or give the new file a new name.
+- Each name letter is a span inside the `aria-hidden` name, so screen readers never hear
+  letters. One token runs two animations per letter: the mask rise (left to right) and the
+  light-up from 20% opacity (center out, so the light starts behind his head). The inline
+  `animationDelay` gives both delays as a comma list. Opacity, not color, keeps it on the
+  compositor.
+- Letter hover: the hover state sets a 300 ms ease-out, the rest state a 900 ms ease-in-out,
+  so a letter dims fast and relights slowly. `hover:` only matches devices with hover, and
+  `motion-safe:` keeps it off under reduced motion. The entrance animation owns opacity
+  until it ends, so hovering does nothing during the first seconds.
+- Nav entrance (`site-header.tsx`, `--animate-nav-drop`): on Home it starts 200 ms after the
+  hero text (`usePathname() === "/"`), so the name and portrait lead; on every other page it
+  starts at 200 ms, so a page without the hero never waits. Cache Components are off, so
+  `usePathname` needs no Suspense boundary. The marketing layout keeps the header across
+  client navigation, so it plays once per load.
+- No flicker or flash when the lights come on: a 900 ms ease (Criztian's eyes, WCAG 2.3.1).
+- `hero-mask` (`clip-path: inset(-0.3em -0.2em -0.05em -0.2em)`) is a deliberate arbitrary
+  value: it clips at the bottom only and leaves room for Anton's tops and side bearings.
+- The h1 words sit in spans with spaces between them, so its accessible name is unchanged.
+- Every animation class is `motion-safe:`, so reduced motion gets the still; without
+  JavaScript the CSS still runs and ends visible.
+- One screen tall on tablet and desktop (Criztian, 2026-10-29), so the headline and Book a
+  call are on the first screen at any height. Before, desktop had a 900 px minimum and tablet
+  a fixed 760 px photo area, so at 1440×790 the note sat 70 px below the fold and at
+  1024×768 196 px. Tablet: the stage is a flex column (`md:h-svh md:min-h-150`); the photo
+  area takes what the text leaves, capped at Figma's 760 (`md:max-h-190`); the name is
+  centered in it (`-mt-1.5` puts it at Figma's 280 in a 760 area); the photo runs from
+  `top-25` to the bottom with `aspect-2/3`; the fade is `h-4/17` and `aspect-5/2` of the area,
+  so it never darkens the name. Desktop: no minimum; `--text-display-giant-desktop` is
+  `min(<width clamp>, 117.65svh - 499px)`, the largest name whose bottom clears the right
+  column (172 px tall, 40 px from the bottom) by 24 px, given its `-mt-6` offset. It only
+  bites below about 790 px tall, so every Figma frame keeps its size. A longer CMS hero
+  text makes that column taller and can touch the name on short screens; raise the 499
+  then. Under 600 px (a landscape phone in the tablet range) the stage stops at
+  `min-h-150` and scrolls. The phone layout is unchanged.
+- Known: the CMS editor frame plays the entrance when it loads, and a word typed into the
+  headline shows after its entrance delay (up to about 2 s). Turn animations off inside the
+  canvas frame if that gets in the way.
+
 ### Booking popup
 
 - Every "Book a call" stays a real link to `BOOK_CALL.href`. `BookingDialog`, mounted once in

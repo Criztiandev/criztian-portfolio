@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import type { ComponentProps } from "react"
 
 import { IconClose, IconMenu, LogoMark } from "@/components/icons"
@@ -12,10 +13,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { HERO_TEXT_START_MS } from "@/config/motion.config"
 import { BOOK_CALL, NAV_LINKS } from "@/data/nav-links.data"
 import { useMobileNav } from "@/hooks/use-mobile-nav"
 import { useScrolled } from "@/hooks/use-scrolled"
 import { cn } from "@/lib/utils"
+
+const NAV_START_MS = 200
+const HOME_NAV_START_MS = HERO_TEXT_START_MS + 200
+const NAV_STEP_MS = 120
 
 function HomeMark({ onClick }: Pick<ComponentProps<typeof Link>, "onClick">) {
   return (
@@ -33,6 +39,16 @@ function HomeMark({ onClick }: Pick<ComponentProps<typeof Link>, "onClick">) {
 export function SiteHeader() {
   const [open, setOpen] = useMobileNav()
   const scrolled = useScrolled()
+  const pathname = usePathname()
+
+  let navStartMs = NAV_START_MS
+  if (pathname === "/") {
+    navStartMs = HOME_NAV_START_MS
+  }
+
+  function navDelay(index: number): React.CSSProperties {
+    return { animationDelay: `${navStartMs + index * NAV_STEP_MS}ms` }
+  }
 
   function closeNav() {
     setOpen(false)
@@ -48,19 +64,28 @@ export function SiteHeader() {
       className={cn("sticky top-0 z-40 h-16 border-b xl:h-20", barClassName)}
     >
       <div className="mx-auto flex h-full max-w-page items-center justify-between px-4 md:px-8 xl:px-10">
-        <HomeMark />
+        <div className="motion-safe:animate-nav-drop" style={navDelay(0)}>
+          <HomeMark />
+        </div>
         <nav aria-label="Main" className="hidden items-center gap-10 xl:flex">
-          {NAV_LINKS.map((link) => (
+          {NAV_LINKS.map((link, index) => (
             <Link
               key={link.href}
               href={link.href}
-              className={cn(buttonVariants({ variant: "link", size: "link" }))}
+              className={cn(
+                buttonVariants({ variant: "link", size: "link" }),
+                "motion-safe:animate-nav-drop"
+              )}
+              style={navDelay(index + 1)}
             >
               {link.label}
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
+        <div
+          className="flex items-center gap-2 motion-safe:animate-nav-drop"
+          style={navDelay(NAV_LINKS.length + 1)}
+        >
           <a
             href={BOOK_CALL.href}
             className={cn(buttonVariants({ size: "small" }))}
