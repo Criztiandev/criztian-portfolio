@@ -65,15 +65,8 @@ function RiseShot({
   )
 }
 
-function Screens({
-  screens,
-  href,
-}: {
-  screens: WorkScreens
-  href?: string
-}) {
-  const className =
-    "mt-6 flex flex-col gap-4 md:flex-row work-hold:hidden"
+function Screens({ screens, href }: { screens: WorkScreens; href?: string }) {
+  const className = "mt-6 flex flex-col gap-4 md:flex-row work-hold:hidden"
   const shots = (
     <>
       <div className="flex flex-col gap-4 md:w-3/5">
@@ -121,7 +114,7 @@ function StageShot({
   children: ReactNode
 }) {
   return (
-    <div data-shot={shot} className="absolute overflow-clip work-shot">
+    <div data-shot={shot} className="absolute work-shot overflow-clip">
       <div className="absolute inset-0 work-shot-inner">{children}</div>
     </div>
   )
@@ -212,7 +205,7 @@ function Row({ row, index }: { row: WorkRow; index: number }) {
     name = (
       <WorkLink
         href={href}
-        className="outline-none hover:underline focus-visible:ring-2 focus-visible:ring-paper"
+        className="link-line inline-block press outline-none link-line-below focus-visible:ring-2 focus-visible:ring-paper"
       >
         {row.name}
       </WorkLink>
@@ -269,7 +262,7 @@ function Row({ row, index }: { row: WorkRow; index: number }) {
         </h3>
         <p className="text-label text-smoke uppercase">{row.meta}</p>
       </div>
-      <div className="mt-3 flex flex-col gap-3 work-row-detail work-hold:absolute work-hold:inset-x-0 work-hold:mt-0">
+      <div className="work-row-detail mt-3 flex flex-col gap-3 work-hold:absolute work-hold:inset-x-0 work-hold:mt-0">
         <p className="max-w-180 text-body-base text-paper">{row.line}</p>
         {tag}
         {link}
@@ -301,13 +294,13 @@ export function WorkSection() {
   return (
     <section
       id="work"
-      className="scroll-mt-16 bg-black work-track xl:scroll-mt-20 work-hold:scroll-mt-0"
+      className="work-track scroll-mt-16 bg-black xl:scroll-mt-20 work-hold:scroll-mt-0"
     >
       <div className="mx-auto max-w-page px-4 py-20 md:px-8 md:py-24 xl:px-10 work-hold:sticky work-hold:top-0 work-hold:grid work-hold:h-svh work-hold:grid-cols-3 work-hold:gap-x-10 work-hold:py-20 work-hold:2xl:grid-cols-[minmax(0,1fr)_61.5rem] work-hold:2xl:gap-x-0 work-hold-short:py-10">
         <div className="flex flex-col gap-16 work-hold:min-h-0 work-hold:justify-between work-hold:gap-0">
           <div className="flex flex-col gap-6">
             <h2 className="font-heading text-display-l text-paper md:text-display-xl work-hold-short:text-display-l">
-              <span className="hero-mask inline-block">
+              <span className="inline-block hero-mask">
                 {headingLetters(WORK.heading)}
               </span>
             </h2>
@@ -321,7 +314,7 @@ export function WorkSection() {
             ))}
           </div>
         </div>
-        <div className="hidden work-stage-area work-hold:col-span-2 work-hold:flex work-hold:min-h-0 work-hold:items-start work-hold:justify-end work-hold:2xl:col-span-1">
+        <div className="work-stage-area hidden work-hold:col-span-2 work-hold:flex work-hold:min-h-0 work-hold:items-start work-hold:justify-end work-hold:2xl:col-span-1">
           <div className="relative work-stage">
             {WORK.rows.map((row, index) => (
               <StageSet key={row.name} row={row} set={index + 1} />

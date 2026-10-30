@@ -60,6 +60,8 @@
     --motion-fast: 150ms;
     --motion-base: 300ms;
     --motion-slow: 600ms;
+    --motion-press: 100ms;
+    --motion-exit: 200ms;
 
     --animate-hero-name-letter: hero-mask-rise 1200ms var(--ease-out) backwards, hero-light-up 900ms var(--ease-out) backwards;
     --animate-hero-portrait: hero-portrait-rise 1400ms var(--ease-out) backwards, hero-portrait-light 1200ms var(--ease-out) backwards;
@@ -796,8 +798,94 @@
         transition-property: scale;
         transition-duration: 400ms;
         transition-timing-function: linear(0, 0.109, 0.324, 0.543, 0.723, 0.851, 0.934, 0.981, 1.005, 1.014, 1.015, 1.013, 1.009, 1.006, 1.004, 1.002, 1);
-        &:hover {
+        &:hover,
+        &:has(:focus-visible) {
             scale: 1.01;
+        }
+        &:active {
+            scale: 1;
+            transition-duration: var(--motion-press);
+        }
+    }
+}
+
+@utility link-line {
+    position: relative;
+    &::after {
+        content: "";
+        position: absolute;
+        top: var(--line-top, calc(50% + 0.62em));
+        right: 0;
+        left: 0;
+        height: max(1px, 0.07em);
+        background-color: currentColor;
+        pointer-events: none;
+        clip-path: inset(0 100% 0 0);
+        transition: clip-path var(--motion-exit) var(--ease-out);
+    }
+    &:has(> svg)::after {
+        right: calc(var(--spacing) * 7);
+    }
+    &:focus-visible::after,
+    .blog-row:has(:focus-visible) &::after {
+        clip-path: inset(0);
+        transition-duration: var(--motion-base);
+        transition-delay: var(--line-delay, 0ms);
+    }
+    @media (hover: hover) and (pointer: fine) {
+        &:hover::after,
+        .blog-row:hover &::after {
+            clip-path: inset(0);
+            transition-duration: var(--motion-base);
+            transition-delay: var(--line-delay, 0ms);
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        &::after {
+            transition: none;
+        }
+    }
+}
+
+@utility link-line-below {
+    --line-top: calc(100% + 0.12em);
+}
+
+@utility button-fill {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+    background-color: var(--color-paper);
+    color: var(--color-black);
+    pointer-events: none;
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path var(--motion-exit) var(--ease-out);
+    :focus-visible > & {
+        clip-path: inset(0);
+        transition-duration: var(--motion-base);
+        outline: 2px solid var(--color-black);
+        outline-offset: -4px;
+    }
+    @media (hover: hover) and (pointer: fine) {
+        :hover > & {
+            clip-path: inset(0);
+            transition-duration: var(--motion-base);
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}
+
+@utility press {
+    @media (prefers-reduced-motion: no-preference) {
+        transition: scale var(--motion-base) var(--ease-out);
+        &:active {
+            scale: 0.97;
+            transition-duration: var(--motion-press);
         }
     }
 }

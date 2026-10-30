@@ -17,7 +17,7 @@ export function SiteFooterBar({ className }: { className?: string }) {
           <li key={link.href}>
             <Link
               href={link.href}
-              className="outline-none hover:underline focus-visible:ring-2 focus-visible:ring-paper"
+              className="link-line inline-block press outline-none focus-visible:ring-2 focus-visible:ring-paper"
             >
               {link.label}
             </Link>

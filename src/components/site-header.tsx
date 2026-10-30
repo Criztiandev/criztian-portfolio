@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import type { ComponentProps } from "react"
 
+import { BookCallLink } from "@/components/book-call-link"
 import { IconClose, IconMenu, LogoMark } from "@/components/icons"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -14,7 +15,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { HERO_TEXT_START_MS } from "@/config/motion.config"
-import { BOOK_CALL, NAV_LINKS } from "@/data/nav-links.data"
+import { NAV_LINKS } from "@/data/nav-links.data"
 import { useMobileNav } from "@/hooks/use-mobile-nav"
 import { useNavHidden } from "@/hooks/use-nav-hidden"
 import { useScrolled } from "@/hooks/use-scrolled"
@@ -29,7 +30,7 @@ function HomeMark({ onClick }: Pick<ComponentProps<typeof Link>, "onClick">) {
     <Link
       href="/"
       aria-label="Criztian, home"
-      className="outline-none focus-visible:ring-2 focus-visible:ring-paper"
+      className="link-line flex press outline-none link-line-below focus-visible:ring-2 focus-visible:ring-paper"
       onClick={onClick}
     >
       <LogoMark />
@@ -97,12 +98,7 @@ export function SiteHeader() {
           className="flex items-center gap-2 motion-safe:animate-nav-drop"
           style={navDelay(NAV_LINKS.length + 1)}
         >
-          <a
-            href={BOOK_CALL.href}
-            className={cn(buttonVariants({ size: "small" }))}
-          >
-            {BOOK_CALL.label}
-          </a>
+          <BookCallLink size="small" />
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger
               render={
@@ -146,19 +142,13 @@ export function SiteHeader() {
                     key={link.href}
                     href={link.href}
                     onClick={closeNav}
-                    className="p-1 font-heading text-heading-h1 text-paper outline-none hover:underline focus-visible:ring-2 focus-visible:ring-paper focus-visible:ring-inset md:text-display-l"
+                    className="link-line press p-1 font-heading text-heading-h1 text-paper outline-none focus-visible:ring-2 focus-visible:ring-paper focus-visible:ring-inset md:text-display-l"
                   >
                     {link.label}
                   </Link>
                 ))}
               </nav>
-              <a
-                href={BOOK_CALL.href}
-                onClick={closeNav}
-                className={cn(buttonVariants({ size: "large" }), "w-full")}
-              >
-                {BOOK_CALL.label}
-              </a>
+              <BookCallLink className="w-full" onClick={closeNav} />
             </SheetContent>
           </Sheet>
         </div>

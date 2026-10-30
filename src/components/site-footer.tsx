@@ -17,7 +17,7 @@ const SOCIAL_FROM_PX = 75
 const SOCIAL_STEP_PX = 20
 
 const quietLinkClassName =
-  "outline-none hover:underline focus-visible:ring-2 focus-visible:ring-paper"
+  "outline-none link-line press focus-visible:ring-2 focus-visible:ring-paper"
 
 function headingRange(sharePercent: number): React.CSSProperties {
   const start = `calc(${sharePercent}% + ${HEADING_FROM_PX}px)`
@@ -51,7 +51,7 @@ function headingWords(heading: string) {
     words.push(
       <Fragment key={wordIndex}>
         {" "}
-        <span className="hero-mask inline-block">
+        <span className="inline-block hero-mask">
           <span
             className="inline-block footer-word"
             style={headingRange(wordIndex * WORD_SHARE)}
@@ -84,7 +84,7 @@ export function SiteFooter() {
             <p className="text-body-base text-smoke">
               {leadWords.map((word, index) => (
                 <Fragment key={word}>
-                  <span className="hero-mask inline-block">
+                  <span className="inline-block hero-mask">
                     <span
                       className="inline-block footer-lead"
                       style={tailRange(LEAD_FROM_PX + index * LEAD_STEP_PX)}

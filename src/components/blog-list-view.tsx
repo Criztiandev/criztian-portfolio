@@ -26,7 +26,7 @@ const ROW_SUMMARY_LIGHT_PX = 180
 const ROW_META_LIGHT_PX = 240
 
 export const postLinkClassName =
-  "outline-none group-hover:underline after:absolute after:inset-0 focus-visible:after:ring-2 focus-visible:after:ring-paper"
+  "outline-none after:absolute after:inset-0 focus-visible:after:ring-2 focus-visible:after:ring-paper"
 
 function loadDelay(delayMs: number): React.CSSProperties {
   return { animationDelay: `${delayMs}ms` }
@@ -58,7 +58,10 @@ function FeaturedPost({ post }: { post: Post }) {
         className="font-heading text-heading-h1 text-balance motion-safe:animate-blog-light md:text-display-l xl:w-275"
         style={loadDelay(FEATURED_TITLE_LIGHT_MS)}
       >
-        <Link href={`/blog/${post.slug}`} className={postLinkClassName}>
+        <Link
+          href={`/blog/${post.slug}`}
+          className={cn(postLinkClassName, "group-hover:underline")}
+        >
           {post.title}
         </Link>
       </h2>
@@ -80,7 +83,7 @@ function FeaturedPost({ post }: { post: Post }) {
         aria-hidden="true"
         className={cn(
           buttonVariants({ variant: "link", size: "link" }),
-          "self-start group-hover:underline motion-safe:animate-blog-light"
+          "self-start motion-safe:animate-blog-light"
         )}
         style={loadDelay(FEATURED_LINK_LIGHT_MS)}
       >
@@ -105,7 +108,10 @@ export function PostRow({
           className="font-heading text-heading-h2 text-balance blog-list-light"
           style={rowLightRange(ROW_TITLE_LIGHT_PX)}
         >
-          <Link href={`/blog/${post.slug}`} className={postLinkClassName}>
+          <Link
+            href={`/blog/${post.slug}`}
+            className={cn(postLinkClassName, "group-hover:underline")}
+          >
             {post.title}
           </Link>
         </Title>

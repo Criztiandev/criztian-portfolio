@@ -6,11 +6,11 @@ Figma: n/a, built before v0.3 (no storyboard; "Motion test — portfolio" was a 
 **How the scroll points were measured:** on localhost (dev server) at 1440×900, from every running scroll animation's range (`animation-range` + its subject's layout), mapped to the section's top edge as a % of the viewport. Range lengths are px of scroll. All 355 home scroll animations are linear, 0 pops (none under 100 px from 10 to 90%), all lit by the page end. Not measured here: touch sizes (Touch column is from cc's build log), frame rate on a real phone.
 
 ## Thesis
-**Lights up.** The page opens in the dark; the scroll lights things in reading order and dims them on the way back up; the last light on the page is Book a call. Focal moment: the hero load, the only timed sequence on Home. Continuity: the hero exit hands the load to the scroll; subpages "open" top-down like a page loading. Feedback: instant underline and colour swaps (no interaction run yet, see Open questions). Budget: a signature scroll story (the Work hold), CSS scroll timelines with zero motion JS apart from Lenis. Calmed by "Soft" (2026-10-30) so nobody gets dizzy.
+**Lights up.** The page opens in the dark; the scroll lights things in reading order and dims them on the way back up; the last light on the page is Book a call. Focal moment: the hero load, the only timed sequence on Home. Continuity: the hero exit hands the load to the scroll; subpages "open" top-down like a page loading. Feedback: "Timed swap" (picked 2026-10-30): Book a call's light fill opens top-down, links draw a line left to right, everything presses to 0.97 (see Interaction layer). Budget: a signature scroll story (the Work hold), CSS scroll timelines with zero motion JS apart from Lenis. Calmed by "Soft" (2026-10-30) so nobody gets dizzy.
 
 ## Values
 Timed entrances (`--ease-out` = cubic-bezier(0.22, 1, 0.36, 1)): letters and words rise 1.1–1.2 s, 90–120 ms apart · light 20% → 100% over 900 ms · portrait rise 1.4 s, light 1.2 s · nav drop 1 s · copy rise 1 s · screen or column open 1.4–2 s (the on-screen part on the ease-out, the rest linear).
-Tokens: `--motion-fast` 150 ms · `--motion-base` 300 ms · `--motion-slow` 600 ms.
+Tokens: `--motion-press` 100 ms · `--motion-fast` 150 ms · `--motion-exit` 200 ms · `--motion-base` 300 ms · `--motion-slow` 600 ms.
 Scroll-scrubbed: linear, always (ease-out put 80% of the change in 50–55 px). Windows: letter or word 150 px (120 px from 10 to 90%) · body 200 px · step 300 px · card or screen open 240–360 px · photo rise 400 px.
 Travel caps ("Soft"): climbs 80 px at most · hero name slides 160 px · About photo rises from 25% of its height.
 Smooth scroll: Lenis 1.3.27, `duration: 1.2` (was 2), anchors, stopInertiaOnNavigate; mouse and trackpad only; `data-lenis-prevent` on the booking popup and the menu.
@@ -99,20 +99,24 @@ Slice: n/a, built before v0.3
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | Load | brand moment | The 3 digits climb from 110 / 140 / 170% (200 → 2040 ms) and light as they land; the message words climb from growing depths and close up (1200 → 2600 ms); Back to home climbs (1500 → 2900 ms); Book a call climbs dim and lights last (1650 → 3200 ms). | time | Passed: "Echo", "Open". | digits and Book a call only | — | n/a |
 
-## Interaction layer  (as built; never had its own run)
+## Interaction layer  (as built, "Timed swap", picked 2026-10-30)
 
 | Element | Hover | Press | Focus | Touch | Values | Timeline |
 | --- | --- | --- | --- | --- | --- | --- |
-| Book a call (nav, hero, Work, Prices, footer) | background and text colour swap | 1 px down (UI kit) | 3 px ring | press only | instant (0 s transition) | n/a |
-| Text buttons (nav Work / Prices / Blog, See the work, All posts, socials, case study links) | underline | 1 px down | ring | press only | instant | n/a |
-| Work rows | underline; the shots lift to 1.02 | none | the row lights with its detail shown | no lift | Work spring, 1.014 by 100 ms | n/a |
-| Home blog rows | lift 1.01; title underlines across the letters | none | **none found** | none | Work spring | n/a |
-| `/blog` rows | as Home blog rows | none | **none found** | none | — | n/a |
-| Logo | **none** | none | ring | — | — | n/a |
-| Footer email, Blog, Privacy | underline | none | ring | — | instant | n/a |
+| Book a call (nav, menu, hero, Work, Prices, footer, 404) | a Paper fill opens top-down over the red, the label turning black as the edge passes; it closes back up on leave | 1 px down and 0.97 | the fill, plus a 2 px black ring 4 px inside | press only | in 300 ms, out 200 ms, `--ease-out`; press 100 ms, back 300 ms | n/a |
+| Text buttons (nav Work / Prices / Blog, See the work, Work row links, All posts, socials, case study, Next band, 404 and booking error links) | a line (0.07em, at least 1 px) draws left to right under the words, not the arrow; it retracts on leave | 1 px down and 0.97 | ring and the line | press only | in 300 ms, out 200 ms, `--ease-out` | n/a |
+| Work row names | the line, under the name (under the block if it wraps) | 0.97 | ring and the line | press only | as text buttons | n/a |
+| Work stage shots (desktop hold, mouse only) | lift 1.02 (unchanged) | none | not focusable (duplicates of the row links) | — | Lurais spring 400 ms | n/a |
+| Home blog rows | lift 1.01; the title's line draws word by word | the row settles to 1 | as hover, plus the ring | none | lift: Lurais spring 400 ms; line 300 / 200 ms, words 30 ms apart, 150 ms at most | n/a |
+| `/blog` rows | lift 1.01; title underline (still instant) | settles to 1 | lift and ring | none | Lurais spring 400 ms | n/a |
+| Logo | the line under the mark | 0.97 | ring and the line | press only | as text buttons | n/a |
+| Footer email, Blog, Privacy; phone menu links | the line | 0.97 | ring and the line | press only | as text buttons | n/a |
+| Menu and close buttons | Graphite background (UI kit) | none | ring | — | 150 ms | n/a |
 | Inline body links (post, Privacy email) | none (already underlined) | none | ring | — | — | n/a |
 | Hero name letters (not a link) | dim to 20% under the cursor, then relight | — | — | none | 300 ms ease-out | n/a |
 | Hero portrait | black and white → colour | — | — | none | — | n/a |
+
+Hover only with a mouse or trackpad (`hover: hover` and `pointer: fine`); focus and press work everywhere. Reduced motion: the line and fill appear at once and the 0.97 press is off. Passed: "Roll" (labels roll up letter by letter, an underlined copy rising from below), "Spring" (lift, grow and nudge on the Lurais spring).
 
 ## Assets
 Real project screenshots (Roudon-Smith Winery, J&T Express), his portrait (black and white, colour on hover), the About photo, the "your site" frames drawn empty in CSS. No stock mockups, no 3D, no AI images.
@@ -125,6 +129,6 @@ Numbers and code reads: docs/website-plan.md, "Reference motion".
 
 ## Open questions
 1. **Main action is late on Home (data). Decided: keep.** Book a call shows at 1.95–2.95 s (hero) and 2.08–3.08 s (nav). It's the approved hero load (Criztian, 2026-10-30).
-2. **The interaction layer never had its own run (data).** 22 of 24 Home links and buttons answer with an instant swap (underline or colour, 0 s transition); the logo has no hover. taste.md asks for a physical answer within 100 ms. Fix with `/wmotion interactions` in cc when he wants it.
+2. **The interaction layer (data). Done 2026-10-30, Home first.** Measured before at 1440: 15 of 24 Home clickables had the UI kit's 150 ms `transition: all`, but only Book a call's colour actually eased (an underline can't transition); 9 had nothing, the logo no hover. Criztian picked "Timed swap" (1 of 3). After: 24 of 24 answer within 100 ms on hover and on keyboard focus at 1440, 22 of 22 on focus at 390. Shared pieces carry it to every page; still instant: the `/blog` title underlines.
 3. **Not measured:** frame rate on a real mid-range phone (phase 5's "Done when" still says so); touch sizes in this audit (taken from cc's log).
 4. **Accessibility, from cc's log, still open:** the WORK heading's letters have no `aria-label`, so it can read "W O R K".

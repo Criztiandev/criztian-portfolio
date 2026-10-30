@@ -15,6 +15,8 @@ const HEADING_STEP_PX = 40
 const LETTER_FROM_PX = 120
 const LETTER_STEP_PX = 6
 const SUMMARY_AFTER_PX = 60
+const LINE_STEP_MS = 30
+const LINE_STAGGER_CAP_MS = 150
 
 function scrollRange(startPx: number, lengthPx: number): React.CSSProperties {
   return {
@@ -34,15 +36,21 @@ function headingLetters(title: string) {
   ))
 }
 
+function lineDelay(wordIndex: number, wordCount: number): React.CSSProperties {
+  const stepMs = Math.min(LINE_STEP_MS, LINE_STAGGER_CAP_MS / wordCount)
+  return { "--line-delay": `${wordIndex * stepMs}ms` } as React.CSSProperties
+}
+
 function titleLetters(title: string) {
   const words: React.ReactNode[] = []
   let letterCount = 0
-  title.split(" ").forEach((word, wordIndex) => {
+  const titleWords = title.split(" ")
+  titleWords.forEach((word, wordIndex) => {
     const wordFromPx = LETTER_FROM_PX + letterCount * LETTER_STEP_PX
     const letters = Array.from(word).map((letter, index) => (
       <span
         key={index}
-        className="inline-block blog-letter group-hover:underline"
+        className="inline-block blog-letter"
         style={scrollRange(wordFromPx + index * LETTER_STEP_PX, RISE_PX)}
       >
         {letter}
@@ -52,12 +60,17 @@ function titleLetters(title: string) {
     words.push(
       <Fragment key={wordIndex}>
         {" "}
-        <span className="hero-mask inline-block">
-          <span
-            className="inline-block blog-word"
-            style={scrollRange(wordFromPx, RISE_PX)}
-          >
-            {letters}
+        <span
+          className="link-line inline-block"
+          style={lineDelay(wordIndex, titleWords.length)}
+        >
+          <span className="inline-block hero-mask">
+            <span
+              className="inline-block blog-word"
+              style={scrollRange(wordFromPx, RISE_PX)}
+            >
+              {letters}
+            </span>
           </span>
         </span>
       </Fragment>
@@ -71,7 +84,7 @@ function HomePostRow({ post }: { post: Post }) {
   const metaFromPx = LETTER_FROM_PX + letterCount * LETTER_STEP_PX
 
   return (
-    <li className="group relative flex flex-col gap-4 border-t border-graphite py-10 blog-row xl:flex-row xl:justify-between">
+    <li className="group relative flex blog-row flex-col gap-4 border-t border-graphite py-10 xl:flex-row xl:justify-between">
       <div className="flex flex-col gap-3 xl:w-190">
         <h3 className="font-heading text-heading-h2 text-balance">
           <Link href={`/blog/${post.slug}`} className={postLinkClassName}>
@@ -107,7 +120,7 @@ export function HomeBlogSection({ posts }: { posts: Post[] }) {
             aria-label={BLOG.title}
             className="font-heading text-heading-h1 md:text-display-l"
           >
-            <span aria-hidden="true" className="hero-mask inline-block">
+            <span aria-hidden="true" className="inline-block hero-mask">
               {headingLetters(BLOG.title)}
             </span>
           </h2>
