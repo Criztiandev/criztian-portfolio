@@ -206,7 +206,7 @@ Near-monochrome: black and paper, with one red that means "act" or "count".
 
 Mobile-first with three drawn sizes: Phone 390 (works 360–767), Tablet 768 (768–1279), Desktop 1440 (1280 and up). Large 1920 is drawn too (1536 and up). Page max **1920**, content max **1840** (40 px gutters), centered above 1920; black bands stay full-bleed. The big parts stretch to 1840 (the hero name, giant section words, screenshots, grids); reading text stays at most 720 px wide.
 
-Spacing follows the Tailwind 4 px scale (tokens 1–40 = 4–160 px). Sections breathe: 120 px top and bottom on desktop, 96 on tablet, 80 on phone. Desktop right-hand copy columns start on one line (x 1060 in the 1440 frame).
+Spacing follows the Tailwind 4 px scale (tokens 1–40 = 4–160 px). Sections breathe: 120 px top and bottom on desktop, 96 on tablet, 80 on phone. On Home a breather gap sits between the sections on top of that: `--spacing-breather` 35svh at 1280 and up, `--spacing-breather-small` 18svh below (Criztian, 2026-10-30: the page felt "super compact"). Desktop right-hand copy columns start on one line (x 1060 in the 1440 frame).
 
 ## Elevation & Depth
 
@@ -261,7 +261,7 @@ Story sections are beats in the scroll story and get 3 concepts at their `/wmoti
 | #   | Section                        | Type              | Beat                                                                                                                                                                                                                                           |
 | --- | ------------------------------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0   | Nav                            | small, shipped    | Drops in after the hero lights up. Hides on the way down, returns on the way up.                                                                                                                                                               |
-| 1   | Hero                           | story, shipped    | Load: lights up from black. Exit ("Layers", no hold): as the visitor leaves, the name slides behind the sinking portrait and the copy rises out, dennissnellenberg.com's layers. Nothing dims.                                               |
+| 1   | Hero                           | story, shipped    | Load: lights up from black. Exit ("Layers", no hold, calmed by "Soft" 2026-10-30): as the visitor leaves, the name slides 160 px left behind the portrait and the copy rises out. The portrait no longer sinks. Nothing dims.                                               |
 | 2   | Stakes                         | story, shipped    | The page turns Paper White; the headline inks word by word.                                                                                                                                                                                    |
 | 3   | Work                           | story, the peak, shipped | "Long road": desktop with a mouse or trackpad, 1 screen of scroll per row (the row 1 beat plays as the section enters, then a 2-screen hold). The projects' screens ride one column that never stops; each set lights as it reaches its place and the matching row lights and opens; "Your place" lights last, its frames drawn empty, then Book a call rises. Rows follow the scroll both ways, not Figma's timed swap. |
 | 4   | How it works                   | small, shipped    | "Stairs": the 3 steps climb in at different heights and land in order; each step's parts close up and light as it lands, then its line draws in Smoke. Stacked under 1280, one step at a time.                                                  |
@@ -283,12 +283,12 @@ Every section title rises from its mask and lights as it enters; each section ad
 | Light      | Waits dim, then lights                            | Text opacity 20% → 100%; photos brightness 0.3 → 1                                          | shipped: `hero-light-up`, `hero-portrait-light`                  |
 | Ink        | Light, word by word in reading order              | 150 px of scroll per word, about 30 px apart (Stakes: 32.5 px for its 9 words)              | shipped: Stakes                                                  |
 | Mask rise  | Rises from below its own clip                     | Translate 110% → 0. Titles go word by word; WORK and PRICES letter by letter, like the name | shipped: `hero-mask-rise`                                        |
-| Photo rise | A photo rises from below its clip while it lights | TranslateY 100% → 0, with Light                                                             | shipped: hero portrait                                           |
+| Photo rise | A photo rises inside its clip while it lights     | TranslateY 100% → 0 on load (hero portrait); 25% → 0 on scroll (About), with Light          | shipped: hero portrait, `about-photo-rise`                       |
 | Small rise | Body text                                         | 24 px up, opacity 0 → 100%, over 200 px                                                     | shipped: Stakes body                                             |
 | Draw       | A hairline draws left to right                    | `clip-path: inset(0 100% 0 0)` → `inset(0)`, both keyframes written; Smoke over a Graphite track | Lurais's line draw; shipped: `steps-line`                        |
-| Stair      | Parts of an item rise from below its clip at growing depths and land together | Number, title, body from 160 / 200 / 240 px over 300 px; items 120 px apart. Timed on the 404: digits from 110 / 140 / 170% of their height over 1.6 s, 120 ms apart | shipped: `steps-rise` (How it works), `not-found-digit` (404)    |
+| Stair      | Parts of an item rise from below its clip at growing depths and land together | Number, title, body from 48 / 64 / 80 px over 300 px; items 120 px apart. Timed on the 404: digits from 110 / 140 / 170% of their height over 1.6 s, 120 ms apart | shipped: `steps-rise` (How it works), `not-found-digit` (404)    |
 | Open       | A card is uncovered top-down; nothing stretches   | `clip-path: inset(0 0 100% 0)` → `inset(0)`, both keyframes written; start once the card's top is well on screen (Prices: 360 px open, cards 100 px apart) | rule: clip, never scaleY; shipped: `prices-open` (Prices)        |
-| Slide      | The hero name moves sideways as the hero leaves; the portrait sinks behind it | Name 0.4 px left per px of scroll, portrait 0.3 px down per px (−400 / +300 px over 1000 px) | shipped: `hero-exit-slide`, `hero-exit-sink`; dennissnellenberg.com's code |
+| Slide      | The hero name moves sideways as the hero leaves, behind the portrait | Name 0.16 px left per px of scroll (−160 px over 1000 px); the portrait scrolls with the page | shipped: `hero-exit-slide`; dennissnellenberg.com's code, calmed |
 | Rise out   | Leaving text rises out instead of fading          | Words to −140% inside their mask, 150 px each, 30 px apart; body 24 px up while it fades, 200 px each, 100 px apart | shipped: `hero-exit-rise`, `hero-exit-copy`                      |
 | Spotlight  | One row lit Paper White, the rest Smoke           | Work rows, desktop                                                                          | Figma plan                                                       |
 
@@ -299,6 +299,7 @@ Every section title rises from its mask and lights as it enters; each section ad
 - Words and letters start 30–50 px apart. List items (steps, numbers, cards, rows) start at least 100 px apart, so a group never moves at once.
 - Ranges count from when the section's top enters the screen (`animation-range: cover …`, like Stakes) and end before the page's last scroll position, so the footer always finishes lit.
 - Both ways: scrolling back up dims things again.
+- Calm (Criztian, 2026-10-30: visitors and clients must not get dizzy): no two layers moving against each other, climbs of 80 px at most, a 1.2 s glide.
 - Holds: Work only, on a desktop width with a mouse or trackpad, 1 screen of scroll per row.
 
 **Timed rules** (load and hover only):
@@ -348,7 +349,7 @@ Every section title rises from its mask and lights as it enters; each section ad
 ### Budget
 
 - CSS runs every move: scroll timelines for the reveals, `position: sticky` for the Work hold, transitions for hover. New JavaScript planned: 0 KB; any JavaScript goes to Criztian with its size first.
-- Lenis stays, the only motion JavaScript (2 s glide, mouse and trackpad only).
+- Lenis stays, the only motion JavaScript (1.2 s glide, mouse and trackpad only; 2 s until the calm pass, 2026-10-30).
 - The Motion library is gone (hero run, 2026-10-29). Only `MotionConfig` in `providers.tsx` used it; removing it saved 0.5 KB decoded (809.5 → 809.0 KB), and transferred stayed flat (237.5 → 237.7 KB), because tree-shaking had already dropped the rest.
 - No GSAP and no 3D. If the Work hold can't be built in CSS, GSAP comes back to Criztian with its size.
 - JS on `/` stays at or under 237.9 KB (transferred, phone 390, after Lenis). LCP and CLS can't get worse (last, hero exit run: 1136 ms and 0.031 median on the phone profile, JS 237.7 KB). Every run reports JS before and after.

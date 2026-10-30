@@ -101,7 +101,7 @@ export function HeroSection({ home }: { home: Home }) {
               {nameLetters(HERO.nameEnd, HERO.nameStart.length)}
             </span>
           </p>
-          <div className="absolute top-57.5 left-1/2 h-112.5 w-75 -translate-x-1/2 hero-exit-sink md:top-25 md:bottom-0 md:aspect-2/3 md:h-auto md:w-auto xl:top-0">
+          <div className="absolute top-57.5 left-1/2 h-112.5 w-75 -translate-x-1/2 md:top-25 md:bottom-0 md:aspect-2/3 md:h-auto md:w-auto xl:top-0">
             <div
               className="absolute inset-0 motion-safe:animate-hero-portrait"
               style={{ animationDelay: `0ms, ${LIGHTS_ON_MS}ms` }}

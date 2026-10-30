@@ -51,6 +51,9 @@
     --container-page: 120rem;
     --container-content: 115rem;
 
+    --spacing-breather: 35svh;
+    --spacing-breather-small: 18svh;
+
     --shadow-overlay: 0 24px 64px rgb(0 0 0 / 0.5);
 
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -177,13 +180,7 @@
 
 @keyframes hero-slide-out {
     to {
-        transform: translateX(-400px);
-    }
-}
-
-@keyframes hero-sink {
-    to {
-        transform: translateY(300px);
+        transform: translateX(-160px);
     }
 }
 
@@ -208,18 +205,6 @@
     @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
         @supports (animation-timeline: view()) {
             animation-name: hero-slide-out;
-            animation-timing-function: linear;
-            animation-fill-mode: both;
-            animation-timeline: --hero;
-            animation-range: exit 0px exit 1000px;
-        }
-    }
-}
-
-@utility hero-exit-sink {
-    @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
-        @supports (animation-timeline: view()) {
-            animation-name: hero-sink;
             animation-timing-function: linear;
             animation-fill-mode: both;
             animation-timeline: --hero;
@@ -663,15 +648,15 @@
 }
 
 @utility steps-number {
-    --steps-drop: calc(var(--spacing) * 40);
+    --steps-drop: calc(var(--spacing) * 12);
 }
 
 @utility steps-title {
-    --steps-drop: calc(var(--spacing) * 50);
+    --steps-drop: calc(var(--spacing) * 16);
 }
 
 @utility steps-body {
-    --steps-drop: calc(var(--spacing) * 60);
+    --steps-drop: calc(var(--spacing) * 20);
 }
 
 @utility steps-line {
@@ -701,10 +686,16 @@
     }
 }
 
+@keyframes about-photo-rise {
+    from {
+        transform: translateY(25%);
+    }
+}
+
 @utility about-photo {
     @media (width >= 80rem) and (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
         @supports (animation-timeline: view()) {
-            animation-name: hero-portrait-rise, hero-portrait-light;
+            animation-name: about-photo-rise, hero-portrait-light;
             animation-timing-function: linear;
             animation-fill-mode: both;
             animation-timeline: --about;

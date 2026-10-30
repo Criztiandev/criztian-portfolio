@@ -11,7 +11,7 @@ import type { Post } from "@/type/post.type"
 
 export function HomeView({ home, posts }: { home: Home; posts: Post[] }) {
   return (
-    <>
+    <div className="flex flex-col gap-y-breather-small xl:gap-y-breather">
       <HeroSection home={home} />
       <StakesSection home={home} />
       <WorkSection />
@@ -20,6 +20,6 @@ export function HomeView({ home, posts }: { home: Home; posts: Post[] }) {
       <HomeBlogSection posts={posts} />
       <PricesSection />
       <SiteFooter />
-    </>
+    </div>
   )
 }

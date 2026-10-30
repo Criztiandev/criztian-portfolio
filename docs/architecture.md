@@ -1804,8 +1804,8 @@ that import the packages, and that `next start` refuses an export.
 - The portrait rises from fully below its clip (`translateY(100%)`, the same move as the
   letters), so frame 1 is all background. A `brightness(0)` start was tried and dropped: pure
   black shows as a silhouette on `--color-black` (#0a0a0a). The load runs on an inner
-  `absolute inset-0` div; the outer div holds the position, the centering
-  `-translate-x-1/2` (the `translate` property) and the exit sink (see "Hero exit"). LCP stays
+  `absolute inset-0` div; the outer div holds the position and the centering
+  `-translate-x-1/2` (the `translate` property). LCP stays
   the portrait (1524 ms median).
 - The portrait's wrapper lights from `brightness(0.3)` with the name. Brightness, not
   opacity: an opacity fade shows its body as a grey box over the name, and a dim image still
@@ -1868,7 +1868,9 @@ that import the packages, and that `next start` refuses an export.
 - The feel is lurais.framer.website's, Criztian's reference (2026-10-29). Its Framer "Smooth
   Scroll" component runs `new Lenis({ duration: intensity / 10 })` at intensity 20: a 2 s
   glide on Lenis's default ease-out-expo. `SMOOTH_SCROLL` in `config/motion.config.ts` is the
-  one knob.
+  one knob. It is `duration: 1.2` since the calm pass (2026-10-30, see "Calm pass and
+  breather"): with 2, one 300 px wheel step reached 99% after 1222 ms, so the page kept
+  moving long after the hand stopped; with 1.2 it reaches it after 749 ms.
 - Only the wheel and trackpad glide. Touch keeps the phone's own scroll (`syncTouch` stays
   off: if the motion slows the phone page, the motion goes). Keyboard, scrollbar drag and
   find-in-page stay native, and Lenis moves the real window scroll, so `position: sticky`,
@@ -1902,7 +1904,7 @@ that import the packages, and that `next start` refuses an export.
   on the clicked nav link, which kept the bar open after every nav click. Every size, not
   desktop only as first planned (Criztian, 2026-10-29).
 - Known: Safari's bounce at the end of a page counts as a move up, so the nav comes back
-  there. A wheel glide runs on for up to 2 s after the last wheel step; that is the feel
+  there. A wheel glide runs on for up to 1.2 s after the last wheel step; that is the feel
   Criztian picked.
 
 ### Stakes ink (Phase 5)
@@ -1918,14 +1920,21 @@ that import the packages, and that `next start` refuses an export.
 
 ### Hero exit (Phase 5)
 
-- Criztian picked concept 1 of 3 ("Layers") on the lab, 2026-10-29. It is dennissnellenberg.com's hero exit, read from his code (docs/website-plan.md, "Reference motion: dennissnellenberg.com"). As the hero scrolls away, the name slides left 0.4 px per px of scroll and the portrait sinks 0.3 px per px, so the name passes behind it. The headline words rise out of their masks in reading order, then the sub, the buttons and the note rise out. Nothing dims: the thesis keeps passed things lit.
+- Criztian picked concept 1 of 3 ("Layers") on the lab, 2026-10-29. It is dennissnellenberg.com's hero exit, read from his code (docs/website-plan.md, "Reference motion: dennissnellenberg.com"). As the hero scrolls away, the name slides left 0.16 px per px of scroll and passes behind the portrait, which scrolls with the page. It was 0.4 px per px with the portrait sinking 0.3 px per px (dennissnellenberg.com's numbers) until the calm pass (2026-10-30): two layers moving in opposite directions is parallax, the example trigger in [WCAG 2.3.3](https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions), so the sink is gone and the slide is shorter. The headline words rise out of their masks in reading order, then the sub, the buttons and the note rise out. Nothing dims: the thesis keeps passed things lit.
 - CSS scroll-driven animation, no JS, so `HeroSection` stays a server component. The section names a view timeline (`hero-timeline`, `--hero`); the `hero-exit-*` utilities in `globals.css` run on it.
-- Ranges are px from the start of the hero's `exit` range, which is scroll 0 when the hero is one screen tall. So hero px and Stakes px share an origin: the headline is out by 420 px and the copy by 460 px, while the Stakes ink runs 250–660. The word and copy ranges are inline from the constants in `hero-section.tsx`, like Stakes. The name and portrait ranges (0–1000 px) sit in their utilities, next to their distances (−400 px, +300 px), so each ratio lives in one place.
+- Ranges are px from the start of the hero's `exit` range, which is scroll 0 when the hero is one screen tall. So hero px and Stakes px share an origin: the headline is out by 420 px and the copy by 460 px, while the Stakes ink runs 250–660. The word and copy ranges are inline from the constants in `hero-section.tsx`, like Stakes. The name's range (0–1000 px) sits in its utility, next to its distance (−160 px), so the ratio lives in one place.
 - Every exit move sits on its own wrapper element. The load animations and the letter hover already own `transform`, `translate`, `opacity` and `filter` on their elements, and a scroll animation (fill `both`) on the same element would override them all the time.
 - The words rise to `translateY(-140%)`: `hero-mask` leaves 0.3em above each word for Anton's tops, so the word must travel past that for its descenders to clear (crop at scroll 420: all black).
 - Linear (Lenis's glide is the easing), longhands only, guarded by `prefers-reduced-motion: no-preference`, `(hover: hover) and (pointer: fine)` and `@supports (animation-timeline: view())`. Touch screens get the load only (thesis touch line); reduced motion and Firefox get the still.
 - The 2 other concepts were "Lights out" (concept 1 plus the name and portrait dim while Stakes inks) and "Rewind" (a 1-screen hold that plays the load backwards). See docs/build-plan.md phase 5.
 - The Motion library (`motion`) is gone: only `MotionConfig` in `providers.tsx` used it, and no component animated with it.
+
+### Calm pass and breather (Phase 5)
+
+- Criztian picked concept 1 of 3 ("Soft") on the lab, 2026-10-30, so visitors don't get dizzy: every move stays with less travel (see "Hero exit", "How it works stairs", "About echo" and "Smooth scroll"). Not picked: "Still light" (nothing climbs or slides, every rise lights in place) and "One at a time" (each section keeps only its title and one beat).
+- The breather is a gap between the home sections (`gap-y-breather-small xl:gap-y-breather` on a flex column in `HomeView`), not more section padding. Every scroll range counts from its section's (or block's) top entering the screen, so more top padding would push each heading down and start its ramp below the fold: shorter visible ramps, more pops. A gap outside the sections leaves every timeline unchanged, Work's 300svh hold and the footer's room included. The hero's `-mt-16` still pulls it under the header inside the flex column.
+- The tokens are `svh`, not the px spacing scale, so the room scales with the screen: 35svh (315 px at 900 tall, 378 at 1080) at 1280 and up, 18svh (152 px at 844) below. The lab had 50svh / 25svh; Criztian asked for "minus at least 100", and 35svh is 100 px or more smaller on any screen 667 px tall or more.
+- Only Home gets the breather. The CMS canvas draws `HomeView`, so the editor shows it too.
 
 ### Work hold (Phase 5)
 
@@ -1976,7 +1985,7 @@ that import the packages, and that `next start` refuses an export.
 ### How it works stairs (Phase 5)
 
 - Criztian picked concept 2 of 3 ("Stairs") on the lab, 2026-10-30. The lab page was deleted after the pick. Not picked: 1 "Fuse" (the line draws first and lights each step) and 3 "Count" (each number ticks up one digit like an odometer, then lights its step).
-- How it moves: the heading words rise from their masks and light (150 px each, 40 px apart, from 180 px). Each step's number, title and body rise from below the step's own clip, from 160, 200 and 240 px down, so the parts close up as they climb and land together; the step lights in the last 150 px of its 300 px rise. Its line draws 60 px before it lands and finishes 90 px after.
+- How it moves: the heading words rise from their masks and light (150 px each, 40 px apart, from 180 px). Each step's number, title and body rise from below the step's own clip, from 48, 64 and 80 px down (160, 200 and 240 until the calm pass, 2026-10-30), so the parts close up as they climb and land together; the step lights in the last 150 px of its 300 px rise. Its line draws 60 px before it lands and finishes 90 px after.
 - CSS scroll-driven animation, no JS, so `StepsSection` stays a server component. Linear, longhands only, guarded by `prefers-reduced-motion: no-preference` and `@supports (animation-timeline: view())`, like Stakes. It reuses the hero's `hero-mask-rise` and `hero-light-up` keyframes (emitted because the hero's `--animate-*` utilities use them).
 - Two timelines, picked by width, so touch gets one move per scene without a separate build:
   - 1280 px and wider, the 3-column row: every step runs on the section's timeline (`--steps`) and starts 120 px after the one before it (300 / 420 / 540 px after the section's top enters). While they climb, the three steps sit at different heights, like stairs.
@@ -1991,7 +2000,7 @@ that import the packages, and that `next start` refuses an export.
 ### About echo (Phase 5)
 
 - Criztian picked concept 1 of 3 ("Echo") on the lab, 2026-10-30. The lab page was deleted after the pick. Not picked: 2 "Out from behind" (the photo lifts back up and the heading slides out from behind its edge, the hero exit in reverse) and 3 "Shutter" (the photo opens from a center line, the body and each stat open top-down by clip).
-- How it moves: the section replays the hero load with the scroll. "Hi," and "I'm" rise from their masks and light (150 px each, 40 px apart, from 180 px). "Criztian." rises letter by letter like the hero name (30 px apart). The photo rises from below its frame (300–700 px) and lights from brightness 0.3 (450–700). The body rises 24 px. Each red number rises from its mask and lights, and its label rises 80 px later.
+- How it moves: the section replays the hero load with the scroll. "Hi," and "I'm" rise from their masks and light (150 px each, 40 px apart, from 180 px). "Criztian." rises letter by letter like the hero name (30 px apart). The photo rises 25% of its height inside its frame (300–700 px; `about-photo-rise`, its own keyframes because the hero load and the touch Work screens still rise 100% with `hero-portrait-rise`) and lights from brightness 0.3 (450–700). It rose its whole height until the calm pass (2026-10-30): about 540 px over 400 px of scroll, so it moved faster than the page. The body rises 24 px. Each red number rises from its mask and lights, and its label rises 80 px later.
 - CSS scroll-driven animation, no JS, so `AboutSection` stays a server component. Linear, longhands only, guarded by `prefers-reduced-motion: no-preference` and `@supports (animation-timeline: view())`. It reuses the hero's keyframes (`hero-mask-rise`, `hero-light-up`, `hero-portrait-rise`, `hero-portrait-light`, `hero-copy-up`).
 - Three timelines, so every width gets the right timing without a separate build:
   - `--about` (the section): the heading at every width (it is at the top of the section on every layout) and the photo.
