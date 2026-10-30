@@ -108,7 +108,7 @@ Slice: n/a, built before v0.3
 | Work row names | the line, under the name (under the block if it wraps) | 0.97 | ring and the line | press only | as text buttons | n/a |
 | Work stage shots (desktop hold, mouse only) | lift 1.02 (unchanged) | none | not focusable (duplicates of the row links) | — | Lurais spring 400 ms | n/a |
 | Home blog rows | lift 1.01; the title's line draws word by word | the row settles to 1 | as hover, plus the ring | none | lift: Lurais spring 400 ms; line 300 / 200 ms, words 30 ms apart, 150 ms at most | n/a |
-| `/blog` rows | lift 1.01; title underline (still instant) | settles to 1 | lift and ring | none | Lurais spring 400 ms | n/a |
+| `/blog` rows | lift 1.01; older rows: the title's line draws word by word; the featured title: one line under its last line, left to right | settles to 1 | as hover, plus the ring | none | lift: Lurais spring 400 ms; line 300 / 200 ms, words 30 ms apart, 150 ms at most | n/a |
 | Logo | the line under the mark | 0.97 | ring and the line | press only | as text buttons | n/a |
 | Footer email, Blog, Privacy; phone menu links | the line | 0.97 | ring and the line | press only | as text buttons | n/a |
 | Menu and close buttons | Graphite background (UI kit) | none | ring | — | 150 ms | n/a |
@@ -129,6 +129,6 @@ Numbers and code reads: docs/website-plan.md, "Reference motion".
 
 ## Open questions
 1. **Main action is late on Home (data). Decided: keep.** Book a call shows at 1.95–2.95 s (hero) and 2.08–3.08 s (nav). It's the approved hero load (Criztian, 2026-10-30).
-2. **The interaction layer (data). Done 2026-10-30, Home first.** Measured before at 1440: 15 of 24 Home clickables had the UI kit's 150 ms `transition: all`, but only Book a call's colour actually eased (an underline can't transition); 9 had nothing, the logo no hover. Criztian picked "Timed swap" (1 of 3). After: 24 of 24 answer within 100 ms on hover and on keyboard focus at 1440, 22 of 22 on focus at 390. Shared pieces carry it to every page; still instant: the `/blog` title underlines.
+2. **The interaction layer (data). Done 2026-10-30, Home first.** Measured before at 1440: 15 of 24 Home clickables had the UI kit's 150 ms `transition: all`, but only Book a call's colour actually eased (an underline can't transition); 9 had nothing, the logo no hover. Criztian picked "Timed swap" (1 of 3). After: 24 of 24 answer within 100 ms on hover and on keyboard focus at 1440, 22 of 22 on focus at 390. Shared pieces carry it to every page; the `/blog` titles followed the same day (older rows word by word; the featured title, too tightly set for lines between its lines, gets one line under its last line).
 3. **Not measured:** frame rate on a real mid-range phone (phase 5's "Done when" still says so); touch sizes in this audit (taken from cc's log).
 4. **Accessibility, from cc's log, still open:** the WORK heading's letters have no `aria-label`, so it can read "W O R K".

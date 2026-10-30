@@ -1,7 +1,11 @@
 import Link from "next/link"
 import { Fragment } from "react"
 
-import { PostMeta, postLinkClassName } from "@/components/blog-list-view"
+import {
+  PostMeta,
+  lineDelay,
+  postLinkClassName,
+} from "@/components/blog-list-view"
 import { PostSummary } from "@/components/post-body"
 import { buttonVariants } from "@/components/ui/button"
 import { ALL_POSTS_LINK, BLOG, LATEST_POST_COUNT } from "@/data/blog.data"
@@ -15,8 +19,6 @@ const HEADING_STEP_PX = 40
 const LETTER_FROM_PX = 120
 const LETTER_STEP_PX = 6
 const SUMMARY_AFTER_PX = 60
-const LINE_STEP_MS = 30
-const LINE_STAGGER_CAP_MS = 150
 
 function scrollRange(startPx: number, lengthPx: number): React.CSSProperties {
   return {
@@ -34,11 +36,6 @@ function headingLetters(title: string) {
       {letter}
     </span>
   ))
-}
-
-function lineDelay(wordIndex: number, wordCount: number): React.CSSProperties {
-  const stepMs = Math.min(LINE_STEP_MS, LINE_STAGGER_CAP_MS / wordCount)
-  return { "--line-delay": `${wordIndex * stepMs}ms` } as React.CSSProperties
 }
 
 function titleLetters(title: string) {

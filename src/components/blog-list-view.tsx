@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Fragment } from "react"
 
 import { PostSummary } from "@/components/post-body"
 import { SiteFooter } from "@/components/site-footer"
@@ -25,11 +26,44 @@ const ROW_TITLE_LIGHT_PX = 160
 const ROW_SUMMARY_LIGHT_PX = 180
 const ROW_META_LIGHT_PX = 240
 
+const LINE_STEP_MS = 30
+const LINE_STAGGER_CAP_MS = 150
+
 export const postLinkClassName =
   "outline-none after:absolute after:inset-0 focus-visible:after:ring-2 focus-visible:after:ring-paper"
 
 function loadDelay(delayMs: number): React.CSSProperties {
   return { animationDelay: `${delayMs}ms` }
+}
+
+export function lineDelay(
+  wordIndex: number,
+  wordCount: number
+): React.CSSProperties {
+  const stepMs = Math.min(LINE_STEP_MS, LINE_STAGGER_CAP_MS / wordCount)
+  return { "--line-delay": `${wordIndex * stepMs}ms` } as React.CSSProperties
+}
+
+function PostTitleLink({ post }: { post: Post }) {
+  const titleWords = post.title.split(" ")
+  return (
+    <Link href={`/blog/${post.slug}`} className={postLinkClassName}>
+      <span className="sr-only">{post.title}</span>
+      <span aria-hidden="true">
+        {titleWords.map((word, wordIndex) => (
+          <Fragment key={wordIndex}>
+            {" "}
+            <span
+              className="link-line inline-block"
+              style={lineDelay(wordIndex, titleWords.length)}
+            >
+              {word}
+            </span>
+          </Fragment>
+        ))}
+      </span>
+    </Link>
+  )
 }
 
 function rowLightRange(startPx: number): React.CSSProperties {
@@ -58,11 +92,10 @@ function FeaturedPost({ post }: { post: Post }) {
         className="font-heading text-heading-h1 text-balance motion-safe:animate-blog-light md:text-display-l xl:w-275"
         style={loadDelay(FEATURED_TITLE_LIGHT_MS)}
       >
-        <Link
-          href={`/blog/${post.slug}`}
-          className={cn(postLinkClassName, "group-hover:underline")}
-        >
-          {post.title}
+        <Link href={`/blog/${post.slug}`} className={postLinkClassName}>
+          <span className="link-line link-line-last">
+            {post.title}
+          </span>
         </Link>
       </h2>
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
@@ -108,12 +141,7 @@ export function PostRow({
           className="font-heading text-heading-h2 text-balance blog-list-light"
           style={rowLightRange(ROW_TITLE_LIGHT_PX)}
         >
-          <Link
-            href={`/blog/${post.slug}`}
-            className={cn(postLinkClassName, "group-hover:underline")}
-          >
-            {post.title}
-          </Link>
+          <PostTitleLink post={post} />
         </Title>
         <div
           className="blog-list-light"

@@ -851,6 +851,10 @@
     --line-top: calc(100% + 0.12em);
 }
 
+@utility link-line-last {
+    --line-top: calc(100% - 0.15em);
+}
+
 @utility button-fill {
     position: absolute;
     inset: 0;
