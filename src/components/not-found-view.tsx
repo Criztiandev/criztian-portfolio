@@ -56,7 +56,7 @@ function messageWords() {
 
 export function NotFoundView() {
   return (
-    <section className="bg-black">
+    <section className="overflow-clip bg-black">
       <div className="mx-auto flex min-h-[calc(100svh-4rem)] max-w-page flex-col justify-end gap-10 px-4 pt-10 pb-6 md:px-8 md:pb-8 xl:min-h-[calc(100svh-5rem)] xl:px-10 xl:pb-10">
         <p className="font-heading text-display-giant-phone text-paper md:text-display-giant-tablet xl:text-display-giant-desktop">
           <span className="sr-only">{NOT_FOUND.code}</span>

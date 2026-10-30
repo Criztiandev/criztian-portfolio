@@ -206,7 +206,7 @@ Near-monochrome: black and paper, with one red that means "act" or "count".
 
 Mobile-first with three drawn sizes: Phone 390 (works 360–767), Tablet 768 (768–1279), Desktop 1440 (1280 and up). Large 1920 is drawn too (1536 and up). Page max **1920**, content max **1840** (40 px gutters), centered above 1920; black bands stay full-bleed. The big parts stretch to 1840 (the hero name, giant section words, screenshots, grids); reading text stays at most 720 px wide.
 
-Spacing follows the Tailwind 4 px scale (tokens 1–40 = 4–160 px). Sections breathe: 120 px top and bottom on desktop, 96 on tablet, 80 on phone. On Home a breather gap sits between the sections on top of that: `--spacing-breather` 35svh at 1280 and up, `--spacing-breather-small` 18svh below (Criztian, 2026-10-30: the page felt "super compact"). Desktop right-hand copy columns start on one line (x 1060 in the 1440 frame).
+Spacing follows the Tailwind 4 px scale (tokens 1–40 = 4–160 px). Sections breathe: 120 px top and bottom on desktop, 96 on tablet, 80 on phone. On Home a breather gap sits between the sections on top of that: `--spacing-breather` 25svh at 1280 and up, `--spacing-breather-small` 12svh below (Criztian, 2026-10-30: the page felt "super compact", then 35svh was "still too far"). Desktop right-hand copy columns start on one line (x 1060 in the 1440 frame).
 
 ## Elevation & Depth
 

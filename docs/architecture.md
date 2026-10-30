@@ -1933,7 +1933,7 @@ that import the packages, and that `next start` refuses an export.
 
 - Criztian picked concept 1 of 3 ("Soft") on the lab, 2026-10-30, so visitors don't get dizzy: every move stays with less travel (see "Hero exit", "How it works stairs", "About echo" and "Smooth scroll"). Not picked: "Still light" (nothing climbs or slides, every rise lights in place) and "One at a time" (each section keeps only its title and one beat).
 - The breather is a gap between the home sections (`gap-y-breather-small xl:gap-y-breather` on a flex column in `HomeView`), not more section padding. Every scroll range counts from its section's (or block's) top entering the screen, so more top padding would push each heading down and start its ramp below the fold: shorter visible ramps, more pops. A gap outside the sections leaves every timeline unchanged, Work's 300svh hold and the footer's room included. The hero's `-mt-16` still pulls it under the header inside the flex column.
-- The tokens are `svh`, not the px spacing scale, so the room scales with the screen: 35svh (315 px at 900 tall, 378 at 1080) at 1280 and up, 18svh (152 px at 844) below. The lab had 50svh / 25svh; Criztian asked for "minus at least 100", and 35svh is 100 px or more smaller on any screen 667 px tall or more.
+- The tokens are `svh`, not the px spacing scale, so the room scales with the screen: 25svh (225 px at 900 tall, 270 at 1080) at 1280 and up, 12svh (101 px at 844) below. The lab had 50svh / 25svh; Criztian asked for "minus at least 100" (35svh / 18svh), then found that "still too far can you make them closer a little" the same day.
 - Only Home gets the breather. The CMS canvas draws `HomeView`, so the editor shows it too.
 
 ### Work hold (Phase 5)
@@ -2088,6 +2088,7 @@ that import the packages, and that `next start` refuses an export.
 - Touch gets the light version: `not-found-word` (the message words and Back to home) runs only with hover and a fine pointer; `not-found-digit` and `not-found-call` run everywhere. Width doesn't gate it, because the move doesn't depend on the layout.
 - The "404" digits are `aria-hidden` with an `sr-only` copy, so screen readers don't spell "4 0 4". The h1 splits into words with the spaces kept, so its name stays "This page doesn't exist." (public.spec reads it).
 - Book a call and Back to home sit in padded `overflow: clip` wrappers (4 px, net zero with `-m-1`) like the footer's, so their focus rings aren't cut.
+- The section itself is `overflow-clip`, like the hero's. `hero-mask` is a `clip-path`, which hides the waiting digits but still counts them in the page height, so at load frame 1 the page was 1509 px tall at 1440×900 (900 settled) and could flash a scrollbar. The clip sits on the section, not on a wrapper around the digits, because `hero-mask` lets the glyphs spill 0.3em above their box and a wrapper would cut that.
 - Reduced motion gets the still: everything lit and in place.
 
 ### Privacy open (Phase 5)

@@ -51,8 +51,8 @@
     --container-page: 120rem;
     --container-content: 115rem;
 
-    --spacing-breather: 35svh;
-    --spacing-breather-small: 18svh;
+    --spacing-breather: 25svh;
+    --spacing-breather-small: 12svh;
 
     --shadow-overlay: 0 24px 64px rgb(0 0 0 / 0.5);
 
